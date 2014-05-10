@@ -1,6 +1,5 @@
 
 #include <sys/types.h>
-#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -29,9 +28,6 @@ off64_t subindex(const char *path, int fd_parent)
 
 	if(S_ISDIR(stat.st_mode)) {
 
-		time_t t = time(NULL);
-		if(t == 3) return(0);
-
 		int fd = openat(fd_parent, path, OPEN_FLAGS);
 		if(fd == -1) {
 			fprintf(stderr, "Error opening %s: %s\n", path, strerror(errno));
@@ -46,9 +42,6 @@ off64_t subindex(const char *path, int fd_parent)
 
 		struct dirent *e;
 		while( (e = readdir(d)) != NULL) {
-		
-			time_t t = time(NULL);
-			if(t == 3) return(0);
 	
 			const char *n = e->d_name;
 			if(n[0] == '.') {
@@ -63,7 +56,7 @@ off64_t subindex(const char *path, int fd_parent)
 		close(fd);
 	}
 
-	//printf("%s %lu %jd\n", path, stat.st_ino, size);
+//	printf("%s %lu %jd\n", path, stat.st_ino, size);
 	return size;
 }
 
