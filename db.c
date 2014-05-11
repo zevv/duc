@@ -43,14 +43,6 @@ void db_close(struct db *db)
 }
 
 
-static int fn_comp_child(const void *a, const void *b)
-{
-	const struct db_child *da = a;
-	const struct db_child *db = b;
-	return(da->size < db->size);
-}
-
-
 int db_root_write(struct db *db, const char *path, dev_t dev, ino_t ino)
 {
 	char key[PATH_MAX];
@@ -68,11 +60,33 @@ struct db_node *db_node_new(dev_t dev, ino_t ino)
 
 	node = malloc(sizeof(struct db_node));
 	assert(node);
-	node->child_list = NULL;
 	node->child_count = 0;
+	node->child_max = 32;
 	node->dev = dev;
 	node->ino = ino;
+
+	node->child_list = malloc(sizeof(struct db_child) * node->child_max);
+	assert(node->child_list);
+
 	return node;
+}
+
+
+void db_node_add_child(struct db_node *node, const char *name, off_t size, dev_t dev, ino_t ino)
+{
+	if(node->child_count >= node->child_max) {
+		node->child_max *= 2;
+		node->child_list = realloc(node->child_list, sizeof(struct db_child) * node->child_max);
+		assert(node->child_list);
+	}
+
+	struct db_child *child = &node->child_list[node->child_count];
+	node->child_count ++;
+
+	strncpy(child->name, name, sizeof(child->name));
+	child->size = size;
+	child->dev = dev;
+	child->ino = ino;
 }
 
 
@@ -90,8 +104,6 @@ struct db_node *db_read_node(struct db *db, dev_t dev, ino_t ino)
 	struct db_node *node = db_node_new(dev, ino);
 	node->child_list = (void *)val;
 	node->child_count = vall / sizeof(struct db_child);
-
-	qsort(node->child_list, node->child_count, sizeof(struct db_child), fn_comp_child);
 
 	return node;
 }

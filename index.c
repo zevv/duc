@@ -13,7 +13,7 @@
 
 #include "db.h"
 
-#define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW | O_NOATIME)
+#define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
 
 
 struct index {
@@ -26,7 +26,12 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 {
 	off_t size_total = 0;
 
-	int fd = openat(fd_dir, path, OPEN_FLAGS);
+	int fd = openat(fd_dir, path, OPEN_FLAGS | O_NOATIME);
+
+	if(fd == -1 && errno == EPERM) {
+		fd = openat(fd_dir, path, OPEN_FLAGS);
+	}
+
 	if(fd == -1) {
 		fprintf(stderr, "Error opening %s: %s\n", path, strerror(errno));
 		return 0;
@@ -40,9 +45,6 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 	struct db_node *node = db_node_new(stat_dir->st_dev, stat_dir->st_ino);
 
-	size_t child_max = 32;
-	node->child_list = malloc(child_max * sizeof(struct db_child));
-	assert(node->child_list);
 
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
@@ -54,46 +56,30 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		}
 
 		struct stat stat;
-
 		int r = fstatat(fd, e->d_name, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
 			fprintf(stderr, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			return 0;
 		}
-
-		/* Realloc child list if growing out of bounds */
-
-		if(node->child_count >= child_max) {
-			child_max = child_max * 2;
-			node->child_list = realloc(node->child_list, child_max * sizeof(struct db_child));
-			assert(node->child_list);
-		}
 		
 		if(S_ISREG(stat.st_mode) || S_ISDIR(stat.st_mode)) {
 
-			struct db_child *child = &node->child_list[node->child_count];
-			node->child_count ++;
+			off_t size = 0;
 
-			strncpy(child->name, e->d_name, sizeof(child->name));
-			
 			if(S_ISREG(stat.st_mode)) {
-				child->size = stat.st_size;
-				child->dev = 0;
-				child->ino = 0;
+				size = stat.st_size;
 			}
 
 			if(S_ISDIR(stat.st_mode)) {
-				child->size = index_dir(index, e->d_name, fd, &stat);
-				child->dev = stat.st_dev;
-				child->ino = stat.st_ino;
+				size = index_dir(index, e->d_name, fd, &stat);
 			}
 
-			size_total += child->size;
+			db_node_add_child(node, e->d_name, size, stat.st_dev, stat.st_ino);
+			size_total += size;
 		}
 	}
 
 	db_node_write(index->db, node);
-	free(node->child_list);
 	db_node_free(node);
 
 	closedir(d);

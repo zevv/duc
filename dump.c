@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 #include "db.h"
 
@@ -34,11 +35,31 @@ char *human_size(off_t size)
 }
 
 
+static int fn_comp_child(const void *a, const void *b)
+{
+	const struct db_child *da = a;
+	const struct db_child *db = b;
+	return(da->size < db->size);
+}
+
 int dump(struct db *db, const char *path)
 {
 	struct db_node *node;
+	int width = 80;
+
+	/* Get terminal width, if a tty */
+
+	if(isatty(0)) {
+		struct winsize w;
+		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+		if(r == 0) width = w.ws_col;
+	}
+
+	width = width - 29;
 
 	node = db_find_dir(db, path);
+	
+	qsort(node->child_list, node->child_count, sizeof(struct db_child), fn_comp_child);
 
 	if(node == NULL) return -1;
 
@@ -56,7 +77,7 @@ int dump(struct db *db, const char *path)
 	for(i=0; i<node->child_count; i++) {
 		struct db_child *child = &node->child_list[i];
 
-		int w = 50 * child->size / size_max;
+		int w = width * child->size / size_max;
 
 		char *siz = human_size(child->size);
 		printf("%-20.20s %s ", child->name, siz);
@@ -67,8 +88,14 @@ int dump(struct db *db, const char *path)
 		printf("\n");
 
 		child ++;
+
+		if(i>30) break;
 	}
-	
+
+	char *siz = human_size(size_total);
+	printf("Total: %s\n", siz);
+	free(siz);
+
 	return 0;
 }
 
