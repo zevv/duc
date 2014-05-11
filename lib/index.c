@@ -13,12 +13,13 @@
 
 #include "db.h"
 #include "wamb.h"
+#include "wamb_internal.h"
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
 
 
 struct index {
-	struct db *db;
+	struct wamb *wamb;
 	size_t file_count;
 	size_t dir_count;
 };
@@ -45,7 +46,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		return 0;
 	}
 
-	struct db_node *node = db_node_new(stat_dir->st_dev, stat_dir->st_ino);
+	struct wamb_node *node = wamb_node_new(stat_dir->st_dev, stat_dir->st_ino);
 
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
@@ -77,13 +78,13 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 				index->dir_count ++;
 			}
 
-			db_node_add_child(node, e->d_name, size, stat.st_dev, stat.st_ino);
+			wamb_node_add_child(node, e->d_name, size, stat.st_dev, stat.st_ino);
 			size_total += size;
 		}
 	}
 
-	db_node_write(index->db, node);
-	db_node_free(node);
+	wamb_node_write(index->wamb, node);
+	wamb_node_free(node);
 
 	closedir(d);
 	close(fd);
@@ -92,17 +93,12 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 }	
 
 
-int wamb_index(const char *path_db, const char *path, int flags)
+int wamb_index(struct wamb *wamb, const char *path, int flags)
 {
-	struct db *db = db_open(path_db, "wc");
-	if(db == NULL) {
-		return -1;
-	}
-
 	struct index index;
 	memset(&index, 0, sizeof index);
 
-	index.db = db;
+	index.wamb = wamb;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
@@ -117,7 +113,7 @@ int wamb_index(const char *path_db, const char *path, int flags)
 		return 0;
 	}
 
-	db_root_write(db, path_canon, stat.st_dev, stat.st_ino);
+	wamb_root_write(wamb, path_canon, stat.st_dev, stat.st_ino);
 
 	off_t size = index_dir(&index, path, 0, &stat);
 
@@ -125,8 +121,6 @@ int wamb_index(const char *path_db, const char *path, int flags)
 
 	fprintf(stderr, "Indexed %zu files and %zu directories, %jd bytes\n", 
 			index.file_count, index.dir_count, size);
-
-	db_close(db);
 
 	return 0;
 }

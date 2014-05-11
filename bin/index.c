@@ -44,7 +44,11 @@ static int index_main(int argc, char **argv)
 		return -1;
 	}
 
-	wamb_index(path_db, argv[0], 0);
+	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RW);
+	if(wamb == NULL) return -1;
+
+	wamb_index(wamb, argv[0], 0);
+	wamb_close(wamb);
 
 	return 0;
 }

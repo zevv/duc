@@ -10,7 +10,8 @@
 #include <sys/ioctl.h>
 
 #include "cmd.h"
-#include "db.h"
+#include "wamb.h"
+#include "wamb_internal.h"
 
 
 static int human_readable = 0;
@@ -42,16 +43,16 @@ char *human_size(off_t size)
 
 static int fn_comp_child(const void *a, const void *b)
 {
-	const struct db_child *da = a;
-	const struct db_child *db = b;
+	const struct wamb_child *da = a;
+	const struct wamb_child *db = b;
 	return(da->size < db->size);
 }
 
 
 
-static int ls(struct db *db, const char *path)
+static int ls(struct wamb *wamb, const char *path)
 {
-	struct db_node *node;
+	struct wamb_node *node;
 	int width = 80;
 
 	/* Get terminal width, if a tty */
@@ -70,14 +71,14 @@ static int ls(struct db *db, const char *path)
 		return -1;
 	}
 
-	node = db_find_dir(db, path_canon);
+	node = wamb_find_dir(wamb, path_canon);
 	free(path_canon);
 
 	if(node == NULL) {
 		fprintf(stderr, "Path not found in database\n");
 		return -1;
 	}
-	qsort(node->child_list, node->child_count, sizeof(struct db_child), fn_comp_child);
+	qsort(node->child_list, node->child_count, sizeof(struct wamb_child), fn_comp_child);
 
 	if(node == NULL) return -1;
 
@@ -87,7 +88,7 @@ static int ls(struct db *db, const char *path)
 	off_t size_max = 0;
 
 	for(i=0; i<node->child_count; i++) {
-		struct db_child *child = &node->child_list[i];
+		struct wamb_child *child = &node->child_list[i];
 		if(child->size > size_max) size_max = child->size;
 		size_total += child->size;
 	}
@@ -95,7 +96,7 @@ static int ls(struct db *db, const char *path)
 	off_t size_rest = 0;
 
 	for(i=0; i<node->child_count; i++) {
-		struct db_child *child = &node->child_list[i];
+		struct wamb_child *child = &node->child_list[i];
 
 		if(limit == 0 || i < limit) {
 
@@ -163,9 +164,9 @@ static int ls_main(int argc, char **argv)
 
 	char *path = ".";
 	if(argc > 0) path = argv[0];
-	struct db *db = db_open(path_db, "r");
-	ls(db, path);
-	db_close(db);
+	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RO);
+	ls(wamb, path);
+	wamb_close(wamb);
 
 	return 0;
 }
