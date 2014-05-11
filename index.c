@@ -45,7 +45,6 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 	struct db_node *node = db_node_new(stat_dir->st_dev, stat_dir->st_ino);
 
-
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
 
@@ -89,16 +88,12 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 }	
 
 
-
-
 off_t ps_index(struct db *db, const char *path)
 {
 	struct index index;
 
 	index.id_seq = 0;
 	index.db = db;
-
-//	kcdbopen(index.db, "files.kch#opts=", KCOWRITER | KCOCREATE);
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
@@ -122,30 +117,6 @@ off_t ps_index(struct db *db, const char *path)
 	return size;
 }
 
-
-int dump(struct db *db, const char *path);
-
-
-int main(int argc, char **argv)
-{
-
-	if(argv[1][0] == 'd') {
-		struct db *db = db_open("r");
-		dump(db, argv[2]);
-		db_close(db);
-	}
-
-	if(argv[1][0] == 'i') {
-		struct db *db = db_open("wc");
-		off_t size = 0;
-		size = ps_index(db, argv[2]);
-		printf("%jd %.2f\n", size, size / (1024.0*1024.0*1024.0));
-		db_close(db);
-	}
-
-
-	return 0;
-}
 
 /*
  * End
