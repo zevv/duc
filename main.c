@@ -10,8 +10,10 @@ int main(int argc, char **argv)
 {
 
 	if(argv[1][0] == 'd') {
+		char *path = ".";
+		if(argc > 2) path = argv[2];
 		struct db *db = db_open("r");
-		dump(db, argv[2]);
+		dump(db, path);
 		db_close(db);
 	}
 

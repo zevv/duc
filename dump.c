@@ -42,10 +42,12 @@ static int fn_comp_child(const void *a, const void *b)
 	return(da->size < db->size);
 }
 
+
 int dump(struct db *db, const char *path)
 {
 	struct db_node *node;
 	int width = 80;
+	
 
 	/* Get terminal width, if a tty */
 
@@ -57,8 +59,19 @@ int dump(struct db *db, const char *path)
 
 	width = width - 29;
 
-	node = db_find_dir(db, path);
-	
+	char *path_canon = realpath(path, NULL);
+	if(path_canon == NULL) {
+		fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
+		return -1;
+	}
+
+	node = db_find_dir(db, path_canon);
+	free(path_canon);
+
+	if(node == NULL) {
+		fprintf(stderr, "Path not found in database\n");
+		return -1;
+	}
 	qsort(node->child_list, node->child_count, sizeof(struct db_child), fn_comp_child);
 
 	if(node == NULL) return -1;
