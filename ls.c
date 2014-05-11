@@ -14,6 +14,7 @@
 
 
 static int human_readable = 0;
+static int limit = 0;
 
 
 char *human_size(off_t size)
@@ -90,23 +91,34 @@ static int ls(struct db *db, const char *path)
 		if(child->size > size_max) size_max = child->size;
 		size_total += child->size;
 	}
-	
+
+	off_t size_rest = 0;
+
 	for(i=0; i<node->child_count; i++) {
 		struct db_child *child = &node->child_list[i];
 
-		int w = width * child->size / size_max;
+		if(limit == 0 || i < limit) {
 
-		char *siz = human_size(child->size);
-		printf("%-20.20s %s ", child->name, siz);
-		free(siz);
+			int w = width * child->size / size_max;
 
-		int j;
-		for(j=0; j<w; j++) putchar('#');
-		printf("\n");
+			char *siz = human_size(child->size);
+			printf("%-20.20s %s ", child->name, siz);
+			free(siz);
+
+			int j;
+			for(j=0; j<w; j++) putchar('#');
+			printf("\n");
+		} else {
+			size_rest += child->size;
+		}
 
 		child ++;
+	}
 
-		if(i>30) break;
+	if(size_rest > 0) {
+		char *siz = human_size(size_rest);
+		printf("%-20.20s %s\n", "Omitted files", siz);
+		free(siz);
 	}
 
 	char *siz = human_size(size_total);
@@ -125,10 +137,11 @@ static int ls_main(int argc, char **argv)
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
 		{ "human-readable", no_argument,       NULL, 'h' },
+		{ "limit",          required_argument, NULL, 'n' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:h", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:hn:", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -136,6 +149,9 @@ static int ls_main(int argc, char **argv)
 				break;
 			case 'h':
 				human_readable = 1;
+				break;
+			case 'n':
+				limit = atoi(optarg);
 				break;
 			default:
 				return(-1);
@@ -163,8 +179,9 @@ struct cmd cmd_ls = {
 	.help = 
 		"Valid options:\n"
 		"\n"
-		"  -d, --database] ARG     use database file ARG\n"
-		"  -h, --human-readable    print sizes in human readable format\n",
+		"  -d, --database=ARG      use database file ARG\n"
+		"  -h, --human-readable    print sizes in human readable format\n"
+		"  -n, --limit=ARG         limit number of results\n",
 	.main = ls_main
 };
 
