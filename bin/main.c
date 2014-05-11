@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "db.h"
-#include "ps.h"
+#include "cmd.h"
 
 
 struct cmd cmd_help;

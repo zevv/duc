@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-#include "ps.h"
+#include "cmd.h"
 #include "db.h"
 
 

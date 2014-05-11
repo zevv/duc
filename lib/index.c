@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 #include "db.h"
-#include "ps.h"
+#include "wamb.h"
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
 
@@ -92,10 +92,14 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 }	
 
 
-off_t ps_index(struct db *db, const char *path)
+int wamb_index(const char *path_db, const char *path, int flags)
 {
-	struct index index;
+	struct db *db = db_open(path_db, "wc");
+	if(db == NULL) {
+		return -1;
+	}
 
+	struct index index;
 	memset(&index, 0, sizeof index);
 
 	index.db = db;
@@ -122,59 +126,12 @@ off_t ps_index(struct db *db, const char *path)
 	fprintf(stderr, "Indexed %zu files and %zu directories, %jd bytes\n", 
 			index.file_count, index.dir_count, size);
 
-	return size;
-}
-
-
-static int index_main(int argc, char **argv)
-{
-	int c;
-	char *path_db = getenv("PS_PATH_DB");
-
-	struct option longopts[] = {
-		{ "database",       required_argument, NULL, 'd' },
-		{ NULL }
-	};
-
-	while( ( c = getopt_long(argc, argv, "d:h", longopts, NULL)) != EOF) {
-
-		switch(c) {
-			case 'd':
-				path_db = optarg;
-				break;
-			default:
-				return(-1);
-		}
-	}
-	
-	argc -= optind;
-	argv += optind;
-
-	if(argc < 1) {
-		fprintf(stderr, "Required index path missing.\n");
-		return -1;
-	}
-
-	struct db *db = db_open(path_db, "wc");
-	ps_index(db, argv[0]);
 	db_close(db);
 
 	return 0;
 }
 
 
-
-struct cmd cmd_index = {
-	.name = "index",
-	.description = "Index filesystem",
-	.usage = "[options] PATH",
-	.help = 
-		"Valid options:\n"
-		"\n"
-		"  -d, --database=ARG     Use database file ARG\n"
-		,
-	.main = index_main
-};
 /*
  * End
  */
