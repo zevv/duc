@@ -1,7 +1,15 @@
 #ifndef ps_h
 #define ps_h
 
-int ps_index(const char *path);
+#include <getopt.h>
+#include <unistd.h>
+
+struct cmd {
+	char *name;
+	int (*main)(int argc, char **argv);
+	char *description;
+	char *help;
+};
 
 
 #endif

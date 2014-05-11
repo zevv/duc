@@ -25,7 +25,7 @@ struct db_node {
 };
 
 
-struct db *db_open(const char *mode);
+struct db *db_open(const char *path_db, const char *mode);
 void db_close(struct db *db);
 
 struct db_node *db_node_new(dev_t dev, ino_t ino);

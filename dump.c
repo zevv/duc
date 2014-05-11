@@ -9,7 +9,11 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
+#include "ps.h"
 #include "db.h"
+
+
+static int human_readable = 0;
 
 
 char *human_size(off_t size)
@@ -43,11 +47,11 @@ static int fn_comp_child(const void *a, const void *b)
 }
 
 
+
 int dump(struct db *db, const char *path)
 {
 	struct db_node *node;
 	int width = 80;
-	
 
 	/* Get terminal width, if a tty */
 
@@ -111,6 +115,50 @@ int dump(struct db *db, const char *path)
 
 	return 0;
 }
+
+
+static int dump_main(int argc, char **argv)
+{
+	int c;
+	char *path_db = getenv("PS_PATH_DB");
+
+	struct option longopts[] = {
+		{ "database",       required_argument, NULL, 'd' },
+		{ "human-readable", no_argument,       NULL, 'h' },
+		{ NULL }
+	};
+
+	while( ( c = getopt_long(argc, argv, "d:h", longopts, NULL)) != EOF) {
+
+		switch(c) {
+			case 'd':
+				path_db = optarg;
+				break;
+			case 'h':
+				human_readable = 1;
+				break;
+			default:
+				return(-1);
+		}
+	}
+
+	char *path = ".";
+	if(argc > 2) path = argv[2];
+	struct db *db = db_open(path_db, "r");
+	dump(db, path);
+	db_close(db);
+
+	return 0;
+}
+
+
+
+struct cmd cmd_dump = {
+	.name = "dump",
+	.description = "Dump database",
+	.help = "",
+	.main = dump_main
+};
 
 
 /*

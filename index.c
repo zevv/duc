@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include "db.h"
+#include "ps.h"
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
 
@@ -118,6 +119,48 @@ off_t ps_index(struct db *db, const char *path)
 }
 
 
+static int index_main(int argc, char **argv)
+{
+	int c;
+	char *path_db = getenv("PS_PATH_DB");
+
+	struct option longopts[] = {
+		{ "database",       required_argument, NULL, 'd' },
+		{ NULL }
+	};
+
+	while( ( c = getopt_long(argc, argv, "d:h", longopts, NULL)) != EOF) {
+
+		switch(c) {
+			case 'd':
+				path_db = optarg;
+				break;
+			default:
+				return(-1);
+		}
+	}
+
+	if(argc < 2) {
+		return -1;
+	}
+
+	struct db *db = db_open(path_db, "wc");
+	off_t size = 0;
+	size = ps_index(db, argv[1]);
+	printf("%jd %.2f\n", size, size / (1024.0*1024.0*1024.0));
+	db_close(db);
+
+	return 0;
+}
+
+
+
+struct cmd cmd_index = {
+	.name = "index",
+	.description = "Index filesystem",
+	.help = "",
+	.main = index_main
+};
 /*
  * End
  */

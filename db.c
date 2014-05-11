@@ -16,7 +16,7 @@ struct db {
 };
 
 
-struct db *db_open(const char *mode)
+struct db *db_open(const char *path_db, const char *mode)
 {
 	struct db *db;
 
@@ -30,7 +30,7 @@ struct db *db_open(const char *mode)
 	if(strchr(mode, 'w')) flags |= HDBOWRITER;
 	if(strchr(mode, 'c')) flags |= HDBOCREAT;
 
-	tchdbopen(db->hdb, "files.tch", flags);
+	tchdbopen(db->hdb, path_db, flags);
 
 	return db;
 }
