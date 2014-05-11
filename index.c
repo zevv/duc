@@ -13,6 +13,7 @@
 #include <bsd/string.h>
 
 #include <kclangc.h>
+#include "db.h"
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW | O_NOATIME)
 
@@ -22,146 +23,146 @@ struct index {
 	uint32_t id_seq;
 };
 
-struct child {
-	char name[64];
-	off_t size;
-};
 
-
-static void store_dir(struct index *index, const char *path, off_t size, struct child *child_list, int child_count)
+off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *stat_dir)
 {
-	int i;
-	char buf[1024*1024];
-	int l = 0;
+	off_t size_total = 0;
 
-	l += snprintf(buf+l, sizeof(buf)-l, "%jd\n", size);
-
-	for(i=0; i<child_count; i++) {
-		struct child *child = &child_list[i];
-		l += snprintf(buf+l, sizeof(buf)-l, "%s\n%jd\n", child->name, child->size);
-	}
-
-	kcdbset(index->db, path, strlen(path), buf, l);
-
-	//printf("%s %jd %d\n", path, size, buflen);
-}
-
-
-off_t subindex(struct index *index, const char *path, int fd_parent)
-{
-	struct stat stat;
-	off_t size = 0;
-
-	int r = fstatat(fd_parent, path, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
-	if(r == -1) {
-		fprintf(stderr, "Error statting %s: %s\n", path, strerror(errno));
+	int fd = openat(fd_dir, path, OPEN_FLAGS);
+	if(fd == -1) {
+		fprintf(stderr, "Error opening %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
-	if(S_ISREG(stat.st_mode)) {
-		size = stat.st_size;
+	DIR *d = fdopendir(fd);
+	if(d == NULL) {
+		fprintf(stderr, "Error fdopendir %s: %s\n", path, strerror(errno));
+		return 0;
 	}
 
-	if(S_ISDIR(stat.st_mode)) {
-	
-		int fd = openat(fd_parent, path, OPEN_FLAGS);
-		if(fd == -1) {
-			fprintf(stderr, "Error opening %s: %s\n", path, strerror(errno));
+	size_t child_max = 32;
+	size_t child_count = 0;
+	struct db_child *child_list = malloc(child_max * sizeof(struct db_child));
+	assert(child_list);
+
+	struct dirent *e;
+	while( (e = readdir(d)) != NULL) {
+
+		const char *n = e->d_name;
+		if(n[0] == '.') {
+			if(n[1] == '\0') continue;
+			if(n[1] == '.' && n[2] == '\0') continue;
+		}
+
+		struct stat stat;
+
+		int r = fstatat(fd, e->d_name, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
+		if(r == -1) {
+			fprintf(stderr, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			return 0;
 		}
 
-		DIR *d = fdopendir(fd);
-		if(d == NULL) {
-			fprintf(stderr, "Error fdopendir %s: %s\n", path, strerror(errno));
-			return 0;
+		/* Realloc child list if growing out of bounds */
+
+		if(child_count >= child_max) {
+			child_max = child_max * 2;
+			child_list = realloc(child_list, child_max * sizeof(struct db_child));
+			assert(child_list);
 		}
+		
+		if(S_ISREG(stat.st_mode) || S_ISDIR(stat.st_mode)) {
 
-		int child_count = 0;
-		int child_max = 32;
-		struct child *child_list = malloc(child_max * sizeof(struct child));
-		assert(child_list);
-
-		struct dirent *e;
-		while( (e = readdir(d)) != NULL) {
-	
-			const char *n = e->d_name;
-			if(n[0] == '.') {
-				if(n[1] == '\0') continue;
-				if(n[1] == '.' && n[2] == '\0') continue;
-			}
-
-			if(child_count >= child_max) {
-				child_max *= 2;
-				child_list = realloc(child_list, child_max * sizeof(struct child));
-				assert(child_list);
-			}
-
-			struct child *child = &child_list[child_count];
-			strlcpy(child->name, e->d_name, sizeof(child->name));
-			child->size = subindex(index, e->d_name, fd);
+			struct db_child *child = &child_list[child_count];
 			child_count ++;
 
-			size += child->size;
+			strlcpy(child->name, e->d_name, sizeof(child->name));
+			
+			if(S_ISREG(stat.st_mode)) {
+				child->size = stat.st_size;
+				child->dev = 0;
+				child->ino = 0;
+			}
+
+			if(S_ISDIR(stat.st_mode)) {
+				child->size = index_dir(index, e->d_name, fd, &stat);
+				child->dev = stat.st_dev;
+				child->ino = stat.st_ino;
+			}
+
+			size_total += child->size;
 		}
-
-		store_dir(index, path, size, child_list, child_count);
-		free(child_list);
-
-		closedir(d);
-		close(fd);
-		//printf("%d: %s %jd\n", id, path, size);
 	}
 
-	return size;
-}
+	char key[32];
+	snprintf(key, sizeof key, "d %jd %jd", stat_dir->st_dev, stat_dir->st_ino);
+	kcdbset(index->db, key, strlen(key), (void *)child_list, child_count * sizeof(struct db_child));
+	free(child_list);
+
+	closedir(d);
+	close(fd);
+
+	return size_total;
+}	
 
 
-off_t ps_index(const char *path)
+
+
+off_t ps_index(struct db *db, const char *path)
 {
 	struct index index;
 
 	index.id_seq = 0;
-	index.db = kcdbnew();
+	index.db = db->kcdb;
 
-	kcdbopen(index.db, "files.kch#opts=", KCOWRITER | KCOCREATE);
+//	kcdbopen(index.db, "files.kch#opts=", KCOWRITER | KCOCREATE);
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
 		fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
 		return 0;
 	}
-
-	int fd = open(path_canon, OPEN_FLAGS);
-	if(fd == -1) {
-		fprintf(stderr, "Error opening %s: %s\n", path, strerror(errno));
+	
+	struct stat stat;
+	int r = lstat(path_canon, &stat);
+	if(r == -1) {
+		fprintf(stderr, "Error statting %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
-	off_t size = subindex(&index, path, fd);
+	char key[PATH_MAX + 32];
+	char val[32];
+	snprintf(key, sizeof key, "%s", path_canon);
+	snprintf(val, sizeof val, "%jd %jd", stat.st_dev, stat.st_ino);
+	kcdbset(index.db, key, strlen(key), val, strlen(val));
+
+	off_t size = index_dir(&index, path, 0, &stat);
 
 	free(path_canon);
-	close(fd);
 
 	return size;
 }
 
 
-int dump(const char *path);
+int dump(struct db *db, const char *path);
 
 
 int main(int argc, char **argv)
 {
 
-
 	if(argv[1][0] == 'd') {
-		dump(argv[2]);
+		struct db *db = db_open("r");
+		dump(db, argv[2]);
+		db_close(db);
 	}
 
 	if(argv[1][0] == 'i') {
+		struct db *db = db_open("wc");
 		off_t size = 0;
-		size = ps_index(argv[2]);
+		size = ps_index(db, argv[2]);
 		printf("%jd %.2f\n", size, size / (1024.0*1024.0*1024.0));
+		db_close(db);
 	}
+
 
 	return 0;
 }

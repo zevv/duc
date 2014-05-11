@@ -4,47 +4,69 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "db.h"
 
 
-
-#ifdef NEE
-
-
-void dump_node(struct node *n, int depth)
+char *human_size(off_t size)
 {
-	int i;
+	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
+	double v = size;
+	char *p = prefix;
+	char *s = NULL;
 
-	for(i=0; i<depth; i++) printf(" ");
-	printf("%s %d\n", n->name, s->size);
-
-	struct node *nc = node->child_list; 
-	while(nc) {
-		nc = nc->next;
+	if(size < 1024) {
+		asprintf(&s, "%6jd", size);
+	} else {
+		while(v >= 1024.0) {
+			v /= 1024.0;
+			p ++;
+		}
+		asprintf(&s, "%5.1f%c", v, *p);
 	}
+
+	return s;
 }
 
-#endif
 
-int dump(const char *path)
+int dump(struct db *db, const char *path)
 {
-#ifdef NEE
-	char *path_canon = realpath(path, NULL);
-	if(path_canon == NULL) {
-		fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
-		return 0;
+	struct db_node *node;
+
+	node = db_find_dir(db, path);
+
+	if(node == NULL) return -1;
+
+	size_t i;
+
+	off_t size_total = 0;
+	off_t size_max = 0;
+
+	for(i=0; i<node->child_count; i++) {
+		struct db_child *child = &node->child_list[i];
+		if(child->size > size_max) size_max = child->size;
+		size_total += child->size;
 	}
+	
+	for(i=0; i<node->child_count; i++) {
+		struct db_child *child = &node->child_list[i];
 
-	struct node *n;
+		int w = 50 * child->size / size_max;
 
-	db = db_open("/tmp/db");
+		char *siz = human_size(child->size);
+		printf("%-20.20s %s ", child->name, siz);
+		free(siz);
 
-	n = db_find_node(db, path_canon);
+		int j;
+		for(j=0; j<w; j++) putchar('#');
+		printf("\n");
 
-	dump_node(db, n, 0);
-
-	free(path_canon);
-
-#endif
+		child ++;
+	}
+	
 	return 0;
 }
 
