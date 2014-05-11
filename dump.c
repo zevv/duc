@@ -19,16 +19,18 @@ char *human_size(off_t size)
 	char *s = NULL;
 
 	if(size < 1024) {
-		asprintf(&s, "%6jd", size);
+		int r = asprintf(&s, "%6jd", size);
+		if(r != -1) return s;
 	} else {
 		while(v >= 1024.0) {
 			v /= 1024.0;
 			p ++;
 		}
-		asprintf(&s, "%5.1f%c", v, *p);
+		int r = asprintf(&s, "%5.1f%c", v, *p);
+		if(r != -1) return s;
 	}
 
-	return s;
+	return NULL;
 }
 
 

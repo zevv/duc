@@ -10,16 +10,14 @@
 #include <errno.h>
 #include <dirent.h>
 #include <stdint.h>
-#include <bsd/string.h>
 
-#include <kclangc.h>
 #include "db.h"
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW | O_NOATIME)
 
 
 struct index {
-	KCDB* db;
+	struct db *db;
 	uint32_t id_seq;
 };
 
@@ -40,10 +38,11 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		return 0;
 	}
 
+	struct db_node *node = db_node_new(stat_dir->st_dev, stat_dir->st_ino);
+
 	size_t child_max = 32;
-	size_t child_count = 0;
-	struct db_child *child_list = malloc(child_max * sizeof(struct db_child));
-	assert(child_list);
+	node->child_list = malloc(child_max * sizeof(struct db_child));
+	assert(node->child_list);
 
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
@@ -64,18 +63,18 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 		/* Realloc child list if growing out of bounds */
 
-		if(child_count >= child_max) {
+		if(node->child_count >= child_max) {
 			child_max = child_max * 2;
-			child_list = realloc(child_list, child_max * sizeof(struct db_child));
-			assert(child_list);
+			node->child_list = realloc(node->child_list, child_max * sizeof(struct db_child));
+			assert(node->child_list);
 		}
 		
 		if(S_ISREG(stat.st_mode) || S_ISDIR(stat.st_mode)) {
 
-			struct db_child *child = &child_list[child_count];
-			child_count ++;
+			struct db_child *child = &node->child_list[node->child_count];
+			node->child_count ++;
 
-			strlcpy(child->name, e->d_name, sizeof(child->name));
+			strncpy(child->name, e->d_name, sizeof(child->name));
 			
 			if(S_ISREG(stat.st_mode)) {
 				child->size = stat.st_size;
@@ -93,10 +92,9 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		}
 	}
 
-	char key[32];
-	snprintf(key, sizeof key, "d %jd %jd", stat_dir->st_dev, stat_dir->st_ino);
-	kcdbset(index->db, key, strlen(key), (void *)child_list, child_count * sizeof(struct db_child));
-	free(child_list);
+	db_node_write(index->db, node);
+	free(node->child_list);
+	db_node_free(node);
 
 	closedir(d);
 	close(fd);
@@ -112,7 +110,7 @@ off_t ps_index(struct db *db, const char *path)
 	struct index index;
 
 	index.id_seq = 0;
-	index.db = db->kcdb;
+	index.db = db;
 
 //	kcdbopen(index.db, "files.kch#opts=", KCOWRITER | KCOCREATE);
 
@@ -129,11 +127,7 @@ off_t ps_index(struct db *db, const char *path)
 		return 0;
 	}
 
-	char key[PATH_MAX + 32];
-	char val[32];
-	snprintf(key, sizeof key, "%s", path_canon);
-	snprintf(val, sizeof val, "%jd %jd", stat.st_dev, stat.st_ino);
-	kcdbset(index.db, key, strlen(key), val, strlen(val));
+	db_root_write(db, path_canon, stat.st_dev, stat.st_ino);
 
 	off_t size = index_dir(&index, path, 0, &stat);
 

@@ -1,9 +1,19 @@
 
-#include <kclangc.h>
-#include <bsd/string.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+
+#include <tcutil.h>
+#include <tchdb.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h> 
 
 #include "db.h"
+
+struct db {
+	TCHDB* hdb;
+};
 
 
 struct db *db_open(const char *mode)
@@ -13,14 +23,14 @@ struct db *db_open(const char *mode)
 	db = malloc(sizeof *db);
 	assert(db);
 
-	db->kcdb = kcdbnew();
+	db->hdb = tchdbnew();
 
 	uint32_t flags = 0;
-	if(strchr(mode, 'r')) flags |= KCOREADER;
-	if(strchr(mode, 'w')) flags |= KCOWRITER;
-	if(strchr(mode, 'c')) flags |= KCOCREATE;
+	if(strchr(mode, 'r')) flags |= HDBOREADER;
+	if(strchr(mode, 'w')) flags |= HDBOWRITER;
+	if(strchr(mode, 'c')) flags |= HDBOCREAT;
 
-	kcdbopen(db->kcdb, "files.kch#opts=", flags);
+	tchdbopen(db->hdb, "files.tch", flags);
 
 	return db;
 }
@@ -28,7 +38,7 @@ struct db *db_open(const char *mode)
 
 void db_close(struct db *db)
 {
-	kcdbclose(db->kcdb);
+	tchdbclose(db->hdb);
 	free(db);
 }
 
@@ -41,29 +51,58 @@ static int fn_comp_child(const void *a, const void *b)
 }
 
 
+int db_root_write(struct db *db, const char *path, dev_t dev, ino_t ino)
+{
+	char key[PATH_MAX];
+	char val[32];
+	snprintf(key, sizeof key, "%s", path);
+	snprintf(val, sizeof val, "%jd %jd", dev, ino);
+	tchdbput(db->hdb, key, strlen(key), val, strlen(val));
+	return 0;
+}
+
+
+struct db_node *db_node_new(dev_t dev, ino_t ino)
+{
+	struct db_node *node;
+
+	node = malloc(sizeof(struct db_node));
+	assert(node);
+	node->child_list = NULL;
+	node->child_count = 0;
+	node->dev = dev;
+	node->ino = ino;
+	return node;
+}
+
+
 struct db_node *db_read_node(struct db *db, dev_t dev, ino_t ino)
 {
 	char key[32];
 	size_t keyl;
 	char *val;
-	size_t vall;
+	int vall;
 
 	keyl = snprintf(key, sizeof key, "d %jd %jd", dev, ino);
-	val = kcdbget(db->kcdb, key, keyl, &vall);
+	val = tchdbget(db->hdb, key, keyl, &vall);
 	if(val == NULL) return NULL;
 
-	struct db_node *node = (void *)val;
-	node = malloc(sizeof(struct db_node));
-	assert(node);
-	node->dev = dev;
-	node->ino = ino;
+	struct db_node *node = db_node_new(dev, ino);
 	node->child_list = (void *)val;
 	node->child_count = vall / sizeof(struct db_child);
 
 	qsort(node->child_list, node->child_count, sizeof(struct db_child), fn_comp_child);
 
-	kcfree(val);
 	return node;
+}
+
+
+int db_node_write(struct db *db, struct db_node *node)
+{
+	char key[32];
+	snprintf(key, sizeof key, "d %jd %jd", node->dev, node->ino);
+	tchdbput(db->hdb, key, strlen(key), (void *)node->child_list, node->child_count * sizeof(struct db_child));
+	return 0;
 }
 
 
@@ -85,14 +124,14 @@ struct db_node *db_find_dir(struct db *db, const char *path)
 {
 	int l = strlen(path);
 	char *val;
-	size_t vallen;
+	int vallen;
 	dev_t dev;
 	ino_t ino;
 	
 	/* Find top path in database */
 
 	while(l > 0) {
-		val = kcdbget(db->kcdb, path, l, &vallen);
+		val = tchdbget(db->hdb, path, l, &vallen);
 		if(val) {
 			sscanf(val, "%jd %jd", &dev, &ino);
 			free(val);
@@ -108,8 +147,8 @@ struct db_node *db_find_dir(struct db *db, const char *path)
 
 	struct db_node *node = db_read_node(db, dev, ino);
 	
-	char buf[PATH_MAX];
-	strlcpy(buf, path+l, sizeof buf);
+	char buf[PATH_MAX+1];
+	strncpy(buf, path+l, sizeof buf);
 
 	char *save;
 	char *name = strtok_r(buf, "/", &save);

@@ -8,9 +8,8 @@ CFLAGS	+= -D_GNU_SOURCE
 
 LDFLAGS += -g
 
-CFLAGS  += $(shell pkg-config --cflags cairo kyotocabinet)
-LDFLAGS += $(shell pkg-config --libs cairo kyotocabinet)
-LDFLAGS += -lbsd
+CFLAGS  += $(shell pkg-config --cflags cairo tokyocabinet)
+LDFLAGS += $(shell pkg-config --libs cairo tokyocabinet)
 
 CROSS	=
 OBJS    = $(subst .c,.o, $(SRC))
@@ -21,7 +20,7 @@ LD 	= $(CROSS)gcc
 	$(CC) $(CFLAGS) -c $<
 
 $(BIN):	$(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(LD) -o $@ $(OBJS) $(LDFLAGS)
 
 clean:	
 	rm -f $(OBJS) $(BIN) core
