@@ -169,7 +169,9 @@ struct cmd cmd_index = {
 	.description = "Index filesystem",
 	.usage = "[options] PATH",
 	.help = 
-		"  -d [--database] ARG     Use database file ARG\n"
+		"Valid options:\n"
+		"\n"
+		"  -d, --database=ARG     Use database file ARG\n"
 		,
 	.main = index_main
 };

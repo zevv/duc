@@ -159,7 +159,12 @@ static int ls_main(int argc, char **argv)
 struct cmd cmd_ls = {
 	.name = "ls",
 	.description = "List directory",
-	.help = "",
+	.usage = "[options] [PATH]",
+	.help = 
+		"Valid options:\n"
+		"\n"
+		"  -d, --database] ARG     use database file ARG\n"
+		"  -h, --human-readable    print sizes in human readable format\n",
 	.main = ls_main
 };
 

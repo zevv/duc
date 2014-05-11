@@ -22,7 +22,7 @@ struct db *db_open(const char *path_db, const char *mode)
 	char tmp[PATH_MAX];
 
 	if(path_db == NULL) {
-		path_db = getenv("PS_PATH_DB");
+		path_db = getenv("WAMB_DATABASE");
 	}
 
 	if(path_db == NULL) {

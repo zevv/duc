@@ -65,7 +65,6 @@ static int help_main(int argc, char **argv)
 		if(cmd->usage) {
 			fprintf(stderr, "usage: wamb %s %s\n", argv[1], cmd->usage);
 			fprintf(stderr, "\n");
-			fprintf(stderr, "Valid options:\n");
 		}
 
 		if(cmd->help) {
