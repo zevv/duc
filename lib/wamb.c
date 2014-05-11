@@ -7,7 +7,7 @@
 
 #include "wamb.h"
 #include "wamb_internal.h"
-#include "db_raw.h"
+#include "db.h"
 
 
 struct wamb *wamb_open(const char *path_db, int flags)
@@ -29,8 +29,8 @@ struct wamb *wamb_open(const char *path_db, int flags)
 		}
 	}
 	
-	wamb->db_raw = db_raw_open(path_db, flags);
-	if(wamb->db_raw == NULL) {
+	wamb->db = db_open(path_db, flags);
+	if(wamb->db == NULL) {
 		free(wamb);
 		return NULL;
 	}
@@ -42,8 +42,8 @@ struct wamb *wamb_open(const char *path_db, int flags)
 
 void wamb_close(struct wamb *wamb)
 {
-	if(wamb->db_raw) {
-		db_raw_close(wamb->db_raw);
+	if(wamb->db) {
+		db_close(wamb->db);
 	}
 	free(wamb);
 }
@@ -54,7 +54,7 @@ int wamb_root_write(struct wamb *wamb, const char *path, dev_t dev, ino_t ino)
 	char val[32];
 	snprintf(key, sizeof key, "%s", path);
 	snprintf(val, sizeof val, "%jd %jd", dev, ino);
-	db_raw_put(wamb->db_raw, key, strlen(key), val, strlen(val));
+	db_put(wamb->db, key, strlen(key), val, strlen(val));
 	return 0;
 }
 
@@ -103,7 +103,7 @@ struct wamb_node *wamb_read_node(struct wamb *wamb, dev_t dev, ino_t ino)
 	size_t vall;
 
 	keyl = snprintf(key, sizeof key, "d %jd %jd", dev, ino);
-	val = db_raw_get(wamb->db_raw, key, keyl, &vall);
+	val = db_get(wamb->db, key, keyl, &vall);
 	if(val == NULL) return NULL;
 
 	struct wamb_node *node = wamb_node_new(dev, ino);
@@ -118,7 +118,7 @@ int wamb_node_write(struct wamb *wamb, struct wamb_node *node)
 {
 	char key[32];
 	snprintf(key, sizeof key, "d %jd %jd", node->dev, node->ino);
-	db_raw_put(wamb->db_raw, key, strlen(key), (void *)node->child_list, node->child_count * sizeof(struct wamb_child));
+	db_put(wamb->db, key, strlen(key), (void *)node->child_list, node->child_count * sizeof(struct wamb_child));
 	return 0;
 }
 
@@ -148,7 +148,7 @@ struct wamb_node *wamb_find_dir(struct wamb *wamb, const char *path)
 	/* Find top path in database */
 
 	while(l > 0) {
-		val = db_raw_get(wamb->db_raw, path, l, &vallen);
+		val = db_get(wamb->db, path, l, &vallen);
 		if(val) {
 			sscanf(val, "%jd %jd", &dev, &ino);
 			free(val);

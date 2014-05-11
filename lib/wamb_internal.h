@@ -2,7 +2,7 @@
 #define wamb_internal_h
 
 struct wamb {
-	struct db_raw *db_raw;
+	struct db *db;
 };
 
 

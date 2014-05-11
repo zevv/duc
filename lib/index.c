@@ -115,7 +115,7 @@ int wamb_index(struct wamb *wamb, const char *path, int flags)
 
 	wamb_root_write(wamb, path_canon, stat.st_dev, stat.st_ino);
 
-	off_t size = index_dir(&index, path, 0, &stat);
+	off_t size = index_dir(&index, path_canon, 0, &stat);
 
 	free(path_canon);
 

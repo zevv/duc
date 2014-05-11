@@ -2,7 +2,7 @@
 LIB	:= libwamb.a
 
 SRC	+= wamb.c index.c list.c
-SRC	+= db_raw_tokyo.c
+SRC	+= db-tokyo.c
 
 CFLAGS	+= $(shell pkg-config --cflags tokyocabinet)
 LDFLAGS	+= $(shell pkg-config --libs tokyocabinet)
