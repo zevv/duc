@@ -1,5 +1,5 @@
 BIN   	= ps
-SRC 	= main.c index.c dump.c db.c
+SRC 	= main.c index.c ls.c db.c
 
 CFLAGS  += -Wall -Werror
 CFLAGS	+= -O3 -g

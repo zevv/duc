@@ -8,18 +8,15 @@
 #include "db.h"
 #include "ps.h"
 
-int dump(struct db *db, const char *path);
-off_t ps_index(struct db *db, const char *path);
-
 
 struct cmd cmd_help;
 struct cmd cmd_index;
-struct cmd cmd_dump;
+struct cmd cmd_ls;
 
 
 struct cmd *cmd_list[] = {
-	&cmd_dump,
 	&cmd_index,
+	&cmd_ls,
 	&cmd_help,
 };
 

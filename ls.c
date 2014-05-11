@@ -23,15 +23,15 @@ char *human_size(off_t size)
 	char *p = prefix;
 	char *s = NULL;
 
-	if(size < 1024) {
-		int r = asprintf(&s, "%6jd", size);
+	if(!human_readable || size < 1024) {
+		int r = asprintf(&s, "%10jd", size);
 		if(r != -1) return s;
 	} else {
 		while(v >= 1024.0) {
 			v /= 1024.0;
 			p ++;
 		}
-		int r = asprintf(&s, "%5.1f%c", v, *p);
+		int r = asprintf(&s, "%9.1f%c", v, *p);
 		if(r != -1) return s;
 	}
 
@@ -48,7 +48,7 @@ static int fn_comp_child(const void *a, const void *b)
 
 
 
-int dump(struct db *db, const char *path)
+static int ls(struct db *db, const char *path)
 {
 	struct db_node *node;
 	int width = 80;
@@ -61,7 +61,7 @@ int dump(struct db *db, const char *path)
 		if(r == 0) width = w.ws_col;
 	}
 
-	width = width - 29;
+	width = width - 33;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
@@ -117,7 +117,7 @@ int dump(struct db *db, const char *path)
 }
 
 
-static int dump_main(int argc, char **argv)
+static int ls_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = getenv("PS_PATH_DB");
@@ -145,7 +145,7 @@ static int dump_main(int argc, char **argv)
 	char *path = ".";
 	if(argc > 2) path = argv[2];
 	struct db *db = db_open(path_db, "r");
-	dump(db, path);
+	ls(db, path);
 	db_close(db);
 
 	return 0;
@@ -153,11 +153,11 @@ static int dump_main(int argc, char **argv)
 
 
 
-struct cmd cmd_dump = {
-	.name = "dump",
-	.description = "Dump database",
+struct cmd cmd_ls = {
+	.name = "ls",
+	.description = "List directory",
 	.help = "",
-	.main = dump_main
+	.main = ls_main
 };
 
 
