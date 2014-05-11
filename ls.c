@@ -143,7 +143,7 @@ static int ls_main(int argc, char **argv)
 	}
 
 	char *path = ".";
-	if(argc > 2) path = argv[2];
+	if(argc > 1) path = argv[1];
 	struct db *db = db_open(path_db, "r");
 	ls(db, path);
 	db_close(db);
