@@ -19,6 +19,19 @@ struct db {
 struct db *db_open(const char *path_db, const char *mode)
 {
 	struct db *db;
+	char tmp[PATH_MAX];
+
+	if(path_db == NULL) {
+		path_db = getenv("PS_PATH_DB");
+	}
+
+	if(path_db == NULL) {
+		char *home = getenv("HOME");
+		if(home) {
+			snprintf(tmp, sizeof tmp, "%s/.wamb.db", home);
+			path_db = tmp;
+		}
+	}
 
 	db = malloc(sizeof *db);
 	assert(db);

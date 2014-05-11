@@ -61,7 +61,7 @@ static int ls(struct db *db, const char *path)
 		if(r == 0) width = w.ws_col;
 	}
 
-	width = width - 33;
+	width = width - 36;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
@@ -120,7 +120,7 @@ static int ls(struct db *db, const char *path)
 static int ls_main(int argc, char **argv)
 {
 	int c;
-	char *path_db = getenv("PS_PATH_DB");
+	char *path_db = NULL;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
@@ -142,8 +142,11 @@ static int ls_main(int argc, char **argv)
 		}
 	}
 
+	argc -= optind;
+	argv += optind;
+
 	char *path = ".";
-	if(argc > 1) path = argv[1];
+	if(argc > 0) path = argv[0];
 	struct db *db = db_open(path_db, "r");
 	ls(db, path);
 	db_close(db);

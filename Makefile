@@ -1,4 +1,4 @@
-BIN   	= ps
+BIN   	= wamb
 SRC 	= main.c index.c ls.c db.c
 
 CFLAGS  += -Wall -Werror
@@ -8,8 +8,8 @@ CFLAGS	+= -D_GNU_SOURCE
 
 LDFLAGS += -g
 
-CFLAGS  += $(shell pkg-config --cflags cairo tokyocabinet)
-LDFLAGS += $(shell pkg-config --libs cairo tokyocabinet)
+CFLAGS  += $(shell pkg-config --cflags tokyocabinet)
+LDFLAGS += $(shell pkg-config --libs tokyocabinet)
 
 CROSS	=
 OBJS    = $(subst .c,.o, $(SRC))

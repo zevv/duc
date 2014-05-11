@@ -8,6 +8,7 @@ struct cmd {
 	char *name;
 	int (*main)(int argc, char **argv);
 	char *description;
+	char *usage;
 	char *help;
 };
 
