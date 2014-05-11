@@ -22,43 +22,69 @@ struct cmd *cmd_list[] = {
 
 #define SUBCOMMAND_COUNT (sizeof(cmd_list) / sizeof(cmd_list[0]))
 
+static struct cmd *find_cmd_by_name(const char *name);
 
 
 int main(int argc, char **argv)
 {
-	char *cmdname = "help";
+	struct cmd *cmd = NULL;
 
-	if(argc >= 2) cmdname = argv[1];
+	if(argc >= 2) {
+		cmd = find_cmd_by_name(argv[1]);
+	}
 
-	struct cmd *cmd = &cmd_help;
+	if(cmd == NULL) cmd = &cmd_help;
+
+	return cmd->main(argc-1, argv+1);
+}
+
+
+static struct cmd *find_cmd_by_name(const char *name)
+{
 	int i;
 
 	for(i=0; i<SUBCOMMAND_COUNT; i++) {
-		struct cmd *s = cmd_list[i];
-		if(strcmp(s->name, cmdname) == 0) {
-			cmd = s;
-			break;
+		struct cmd *cmd = cmd_list[i];
+		if(strcmp(cmd->name, name) == 0) {
+			return cmd;
 		}
 	}
-
-	return cmd->main(argc-1, argv+1);
-
-
+	return NULL;
 }
 
 
 static int help_main(int argc, char **argv)
 {
-	fprintf(stderr, 
-		"usage: philesight <cmd> [options] [args]\n"
-		"\n"
-		"Available cmds:\n"
-	);
+	struct cmd *cmd = NULL;
 
-	int i;
-	for(i=0; i<SUBCOMMAND_COUNT; i++) {
-		struct cmd *c = cmd_list[i];
-		fprintf(stderr, "  %s: %s\n", c->name, c->description);
+	if(argc > 1) {
+		cmd = find_cmd_by_name(argv[1]);
+	}
+
+	if(cmd) {
+		if(cmd->usage) {
+			fprintf(stderr, "usage: wamb %s %s\n", argv[1], cmd->usage);
+			fprintf(stderr, "\n");
+		}
+
+		if(cmd->help) {
+			fprintf(stderr, "%s", cmd->help);
+		} else {
+			fprintf(stderr, "No help for command\n");
+		}
+	} else {
+
+		fprintf(stderr, 
+			"usage: wamb <cmd> [options] [args]\n"
+			"\n"
+			"Available cmds:\n"
+		);
+
+		int i;
+		for(i=0; i<SUBCOMMAND_COUNT; i++) {
+			struct cmd *c = cmd_list[i];
+			fprintf(stderr, "  %s: %s\n", c->name, c->description);
+		}
 	}
 
 	return 0;
