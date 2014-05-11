@@ -119,7 +119,7 @@ off_t ps_index(struct db *db, const char *path)
 
 	free(path_canon);
 
-	fprintf(stderr, "Indexed %ld files and %ld directories, %jd bytes\n", 
+	fprintf(stderr, "Indexed %zu files and %ld directories, %jd bytes\n", 
 			index.file_count, index.dir_count, size);
 
 	return size;
