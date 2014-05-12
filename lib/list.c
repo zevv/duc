@@ -1,21 +1,33 @@
 
 #include <stdlib.h>
-#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
 #include "wamb.h"
 #include "db.h"
 
 struct wamb_iter {
+	struct wamb *wamb;
 
 };
 
 
-wamb_iter *wamb_list_path(const char *path_db)
+wamb_iter *wamb_list_path(struct wamb *wamb, const char *path)
 {
 	struct wamb_iter *wi;
-
+	
 	wi = malloc(sizeof *wi);
-	assert(wi);
+	if(wi == NULL) return NULL;
+
+	char *path_canon = realpath(path, NULL);
+	if(path_canon == NULL) {
+		fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
+		free(wi);
+		return NULL;
+	}
+
+	wi->wamb = wamb;
 
 	return wi;
 }
