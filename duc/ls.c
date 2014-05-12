@@ -88,7 +88,7 @@ static int ls_main(int argc, char **argv)
 		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
 	}
-	width = width - 34;
+	width = width - 35;
 
 	/* Open duc context */
 
@@ -128,13 +128,14 @@ static int ls_main(int argc, char **argv)
 			}
 
 			char *siz = fmt_size(e->size);
-			printf("%-20.20s %s ", e->name, siz);
+			printf("%-20.20s %s [", e->name, siz);
 			free(siz);
 
 			int n = size_max ? (width * e->size / size_max) : 0;
 			int j;
-			for(j=0; j<n; j++) putchar('#');
-			printf("\n");
+			for(j=0; j<n; j++) putchar('=');
+			for(; j<width; j++) putchar(' ');
+			printf("]\n");
 		} else {
 			size_rest += e->size;
 			count_rest ++;

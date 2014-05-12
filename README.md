@@ -54,18 +54,18 @@ can be specified as command line argument, the current directory is used if omit
 `duc ls -hF` for a more friendly output.
 
 ```
-$ duc ls -n10 -hF /lib
-modules/                  24.9M ##################################################################
-x86_64-linux-gnu/         14.9M #######################################
-i386-linux-gnu/           11.5M ###############################
-udev/                     10.7M #############################
-firmware/                 10.4M ###########################
-discover/                  4.1M ###########
-xtables/                   1.1M ###
-x86_64-linux-musl/       523.1K #
-systemd/                 209.9K 
+$ duc ls -n10 -hF /usr
+lib/                       4.7G [==========================================================================]
+src/                       4.4G [=====================================================================     ]
+share/                     3.1G [================================================                          ]
+bin/                     814.2M [============                                                              ]
+include/                 196.1M [===                                                                       ]
+x86_64-w64-mingw32/       66.6M [=                                                                         ]
+local/                    59.9M [                                                                          ]
+i686-w64-mingw32/         38.8M [                                                                          ]
+sbin/                     20.3M [                                                                          ]
 
-Omitted files            403.2K
+Omitted files             29.7M
 ```
 
 For a graphical representation of the disk usage, use the command `duc draw`
