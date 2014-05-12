@@ -12,8 +12,8 @@
  */
 
 enum {
-	WAMB_OPEN_RO = 1<<0,
-	WAMB_OPEN_RW = 1<<1,
+	DUC_OPEN_RO = 1<<0,
+	DUC_OPEN_RW = 1<<1,
 };
 
 typedef struct duc duc;
@@ -28,9 +28,9 @@ void duc_close(duc *duc);
 
 
 enum {
-	WAMB_INDEX_XDEV	= 1<<0,
-	WAMB_INDEX_VERBOSE = 1<<1,
-	WAMB_INDEX_QUIET = 1<<2,
+	DUC_INDEX_XDEV	= 1<<0,
+	DUC_INDEX_VERBOSE = 1<<1,
+	DUC_INDEX_QUIET = 1<<2,
 };
 
 int duc_index(duc *duc, const char *path, int flags);

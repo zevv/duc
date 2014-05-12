@@ -36,13 +36,13 @@ static int index_main(int argc, char **argv)
 				path_db = optarg;
 				break;
 			case 'q':
-				flags |= WAMB_INDEX_QUIET;
+				flags |= DUC_INDEX_QUIET;
 				break;
 			case 'x':
-				flags |= WAMB_INDEX_XDEV;
+				flags |= DUC_INDEX_XDEV;
 				break;
 			case 'v':
-				flags |= WAMB_INDEX_VERBOSE;
+				flags |= DUC_INDEX_VERBOSE;
 				break;
 			default:
 				return(-1);
@@ -57,7 +57,7 @@ static int index_main(int argc, char **argv)
 		return -1;
 	}
 
-	struct duc *duc = duc_open(path_db, WAMB_OPEN_RW);
+	struct duc *duc = duc_open(path_db, DUC_OPEN_RW);
 	if(duc == NULL) return -1;
 
 

@@ -13,7 +13,7 @@
 
 static int test_main(int argc, char **argv)
 {
-	duc *duc = duc_open(NULL, WAMB_OPEN_RO);
+	duc *duc = duc_open(NULL, DUC_OPEN_RO);
 
 	char *path = argv[1];
 

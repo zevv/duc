@@ -6,7 +6,12 @@ Dude, where are my bytes!
 
 ### introduction
 
-Duc is a small library and a collection of tools for inspecting and visualizing disk usage.
+Duc is a small library and a collection of tools for inspecting and visualizing
+disk usage. 
+
+Duc maintains a database of accumulated sizes of directories of your file
+system, and allows you to query this database with some tools, or create fancy
+graphs showing you where your bytes are.
 
 
 ### install
@@ -23,6 +28,26 @@ $ sudo apt-get install libcairo2-dev libtokyocabinet-dev
 
 
 ### usage
+
+Duc comes with a command line tool called 'duc', which is used to create,
+maintain and query the disk usage database.  run `duc help` to get a list of
+available commands. 'duc help <subcommand>' describes the usage of a specific
+subcommand.
+
+Duc needs an index file of the file system before it is able to show any
+information.  To create the index, run the 'duc index' command. For example, to
+create an index of your home directory run:
+
+```
+$ duc index ~
+```
+
+The default location of the database is ~/.duc.db. To use a different database
+location, use the DUC_DATABASE environment variable or specify the database
+location with the --database argument.
+
+
+TL;DR
 
 ```
 $ duc help

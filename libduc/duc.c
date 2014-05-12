@@ -18,7 +18,7 @@ struct duc *duc_open(const char *path_db, int flags)
 	if(duc == NULL) return NULL;
 
 	if(path_db == NULL) {
-		path_db = getenv("WAMB_DATABASE");
+		path_db = getenv("DUC_DATABASE");
 	}
 
 	if(path_db == NULL) {

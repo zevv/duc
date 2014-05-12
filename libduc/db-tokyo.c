@@ -27,8 +27,8 @@ struct db *db_open(const char *path_db, int flags)
 	db->hdb = tchdbnew();
 
 	uint32_t mode = 0;
-	if(flags & WAMB_OPEN_RO) mode |= HDBOREADER;
-	if(flags & WAMB_OPEN_RW) mode |= HDBOWRITER | HDBOCREAT;
+	if(flags & DUC_OPEN_RO) mode |= HDBOREADER;
+	if(flags & DUC_OPEN_RW) mode |= HDBOWRITER | HDBOCREAT;
 
 	tchdbopen(db->hdb, path_db, mode);
 

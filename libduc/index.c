@@ -131,9 +131,9 @@ int duc_index(struct duc *duc, const char *path, int flags)
 	memset(&index, 0, sizeof index);
 
 	index.duc = duc;
-	index.one_file_system = flags & WAMB_INDEX_XDEV;
-	index.verbose = flags & WAMB_INDEX_VERBOSE;
-	index.quiet = flags & WAMB_INDEX_QUIET;
+	index.one_file_system = flags & DUC_INDEX_XDEV;
+	index.verbose = flags & DUC_INDEX_VERBOSE;
+	index.quiet = flags & DUC_INDEX_QUIET;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {

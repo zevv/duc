@@ -92,7 +92,7 @@ static int ls_main(int argc, char **argv)
 
 	/* Open duc context */
 
-	struct duc *duc = duc_open(path_db, WAMB_OPEN_RO);
+	struct duc *duc = duc_open(path_db, DUC_OPEN_RO);
 
 	ducdir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {

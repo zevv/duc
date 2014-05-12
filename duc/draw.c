@@ -235,7 +235,7 @@ static int draw_main(int argc, char **argv)
 
 	/* Open duc context */
 
-	graph.duc = duc_open(path_db, WAMB_OPEN_RO);
+	graph.duc = duc_open(path_db, DUC_OPEN_RO);
 
 	ducdir *dir = duc_opendir(graph.duc, path);
 	if(dir == NULL) {
