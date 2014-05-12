@@ -3,6 +3,7 @@
 
 Dude, where are my bytes!
 
+![Example](https://raw.githubusercontent.com/zevv/duc/master/img/duc.png) 
 
 ### introduction
 
@@ -58,7 +59,7 @@ can be specified as command line argument, the current directory is used if omit
 
 For a graphical representation of the disk usage, use the command `duc draw`
 
-![Example](https://raw.githubusercontent.com/zevv/duc/master/example.png) 
+![Example](https://raw.githubusercontent.com/zevv/duc/master/img/example.png) 
 
 #### TL;DR
 
