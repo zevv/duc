@@ -14,7 +14,7 @@
 
 
 static int human_readable = 0;
-static int limit = 0;
+static int limit = 20;
 
 
 char *fmt_size(off_t size)
@@ -111,23 +111,41 @@ static int ls_main(int argc, char **argv)
 		size_total += e->size;
 	}
 
+	int count = 0;
+	off_t size_rest = 0;
+	size_t count_rest = 0;
+
 	duc_rewinddir(dir);
 	while( (e = duc_readdir(dir)) != NULL) {
 
-		if(classify) {
-			if(S_ISDIR(e->mode)) strcat(e->name, "/");
-			if(S_ISREG(e->mode) && (e->mode & (S_IXUSR | S_IXGRP | S_IXOTH))) strcat(e->name, "*");
+		count ++;
+
+		if(!limit || count < limit) {
+
+			if(classify) {
+				if(S_ISDIR(e->mode)) strcat(e->name, "/");
+				if(S_ISREG(e->mode) && (e->mode & (S_IXUSR | S_IXGRP | S_IXOTH))) strcat(e->name, "*");
+			}
+
+			char *siz = fmt_size(e->size);
+			printf("%-20.20s %s ", e->name, siz);
+			free(siz);
+
+			int n = size_max ? (width * e->size / size_max) : 0;
+			int j;
+			for(j=0; j<n; j++) putchar('#');
+			printf("\n");
+		} else {
+			size_rest += e->size;
+			count_rest ++;
 		}
+	}
 
-		char *siz = fmt_size(e->size);
-
-		printf("%-20.20s %s ", e->name, siz);
-		free(siz);
-
-		int n = size_max ? (width * e->size / size_max) : 0;
-		int j;
-		for(j=0; j<n; j++) putchar('#');
+	if(count_rest) {
+		char *siz = fmt_size(size_rest);
 		printf("\n");
+		printf("%-20.20s %s\n", "Omitted files", siz);
+		free(siz);
 	}
 
 	duc_closedir(dir);
