@@ -22,6 +22,7 @@ struct index {
 	struct wamb *wamb;
 	int one_file_system;
 	int verbose;
+	int quiet;
 	dev_t dev;
 	size_t file_count;
 	size_t dir_count;
@@ -40,13 +41,15 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 	}
 
 	if(fd == -1) {
-		fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
+		if(!index->quiet) 
+			fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
 	DIR *d = fdopendir(fd);
 	if(d == NULL) {
-		fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
+		if(!index->quiet)
+			fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
@@ -72,7 +75,8 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		struct stat stat;
 		int r = fstatat(fd, e->d_name, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
-			fprintf(stderr, "Error statting %s: %s\n", e->d_name, strerror(errno));
+			if(!index->quiet)
+				fprintf(stderr, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			continue;
 		}
 
@@ -80,7 +84,8 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 		if(index->one_file_system) {
 			if(stat.st_dev != index->dev) {
-				fprintf(stderr, "Skipping %s: different file system\n", e->d_name);
+				if(!index->quiet)
+					fprintf(stderr, "Skipping %s: different file system\n", e->d_name);
 				continue;
 			}
 		}
@@ -101,8 +106,8 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 		if(index->verbose) {
 			int j;
-			for(j=0; j<index->depth; j++) fputc(' ', stderr);
-			fprintf(stderr, " %s %jd\n", e->d_name, size);
+			for(j=0; j<index->depth; j++) putchar(' ');
+			printf(" %s %jd\n", e->d_name, size);
 		}
 
 		/* Store record */
@@ -128,17 +133,20 @@ int wamb_index(struct wamb *wamb, const char *path, int flags)
 	index.wamb = wamb;
 	index.one_file_system = flags & WAMB_INDEX_XDEV;
 	index.verbose = flags & WAMB_INDEX_VERBOSE;
+	index.quiet = flags & WAMB_INDEX_QUIET;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
-		fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
+		if(!index.quiet)
+			fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 	
 	struct stat stat;
 	int r = lstat(path_canon, &stat);
 	if(r == -1) {
-		fprintf(stderr, "Error statting %s: %s\n", path, strerror(errno));
+		if(!index.quiet)
+			fprintf(stderr, "Error statting %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
@@ -148,8 +156,10 @@ int wamb_index(struct wamb *wamb, const char *path, int flags)
 
 	free(path_canon);
 
-	fprintf(stderr, "Indexed %zu files and %zu directories, %jd bytes\n", 
-			index.file_count, index.dir_count, size);
+	if(!index.quiet) {
+		fprintf(stderr, "Indexed %zu files and %zu directories, %jd bytes\n", 
+				index.file_count, index.dir_count, size);
+	}
 
 	return 0;
 }

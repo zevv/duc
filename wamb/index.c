@@ -24,15 +24,19 @@ static int index_main(int argc, char **argv)
 	struct option longopts[] = {
 		{ "database",        required_argument, NULL, 'd' },
 		{ "one-file-system", required_argument, NULL, 'x' },
+		{ "quiet",           no_argument,       NULL, 'q' },
 		{ "verbose",         required_argument, NULL, 'v' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:xv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:qxv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
+				break;
+			case 'q':
+				flags |= WAMB_INDEX_QUIET;
 				break;
 			case 'x':
 				flags |= WAMB_INDEX_XDEV;
@@ -61,7 +65,6 @@ static int index_main(int argc, char **argv)
 
 	int i;
 	for(i=0; i<argc; i++) {
-		fprintf(stderr, "Indexing %s\n", argv[i]);
 		wamb_index(wamb, argv[i], flags);
 	}
 
@@ -80,6 +83,7 @@ struct cmd cmd_index = {
 		"Valid options:\n"
 		"\n"
 		"  -d, --database=ARG     use database file ARG\n"
+		"  -q, --quiet            do not report errors\n"
 		"  -x, --one-file-system  don't cross filesystem boundaries\n"
 		"  -v, --verbose          show what is happening\n"
 		,
