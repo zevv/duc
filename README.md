@@ -1,8 +1,5 @@
 
-
 ![Duc](/img/duc.png) 
-
-Dude, where are my bytes!
 
 ### introduction
 
