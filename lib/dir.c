@@ -10,19 +10,7 @@
 #include "db.h"
 #include "buffer.h"
 #include "wamb_internal.h"
-
-struct wamb_id {
-	dev_t dev;
-	ino_t ino;
-};
-
-
-struct child {
-	char *name;
-	off_t size;
-	dev_t dev;
-	ino_t ino;
-};
+#include "varint.h"
 
 
 struct wambdir {
@@ -83,6 +71,12 @@ static int fn_comp_ent(const void *a, const void *b)
 }
 
 
+static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
+{
+	return snprintf(key, keylen, "%jd/%jd", dev, ino);
+}
+
+
 /*
  * Serialize wambdir into a database record
  */
@@ -103,8 +97,8 @@ int wambdir_write(struct wambdir *dir, dev_t dev, ino_t ino)
 	}
 
 	char key[32];
-	snprintf(key, sizeof key, "d %jd %jd", dev, ino);
-	db_put(dir->wamb->db, key, strlen(key), b->data, b->len);
+	size_t keyl = mkkey(dev, ino, key, sizeof key);
+	db_put(dir->wamb->db, key, keyl, b->data, b->len);
 
 	buffer_free(b);
 
@@ -127,7 +121,7 @@ struct wambdir *wambdir_read(struct wamb *wamb, dev_t dev, ino_t ino)
 	size_t keyl;
 	size_t vall;
 
-	keyl = snprintf(key, sizeof key, "d %jd %jd", dev, ino);
+	keyl = mkkey(dev, ino, key, sizeof key);
 	char *val = db_get(wamb->db, key, keyl, &vall);
 	if(val == NULL) {
 		fprintf(stderr, "Id %jd/%jd not found in database\n", dev, ino);

@@ -25,16 +25,13 @@ struct index {
 	dev_t dev;
 	size_t file_count;
 	size_t dir_count;
+	int depth;
 };
 
 
 off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *stat_dir)
 {
 	off_t size_total = 0;
-
-	if(index->verbose) {
-		fprintf(stderr, "Indexing %s\n", path);
-	}
 
 	int fd = openat(fd_dir, path, OPEN_FLAGS | O_NOATIME);
 
@@ -82,34 +79,33 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 			}
 		}
 		
-		if(S_ISREG(stat.st_mode) || S_ISDIR(stat.st_mode)) {
 
-			off_t size = 0;
-
-			if(S_ISREG(stat.st_mode)) {
-				size = stat.st_size;
-				index->file_count ++;
-			}
-
-			if(S_ISDIR(stat.st_mode)) {
-				size = index_dir(index, e->d_name, fd, &stat);
-				index->dir_count ++;
-			}
-
-			if(index->verbose) {
-				fprintf(stderr, "  %s %jd (%jd/%jd)\n", e->d_name, size, stat.st_dev, stat.st_ino);
-			}
-
-			wambdir_add_ent(dir, e->d_name, size, stat.st_dev, stat.st_ino);
-			size_total += size;
+		off_t size = 0;
+		
+		if(S_ISDIR(stat.st_mode)) {
+			index->depth ++;
+			size = index_dir(index, e->d_name, fd, &stat);
+			index->depth --;
+			index->dir_count ++;
+		} else {
+			size = stat.st_size;
+			index->file_count ++;
 		}
+
+		if(index->verbose) {
+			int j;
+			for(j=0; j<index->depth; j++) fputc(' ', stderr);
+			fprintf(stderr, " %s %jd\n", e->d_name, size);
+		}
+
+		wambdir_add_ent(dir, e->d_name, size, stat.st_dev, stat.st_ino);
+		size_total += size;
 	}
 
 	wambdir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
 	wamb_closedir(dir);
 
 	closedir(d);
-	close(fd);
 
 	return size_total;
 }	
