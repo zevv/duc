@@ -12,8 +12,8 @@
 
 #include <cairo.h>
 
-#include "philesight.h"
-#include "db.h"
+#include "duc.h"
+#include "cmd.h"
 
 struct label {
 	int x, y;
@@ -23,13 +23,12 @@ struct label {
 
 
 struct graph {
-	int w, h;
+	struct duc *duc;
 	int cx, cy;
 	int ring_width;
 	int depth;
 	struct label *label_list;
 	cairo_t *cr;
-	struct db *db;
 };
 
 
@@ -121,53 +120,25 @@ static void draw_section(struct graph *graph, double a_from, double a_to, int r_
 }
 
 
-static void draw_ring(struct graph *graph, uint32_t id, int level, double a_min, double a_max)
+static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min, double a_max)
 {
-	struct db *db = graph->db;
-	size_t vallen = 0;
 	double a_range = a_max - a_min;
-
-	void *buf = db_get(db, &id, sizeof id, &vallen);
-	if(!buf) return;
-	void *p = buf;
- 			
-	// +--------+---------+------+ ( +-----+-----+-----+ )
- 	// |  size  | namelen | name | ( | cid | cid | ... | )
-	// +--------+---------+------+ ( +-----+-----+-----+ )
-
-	off_t size = *(off_t *)p; p += sizeof(off_t);
-	uint8_t namelen = *(uint8_t *)p; p += sizeof(uint8_t);
-	p += namelen;
-
-	int nchildren = (vallen - (p - buf)) / sizeof(uint32_t);
-
-#ifdef DEBUG
-	printf("> %d %s %d\n", id, name, nchildren);
-#endif
-	
 	double a_from = a_min;
 	double a_to = a_min;
 
-	uint32_t i;
-	for(i=0; i<nchildren; i++) {
-		uint32_t cid = *(uint32_t *)p;
-		p += sizeof(uint32_t);
-#ifdef DEBUG
-		printf(">  %d\n", cid);
-#endif
-		size_t cvallen = 0;
-		void *bufc = db_get(db, &cid, sizeof cid, &cvallen);
-		if(!bufc) continue;
-		
-		void *pc = bufc;
+	/* Calculate max and total size */
+	
+	off_t size_total = 0;
 
-		off_t csize = *(off_t *)pc; pc += sizeof(off_t);
-		uint8_t cnamelen = *(uint8_t *)pc; pc += sizeof(uint8_t);
-		char *cname = pc; pc += cnamelen;
-		int cnchildren = (cvallen - (pc - bufc)) / sizeof(uint32_t);
+	struct ducent *e;
+	while( (e = duc_readdir(dir)) != NULL) {
+		size_total += e->size;
+	}
 
+	duc_rewinddir(dir);
+	while( (e = duc_readdir(dir)) != NULL) {
 
-		a_to += a_range * csize / size;
+		a_to += a_range * e->size / size_total;
 
 		if(a_to > a_from) {
 			double r_from = (level+1) * graph->ring_width;
@@ -177,9 +148,11 @@ static void draw_ring(struct graph *graph, uint32_t id, int level, double a_min,
 
 			draw_section(graph, a_from, a_to, r_from, r_to, brightness);
 
-			if(cnchildren > 0) {
+			if(S_ISDIR(e->mode)) {
 				if(level+1 < graph->depth) {
-					draw_ring(graph, cid, level + 1, a_from, a_to);
+					ducdir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
+					draw_ring(graph, dir_child, level + 1, a_from, a_to);
+					duc_closedir(dir_child);
 				} else {
 					draw_section(graph, a_from, a_to, r_to, r_to+5, 0.5);
 				}
@@ -188,62 +161,95 @@ static void draw_ring(struct graph *graph, uint32_t id, int level, double a_min,
 			if(r_from * (a_to - a_from) > 40) {
 				struct label *label = malloc(sizeof *label);
 				pol2car(graph, (a_from+a_to)/2, (r_from+r_to)/2, &label->x, &label->y);
-				label->text = malloc(cnamelen + 1);
-				memcpy(label->text, cname, cnamelen);
-				label->text[cnamelen] = '\0';
+				label->text = strdup(e->name);
 				label->next = graph->label_list;
 				graph->label_list = label;
 			}
 		}
 		
-		db_free_val(bufc);
-
 		a_from = a_to;
 	}
-
-	db_free_val(buf);
 }
 
 
-uint32_t find_id(struct db *db, char *fname)
-{
-	return 0;
-}
 
-
-int cmd_draw(struct db *db, int argc, char **argv)
+static int draw_main(int argc, char **argv)
 {
-	int i;
+	int c;
+	char *path_db = NULL;
 	struct graph graph;
+	int size = 800;
+	char *path_out = "duc.png";
+	
+	graph.depth = 4;
 
-	if(argc < 2) {
-		fprintf(stderr, "Missing argument PATH\n");
-		usage();
-		return 1;
+	struct option longopts[] = {
+		{ "database",       required_argument, NULL, 'd' },
+		{ "levels",         required_argument, NULL, 'l' },
+		{ "output",         required_argument, NULL, 'o' },
+		{ "size",           required_argument, NULL, 's' },
+		{ NULL }
+	};
+
+	while( ( c = getopt_long(argc, argv, "d:l:o:s:", longopts, NULL)) != EOF) {
+
+		switch(c) {
+			case 'd':
+				path_db = optarg;
+				break;
+			case 'l':
+				graph.depth = atoi(optarg);
+				break;
+			case 'o':
+				path_out = optarg;
+				break;
+			case 's':
+				size = atoi(optarg);
+				break;
+			default:
+				return(-1);
+		}
 	}
 
-	graph.w = 900;
-	graph.h = 900;
-	graph.depth = 6;
-	graph.ring_width = 50;
+	argc -= optind;
+	argv += optind;
+	
+	char *path = ".";
+	if(argc > 0) path = argv[0];
+
+	graph.ring_width = ((size-30) / 2) / (graph.depth + 1);
 	graph.label_list = NULL;
 
-	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, graph.w, graph.h);
+	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
 	cairo_t *cr = cairo_create(surface);
 
-	graph.cx = graph.w / 2;
-	graph.cy = graph.h / 2;
+	graph.cx = size / 2;
+	graph.cy = size / 2;
 	graph.cr = cr;
-	graph.db = db;
 
-	uint32_t id = find_id(graph.db, "/home/ico");
+	/* Open duc context */
 
-	draw_ring(&graph, id, 0, 0, M_PI * 2);
+	graph.duc = duc_open(path_db, WAMB_OPEN_RO);
+
+	ducdir *dir = duc_opendir(graph.duc, path);
+	if(dir == NULL) {
+		fprintf(stderr, "Path not found in database\n");
+		return -1;
+	}
+
+	/* Recursively draw graph */
+
+	double a1 = -M_PI / 2;
+	double a2 = a1 + M_PI * 2;
+	draw_ring(&graph, dir, 0, a1, a2);
+
+	/* Draw collected labels */
 
 	cairo_set_line_width(cr, 0.3);
 	cairo_set_source_rgba(graph.cr, 0, 0, 0, 0.7);
 	cairo_stroke(cr);
 
+	int i;
 	for(i=1; i<=graph.depth+1; i++) {
 		cairo_new_path(cr);
 		cairo_arc(graph.cr, graph.cx, graph.cy, i * graph.ring_width, 0, 2*M_PI);
@@ -255,15 +261,36 @@ int cmd_draw(struct db *db, int argc, char **argv)
 	while(label) {
 		draw_text(cr, label->x, label->y, label->text);
 		free(label->text);
-		label = label->next;
+		struct label *next = label->next;
+		free(label);
+		label = next;
 	}
 
 	cairo_destroy(graph.cr);
-	cairo_surface_write_to_png(surface, "out.png");
+	cairo_surface_write_to_png(surface, path_out);
 	cairo_surface_destroy(surface);
+
+	duc_closedir(dir);
+	duc_close(graph.duc);
 
 	return 0;
 }
+
+
+	
+struct cmd cmd_draw = {
+	.name = "draw",
+	.description = "Draw graph",
+	.usage = "[options] [PATH]",
+	.help = 
+		"Valid options:\n"
+		"\n"
+		"  -d, --database=ARG      use database file ARG\n"
+	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
+		"  -o, --output=ARG        output file name [duc.png]\n"
+	        "  -s, --size=ARG          image size [800]\n",
+	.main = draw_main
+};
 
 /*
  * End

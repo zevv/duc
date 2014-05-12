@@ -12,14 +12,14 @@
 struct cmd cmd_help;
 struct cmd cmd_index;
 struct cmd cmd_ls;
-struct cmd cmd_test;
+struct cmd cmd_draw;
 
 
 struct cmd *cmd_list[] = {
+	&cmd_help,
 	&cmd_index,
 	&cmd_ls,
-	&cmd_help,
-	&cmd_test,
+	&cmd_draw,
 };
 
 #define SUBCOMMAND_COUNT (sizeof(cmd_list) / sizeof(cmd_list[0]))
