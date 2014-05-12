@@ -213,7 +213,7 @@ static int draw_main(int argc, char **argv)
 				size = atoi(optarg);
 				break;
 			default:
-				return(-1);
+				return -2;
 		}
 	}
 

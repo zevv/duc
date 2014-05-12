@@ -38,15 +38,9 @@ int main(int argc, char **argv)
 
 	if(cmd == NULL) cmd = &cmd_help;
 
-	if(argc > 2) {
-		if(strcmp(argv[2], "-h") == 0 ||
-		   strcmp(argv[2], "--help") == 0) {
-			help_cmd(cmd);
-			return 0;
-		}
-	}
-
-	return cmd->main(argc-1, argv+1);
+	int r = cmd->main(argc-1, argv+1);
+	if(r == -2) help_cmd(cmd);
+	return (r == 0);
 }
 
 

@@ -70,7 +70,7 @@ static int ls_main(int argc, char **argv)
 				limit = atoi(optarg);
 				break;
 			default:
-				return(-1);
+				return -2;
 		}
 	}
 

@@ -29,25 +29,39 @@ $ sudo apt-get install libcairo2-dev libtokyocabinet-dev
 
 ### usage
 
-Duc comes with a command line tool called 'duc', which is used to create,
+Duc comes with a command line tool called `duc`, which is used to create,
 maintain and query the disk usage database.  run `duc help` to get a list of
-available commands. 'duc help <subcommand>' describes the usage of a specific
+available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand.
 
+
+#### Creating the index
+
 Duc needs an index file of the file system before it is able to show any
-information.  To create the index, run the 'duc index' command. For example, to
-create an index of your home directory run:
+information.  To create the index, run the `duc index` command. For example, to
+create an index of your home directory run `duc index ~`
 
-```
-$ duc index ~
-```
-
-The default location of the database is ~/.duc.db. To use a different database
+The default location of the database is `$HOME/.duc.db`. To use a different database
 location, use the DUC_DATABASE environment variable or specify the database
 location with the --database argument.
 
+You can run `duc index` at any time later to rebuild the index.
 
-TL;DR
+
+#### Querying the index
+
+Use the `duc ls` command to see the disk usage of a directory. A specific path
+can be specified as command line argument, the current directory is used if omitted.
+
+`dus ls` has some options similar to the normal `ls` program. For example, try
+`duc ls -hF` for a more friendly output.
+
+For a graphical representation of the disk usage, use the command `duc draw`
+
+![Example](example.jpg)
+
+
+#### TL;DR
 
 ```
 $ duc help
@@ -64,7 +78,8 @@ Duc is the replacement for Philesight[1], which I wrote a few years ago but has
 some shortcomings (slow indexing, large database) which I felt were not simple
 to fix.
 
-Instead of Ruby, Duc is written in plain C, which is probably as fast as it will get.
+Instead of Ruby, Duc is written in plain C, which is probably as fast as it
+will get.
 
 1. http://zevv.nl/play/code/philesight/
 

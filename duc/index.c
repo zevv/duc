@@ -45,7 +45,7 @@ static int index_main(int argc, char **argv)
 				flags |= DUC_INDEX_VERBOSE;
 				break;
 			default:
-				return(-1);
+				return -2;
 		}
 	}
 	
