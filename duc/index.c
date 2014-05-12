@@ -19,9 +19,11 @@ static int index_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-	int flags = 0;
+	int index_flags = 0;
+	int open_flags = DUC_OPEN_RW;
 
 	struct option longopts[] = {
+		{ "compress",        no_argument,       NULL, 'c' },
 		{ "database",        required_argument, NULL, 'd' },
 		{ "one-file-system", required_argument, NULL, 'x' },
 		{ "quiet",           no_argument,       NULL, 'q' },
@@ -29,20 +31,23 @@ static int index_main(int argc, char **argv)
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:qxv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "cd:qxv", longopts, NULL)) != EOF) {
 
 		switch(c) {
+			case 'c':
+				open_flags |= DUC_OPEN_COMPRESS;
+				break;
 			case 'd':
 				path_db = optarg;
 				break;
 			case 'q':
-				flags |= DUC_INDEX_QUIET;
+				index_flags |= DUC_INDEX_QUIET;
 				break;
 			case 'x':
-				flags |= DUC_INDEX_XDEV;
+				index_flags |= DUC_INDEX_XDEV;
 				break;
 			case 'v':
-				flags |= DUC_INDEX_VERBOSE;
+				index_flags |= DUC_INDEX_VERBOSE;
 				break;
 			default:
 				return -2;
@@ -57,14 +62,14 @@ static int index_main(int argc, char **argv)
 		return -2;
 	}
 
-	struct duc *duc = duc_open(path_db, DUC_OPEN_RW);
+	struct duc *duc = duc_open(path_db, open_flags);
 	if(duc == NULL) return -1;
 
 	/* Index all paths passed on the cmdline */
 
 	int i;
 	for(i=0; i<argc; i++) {
-		duc_index(duc, argv[i], flags);
+		duc_index(duc, argv[i], index_flags);
 	}
 
 	duc_close(duc);
@@ -81,6 +86,7 @@ struct cmd cmd_index = {
 	.help = 
 		"Valid options:\n"
 		"\n"
+		"  -c, --compress          create compressed database, favour size over speed\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -q, --quiet             do not report errors\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"

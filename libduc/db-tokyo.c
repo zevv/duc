@@ -29,6 +29,9 @@ struct db *db_open(const char *path_db, int flags)
 	uint32_t mode = 0;
 	if(flags & DUC_OPEN_RO) mode |= HDBOREADER;
 	if(flags & DUC_OPEN_RW) mode |= HDBOWRITER | HDBOCREAT;
+	if(flags & DUC_OPEN_COMPRESS) {
+		tchdbtune(db->hdb, -1, -1, -1, HDBTDEFLATE);
+	}
 
 	int r = tchdbopen(db->hdb, path_db, mode);
 	if(r == 0) {

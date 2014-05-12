@@ -9,6 +9,7 @@
 enum {
 	DUC_OPEN_RO = 1<<0,
 	DUC_OPEN_RW = 1<<1,
+	DUC_OPEN_COMPRESS = 1<<2,
 };
 
 typedef struct duc duc;
