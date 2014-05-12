@@ -58,12 +58,7 @@ can be specified as command line argument, the current directory is used if omit
 
 For a graphical representation of the disk usage, use the command `duc draw`
 
-<<<<<<< HEAD
-![Example](/example.jpg)
-
-=======
 ![Example](https://raw.githubusercontent.com/zevv/duc/master/example.png) 
->>>>>>> df8b3afcc3152505baa64e6e7f76633cd3cb81f5
 
 #### TL;DR
 
@@ -72,7 +67,7 @@ $ duc help
 $ duc help index
 $ duc index /usr
 $ duc ls /usr/bin
-$ duc graph /usr
+$ duc draw /usr
 ```
 
 
@@ -83,7 +78,8 @@ some shortcomings (slow indexing, large database) which I felt were not simple
 to fix.
 
 Instead of Ruby, Duc is written in plain C, which is probably as fast as it
-will get.
+will get. Duc is about ten times faster then Philesight when indexing, with a
+database size which is about eight times smaller.
 
 1. http://zevv.nl/play/code/philesight/
 
