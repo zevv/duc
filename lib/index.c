@@ -21,6 +21,7 @@
 struct index {
 	struct wamb *wamb;
 	int one_file_system;
+	int verbose;
 	dev_t dev;
 	size_t file_count;
 	size_t dir_count;
@@ -31,6 +32,10 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 {
 	off_t size_total = 0;
 
+	if(index->verbose) {
+		fprintf(stderr, "Indexing %s\n", path);
+	}
+
 	int fd = openat(fd_dir, path, OPEN_FLAGS | O_NOATIME);
 
 	if(fd == -1 && errno == EPERM) {
@@ -38,17 +43,21 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 	}
 
 	if(fd == -1) {
-		fprintf(stderr, "Error opening %s: %s\n", path, strerror(errno));
+		fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
 	DIR *d = fdopendir(fd);
 	if(d == NULL) {
-		fprintf(stderr, "Error fdopendir %s: %s\n", path, strerror(errno));
+		fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
 	struct wambdir *dir = wambdir_new(index->wamb, 8);
+			
+	if(index->dev == 0) {
+		index->dev = stat_dir->st_dev;
+	}
 
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
@@ -63,15 +72,12 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		int r = fstatat(fd, e->d_name, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
 			fprintf(stderr, "Error statting %s: %s\n", e->d_name, strerror(errno));
-			return 0;
+			continue;
 		}
 
 		if(index->one_file_system) {
-			if(index->dev == 0) {
-				index->dev = stat.st_dev;
-			}
 			if(stat.st_dev != index->dev) {
-				fprintf(stderr, "Skipping %s (different file system)\n", e->d_name);
+				fprintf(stderr, "Skipping %s: different file system\n", e->d_name);
 				continue;
 			}
 		}
@@ -88,6 +94,10 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 			if(S_ISDIR(stat.st_mode)) {
 				size = index_dir(index, e->d_name, fd, &stat);
 				index->dir_count ++;
+			}
+
+			if(index->verbose) {
+				fprintf(stderr, "  %s %jd (%jd/%jd)\n", e->d_name, size, stat.st_dev, stat.st_ino);
 			}
 
 			wambdir_add_ent(dir, e->d_name, size, stat.st_dev, stat.st_ino);
@@ -112,6 +122,7 @@ int wamb_index(struct wamb *wamb, const char *path, int flags)
 
 	index.wamb = wamb;
 	index.one_file_system = flags & WAMB_INDEX_XDEV;
+	index.verbose = flags & WAMB_INDEX_VERBOSE;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {

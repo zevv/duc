@@ -29,6 +29,7 @@ void wamb_close(wamb *wamb);
 
 enum {
 	WAMB_INDEX_XDEV	= 1<<0,
+	WAMB_INDEX_VERBOSE = 1<<1,
 };
 
 int wamb_index(wamb *wamb, const char *path, int flags);

@@ -19,22 +19,26 @@ static int index_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-	int one_file_system = 0;
+	int flags = 0;
 
 	struct option longopts[] = {
 		{ "database",        required_argument, NULL, 'd' },
 		{ "one-file-system", required_argument, NULL, 'x' },
+		{ "verbose",         required_argument, NULL, 'v' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:x", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:xv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
 				break;
 			case 'x':
-				one_file_system = 1;
+				flags |= WAMB_INDEX_XDEV;
+				break;
+			case 'v':
+				flags |= WAMB_INDEX_VERBOSE;
 				break;
 			default:
 				return(-1);
@@ -52,8 +56,6 @@ static int index_main(int argc, char **argv)
 	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RW);
 	if(wamb == NULL) return -1;
 
-	int flags = 0;
-	if(one_file_system) flags |= WAMB_INDEX_XDEV;
 
 	/* Index all paths passed on the cmdline */
 
@@ -79,6 +81,7 @@ struct cmd cmd_index = {
 		"\n"
 		"  -d, --database=ARG     use database file ARG\n"
 		"  -x, --one-file-system  don't cross filesystem boundaries\n"
+		"  -v, --verbose          show what is happening\n"
 		,
 	.main = index_main
 };
