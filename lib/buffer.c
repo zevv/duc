@@ -144,14 +144,15 @@ int buffer_put_string(struct buffer *b, const char *s)
 }
 
 
-int buffer_get_string(struct buffer *b, char **s)
+int buffer_get_string(struct buffer *b, char **sout)
 {
 	uint8_t len;
 	buffer_get(b, &len, sizeof len);
-	*s = malloc(len + 1);
+	char *s = malloc(len + 1);
 	if(s) {
-		buffer_get(b, *s, len);
-		*s[len] = '\0';
+		buffer_get(b, s, len);
+		s[len] = '\0';
+		*sout = s;
 		return len;
 	}
 	return 0;
