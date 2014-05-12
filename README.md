@@ -58,8 +58,12 @@ can be specified as command line argument, the current directory is used if omit
 
 For a graphical representation of the disk usage, use the command `duc draw`
 
+<<<<<<< HEAD
 ![Example](/example.jpg)
 
+=======
+![Example](https://raw.githubusercontent.com/zevv/duc/master/example.png) 
+>>>>>>> df8b3afcc3152505baa64e6e7f76633cd3cb81f5
 
 #### TL;DR
 
