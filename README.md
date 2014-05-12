@@ -1,9 +1,7 @@
 
-# duc
-
-Dude, where are my bytes!
 
 ![Duc](/img/duc.png) 
+Dude, where are my bytes!
 
 ### introduction
 
