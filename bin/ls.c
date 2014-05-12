@@ -114,7 +114,7 @@ static int ls_main(int argc, char **argv)
 		printf("%-20.20s %s ", e->name, siz);
 		free(siz);
 
-		int n = width * e->size / size_max;
+		int n = size_max ? (width * e->size / size_max) : 0;
 		int j;
 		for(j=0; j<n; j++) putchar('#');
 		printf("\n");

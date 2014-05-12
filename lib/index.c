@@ -46,7 +46,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		return 0;
 	}
 
-	struct wamb_node *node = wamb_node_new(stat_dir->st_dev, stat_dir->st_ino);
+	struct wambdir *dir = wambdir_new(index->wamb, 8);
 
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
@@ -78,13 +78,13 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 				index->dir_count ++;
 			}
 
-			wamb_node_add_child(node, e->d_name, size, stat.st_dev, stat.st_ino);
+			wambdir_add_ent(dir, e->d_name, size, stat.st_dev, stat.st_ino);
 			size_total += size;
 		}
 	}
 
-	wamb_node_write(index->wamb, node);
-	wamb_node_free(node);
+	wambdir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
+	wamb_closedir(dir);
 
 	closedir(d);
 	close(fd);
