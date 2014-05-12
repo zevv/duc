@@ -121,7 +121,7 @@ static int ls_main(int argc, char **argv)
 
 		char *siz = fmt_size(e->size);
 
-		printf("%s %-20.20s ", siz, e->name);
+		printf("%-20.20s %s ", e->name, siz);
 		free(siz);
 
 		int n = size_max ? (width * e->size / size_max) : 0;
