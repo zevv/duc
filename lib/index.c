@@ -20,6 +20,8 @@
 
 struct index {
 	struct wamb *wamb;
+	int one_file_system;
+	dev_t dev;
 	size_t file_count;
 	size_t dir_count;
 };
@@ -63,6 +65,16 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 			fprintf(stderr, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			return 0;
 		}
+
+		if(index->one_file_system) {
+			if(index->dev == 0) {
+				index->dev = stat.st_dev;
+			}
+			if(stat.st_dev != index->dev) {
+				fprintf(stderr, "Skipping %s (different file system)\n", e->d_name);
+				continue;
+			}
+		}
 		
 		if(S_ISREG(stat.st_mode) || S_ISDIR(stat.st_mode)) {
 
@@ -99,6 +111,7 @@ int wamb_index(struct wamb *wamb, const char *path, int flags)
 	memset(&index, 0, sizeof index);
 
 	index.wamb = wamb;
+	index.one_file_system = flags & WAMB_INDEX_XDEV;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
