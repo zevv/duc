@@ -207,7 +207,7 @@ wambdir *wamb_opendir(struct wamb *wamb, const char *path)
 			break;
 		}
 		l--;
-		while(l> 0  && path_canon[l] != '/') l--;
+		while(l > 1  && path_canon[l] != '/') l--;
 	}
 
 	if(l == 0) {
