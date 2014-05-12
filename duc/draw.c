@@ -83,7 +83,7 @@ static void draw_text(cairo_t *cr, int x, int y, char *text)
 	int w = ext.width;
 	int h = ext.height;
 	cairo_move_to(cr, x - w/2, y + h/2);
-	cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
+	cairo_set_source_rgba(cr, 1, 1, 1, 0.8);
 	cairo_set_line_width(cr, 1.5);
 	cairo_text_path(cr, text);
 	cairo_stroke(cr);
@@ -164,7 +164,7 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 				}
 			}
 
-			if(r_from * (a_to - a_from) > 10) {
+			if(r_from * (a_to - a_from) > 5) {
 				struct label *label = malloc(sizeof *label);
 				pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
 				label->text = strdup(e->name);
@@ -289,7 +289,7 @@ struct cmd cmd_draw = {
 	.help = 
 		"Valid options:\n"
 		"\n"
-		"  -d, --database=ARG      use database file ARG\n"
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
 		"  -o, --output=ARG        output file name [duc.png]\n"
 	        "  -s, --size=ARG          image size [800]\n",

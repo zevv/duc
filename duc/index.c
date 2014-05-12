@@ -82,10 +82,10 @@ struct cmd cmd_index = {
 	.help = 
 		"Valid options:\n"
 		"\n"
-		"  -d, --database=ARG     use database file ARG\n"
-		"  -q, --quiet            do not report errors\n"
-		"  -x, --one-file-system  don't cross filesystem boundaries\n"
-		"  -v, --verbose          show what is happening\n"
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -q, --quiet             do not report errors\n"
+		"  -x, --one-file-system   don't cross filesystem boundaries\n"
+		"  -v, --verbose           show what is happening\n"
 		,
 	.main = index_main
 };

@@ -145,10 +145,10 @@ struct cmd cmd_ls = {
 	.help = 
 		"Valid options:\n"
 		"\n"
-		"  -d, --database=ARG      use database file ARG\n"
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
 		"  -F, --classify          append indicator (one of */) to entries\n"
-		"  -n, --limit=ARG         limit number of results\n",
+		"  -n, --limit=ARG         limit number of results. 0 for unlimited [20]\n",
 	.main = ls_main
 };
 
