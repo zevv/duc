@@ -30,7 +30,11 @@ struct db *db_open(const char *path_db, int flags)
 	if(flags & DUC_OPEN_RO) mode |= HDBOREADER;
 	if(flags & DUC_OPEN_RW) mode |= HDBOWRITER | HDBOCREAT;
 
-	tchdbopen(db->hdb, path_db, mode);
+	int r = tchdbopen(db->hdb, path_db, mode);
+	if(r == 0) {
+		free(db);
+		return NULL;
+	}
 
 	return db;
 }

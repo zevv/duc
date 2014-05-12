@@ -31,6 +31,7 @@ struct duc *duc_open(const char *path_db, int flags)
 	
 	duc->db = db_open(path_db, flags);
 	if(duc->db == NULL) {
+		fprintf(stderr, "Could not open database %s. Did you create a database with 'duc index'?\n", path_db);
 		free(duc);
 		return NULL;
 	}

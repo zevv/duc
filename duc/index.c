@@ -53,13 +53,12 @@ static int index_main(int argc, char **argv)
 	argv += optind;
 
 	if(argc < 1) {
-		fprintf(stderr, "Required index path missing.\n");
-		return -1;
+		fprintf(stderr, "Required index PATH missing.\n");
+		return -2;
 	}
 
 	struct duc *duc = duc_open(path_db, DUC_OPEN_RW);
 	if(duc == NULL) return -1;
-
 
 	/* Index all paths passed on the cmdline */
 

@@ -93,10 +93,10 @@ static int ls_main(int argc, char **argv)
 	/* Open duc context */
 
 	struct duc *duc = duc_open(path_db, DUC_OPEN_RO);
+	if(duc == NULL) return -1;
 
 	ducdir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {
-		fprintf(stderr, "Path not found in database\n");
 		return -1;
 	}
 	

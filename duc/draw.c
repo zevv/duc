@@ -236,10 +236,10 @@ static int draw_main(int argc, char **argv)
 	/* Open duc context */
 
 	graph.duc = duc_open(path_db, DUC_OPEN_RO);
+	if(graph.duc == NULL) return -1;
 
 	ducdir *dir = duc_opendir(graph.duc, path);
 	if(dir == NULL) {
-		fprintf(stderr, "Path not found in database\n");
 		return -1;
 	}
 

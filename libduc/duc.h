@@ -2,11 +2,6 @@
 #ifndef duc_h
 #define duc_h
 
-#include <fcntl.h>
-#include <fcntl.h>
-
-
-
 /*
  * Create and destroy duc context
  */
