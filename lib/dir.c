@@ -16,6 +16,7 @@
 struct wambdir {
 	struct wamb *wamb;
 	struct wambent *ent_list;
+	mode_t mode;
 	size_t ent_cur;
 	size_t ent_count;
 	size_t ent_max;
@@ -45,7 +46,7 @@ struct wambdir *wambdir_new(struct wamb *wamb, size_t ent_max)
 }
 
 
-void wambdir_add_ent(struct wambdir *dir, const char *name, size_t size, dev_t dev, ino_t ino)
+void wambdir_add_ent(struct wambdir *dir, const char *name, size_t size, mode_t mode, dev_t dev, ino_t ino)
 {
 	if(dir->ent_count >= dir->ent_max) {
 		dir->ent_max *= 2;
@@ -58,6 +59,7 @@ void wambdir_add_ent(struct wambdir *dir, const char *name, size_t size, dev_t d
 
 	strncpy(ent->name, name, sizeof(ent->name));
 	ent->size = size;
+	ent->mode = mode;
 	ent->dev = dev;
 	ent->ino = ino;
 }
@@ -89,10 +91,11 @@ int wambdir_write(struct wambdir *dir, dev_t dev, ino_t ino)
 	struct wambent *ent = dir->ent_list;
 
 	for(i=0; i<dir->ent_count; i++) {
+		buffer_put_string(b, ent->name);
 		buffer_put_varint(b, ent->size);
+		buffer_put_varint(b, ent->mode);
 		buffer_put_varint(b, ent->dev);
 		buffer_put_varint(b, ent->ino);
-		buffer_put_string(b, ent->name);
 		ent++;
 	}
 
@@ -135,14 +138,16 @@ struct wambdir *wambdir_read(struct wamb *wamb, dev_t dev, ino_t ino)
 		uint64_t size;
 		uint64_t dev;
 		uint64_t ino;
+		uint64_t mode;
 		char *name;
 
+		buffer_get_string(b, &name);
 		buffer_get_varint(b, &size);
+		buffer_get_varint(b, &mode);
 		buffer_get_varint(b, &dev);
 		buffer_get_varint(b, &ino);
-		buffer_get_string(b, &name);
 		
-		wambdir_add_ent(dir, name, size, dev, ino);
+		wambdir_add_ent(dir, name, size, mode, dev, ino);
 	}
 
 	return dir;

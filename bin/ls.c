@@ -18,7 +18,7 @@ static int human_readable = 0;
 static int limit = 0;
 
 
-char *human_size(off_t size)
+char *fmt_size(off_t size)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	double v = size;
@@ -45,19 +45,24 @@ static int ls_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
+	int classify = 0;
 
 	struct option longopts[] = {
+		{ "classify",       no_argument,       NULL, 'F' },
 		{ "database",       required_argument, NULL, 'd' },
 		{ "human-readable", no_argument,       NULL, 'h' },
 		{ "limit",          required_argument, NULL, 'n' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:hn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:Fhn:", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
+				break;
+			case 'F':
+				classify = 1;
 				break;
 			case 'h':
 				human_readable = 1;
@@ -86,7 +91,7 @@ static int ls_main(int argc, char **argv)
 	}
 	width = width - 34;
 
-	/* Open wamb */
+	/* Open wamb context */
 
 	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RO);
 
@@ -110,8 +115,14 @@ static int ls_main(int argc, char **argv)
 	wamb_rewinddir(dir);
 	while( (e = wamb_readdir(dir)) != NULL) {
 
-		char *siz = human_size(e->size);
-		printf("%-20.20s %s ", e->name, siz);
+		if(classify) {
+			if(S_ISDIR(e->mode)) strcat(e->name, "/");
+			if(S_ISREG(e->mode) && (e->mode & (S_IXUSR | S_IXGRP | S_IXOTH))) strcat(e->name, "*");
+		}
+
+		char *siz = fmt_size(e->size);
+
+		printf("%s %-20.20s ", siz, e->name);
 		free(siz);
 
 		int n = size_max ? (width * e->size / size_max) : 0;
@@ -137,6 +148,7 @@ struct cmd cmd_ls = {
 		"\n"
 		"  -d, --database=ARG      use database file ARG\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
+		"  -F, --classify          append indicator (one of */) to entries\n"
 		"  -n, --limit=ARG         limit number of results\n",
 	.main = ls_main
 };

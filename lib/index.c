@@ -59,11 +59,15 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
 
+		/* Skip . and .. */
+
 		const char *n = e->d_name;
 		if(n[0] == '.') {
 			if(n[1] == '\0') continue;
 			if(n[1] == '.' && n[2] == '\0') continue;
 		}
+
+		/* Get file info */
 
 		struct stat stat;
 		int r = fstatat(fd, e->d_name, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
@@ -72,13 +76,16 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 			continue;
 		}
 
+		/* Check for file system boundaries */
+
 		if(index->one_file_system) {
 			if(stat.st_dev != index->dev) {
 				fprintf(stderr, "Skipping %s: different file system\n", e->d_name);
 				continue;
 			}
 		}
-		
+
+		/* Calculate size, recursing when needed */
 
 		off_t size = 0;
 		
@@ -98,7 +105,9 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 			fprintf(stderr, " %s %jd\n", e->d_name, size);
 		}
 
-		wambdir_add_ent(dir, e->d_name, size, stat.st_dev, stat.st_ino);
+		/* Store record */
+
+		wambdir_add_ent(dir, e->d_name, size, stat.st_mode, stat.st_dev, stat.st_ino);
 		size_total += size;
 	}
 
