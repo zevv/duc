@@ -1,6 +1,6 @@
 
 BIN	:= wamb
-SRC	:= main.c index.c ls.c
+SRC	:= main.c index.c ls.c test.c
 
 CFLAGS	+= -I../lib
 LDFLAGS	+= -L../lib -lwamb

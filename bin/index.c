@@ -18,7 +18,7 @@
 static int index_main(int argc, char **argv)
 {
 	int c;
-	char *path_db = getenv("PS_PATH_DB");
+	char *path_db = NULL;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },

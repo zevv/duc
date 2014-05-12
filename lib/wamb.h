@@ -16,10 +16,10 @@ enum {
 	WAMB_OPEN_RW = 1<<1,
 };
 
-struct wamb;
+typedef struct wamb wamb;
 
-struct wamb *wamb_open(const char *path_db, int flags);
-void wamb_close(struct wamb *wamb);
+wamb *wamb_open(const char *path_db, int flags);
+void wamb_close(wamb *wamb);
 
 
 /*
@@ -31,16 +31,16 @@ enum {
 	WAMB_INDEX_XDEV	= 1<<0,
 };
 
-int wamb_index(struct wamb *wamb, const char *path, int flags);
+int wamb_index(wamb *wamb, const char *path, int flags);
 
 
 /*
  * Reading the wamb database
  */
 
-typedef struct wamb_iter wamb_iter;
+typedef struct wambdir wambdir;
 
-struct wamb_ent {
+struct wambent {
 	char name[256];
 	off_t size;
 	mode_t mode;
@@ -48,9 +48,11 @@ struct wamb_ent {
 	ino_t ino;
 };
 
-wamb_iter *wamb_list_path(struct wamb *wamb, const char *path);
-void wamb_iter_read(wamb_iter *wi);
-void wamb_iter_seek(wamb_iter *wi, long offset);
-void wamb_iter_close(wamb_iter *wi);
+wambdir *wamb_opendir(wamb *wamb, const char *path);
+wambdir *wamb_openat(wamb *wamb, wambdir *dir, const char *name);
+struct wambent *wamb_readdir(wambdir *dir);
+struct wambent *wamb_finddir(wambdir *dir, const char *name);
+int wamb_rewinddir(wambdir *dir);
+void wamb_closedir(wambdir *dir);
 
 #endif

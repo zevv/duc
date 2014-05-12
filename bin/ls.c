@@ -41,95 +41,6 @@ char *human_size(off_t size)
 }
 
 
-static int fn_comp_child(const void *a, const void *b)
-{
-	const struct wamb_child *da = a;
-	const struct wamb_child *db = b;
-	return(da->size < db->size);
-}
-
-
-
-static int ls(struct wamb *wamb, const char *path)
-{
-	struct wamb_node *node;
-	int width = 80;
-
-	/* Get terminal width, if a tty */
-
-	if(isatty(0)) {
-		struct winsize w;
-		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-		if(r == 0) width = w.ws_col;
-	}
-
-	width = width - 36;
-
-	char *path_canon = realpath(path, NULL);
-	if(path_canon == NULL) {
-		fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
-		return -1;
-	}
-
-	node = wamb_find_dir(wamb, path_canon);
-	free(path_canon);
-
-	if(node == NULL) {
-		fprintf(stderr, "Path not found in database\n");
-		return -1;
-	}
-	qsort(node->child_list, node->child_count, sizeof(struct wamb_child), fn_comp_child);
-
-	if(node == NULL) return -1;
-
-	size_t i;
-
-	off_t size_total = 0;
-	off_t size_max = 0;
-
-	for(i=0; i<node->child_count; i++) {
-		struct wamb_child *child = &node->child_list[i];
-		if(child->size > size_max) size_max = child->size;
-		size_total += child->size;
-	}
-
-	off_t size_rest = 0;
-
-	for(i=0; i<node->child_count; i++) {
-		struct wamb_child *child = &node->child_list[i];
-
-		if(limit == 0 || i < limit) {
-
-			int w = width * child->size / size_max;
-
-			char *siz = human_size(child->size);
-			printf("%-20.20s %s ", child->name, siz);
-			free(siz);
-
-			int j;
-			for(j=0; j<w; j++) putchar('#');
-			printf("\n");
-		} else {
-			size_rest += child->size;
-		}
-
-		child ++;
-	}
-
-	if(size_rest > 0) {
-		char *siz = human_size(size_rest);
-		printf("%-20.20s %s\n", "Omitted files", siz);
-		free(siz);
-	}
-
-	char *siz = human_size(size_total);
-	printf("Total: %s\n", siz);
-	free(siz);
-
-	return 0;
-}
-
-
 static int ls_main(int argc, char **argv)
 {
 	int c;
@@ -161,11 +72,55 @@ static int ls_main(int argc, char **argv)
 
 	argc -= optind;
 	argv += optind;
-
+	
 	char *path = ".";
 	if(argc > 0) path = argv[0];
+	
+	/* Get terminal width */
+
+	int width = 80;
+	if(isatty(0)) {
+		struct winsize w;
+		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+		if(r == 0) width = w.ws_col;
+	}
+	width = width - 34;
+
+	/* Open wamb */
+
 	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RO);
-	ls(wamb, path);
+
+	wambdir *dir = wamb_opendir(wamb, path);
+	if(dir == NULL) {
+		fprintf(stderr, "Path not found in database\n");
+		return -1;
+	}
+	
+	/* Calculate max and total size */
+	
+	off_t size_total = 0;
+	off_t size_max = 0;
+
+	struct wambent *e;
+	while( (e = wamb_readdir(dir)) != NULL) {
+		if(e->size > size_max) size_max = e->size;
+		size_total += e->size;
+	}
+
+	wamb_rewinddir(dir);
+	while( (e = wamb_readdir(dir)) != NULL) {
+
+		char *siz = human_size(e->size);
+		printf("%-20.20s %s ", e->name, siz);
+		free(siz);
+
+		int n = width * e->size / size_max;
+		int j;
+		for(j=0; j<n; j++) putchar('#');
+		printf("\n");
+	}
+
+	wamb_closedir(dir);
 	wamb_close(wamb);
 
 	return 0;

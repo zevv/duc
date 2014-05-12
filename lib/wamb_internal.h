@@ -7,7 +7,7 @@ struct wamb {
 
 
 struct wamb_child {
-	char name[NAME_MAX];
+	char name[256];
 	off_t size;
 	dev_t dev;
 	ino_t ino;
@@ -22,6 +22,9 @@ struct wamb_node {
 	size_t child_max;
 };
 
+
+struct wambdir *wambdir_new(struct wamb *wamb, size_t ent_max);
+void wambdir_add_ent(struct wambdir *dir, const char *name, size_t size, dev_t dev, ino_t ino);
 
 struct wamb_node *wamb_node_new(dev_t dev, ino_t ino);
 void wamb_node_free(struct wamb_node *node);

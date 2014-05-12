@@ -1,7 +1,7 @@
 
 LIB	:= libwamb.a
 
-SRC	+= wamb.c index.c list.c
+SRC	+= wamb.c index.c dir.c
 SRC	+= db-tokyo.c
 
 CFLAGS	+= $(shell pkg-config --cflags tokyocabinet)
