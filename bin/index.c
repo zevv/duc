@@ -47,7 +47,12 @@ static int index_main(int argc, char **argv)
 	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RW);
 	if(wamb == NULL) return -1;
 
-	wamb_index(wamb, argv[0], 0);
+	int i;
+	for(i=0; i<argc; i++) {
+		fprintf(stderr, "Indexing %s", argv[i]);
+		wamb_index(wamb, argv[i], 0);
+	}
+
 	wamb_close(wamb);
 
 	return 0;
@@ -58,7 +63,7 @@ static int index_main(int argc, char **argv)
 struct cmd cmd_index = {
 	.name = "index",
 	.description = "Index filesystem",
-	.usage = "[options] PATH",
+	.usage = "[options] PATH ...",
 	.help = 
 		"Valid options:\n"
 		"\n"
