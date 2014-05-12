@@ -57,6 +57,21 @@ can be specified as command line argument, the current directory is used if omit
 `dus ls` has some options similar to the normal `ls` program. For example, try
 `duc ls -hF` for a more friendly output.
 
+```
+$ duc ls -n10 -hF /lib
+modules/                  24.9M ##################################################################
+x86_64-linux-gnu/         14.9M #######################################
+i386-linux-gnu/           11.5M ###############################
+udev/                     10.7M #############################
+firmware/                 10.4M ###########################
+discover/                  4.1M ###########
+xtables/                   1.1M ###
+x86_64-linux-musl/       523.1K #
+systemd/                 209.9K 
+
+Omitted files            403.2K
+```
+
 For a graphical representation of the disk usage, use the command `duc draw`
 
 ![Example](/img/example.png) 
