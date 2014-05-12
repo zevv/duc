@@ -83,13 +83,19 @@ static void draw_text(cairo_t *cr, int x, int y, char *text)
 	int w = ext.width;
 	int h = ext.height;
 	cairo_move_to(cr, x - w/2, y + h/2);
-	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_set_source_rgba(cr, 1, 1, 1, 0.5);
 	cairo_set_line_width(cr, 1.5);
 	cairo_text_path(cr, text);
 	cairo_stroke(cr);
-	cairo_set_source_rgb(cr, 1, 1, 1);
+	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_move_to(cr, x - w/2, y + h/2);
 	cairo_show_text(cr, text);
+}
+
+
+double ang(double a)
+{
+	return -M_PI * 0.5 + M_PI * 2 * a;
 }
 
 
@@ -98,7 +104,7 @@ static void draw_section(struct graph *graph, double a_from, double a_to, int r_
 	cairo_t *cr = graph->cr;
 			
 	double r, g, b;
-	hsv2rgb((a_from+a_to)*0.5 / (2*M_PI), 1.0-brightness, brightness/2+0.5, &r, &g, &b);
+	hsv2rgb((a_from+a_to)*0.5, 1.0-brightness, brightness/2+0.5, &r, &g, &b);
 
 	cairo_pattern_t *pat;
 	pat = cairo_pattern_create_radial(graph->cx, graph->cy, 0, graph->cx, graph->cy, graph->cx-50);
@@ -107,14 +113,14 @@ static void draw_section(struct graph *graph, double a_from, double a_to, int r_
 	cairo_set_source(cr, pat);
 
 	cairo_new_path(cr);
-	cairo_arc(cr, graph->cx, graph->cy, r_from, a_from, a_to);
-	cairo_arc_negative(cr, graph->cx, graph->cy, r_to, a_to, a_from);
+	cairo_arc(cr, graph->cx, graph->cy, r_from, ang(a_from), ang(a_to));
+	cairo_arc_negative(cr, graph->cx, graph->cy, r_to, ang(a_to), ang(a_from));
 	cairo_close_path(cr);
 
 	cairo_fill_preserve(cr);
 
 	cairo_set_line_width(cr, 0.3);
-	cairo_set_source_rgba(cr, 0, 0, 0, 0.7);
+	cairo_set_source_rgba(cr, 0.5, 0.5, 0.5, 0.3);
 	cairo_stroke(cr);
 	cairo_pattern_destroy(pat);
 }
@@ -144,7 +150,7 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 			double r_from = (level+1) * graph->ring_width;
 			double r_to = r_from + graph->ring_width;
 		
-			double brightness = r_from / graph->cx;
+			double brightness = 0.8 * r_from / graph->cx;
 
 			draw_section(graph, a_from, a_to, r_from, r_to, brightness);
 
@@ -158,9 +164,9 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 				}
 			}
 
-			if(r_from * (a_to - a_from) > 40) {
+			if(r_from * (a_to - a_from) > 10) {
 				struct label *label = malloc(sizeof *label);
-				pol2car(graph, (a_from+a_to)/2, (r_from+r_to)/2, &label->x, &label->y);
+				pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
 				label->text = strdup(e->name);
 				label->next = graph->label_list;
 				graph->label_list = label;
@@ -239,9 +245,7 @@ static int draw_main(int argc, char **argv)
 
 	/* Recursively draw graph */
 
-	double a1 = -M_PI / 2;
-	double a2 = a1 + M_PI * 2;
-	draw_ring(&graph, dir, 0, a1, a2);
+	draw_ring(&graph, dir, 0, 0, 1);
 
 	/* Draw collected labels */
 
