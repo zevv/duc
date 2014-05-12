@@ -8,26 +8,26 @@
 #include <stdint.h>
 
 #include "cmd.h"
-#include "wamb.h"
+#include "duc.h"
 
 
 static int test_main(int argc, char **argv)
 {
-	wamb *wamb = wamb_open(NULL, WAMB_OPEN_RO);
+	duc *duc = duc_open(NULL, WAMB_OPEN_RO);
 
 	char *path = argv[1];
 
-	wambdir *dir = wamb_opendir(wamb, path);
+	ducdir *dir = duc_opendir(duc, path);
 	printf("%p %s\n", dir, strerror(errno));
 
 	if(dir) {
-		struct wambent *e;
-		while( (e = wamb_readdir(dir)) != NULL) {
+		struct ducent *e;
+		while( (e = duc_readdir(dir)) != NULL) {
 			printf("%s %jd\n", e->name, e->size);
 		}
 
-		wamb_closedir(dir);
-		wamb_close(wamb);
+		duc_closedir(dir);
+		duc_close(duc);
 	}
 
 	return 0;

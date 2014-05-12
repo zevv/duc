@@ -10,8 +10,7 @@
 #include <sys/ioctl.h>
 
 #include "cmd.h"
-#include "wamb.h"
-#include "wamb_internal.h"
+#include "duc.h"
 
 
 static int human_readable = 0;
@@ -91,11 +90,11 @@ static int ls_main(int argc, char **argv)
 	}
 	width = width - 34;
 
-	/* Open wamb context */
+	/* Open duc context */
 
-	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RO);
+	struct duc *duc = duc_open(path_db, WAMB_OPEN_RO);
 
-	wambdir *dir = wamb_opendir(wamb, path);
+	ducdir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {
 		fprintf(stderr, "Path not found in database\n");
 		return -1;
@@ -106,14 +105,14 @@ static int ls_main(int argc, char **argv)
 	off_t size_total = 0;
 	off_t size_max = 0;
 
-	struct wambent *e;
-	while( (e = wamb_readdir(dir)) != NULL) {
+	struct ducent *e;
+	while( (e = duc_readdir(dir)) != NULL) {
 		if(e->size > size_max) size_max = e->size;
 		size_total += e->size;
 	}
 
-	wamb_rewinddir(dir);
-	while( (e = wamb_readdir(dir)) != NULL) {
+	duc_rewinddir(dir);
+	while( (e = duc_readdir(dir)) != NULL) {
 
 		if(classify) {
 			if(S_ISDIR(e->mode)) strcat(e->name, "/");
@@ -131,8 +130,8 @@ static int ls_main(int argc, char **argv)
 		printf("\n");
 	}
 
-	wamb_closedir(dir);
-	wamb_close(wamb);
+	duc_closedir(dir);
+	duc_close(duc);
 
 	return 0;
 }

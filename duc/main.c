@@ -68,7 +68,7 @@ static struct cmd *find_cmd_by_name(const char *name)
 static void help_cmd(struct cmd *cmd)
 {
 	if(cmd->usage) {
-		fprintf(stderr, "usage: wamb %s %s\n", cmd->name, cmd->usage);
+		fprintf(stderr, "usage: duc %s %s\n", cmd->name, cmd->usage);
 		fprintf(stderr, "\n");
 	}
 
@@ -90,7 +90,7 @@ static int help_main(int argc, char **argv)
 		help_cmd(cmd);
 	} else {
 		fprintf(stderr, 
-				"usage: wamb <cmd> [options] [args]\n"
+				"usage: duc <cmd> [options] [args]\n"
 				"\n"
 				"Available cmds:\n"
 		       );

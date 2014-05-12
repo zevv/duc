@@ -1,8 +1,9 @@
 
-LIB	:= libwamb.a
+BIN	:= duc
+SRC	:= main.c index.c ls.c test.c
 
-SRC	+= wamb.c index.c dir.c buffer.c varint.c
-SRC	+= db-tokyo.c
+CFLAGS	+= -I../libduc
+LDFLAGS	+= -L../libduc -lduc
 
 CFLAGS	+= $(shell pkg-config --cflags tokyocabinet)
 LDFLAGS	+= $(shell pkg-config --libs tokyocabinet)

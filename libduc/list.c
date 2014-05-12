@@ -4,18 +4,18 @@
 #include <string.h>
 #include <errno.h>
 
-#include "wamb.h"
+#include "duc.h"
 #include "db.h"
 
-struct wamb_iter {
-	struct wamb *wamb;
+struct duc_iter {
+	struct duc *duc;
 
 };
 
 
-wamb_iter *wamb_list_path(struct wamb *wamb, const char *path)
+duc_iter *duc_list_path(struct duc *duc, const char *path)
 {
-	struct wamb_iter *wi;
+	struct duc_iter *wi;
 	
 	wi = malloc(sizeof *wi);
 	if(wi == NULL) return NULL;
@@ -27,25 +27,25 @@ wamb_iter *wamb_list_path(struct wamb *wamb, const char *path)
 		return NULL;
 	}
 
-	wi->wamb = wamb;
+	wi->duc = duc;
 
 	return wi;
 }
 
 
-void wamb_iter_read(wamb_iter *wi)
+void duc_iter_read(duc_iter *wi)
 {
 
 }
 
 
-void wamb_iter_seek(wamb_iter *wi, long offset)
+void duc_iter_seek(duc_iter *wi, long offset)
 {
 
 }
 
 
-void wamb_iter_close(wamb_iter *wi)
+void duc_iter_close(duc_iter *wi)
 {
 
 }

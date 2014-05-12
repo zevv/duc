@@ -1,4 +1,4 @@
 
-SUBDIRS = libwamb wamb
+SUBDIRS = libduc duc
 
 include Rules.mak

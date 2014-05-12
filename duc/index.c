@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 #include "cmd.h"
-#include "wamb.h"
+#include "duc.h"
 
 
 static int index_main(int argc, char **argv)
@@ -57,18 +57,18 @@ static int index_main(int argc, char **argv)
 		return -1;
 	}
 
-	struct wamb *wamb = wamb_open(path_db, WAMB_OPEN_RW);
-	if(wamb == NULL) return -1;
+	struct duc *duc = duc_open(path_db, WAMB_OPEN_RW);
+	if(duc == NULL) return -1;
 
 
 	/* Index all paths passed on the cmdline */
 
 	int i;
 	for(i=0; i<argc; i++) {
-		wamb_index(wamb, argv[i], flags);
+		duc_index(duc, argv[i], flags);
 	}
 
-	wamb_close(wamb);
+	duc_close(duc);
 
 	return 0;
 }

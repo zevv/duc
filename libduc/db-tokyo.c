@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <stdint.h> 
 
-#include "wamb.h"
+#include "duc.h"
 #include "db.h"
 
 struct db {

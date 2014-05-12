@@ -6,16 +6,16 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "wamb.h"
+#include "duc.h"
 #include "db.h"
 #include "buffer.h"
-#include "wamb_internal.h"
+#include "duc-private.h"
 #include "varint.h"
 
 
-struct wambdir {
-	struct wamb *wamb;
-	struct wambent *ent_list;
+struct ducdir {
+	struct duc *duc;
+	struct ducent *ent_list;
 	mode_t mode;
 	size_t ent_cur;
 	size_t ent_count;
@@ -23,19 +23,19 @@ struct wambdir {
 };
 
 
-struct wambdir *wambdir_new(struct wamb *wamb, size_t ent_max)
+struct ducdir *ducdir_new(struct duc *duc, size_t ent_max)
 {
-	struct wambdir *dir = malloc(sizeof(struct wambdir));
+	struct ducdir *dir = malloc(sizeof(struct ducdir));
 
 	if(dir == NULL) {
 		return NULL;
 	}
 
-	dir->wamb = wamb;
+	dir->duc = duc;
 	dir->ent_cur = 0;
 	dir->ent_count = 0;
 	dir->ent_max = ent_max;
-	dir->ent_list = malloc(sizeof(struct wambent) * ent_max);
+	dir->ent_list = malloc(sizeof(struct ducent) * ent_max);
 
 	if(dir->ent_list == NULL) {
 		free(dir);
@@ -46,15 +46,15 @@ struct wambdir *wambdir_new(struct wamb *wamb, size_t ent_max)
 }
 
 
-void wambdir_add_ent(struct wambdir *dir, const char *name, size_t size, mode_t mode, dev_t dev, ino_t ino)
+void ducdir_add_ent(struct ducdir *dir, const char *name, size_t size, mode_t mode, dev_t dev, ino_t ino)
 {
 	if(dir->ent_count >= dir->ent_max) {
 		dir->ent_max *= 2;
-		dir->ent_list = realloc(dir->ent_list, sizeof(struct wambent) * dir->ent_max);
+		dir->ent_list = realloc(dir->ent_list, sizeof(struct ducent) * dir->ent_max);
 		assert(dir->ent_list);
 	}
 
-	struct wambent *ent = &dir->ent_list[dir->ent_count];
+	struct ducent *ent = &dir->ent_list[dir->ent_count];
 	dir->ent_count ++;
 
 	strncpy(ent->name, name, sizeof(ent->name));
@@ -67,8 +67,8 @@ void wambdir_add_ent(struct wambdir *dir, const char *name, size_t size, mode_t 
 
 static int fn_comp_ent(const void *a, const void *b)
 {
-	const struct wambent *ea = a;
-	const struct wambent *eb = b;
+	const struct ducent *ea = a;
+	const struct ducent *eb = b;
 	return(ea->size < eb->size);
 }
 
@@ -80,15 +80,15 @@ static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 
 
 /*
- * Serialize wambdir into a database record
+ * Serialize ducdir into a database record
  */
 
-int wambdir_write(struct wambdir *dir, dev_t dev, ino_t ino)
+int ducdir_write(struct ducdir *dir, dev_t dev, ino_t ino)
 {
 	struct buffer *b = buffer_new(NULL, 0);
 
 	int i;
-	struct wambent *ent = dir->ent_list;
+	struct ducent *ent = dir->ent_list;
 
 	for(i=0; i<dir->ent_count; i++) {
 		buffer_put_string(b, ent->name);
@@ -101,7 +101,7 @@ int wambdir_write(struct wambdir *dir, dev_t dev, ino_t ino)
 
 	char key[32];
 	size_t keyl = mkkey(dev, ino, key, sizeof key);
-	db_put(dir->wamb->db, key, keyl, b->data, b->len);
+	db_put(dir->duc->db, key, keyl, b->data, b->len);
 
 	buffer_free(b);
 
@@ -110,12 +110,12 @@ int wambdir_write(struct wambdir *dir, dev_t dev, ino_t ino)
 
 
 /*
- * Read database record and deserialize into wambdir
+ * Read database record and deserialize into ducdir
  */
 
-struct wambdir *wambdir_read(struct wamb *wamb, dev_t dev, ino_t ino)
+struct ducdir *ducdir_read(struct duc *duc, dev_t dev, ino_t ino)
 {
-	struct wambdir *dir = wambdir_new(wamb, 8);
+	struct ducdir *dir = ducdir_new(duc, 8);
 	if(dir == NULL) {
 		return NULL;
 	}
@@ -125,7 +125,7 @@ struct wambdir *wambdir_read(struct wamb *wamb, dev_t dev, ino_t ino)
 	size_t vall;
 
 	keyl = mkkey(dev, ino, key, sizeof key);
-	char *val = db_get(wamb->db, key, keyl, &vall);
+	char *val = db_get(duc->db, key, keyl, &vall);
 	if(val == NULL) {
 		fprintf(stderr, "Id %jd/%jd not found in database\n", dev, ino);
 		return NULL;
@@ -147,30 +147,30 @@ struct wambdir *wambdir_read(struct wamb *wamb, dev_t dev, ino_t ino)
 		buffer_get_varint(b, &dev);
 		buffer_get_varint(b, &ino);
 		
-		wambdir_add_ent(dir, name, size, mode, dev, ino);
+		ducdir_add_ent(dir, name, size, mode, dev, ino);
 	}
 
 	return dir;
 }
 
 
-wambdir *wamb_opendirat(struct wamb *wamb, dev_t dev, ino_t ino)
+ducdir *duc_opendirat(struct duc *duc, dev_t dev, ino_t ino)
 {
-	struct wambdir *dir = wambdir_read(wamb, dev, ino);
+	struct ducdir *dir = ducdir_read(duc, dev, ino);
 	if(dir == NULL) {
 		return NULL;
 	}
 
-	qsort(dir->ent_list, dir->ent_count, sizeof(struct wambent), fn_comp_ent);
+	qsort(dir->ent_list, dir->ent_count, sizeof(struct ducent), fn_comp_ent);
 
 	return dir;
 }
 
 
-struct wambent *wamb_finddir(wambdir *dir, const char *name)
+struct ducent *duc_finddir(ducdir *dir, const char *name)
 {
 	size_t i;
-	struct wambent *ent = dir->ent_list;
+	struct ducent *ent = dir->ent_list;
 
 	for(i=0; i<dir->ent_count; i++) {
 		if(strcmp(name, ent->name) == 0) {
@@ -183,7 +183,7 @@ struct wambent *wamb_finddir(wambdir *dir, const char *name)
 }
 
 
-wambdir *wamb_opendir(struct wamb *wamb, const char *path)
+ducdir *duc_opendir(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
 
@@ -200,7 +200,7 @@ wambdir *wamb_opendir(struct wamb *wamb, const char *path)
 	ino_t ino;
 	while(l > 0) {
 		size_t vallen;
-		char *val = db_get(wamb->db, path_canon, l, &vallen);
+		char *val = db_get(duc->db, path_canon, l, &vallen);
 		if(val) {
 			sscanf(val, "%jd %jd", &dev, &ino);
 			free(val);
@@ -216,9 +216,9 @@ wambdir *wamb_opendir(struct wamb *wamb, const char *path)
 		return NULL;
 	}
 
-	struct wambdir *dir;
+	struct ducdir *dir;
 
-	dir = wamb_opendirat(wamb, dev, ino);
+	dir = duc_opendirat(duc, dev, ino);
 	if(dir == NULL) {
 		return NULL;
 	}
@@ -231,15 +231,15 @@ wambdir *wamb_opendir(struct wamb *wamb, const char *path)
 
 	while(dir && name) {
 
-		struct wambent *ent = wamb_finddir(dir, name);
+		struct ducent *ent = duc_finddir(dir, name);
 
-		struct wambdir *dir_next = NULL;
+		struct ducdir *dir_next = NULL;
 
 		if(ent) {
-			dir_next = wamb_opendirat(wamb, ent->dev, ent->ino);
+			dir_next = duc_opendirat(duc, ent->dev, ent->ino);
 		}
 
-		wamb_closedir(dir);
+		duc_closedir(dir);
 		dir = dir_next;
 		name = strtok_r(NULL, "/", &save);
 	}
@@ -248,10 +248,10 @@ wambdir *wamb_opendir(struct wamb *wamb, const char *path)
 }
 
 
-struct wambent *wamb_readdir(wambdir *dir)
+struct ducent *duc_readdir(ducdir *dir)
 {
 	if(dir->ent_cur < dir->ent_count) {
-		struct wambent *ent = &dir->ent_list[dir->ent_cur];
+		struct ducent *ent = &dir->ent_list[dir->ent_cur];
 		dir->ent_cur ++;
 		return ent;
 	} else {
@@ -260,14 +260,14 @@ struct wambent *wamb_readdir(wambdir *dir)
 }
 
 
-int wamb_rewinddir(wambdir *dir)
+int duc_rewinddir(ducdir *dir)
 {
 	dir->ent_cur = 0;
 	return 0;
 }
 
 
-void wamb_closedir(wambdir *dir)
+void duc_closedir(ducdir *dir)
 {
 }
 

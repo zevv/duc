@@ -12,14 +12,14 @@
 #include <stdint.h>
 
 #include "db.h"
-#include "wamb.h"
-#include "wamb_internal.h"
+#include "duc.h"
+#include "duc-private.h"
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
 
 
 struct index {
-	struct wamb *wamb;
+	struct duc *duc;
 	int one_file_system;
 	int verbose;
 	int quiet;
@@ -53,7 +53,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		return 0;
 	}
 
-	struct wambdir *dir = wambdir_new(index->wamb, 8);
+	struct ducdir *dir = ducdir_new(index->duc, 8);
 			
 	if(index->dev == 0) {
 		index->dev = stat_dir->st_dev;
@@ -112,12 +112,12 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 		/* Store record */
 
-		wambdir_add_ent(dir, e->d_name, size, stat.st_mode, stat.st_dev, stat.st_ino);
+		ducdir_add_ent(dir, e->d_name, size, stat.st_mode, stat.st_dev, stat.st_ino);
 		size_total += size;
 	}
 
-	wambdir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
-	wamb_closedir(dir);
+	ducdir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
+	duc_closedir(dir);
 
 	closedir(d);
 
@@ -125,12 +125,12 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 }	
 
 
-int wamb_index(struct wamb *wamb, const char *path, int flags)
+int duc_index(struct duc *duc, const char *path, int flags)
 {
 	struct index index;
 	memset(&index, 0, sizeof index);
 
-	index.wamb = wamb;
+	index.duc = duc;
 	index.one_file_system = flags & WAMB_INDEX_XDEV;
 	index.verbose = flags & WAMB_INDEX_VERBOSE;
 	index.quiet = flags & WAMB_INDEX_QUIET;
@@ -150,7 +150,7 @@ int wamb_index(struct wamb *wamb, const char *path, int flags)
 		return 0;
 	}
 
-	wamb_root_write(wamb, path_canon, stat.st_dev, stat.st_ino);
+	duc_root_write(duc, path_canon, stat.st_dev, stat.st_ino);
 
 	off_t size = index_dir(&index, path_canon, 0, &stat);
 
