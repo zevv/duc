@@ -69,4 +69,13 @@ struct ducent *duc_finddir(ducdir *dir, const char *name);
 int duc_rewinddir(ducdir *dir);
 int duc_closedir(ducdir *dir);
 
+
+/* 
+ * Graph drawing
+ */
+
+int duc_graph(ducdir *dir, int size, int depth, FILE *fout);
+int duc_graph_xy_to_path(ducdir *dir, int size, int depth, int x, int y, char *path, size_t path_len);
+
+
 #endif

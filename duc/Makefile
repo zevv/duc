@@ -1,12 +1,12 @@
 
 BIN	:= duc
-SRC	:= main.c index.c ls.c draw.c
+SRC	:= main.c index.c ls.c draw.c cgi.c
 
 CFLAGS	+= -I../libduc
 LDFLAGS	+= -L../libduc -lduc -lm
 
-CFLAGS	+= $(shell pkg-config --cflags tokyocabinet cairo)
-LDFLAGS	+= $(shell pkg-config --libs tokyocabinet cairo)
+CFLAGS	+= $(shell pkg-config --cflags tokyocabinet cairo) -I/usr/include/libcgi
+LDFLAGS	+= $(shell pkg-config --libs tokyocabinet cairo) -lcgi
 
 include ../Rules.mak
 

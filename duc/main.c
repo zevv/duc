@@ -13,6 +13,7 @@ struct cmd cmd_help;
 struct cmd cmd_index;
 struct cmd cmd_ls;
 struct cmd cmd_draw;
+struct cmd cmd_cgi;
 
 
 struct cmd *cmd_list[] = {
@@ -36,7 +37,13 @@ int main(int argc, char **argv)
 		cmd = find_cmd_by_name(argv[1]);
 	}
 
-	if(cmd == NULL) cmd = &cmd_help;
+	if(cmd == NULL) {
+		if(getenv("QUERY_STRING")) {
+			cmd = &cmd_cgi;
+		} else {
+			cmd = &cmd_help;
+		}
+	}
 
 	int r = cmd->main(argc-1, argv+1);
 	if(r == -2) help_cmd(cmd);
