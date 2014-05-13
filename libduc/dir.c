@@ -269,6 +269,8 @@ int duc_rewinddir(ducdir *dir)
 
 void duc_closedir(ducdir *dir)
 {
+	free(dir->ent_list);
+	free(dir);
 }
 
 /*
