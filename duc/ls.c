@@ -13,7 +13,7 @@
 #include "duc.h"
 
 
-static int human_readable = 0;
+static int bytes = 0;
 static int limit = 20;
 
 
@@ -24,15 +24,15 @@ char *fmt_size(off_t size)
 	char *p = prefix;
 	char *s = NULL;
 
-	if(!human_readable || size < 1024) {
-		int r = asprintf(&s, "%10jd", size);
+	if(bytes || size < 1024) {
+		int r = asprintf(&s, "%11jd", size);
 		if(r != -1) return s;
 	} else {
 		while(v >= 1024.0) {
 			v /= 1024.0;
 			p ++;
 		}
-		int r = asprintf(&s, "%9.1f%c", v, *p);
+		int r = asprintf(&s, "%10.1f%c", v, *p);
 		if(r != -1) return s;
 	}
 
@@ -47,24 +47,24 @@ static int ls_main(int argc, char **argv)
 	int classify = 0;
 
 	struct option longopts[] = {
+		{ "bytes",          no_argument,       NULL, 'b' },
 		{ "classify",       no_argument,       NULL, 'F' },
 		{ "database",       required_argument, NULL, 'd' },
-		{ "human-readable", no_argument,       NULL, 'h' },
 		{ "limit",          required_argument, NULL, 'n' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:Fhn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "bd:Fn:", longopts, NULL)) != EOF) {
 
 		switch(c) {
+			case 'b':
+				bytes = 1;
+				break;
 			case 'd':
 				path_db = optarg;
 				break;
 			case 'F':
 				classify = 1;
-				break;
-			case 'h':
-				human_readable = 1;
 				break;
 			case 'n':
 				limit = atoi(optarg);
@@ -88,7 +88,7 @@ static int ls_main(int argc, char **argv)
 		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
 	}
-	width = width - 35;
+	width = width - 36;
 
 	/* Open duc context */
 
@@ -164,6 +164,7 @@ struct cmd cmd_ls = {
 	.help = 
 		"Valid options:\n"
 		"\n"
+		"  -b, --bytes             show file size in exact number of bytes\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
 		"  -F, --classify          append indicator (one of */) to entries\n"
