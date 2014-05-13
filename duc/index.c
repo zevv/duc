@@ -20,7 +20,7 @@ static int index_main(int argc, char **argv)
 	int c;
 	char *path_db = NULL;
 	int index_flags = 0;
-	int open_flags = DUC_OPEN_RW;
+	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_WRN;
 
 	struct option longopts[] = {
 		{ "compress",        no_argument,       NULL, 'c' },
@@ -41,13 +41,13 @@ static int index_main(int argc, char **argv)
 				path_db = optarg;
 				break;
 			case 'q':
-				index_flags |= DUC_INDEX_QUIET;
+				open_flags &= ~DUC_OPEN_LOG_WRN;
 				break;
 			case 'x':
 				index_flags |= DUC_INDEX_XDEV;
 				break;
 			case 'v':
-				index_flags |= DUC_INDEX_VERBOSE;
+				open_flags |= DUC_OPEN_LOG_DBG;
 				break;
 			default:
 				return -2;
@@ -62,8 +62,12 @@ static int index_main(int argc, char **argv)
 		return -2;
 	}
 
-	struct duc *duc = duc_open(path_db, open_flags);
-	if(duc == NULL) return -1;
+	duc_errno e;
+	struct duc *duc = duc_open(path_db, open_flags, &e);
+	if(duc == NULL) {
+		fprintf(stderr, "%s\n", duc_strerror(e));
+		return -1;
+	}
 
 	/* Index all paths passed on the cmdline */
 
@@ -84,8 +88,6 @@ struct cmd cmd_index = {
 	.description = "Index filesystem",
 	.usage = "[options] PATH ...",
 	.help = 
-		"Valid options:\n"
-		"\n"
 		"  -c, --compress          create compressed database, favour size over speed\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -q, --quiet             do not report errors\n"

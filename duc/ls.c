@@ -92,11 +92,16 @@ static int ls_main(int argc, char **argv)
 
 	/* Open duc context */
 
-	struct duc *duc = duc_open(path_db, DUC_OPEN_RO);
-	if(duc == NULL) return -1;
+	duc_errno err;
+	struct duc *duc = duc_open(path_db, DUC_OPEN_RO, &err);
+	if(duc == NULL) {
+		fprintf(stderr, "%s\n", duc_strerror(err));
+		return -1;
+	}
 
 	ducdir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {
+		fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
 		return -1;
 	}
 	
@@ -162,8 +167,6 @@ struct cmd cmd_ls = {
 	.description = "List directory",
 	.usage = "[options] [PATH]",
 	.help = 
-		"Valid options:\n"
-		"\n"
 		"  -b, --bytes             show file size in exact number of bytes\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -h, --human-readable    print sizes in human readable format\n"

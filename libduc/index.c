@@ -21,8 +21,6 @@
 struct index {
 	struct duc *duc;
 	int one_file_system;
-	int verbose;
-	int quiet;
 	dev_t dev;
 	size_t file_count;
 	size_t dir_count;
@@ -32,6 +30,7 @@ struct index {
 
 off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *stat_dir)
 {
+	struct duc *duc = index->duc;
 	off_t size_total = 0;
 
 	int fd = openat(fd_dir, path, OPEN_FLAGS | O_NOATIME);
@@ -41,15 +40,13 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 	}
 
 	if(fd == -1) {
-		if(!index->quiet) 
-			fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
+		duc_log(duc, LG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
 	DIR *d = fdopendir(fd);
 	if(d == NULL) {
-		if(!index->quiet)
-			fprintf(stderr, "Skipping %s: %s\n", path, strerror(errno));
+		duc_log(duc, LG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
@@ -75,8 +72,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		struct stat stat;
 		int r = fstatat(fd, e->d_name, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
-			if(!index->quiet)
-				fprintf(stderr, "Error statting %s: %s\n", e->d_name, strerror(errno));
+			duc_log(duc, LG_WRN, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			continue;
 		}
 
@@ -84,8 +80,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 		if(index->one_file_system) {
 			if(stat.st_dev != index->dev) {
-				if(!index->quiet)
-					fprintf(stderr, "Skipping %s: different file system\n", e->d_name);
+				duc_log(duc, LG_WRN, "Skipping %s: different file system\n", e->d_name);
 				continue;
 			}
 		}
@@ -104,11 +99,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 			index->file_count ++;
 		}
 
-		if(index->verbose) {
-			int j;
-			for(j=0; j<index->depth; j++) putchar(' ');
-			printf(" %s %jd\n", e->d_name, size);
-		}
+		duc_log(duc, LG_DBG, "%s %jd\n", e->d_name, size);
 
 		/* Store record */
 
@@ -125,29 +116,30 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 }	
 
 
-int duc_index(struct duc *duc, const char *path, int flags)
+int duc_index(duc *duc, const char *path, int flags)
 {
 	struct index index;
 	memset(&index, 0, sizeof index);
 
 	index.duc = duc;
 	index.one_file_system = flags & DUC_INDEX_XDEV;
-	index.verbose = flags & DUC_INDEX_VERBOSE;
-	index.quiet = flags & DUC_INDEX_QUIET;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
-		if(!index.quiet)
-			fprintf(stderr, "Error converting path %s: %s\n", path, strerror(errno));
-		return 0;
+		duc_log(duc, LG_WRN, "Error converting path %s: %s\n", path, strerror(errno));
+		duc->err = DUC_E_UNKNOWN;
+		if(errno == EACCES) duc->err = DUC_E_PERMISSION_DENIED;
+		if(errno == ENOENT) duc->err = DUC_E_PATH_NOT_FOUND;
+		return -1;
 	}
 	
 	struct stat stat;
 	int r = lstat(path_canon, &stat);
 	if(r == -1) {
-		if(!index.quiet)
-			fprintf(stderr, "Error statting %s: %s\n", path, strerror(errno));
-		return 0;
+		duc_log(duc, LG_WRN, "Error statting %s: %s\n", path, strerror(errno));
+		duc->err = DUC_E_UNKNOWN;
+		if(errno == EACCES) duc->err = DUC_E_PERMISSION_DENIED;
+		return -1;
 	}
 
 	duc_root_write(duc, path_canon, stat.st_dev, stat.st_ino);
@@ -156,10 +148,8 @@ int duc_index(struct duc *duc, const char *path, int flags)
 
 	free(path_canon);
 
-	if(!index.quiet) {
-		fprintf(stderr, "Indexed %zu files and %zu directories, %jd bytes\n", 
-				index.file_count, index.dir_count, size);
-	}
+	duc_log(duc, LG_INF, "Indexed %zu files and %zu directories, %jd bytes\n", 
+			index.file_count, index.dir_count, size);
 
 	return 0;
 }

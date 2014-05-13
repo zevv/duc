@@ -1,6 +1,6 @@
 
 BIN	:= duc
-SRC	:= main.c index.c ls.c test.c draw.c
+SRC	:= main.c index.c ls.c draw.c
 
 CFLAGS	+= -I../libduc
 LDFLAGS	+= -L../libduc -lduc -lm

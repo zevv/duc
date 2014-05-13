@@ -235,11 +235,16 @@ static int draw_main(int argc, char **argv)
 
 	/* Open duc context */
 
-	graph.duc = duc_open(path_db, DUC_OPEN_RO);
-	if(graph.duc == NULL) return -1;
+	duc_errno err;
+	graph.duc = duc_open(path_db, DUC_OPEN_RO, &err);
+	if(graph.duc == NULL) {
+		fprintf(stderr, "%s\n", duc_strerror(err));
+		return -1;
+	}
 
 	ducdir *dir = duc_opendir(graph.duc, path);
 	if(dir == NULL) {
+		fprintf(stderr, "%s\n", duc_strerror(duc_error(graph.duc)));
 		return -1;
 	}
 
@@ -287,8 +292,6 @@ struct cmd cmd_draw = {
 	.description = "Draw graph",
 	.usage = "[options] [PATH]",
 	.help = 
-		"Valid options:\n"
-		"\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
 		"  -o, --output=ARG        output file name [duc.png]\n"
