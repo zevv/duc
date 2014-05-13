@@ -388,6 +388,7 @@ struct cmd cmd_draw = {
 	.usage = "[options] [PATH]",
 	.help = 
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -f, --find-pos=X,Y      report the file under pixel X,Y\n"
 	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
 		"  -o, --output=ARG        output file name [duc.png]\n"
 	        "  -s, --size=ARG          image size [800]\n",
