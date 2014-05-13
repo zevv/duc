@@ -40,7 +40,8 @@ int main(int argc, char **argv)
 
 	int r = cmd->main(argc-1, argv+1);
 	if(r == -2) help_cmd(cmd);
-	return (r == 0);
+
+	return (r == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 
