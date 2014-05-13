@@ -2,26 +2,89 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <assert.h>
 #include <unistd.h>
 
 #include "cmd.h"
 #include "duc.h"
-#include "cgi.h"
 
 int size = 600;
 int depth = 4;
+
+/*
+ * Simple parser for CGI parameter line. Does not excape CGI strings.
+ */
+
+struct param {
+	char *key;
+	char *val;
+	struct param *next;
+};
+
+struct param *param_list = NULL;
+
+
+static void cgi_parse(void)
+{
+	char *qs = getenv("QUERY_STRING");
+	if(qs == NULL) return;
+
+	char *p = qs;
+
+	for(;;) {
+
+		char *pe = strchr(p, '=');
+		if(!pe) break;
+		char *pn = strchr(pe, '&');
+		if(!pn) pn = pe + strlen(pe);
+
+		char *key = p;
+		int keylen = pe-p;
+		char *val = pe+1;
+		int vallen = pn-pe-1;
+
+		struct param *param = malloc(sizeof(struct param));
+		assert(param);
+
+		param->key = malloc(keylen+1);
+		assert(param->key);
+		strncpy(param->key, key, keylen);
+
+		param->val = malloc(vallen+1);
+		assert(param->val);
+		strncpy(param->val, val, vallen);
+		
+		param->next = param_list;
+		param_list = param;
+
+		if(*pn == 0) break;
+		p = pn+1;
+	}
+}
+
+
+static char *cgi_get(const char *key)
+{
+	struct param *param = param_list;
+
+	while(param) {
+		if(strcmp(param->key, key) == 0) {
+			return param->val;
+		}
+		param = param->next;
+	}
+
+	return NULL;
+}
+
 
 
 static char *find_xy(x, y)
 {
 	static char path_out[PATH_MAX];
 
-	char *path = cgi_param("p");
+	char *path = cgi_get("path");
 	if(!path) return NULL;
         
 	duc_errno err;
@@ -55,9 +118,11 @@ static char *find_xy(x, y)
 
 static void do_index(void)
 {
-	cgi_init_headers();
 
-	char *path = cgi_param("p");
+	printf("Content-Type: text/html\n");
+	printf("\n");
+
+	char *path = cgi_get("p");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
 
@@ -76,68 +141,54 @@ static void do_index(void)
 	}
 
 	if(path == NULL) path = "/home/ico";
-	char *path2 = cgi_escape_special_chars(path);
 
 	printf("<center>");
 	printf("<b>%s</b><br>", path);
-	printf("<a href='%s?c=p&p=%s&'>", script, path);
-	printf("<img src='%s?p=%s&c=i' ismap='ismap'>\n", script, path);
+	printf("<a href='%s?cmd=index&path=%s&'>", script, path);
+	printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
 	printf("</a>");
 	fflush(stdout);
-
-	free(path2);
 }
 
 
-int do_img(void)
+void do_image(void)
 {
-	char *path = cgi_param("p");
-	if(!path) path = "/home/ico/sandbox/prjs";
+	printf("Content-Type: image/png\n");
+	printf("\n");
+
+	char *path = cgi_get("path");
+	if(!path) return;
 
         duc_errno err;
         duc *duc = duc_open("/home/ico/.duc.db", DUC_OPEN_RO, &err);
         if(duc == NULL) {
                 fprintf(stderr, "%s\n", duc_strerror(err));
-                return -1;
+                return;
         }
 
         ducdir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
                 fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
-                return -1;
+                return;
         }
 
-	printf("Content-Type: image/png\n");
-	printf("\n");
 	duc_graph(dir, size, depth, stdout);
 
 	duc_closedir(dir);
 	duc_close(duc);
-
-	return 0;
 }
+
 
 
 static int cgi_main(int argc, char **argv)
 {
-	if(0) {
-		printf("Content-type: text/plain\n");
-		printf("\n");
-		fflush(stdout);
-		int r = system("printenv");
-		if(r) r = 0;
-	}
+	cgi_parse();
 
-	cgi_init();
-	cgi_process_form();
+	char *cmd = cgi_get("cmd");
+	if(cmd == NULL) cmd = "index";
 
-	char *cmd = cgi_param("c");
-	if(cmd == NULL) cmd = "p";
-
-	if(cmd[0] == 'p') do_index();
-	if(cmd[0] == 'i') do_img();
-
-	cgi_end();
+	if(strcmp(cmd, "index") == 0) do_index();
+	if(strcmp(cmd, "image") == 0) do_image();
 
 	return 0;
 }
