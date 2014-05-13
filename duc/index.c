@@ -20,7 +20,7 @@ static int index_main(int argc, char **argv)
 	int c;
 	char *path_db = NULL;
 	int index_flags = 0;
-	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_WRN;
+	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_INF;
 
 	struct option longopts[] = {
 		{ "compress",        no_argument,       NULL, 'c' },
@@ -41,7 +41,7 @@ static int index_main(int argc, char **argv)
 				path_db = optarg;
 				break;
 			case 'q':
-				open_flags &= ~DUC_OPEN_LOG_WRN;
+				open_flags &= ~DUC_OPEN_LOG_INF;
 				break;
 			case 'x':
 				index_flags |= DUC_INDEX_XDEV;

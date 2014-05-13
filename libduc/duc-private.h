@@ -18,7 +18,7 @@ struct duc {
 void duc_log(struct duc *duc, enum duc_loglevel lvl, const char *fmt, ...);
 
 struct ducdir *ducdir_new(struct duc *duc, size_t ent_max);
-int ducdir_add_ent(struct ducdir *dir, const char *name, size_t size, mode_t mode, dev_t dev, ino_t ino);
+int ducdir_add_ent(struct ducdir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino);
 
 int ducdir_write(struct ducdir *dir, dev_t dev, ino_t ino);
 struct ducdir *ducdir_read(struct duc *duc, dev_t dev, ino_t ino);

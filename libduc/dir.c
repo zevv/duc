@@ -17,6 +17,7 @@ struct ducdir {
 	struct duc *duc;
 	struct ducent *ent_list;
 	mode_t mode;
+	off_t size_total;
 	size_t ent_cur;
 	size_t ent_count;
 	size_t ent_max;
@@ -35,6 +36,7 @@ struct ducdir *ducdir_new(struct duc *duc, size_t ent_max)
 	dir->duc = duc;
 	dir->ent_cur = 0;
 	dir->ent_count = 0;
+	dir->size_total = 0;
 	dir->ent_max = ent_max;
 	dir->ent_list = malloc(sizeof(struct ducent) * ent_max);
 
@@ -48,7 +50,7 @@ struct ducdir *ducdir_new(struct duc *duc, size_t ent_max)
 }
 
 
-int ducdir_add_ent(struct ducdir *dir, const char *name, size_t size, mode_t mode, dev_t dev, ino_t ino)
+int ducdir_add_ent(struct ducdir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino)
 {
 	if(dir->ent_count >= dir->ent_max) {
 		dir->ent_max *= 2;
@@ -60,6 +62,7 @@ int ducdir_add_ent(struct ducdir *dir, const char *name, size_t size, mode_t mod
 	}
 
 	struct ducent *ent = &dir->ent_list[dir->ent_count];
+	dir->size_total += size;
 	dir->ent_count ++;
 
 	strncpy(ent->name, name, sizeof(ent->name));
@@ -83,6 +86,12 @@ static int fn_comp_ent(const void *a, const void *b)
 static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 {
 	return snprintf(key, keylen, "%jd/%jd", dev, ino);
+}
+
+
+off_t duc_sizedir(ducdir *dir)
+{
+	return dir->size_total;
 }
 
 

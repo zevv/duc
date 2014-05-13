@@ -29,6 +29,7 @@ struct graph {
 	int depth;
 	struct label *label_list;
 	cairo_t *cr;
+	double spot_a, spot_r;
 };
 
 
@@ -36,6 +37,16 @@ static void pol2car(struct graph *graph, double a, double r, int *x, int *y)
 {
 	*x = cos(a) * r + graph->cx;
 	*y = sin(a) * r + graph->cy;
+}
+
+
+static void car2pol(struct graph *graph, int x, int y, double *a, double *r)
+{
+	x -= graph->cx;
+	y -= graph->cy;
+	*r = hypot(y, x);
+	*a = atan2(x, -y) / (M_PI*2);
+	if(*a < 0) *a += 1;
 }
 
 
@@ -134,14 +145,9 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 
 	/* Calculate max and total size */
 	
-	off_t size_total = 0;
-
+	off_t size_total = duc_sizedir(dir);
+	
 	struct ducent *e;
-	while( (e = duc_readdir(dir)) != NULL) {
-		size_total += e->size;
-	}
-
-	duc_rewinddir(dir);
 	while( (e = duc_readdir(dir)) != NULL) {
 
 		a_to += a_range * e->size / size_total;
@@ -178,6 +184,53 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 }
 
 
+static int find_spot(struct graph *graph, ducdir *dir, int level, double a_min, double a_max, char *part[])
+{
+	double a_range = a_max - a_min;
+	double a_from = a_min;
+	double a_to = a_min;
+
+	/* Calculate max and total size */
+	
+	off_t size_total = duc_sizedir(dir);
+
+	struct ducent *e;
+	while( (e = duc_readdir(dir)) != NULL) {
+
+		a_to += a_range * e->size / size_total;
+
+		if(a_to > a_from) {
+			double r_from = (level+1) * graph->ring_width;
+			double r_to = r_from + graph->ring_width;
+		
+			double a = graph->spot_a;
+			double r = graph->spot_r;
+
+			if(a >= a_from && a <= a_to && r >= r_from && r <= r_to) {
+				part[level] = strdup(e->name);
+				return 1;
+			}
+
+			if(S_ISDIR(e->mode)) {
+				if(level+1 < graph->depth) {
+					ducdir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
+					int r = find_spot(graph, dir_child, level + 1, a_from, a_to, part);
+					duc_closedir(dir_child);
+					if(r) {
+						part[level] = strdup(e->name);
+						return 1;
+					}
+				}
+			}
+
+		}
+		
+		a_from = a_to;
+	}
+
+	return 0;
+}
+
 
 static int draw_main(int argc, char **argv)
 {
@@ -186,22 +239,30 @@ static int draw_main(int argc, char **argv)
 	struct graph graph;
 	int size = 800;
 	char *path_out = "duc.png";
-	
+	char *spot = NULL;
+	int do_find_spot = 0;
+
+	memset(&graph, 0, sizeof graph);
+
 	graph.depth = 4;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
+		{ "find-spot",      required_argument, NULL, 'f' },
 		{ "levels",         required_argument, NULL, 'l' },
 		{ "output",         required_argument, NULL, 'o' },
 		{ "size",           required_argument, NULL, 's' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:l:o:s:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:f:l:o:s:", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
+				break;
+			case 'f':
+				spot = optarg;
 				break;
 			case 'l':
 				graph.depth = atoi(optarg);
@@ -225,59 +286,93 @@ static int draw_main(int argc, char **argv)
 
 	graph.ring_width = ((size-30) / 2) / (graph.depth + 1);
 	graph.label_list = NULL;
-
-	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
-	cairo_t *cr = cairo_create(surface);
-
 	graph.cx = size / 2;
 	graph.cy = size / 2;
-	graph.cr = cr;
 
-	/* Open duc context */
-
-	duc_errno err;
-	graph.duc = duc_open(path_db, DUC_OPEN_RO, &err);
-	if(graph.duc == NULL) {
-		fprintf(stderr, "%s\n", duc_strerror(err));
-		return -1;
+	if(spot) {
+		char *p = strchr(spot, ',');
+		if(p) {
+			int x = atoi(spot);
+			int y = atoi(p+1);
+			car2pol(&graph, x, y, &graph.spot_a, &graph.spot_r);
+			do_find_spot = 1;
+		}
 	}
 
-	ducdir *dir = duc_opendir(graph.duc, path);
-	if(dir == NULL) {
-		fprintf(stderr, "%s\n", duc_strerror(duc_error(graph.duc)));
-		return -1;
-	}
+        /* Open duc context */
 
-	/* Recursively draw graph */
+        duc_errno err;
+        graph.duc = duc_open(path_db, DUC_OPEN_RO, &err);
+        if(graph.duc == NULL) {
+                fprintf(stderr, "%s\n", duc_strerror(err));
+                return -1;
+        }
 
-	draw_ring(&graph, dir, 0, 0, 1);
+        ducdir *dir = duc_opendir(graph.duc, path);
+        if(dir == NULL) {
+                fprintf(stderr, "%s\n", duc_strerror(duc_error(graph.duc)));
+                return -1;
+        }
 
-	/* Draw collected labels */
+	if(do_find_spot) {
 
-	cairo_set_line_width(cr, 0.3);
-	cairo_set_source_rgba(graph.cr, 0, 0, 0, 0.7);
-	cairo_stroke(cr);
+		char *part[graph.depth];
+		memset(part, 0, sizeof part);
 
-	int i;
-	for(i=1; i<=graph.depth+1; i++) {
-		cairo_new_path(cr);
-		cairo_arc(graph.cr, graph.cx, graph.cy, i * graph.ring_width, 0, 2*M_PI);
+		int found = find_spot(&graph, dir, 0, 0, 1, part);
+
+		if(found) {
+			char spot_path[PATH_MAX] = "";
+			strcat(spot_path, path);
+
+			int i;
+			for(i=0; i<graph.depth; i++) {
+				if(part[i]) {
+					strcat(spot_path, "/");
+					strcat(spot_path, part[i]);
+					free(part[i]);
+				}
+			}
+			printf("%s\n", spot_path);
+		}
+
+	} else {
+
+		cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
+		cairo_t *cr = cairo_create(surface);
+		graph.cr = cr;
+
+		/* Recursively draw graph */
+
+		draw_ring(&graph, dir, 0, 0, 1);
+
+		/* Draw collected labels */
+
+		cairo_set_line_width(cr, 0.3);
+		cairo_set_source_rgba(graph.cr, 0, 0, 0, 0.7);
 		cairo_stroke(cr);
-	}
-	cairo_stroke(graph.cr);
 
-	struct label *label = graph.label_list;
-	while(label) {
-		draw_text(cr, label->x, label->y, label->text);
-		free(label->text);
-		struct label *next = label->next;
-		free(label);
-		label = next;
-	}
+		int i;
+		for(i=1; i<=graph.depth+1; i++) {
+			cairo_new_path(cr);
+			cairo_arc(graph.cr, graph.cx, graph.cy, i * graph.ring_width, 0, 2*M_PI);
+			cairo_stroke(cr);
+		}
+		cairo_stroke(graph.cr);
 
-	cairo_destroy(graph.cr);
-	cairo_surface_write_to_png(surface, path_out);
-	cairo_surface_destroy(surface);
+		struct label *label = graph.label_list;
+		while(label) {
+			draw_text(cr, label->x, label->y, label->text);
+			free(label->text);
+			struct label *next = label->next;
+			free(label);
+			label = next;
+		}
+
+		cairo_destroy(graph.cr);
+		cairo_surface_write_to_png(surface, path_out);
+		cairo_surface_destroy(surface);
+	}
 
 	duc_closedir(dir);
 	duc_close(graph.duc);
