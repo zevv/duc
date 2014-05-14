@@ -4,23 +4,22 @@
 
 #include <limits.h>
 
-
-/*
- * Create and destroy duc context
- */
+typedef struct duc duc;
 
 typedef enum {
-	DUC_OPEN_RO = 1<<0,
-	DUC_OPEN_RW = 1<<1,
-	DUC_OPEN_COMPRESS = 1<<2,
-	DUC_OPEN_LOG_WRN = 1<<3,
-	DUC_OPEN_LOG_INF = 1<<4,
-	DUC_OPEN_LOG_DBG = 1<<5,
+	DUC_OPEN_RO = 1<<0,        /* Open read-only (for querying)*/
+	DUC_OPEN_RW = 1<<1,        /* Open read-write (for indexing) */
+	DUC_OPEN_COMPRESS = 1<<2,  /* Create compressed database */
+	DUC_OPEN_LOG_WRN = 1<<3,   /* Log warning messages */
+	DUC_OPEN_LOG_INF = 1<<4,   /* Log informational messages */
+	DUC_OPEN_LOG_DBG = 1<<5,   /* Log debug messages */
 } duc_open_flags;
 
+
 typedef enum {
-	DUC_INDEX_XDEV	= 1<<0,
+	DUC_INDEX_XDEV	= 1<<0,    /* Do not cross device boundaries while indexing */
 } duc_index_flags;
+
 
 typedef enum {
 	DUC_OK,                     /* No error, success */
@@ -32,7 +31,22 @@ typedef enum {
 	DUC_E_UNKNOWN,              /* Unknown error, contact the author */
 } duc_errno;
 
-typedef struct duc duc;
+
+struct duc_index_report {
+	char path[PATH_MAX];        /* Indexed path */
+	dev_t dev;                  /* Index top device id */
+	ino_t ino;                  /* Index top inode */
+	time_t time_start;          /* Index start time */
+	time_t time_stop;           /* Index finished time */
+	size_t file_count;          /* Total number of files indexed */
+	size_t dir_count;           /* Total number of directories indexed */
+	off_t size_total;           /* Total disk size indexed */
+};
+
+
+/*
+ * Create and destroy duc context
+ */
 
 duc *duc_open(const char *path_db, int flags, duc_errno *e);
 void duc_close(duc *duc);
@@ -40,21 +54,10 @@ void duc_close(duc *duc);
 duc_errno duc_error(duc *duc);
 const char *duc_strerror(duc_errno e);
 
-
 /*
  * Index file systems
  */
 
-struct duc_index_report {
-	char path[PATH_MAX];
-	dev_t dev;
-	ino_t ino;
-	time_t time_start;
-	time_t time_stop;
-	size_t file_count;
-	size_t dir_count;
-	off_t size_total;
-};
 
 int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *report);
 
