@@ -188,12 +188,13 @@ int duc_limitdir(duc_dir *dir, size_t count)
 {
 	if(dir->ent_count <= count) return 0;
 
-	off_t size_rest = 0;
+	off_t rest_size = 0;
+	off_t rest_count = dir->ent_count - count;
 
 	size_t i;
 	struct duc_dirent *ent = dir->ent_list;
 	for(i=0; i<dir->ent_count; i++) {
-		if(i>=count-1) size_rest += ent->size;
+		if(i>=count-1) rest_size += ent->size;
 		ent++;
 	}
 
@@ -201,8 +202,9 @@ int duc_limitdir(duc_dir *dir, size_t count)
 	dir->ent_count = count;
 	dir->ent_cur = 0;
 	ent = &dir->ent_list[count-1];
-	snprintf(ent->name, sizeof(ent->name), "rest");
-	ent->size = size_rest;
+	snprintf(ent->name, sizeof(ent->name), "(%ld files)", rest_count);
+	ent->mode = DUC_MODE_REST;
+	ent->size = rest_size;
 	ent->dev = 0;
 	ent->ino = 0;
 	ent->mode = 0;

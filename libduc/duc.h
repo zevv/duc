@@ -9,20 +9,20 @@
  * Create and destroy duc context
  */
 
-enum {
+typedef enum {
 	DUC_OPEN_RO = 1<<0,
 	DUC_OPEN_RW = 1<<1,
 	DUC_OPEN_COMPRESS = 1<<2,
 	DUC_OPEN_LOG_WRN = 1<<3,
 	DUC_OPEN_LOG_INF = 1<<4,
 	DUC_OPEN_LOG_DBG = 1<<5,
-};
+} duc_open_flags;
 
-enum {
+typedef enum {
 	DUC_INDEX_XDEV	= 1<<0,
-};
+} duc_index_flags;
 
-enum duc_errno {
+typedef enum {
 	DUC_OK,                     /* No error, success */
 	DUC_E_DB_NOT_FOUND,         /* Database not found */
 	DUC_E_DB_VERSION_MISMATCH,  /* Database version mismatch */
@@ -30,16 +30,15 @@ enum duc_errno {
 	DUC_E_PERMISSION_DENIED,    /* Permission denied */
 	DUC_E_OUT_OF_MEMORY,        /* Out of memory */
 	DUC_E_UNKNOWN,              /* Unknown error, contact the author */
-};
+} duc_errno;
 
 typedef struct duc duc;
-typedef enum duc_errno duc_errno;
 
 duc *duc_open(const char *path_db, int flags, duc_errno *e);
 void duc_close(duc *duc);
 
-enum duc_errno duc_error(duc *duc);
-const char *duc_strerror(enum duc_errno e);
+duc_errno duc_error(duc *duc);
+const char *duc_strerror(duc_errno e);
 
 
 /*
@@ -66,10 +65,21 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 
 typedef struct duc_dir duc_dir;
 
+typedef enum {
+	DUC_MODE_REG,
+	DUC_MODE_DIR,
+	DUC_MODE_CHR,
+	DUC_MODE_BLK,
+	DUC_MODE_FIFO,
+	DUC_MODE_LNK,
+	DUC_MODE_SOCK,
+	DUC_MODE_REST
+} duc_dirent_mode;
+
 struct duc_dirent {
 	char name[256];
 	off_t size;
-	mode_t mode;
+	duc_dirent_mode mode;
 	dev_t dev;
 	ino_t ino;
 };

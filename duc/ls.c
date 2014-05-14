@@ -17,29 +17,6 @@ static int bytes = 0;
 static int limit = 20;
 
 
-char *fmt_size(off_t size)
-{
-	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
-	double v = size;
-	char *p = prefix;
-	char *s = NULL;
-
-	if(bytes || size < 1024) {
-		int r = asprintf(&s, "%11jd", size);
-		if(r != -1) return s;
-	} else {
-		while(v >= 1024.0) {
-			v /= 1024.0;
-			p ++;
-		}
-		int r = asprintf(&s, "%10.1f%c", v, *p);
-		if(r != -1) return s;
-	}
-
-	return NULL;
-}
-
-
 static int ls_main(int argc, char **argv)
 {
 	int c;
@@ -122,8 +99,7 @@ static int ls_main(int argc, char **argv)
 	while( (e = duc_readdir(dir)) != NULL) {
 
 		if(classify) {
-			if(S_ISDIR(e->mode)) strcat(e->name, "/");
-			if(S_ISREG(e->mode) && (e->mode & (S_IXUSR | S_IXGRP | S_IXOTH))) strcat(e->name, "*");
+			if(e->mode == DUC_MODE_DIR) strcat(e->name, "/");
 		}
 
 		char siz[32];

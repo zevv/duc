@@ -18,7 +18,7 @@ struct db {
 
 #define DB_VERSION "6"
 
-struct db *db_open(const char *path_db, int flags, enum duc_errno *e)
+struct db *db_open(const char *path_db, int flags, duc_errno *e)
 {
 	struct db *db;
 	int compress = 0;

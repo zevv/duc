@@ -24,6 +24,19 @@ struct index {
 };
 
 
+static duc_dirent_mode mode_t_to_duc_mode(mode_t m)
+{
+	if(S_ISREG(m))  return DUC_MODE_REG;
+	if(S_ISDIR(m))  return DUC_MODE_DIR;
+	if(S_ISCHR(m))  return DUC_MODE_CHR;
+	if(S_ISBLK(m))  return DUC_MODE_BLK;
+	if(S_ISFIFO(m)) return DUC_MODE_FIFO;
+	if(S_ISLNK(m))  return DUC_MODE_LNK;
+	if(S_ISSOCK(m)) return DUC_MODE_SOCK;
+	return DUC_MODE_REST;
+}
+
+
 off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *stat_dir)
 {
 	struct duc *duc = index->duc;
@@ -99,7 +112,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 		/* Store record */
 
-		duc_dir_add_ent(dir, e->d_name, size, stat.st_mode, stat.st_dev, stat.st_ino);
+		duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(stat.st_mode), stat.st_dev, stat.st_ino);
 		size_dir += size;
 		index->report->size_total += size;
 	}

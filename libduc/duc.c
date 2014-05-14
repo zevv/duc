@@ -55,7 +55,7 @@ void duc_close(struct duc *duc)
 }
 
 
-void duc_log(struct duc *duc, enum duc_loglevel level, const char *fmt, ...)
+void duc_log(struct duc *duc, duc_loglevel level, const char *fmt, ...)
 {
 	if(level <= duc->loglevel) {
 		va_list va;
@@ -66,7 +66,7 @@ void duc_log(struct duc *duc, enum duc_loglevel level, const char *fmt, ...)
 }
 
 
-enum duc_errno duc_error(duc *duc)
+duc_errno duc_error(duc *duc)
 {
 	return duc->err;
 }

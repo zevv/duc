@@ -174,11 +174,11 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 		
 			double brightness = 0.8 * r_from / graph->cx;
 
-			if(strcmp(e->name, "rest") == 0) brightness = 0;
+			if(e->mode == DUC_MODE_REST) brightness = 0;
 
 			draw_section(graph, a_from, a_to, r_from, r_to, brightness);
 
-			if(S_ISDIR(e->mode)) {
+			if(e->mode == DUC_MODE_DIR) {
 				if(level+1 < graph->depth) {
 					duc_dir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
 					if(dir_child) {
