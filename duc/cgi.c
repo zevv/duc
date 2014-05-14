@@ -120,7 +120,7 @@ static void do_index(duc *duc)
 		"<!DOCTYPE html>\n"
 		"<head>\n"
 		"<style>\n"
-		"body { font-family: 'verdana', 'sans-serif', 'arial', 'helvetica'; font-size: 11px; }\n"
+		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
 		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
 		"#list { 100%%; }\n"
 		"</style>\n"

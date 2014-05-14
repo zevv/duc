@@ -81,7 +81,7 @@ static void hsv2rgb(double h, double s, double v, double *r, double *g, double *
 static void draw_text(cairo_t *cr, int x, int y, char *text)
 {
 	PangoLayout *layout = pango_cairo_create_layout(cr);
-	PangoFontDescription *desc = pango_font_description_from_string("Sans 8");
+	PangoFontDescription *desc = pango_font_description_from_string("Arial, Sans, 8");
 
 	pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
 	pango_layout_set_text(layout, text, -1);
@@ -103,7 +103,7 @@ static void draw_text(cairo_t *cr, int x, int y, char *text)
 	/* light grey background */
 
 	cairo_set_line_join (cr, CAIRO_LINE_JOIN_BEVEL);
-	cairo_set_source_rgba(cr, 1, 1, 1, 0.7);
+	cairo_set_source_rgba(cr, 1, 1, 1, 0.4);
 	cairo_set_line_width(cr, 3);
 	cairo_stroke_preserve(cr);
 
