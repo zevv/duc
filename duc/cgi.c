@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <assert.h>
 #include <unistd.h>
 
@@ -80,24 +81,12 @@ static char *cgi_get(const char *key)
 
 
 
-static char *find_xy(int x, int y)
+static char *find_xy(duc *duc, int x, int y)
 {
 	static char path_out[PATH_MAX];
 
 	char *path = cgi_get("path");
 	if(!path) return NULL;
-
-	duc *duc = duc_new();
-	if(duc == NULL) {
-                fprintf(stderr, "Error creating duc context\n");
-                return NULL;
-        }
-
-        int r = duc_open(duc, "/home/ico/.duc.db", DUC_OPEN_RO);
-        if(r != DUC_OK) {
-                fprintf(stderr, "%s\n", duc_strerror(duc));
-                return NULL;
-        }
 
         duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
@@ -114,20 +103,19 @@ static char *find_xy(int x, int y)
 	}
 	
 	duc_closedir(dir);
-	duc_close(duc);
 
 	return NULL;
 }
 
 
 
-static void do_index(void)
+static void do_index(duc *duc)
 {
 
 	printf("Content-Type: text/html\n");
 	printf("\n");
 	
-	char *path = cgi_get("p");
+	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
 
@@ -140,12 +128,38 @@ static void do_index(void)
 			if(p2) {
 				x = atoi(p1+1);
 				y = atoi(p2+1);
-				path = find_xy(x, y);
+				path = find_xy(duc, x, y);
 			}
 		}
 	}
 
 	if(path == NULL) path = "/home/ico";
+	
+	struct duc_index_report report;
+	int i = 0;
+
+	printf("<table>");
+	while( duc_list(duc, i, &report) == 0) {
+
+		char ts_date[32];
+		char ts_time[32];
+		struct tm *tm = localtime(&report.time_start);
+		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
+		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
+
+		char url[PATH_MAX];
+		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report.path);
+
+		printf("<tr>");
+		printf("<td>%s</td>", ts_date);
+		printf("<td>%s</td>", ts_time);
+		printf("<td><a href='%s'>%s</a></td>", url, report.path);
+		printf("</tr>\n");
+
+		i++;
+	}
+	printf("</table>");
+
 
 	printf("<center>");
 	printf("<b>%s</b><br>", path);
@@ -156,24 +170,13 @@ static void do_index(void)
 }
 
 
-void do_image(void)
+void do_image(duc *duc)
 {
 	printf("Content-Type: image/png\n");
 	printf("\n");
 
 	char *path = cgi_get("path");
 	if(!path) return;
-
-	duc *duc = duc_new();
-	if(duc == NULL) {
-                fprintf(stderr, "Error creating duc context\n");
-        }
-
-        int r = duc_open(duc, "/home/ico/.duc.db", DUC_OPEN_RO);
-        if(r != DUC_OK) {
-                fprintf(stderr, "%s\n", duc_strerror(duc));
-                return;
-        }
 
         duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
@@ -195,9 +198,24 @@ static int cgi_main(int argc, char **argv)
 
 	char *cmd = cgi_get("cmd");
 	if(cmd == NULL) cmd = "index";
+	
+	duc *duc = duc_new();
+	if(duc == NULL) {
+                fprintf(stderr, "Error creating duc context\n");
+		return -1;
+        }
 
-	if(strcmp(cmd, "index") == 0) do_index();
-	if(strcmp(cmd, "image") == 0) do_image();
+        int r = duc_open(duc, "/home/ico/.duc.db", DUC_OPEN_RO);
+        if(r != DUC_OK) {
+                fprintf(stderr, "%s\n", duc_strerror(duc));
+		return -1;
+        }
+
+	if(strcmp(cmd, "index") == 0) do_index(duc);
+	if(strcmp(cmd, "image") == 0) do_image(duc);
+	
+	duc_close(duc);
+	duc_del(duc);
 
 	return 0;
 }

@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <assert.h>
 #include <errno.h>
 #include <dirent.h>
 #include <time.h>
@@ -132,15 +133,17 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 	struct index index;
 	memset(&index, 0, sizeof index);
 
-	static struct duc_index_report dummy_report;
+	/* If no report pointer was passed by the caller, use a local variable instead */
+
+	struct duc_index_report dummy_report;
 	if(report == NULL) report = &dummy_report;
 	memset(report, 0, sizeof *report);
-
-	snprintf(report->path, sizeof(report->path), "%s", path);
 
 	index.duc = duc;
 	index.one_file_system = flags & DUC_INDEX_XDEV;
 	index.report = report;
+
+	/* Canonalize index path */
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
@@ -150,26 +153,40 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 		if(errno == ENOENT) duc->err = DUC_E_PATH_NOT_FOUND;
 		return -1;
 	}
+
+	/* Open path */
 	
 	struct stat stat;
 	int r = lstat(path_canon, &stat);
 	if(r == -1) {
-		duc_log(duc, LG_WRN, "Error statting %s: %s\n", path, strerror(errno));
+		duc_log(duc, LG_WRN, "Error statting %s: %s\n", path_canon, strerror(errno));
 		duc->err = DUC_E_UNKNOWN;
 		if(errno == EACCES) duc->err = DUC_E_PERMISSION_DENIED;
 		return -1;
 	}
 
-	report->dev = stat.st_dev;
-	report->ino = stat.st_ino;
-
-	/* Index directories */
+	/* Recursively index subdirectories */
 
 	report->time_start = time(NULL);
 	index_dir(&index, path_canon, 0, &stat);
 	report->time_stop = time(NULL);
+	
+	/* Fill in report */
 
-	/* Store report */
+	snprintf(report->path, sizeof(report->path), "%s", path_canon);
+	report->dev = stat.st_dev;
+	report->ino = stat.st_ino;
+
+	/* Store report. Add the report index to the 'duc_index_reports' key if
+	 * not previously indexed */
+
+	size_t tmpl;
+	char *tmp = db_get(duc->db, path_canon, strlen(path_canon), &tmpl);
+	if(tmp == NULL) {
+		db_putcat(duc->db, "duc_index_reports", 17, report->path, sizeof report->path);
+	} else {
+		free(tmp);
+	}
 
 	db_put(duc->db, path_canon, strlen(path_canon), report, sizeof *report);
 
@@ -177,6 +194,35 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 
 	return 0;
 }
+
+
+int duc_list(duc *duc, size_t id, struct duc_index_report *report)
+{
+	size_t indexl;
+
+	char *index = db_get(duc->db, "duc_index_reports", 17, &indexl);
+	if(index == NULL) return -1;
+
+	int report_count = indexl / PATH_MAX;
+	if(id >= report_count) return -1;
+
+	char *path = index + id * PATH_MAX;
+
+	size_t rlen;
+	struct duc_index_report *r = db_get(duc->db, path, strlen(path), &rlen);
+	if(r == NULL) {
+		free(index);
+		return -1;
+	}
+	free(index);
+
+	if(rlen == sizeof *report) {
+		memcpy(report, r, sizeof *report);
+		return 0;
+	}
+
+	return -1;
+} 
 
 
 /*

@@ -5,6 +5,7 @@
 #include <limits.h>
 
 typedef struct duc duc;
+typedef struct duc_dir duc_dir;
 
 typedef enum {
 	DUC_OPEN_RO = 1<<0,        /* Open read-only (for querying)*/
@@ -32,19 +33,6 @@ typedef enum {
 } duc_errno;
 
 
-struct duc_index_report {
-	char path[PATH_MAX];        /* Indexed path */
-	dev_t dev;                  /* Index top device id */
-	ino_t ino;                  /* Index top inode */
-	time_t time_start;          /* Index start time */
-	time_t time_stop;           /* Index finished time */
-	size_t file_count;          /* Total number of files indexed */
-	size_t dir_count;           /* Total number of directories indexed */
-	off_t size_total;           /* Total disk size indexed */
-};
-
-typedef struct duc_dir duc_dir;
-
 typedef enum {
 	DUC_MODE_REG,               /* Regular file */
 	DUC_MODE_DIR,               /* Directory */
@@ -55,6 +43,18 @@ typedef enum {
 	DUC_MODE_SOCK,              /* Unix socket */
 	DUC_MODE_REST               /* Grouped 'rest', added by duc_limitdir() */
 } duc_dirent_mode;
+
+
+struct duc_index_report {
+	char path[PATH_MAX];        /* Indexed path */
+	dev_t dev;                  /* Index top device id */
+	ino_t ino;                  /* Index top inode */
+	time_t time_start;          /* Index start time */
+	time_t time_stop;           /* Index finished time */
+	size_t file_count;          /* Total number of files indexed */
+	size_t dir_count;           /* Total number of directories indexed */
+	off_t size_total;           /* Total disk size indexed */
+};
 
 
 struct duc_dirent {
@@ -101,6 +101,7 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
  * Querying the duc database
  */
 
+int duc_list(duc *duc, size_t id, struct duc_index_report *report);
 
 duc_dir *duc_opendir(duc *duc, const char *path);
 duc_dir *duc_opendirat(duc *duc, struct duc_dirent *e);

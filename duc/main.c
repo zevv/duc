@@ -10,6 +10,7 @@
 
 
 struct cmd cmd_help;
+struct cmd cmd_info;
 struct cmd cmd_index;
 struct cmd cmd_ls;
 struct cmd cmd_draw;
@@ -18,6 +19,7 @@ struct cmd cmd_cgi;
 
 struct cmd *cmd_list[] = {
 	&cmd_help,
+	&cmd_info,
 	&cmd_index,
 	&cmd_ls,
 	&cmd_draw,

@@ -12,6 +12,7 @@
 #include "duc-private.h"
 #include "varint.h"
 
+
 struct duc_dir *duc_dir_new(struct duc *duc, size_t ent_max)
 {
 	struct duc_dir *dir = malloc(sizeof(struct duc_dir));
