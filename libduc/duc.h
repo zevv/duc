@@ -88,7 +88,7 @@ struct duc_dirent {
 };
 
 duc_dir *duc_opendir(duc *duc, const char *path);
-duc_dir *duc_opendirat(duc *duc, dev_t dev, ino_t ino);
+duc_dir *duc_opendirat(duc *duc, struct duc_dirent *e);
 int duc_limitdir(duc_dir *dir, size_t count);
 struct duc_dirent *duc_readdir(duc_dir *dir);
 off_t duc_sizedir(duc_dir *dir);

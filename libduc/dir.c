@@ -173,9 +173,9 @@ struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
 }
 
 
-duc_dir *duc_opendirat(struct duc *duc, dev_t dev, ino_t ino)
+duc_dir *duc_opendirat(duc *duc, struct duc_dirent *e)
 {
-	struct duc_dir *dir = duc_dir_read(duc, dev, ino);
+	struct duc_dir *dir = duc_dir_read(duc, e->dev, e->ino);
 	if(dir == NULL) return NULL;
 
 	qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp_ent);
@@ -267,7 +267,11 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
-	dir = duc_opendirat(duc, dev, ino);
+	struct duc_dirent e;
+	e.dev = dev;
+	e.ino = ino;
+
+	dir = duc_opendirat(duc, &e);
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		free(path_canon);
@@ -287,7 +291,7 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 		struct duc_dir *dir_next = NULL;
 
 		if(ent) {
-			dir_next = duc_opendirat(duc, ent->dev, ent->ino);
+			dir_next = duc_opendirat(duc, ent);
 		}
 
 		duc_closedir(dir);

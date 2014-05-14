@@ -157,7 +157,7 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 	double a_from = a_min;
 	double a_to = a_min;
 
-	duc_limitdir(dir, 50);
+	duc_limitdir(dir, 30);
 
 	/* Calculate max and total size */
 	
@@ -180,7 +180,7 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 
 			if(e->mode == DUC_MODE_DIR) {
 				if(level+1 < graph->depth) {
-					duc_dir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
+					duc_dir *dir_child = duc_opendirat(graph->duc, e);
 					if(dir_child) {
 						draw_ring(graph, dir_child, level + 1, a_from, a_to);
 						duc_closedir(dir_child);
@@ -216,7 +216,7 @@ static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min,
 	double a_from = a_min;
 	double a_to = a_min;
 
-	duc_limitdir(dir, 50);
+	duc_limitdir(dir, 30);
 
 	/* Calculate max and total size */
 	
@@ -241,7 +241,7 @@ static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min,
 
 			if(e->mode == DUC_MODE_DIR) {
 				if(level+1 < graph->depth) {
-					duc_dir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
+					duc_dir *dir_child = duc_opendirat(graph->duc, e);
 					if(dir_child) {
 						int r = find_spot(graph, dir_child, level + 1, a_from, a_to, part);
 						duc_closedir(dir_child);
