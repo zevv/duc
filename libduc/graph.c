@@ -12,6 +12,7 @@
 #include <stdint.h>
 
 #include <cairo.h>
+#include <pango/pangocairo.h>
 
 #include "duc.h"
 #include "duc-private.h"
@@ -79,29 +80,38 @@ static void hsv2rgb(double h, double s, double v, double *r, double *g, double *
 
 static void draw_text(cairo_t *cr, int x, int y, char *text)
 {
-	char *p = text;
-	int lines = 1;
-	int size = 11;
-	while(*p) if(*p++ == '\n') lines++;
+	PangoLayout *layout = pango_cairo_create_layout(cr);
+	PangoFontDescription *desc = pango_font_description_from_string("Sans 8");
 
-	y -= (lines-1) * (size+2) / 2.0;
+	pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
+	pango_layout_set_text(layout, text, -1);
+	pango_layout_set_font_description(layout, desc);
+	pango_font_description_free(desc);
 
-	cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-	cairo_set_font_size(cr, size);
+	pango_cairo_update_layout(cr, layout);
 
-	cairo_text_extents_t ext;
-	cairo_text_extents(cr, text, &ext);
+	int w,h;
+	pango_layout_get_size(layout, &w, &h);
 
-	int w = ext.width;
-	int h = ext.height;
-	cairo_move_to(cr, x - w/2, y + h/2);
-	cairo_set_source_rgba(cr, 1, 1, 1, 0.8);
-	cairo_set_line_width(cr, 1.5);
-	cairo_text_path(cr, text);
-	cairo_stroke(cr);
+	x -= (w/PANGO_SCALE/2);
+	y -= (h/PANGO_SCALE/2);
+
+	cairo_move_to(cr, x, y);
+	pango_cairo_layout_path(cr, layout);
+	g_object_unref(layout);
+	
+	/* light grey background */
+
+	cairo_set_line_join (cr, CAIRO_LINE_JOIN_BEVEL);
+	cairo_set_source_rgba(cr, 1, 1, 1, 0.7);
+	cairo_set_line_width(cr, 3);
+	cairo_stroke_preserve(cr);
+
+	/* black text */
+
 	cairo_set_source_rgb(cr, 0, 0, 0);
-	cairo_move_to(cr, x - w/2, y + h/2);
-	cairo_show_text(cr, text);
+	cairo_set_line_width(cr, 1);
+	cairo_fill(cr);
 }
 
 
@@ -183,9 +193,15 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 			if(r_from * (a_to - a_from) > 5) {
 				struct label *label = malloc(sizeof *label);
 				pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
-				label->text = strdup(e->name);
-				label->next = graph->label_list;
-				graph->label_list = label;
+				char siz[32];
+				duc_format_size(e->size, siz, sizeof siz);
+				int r = asprintf(&label->text, "%s\n%s", e->name, siz);
+				if(r > 0) {
+					label->next = graph->label_list;
+					graph->label_list = label;
+				} else {
+					free(label);
+				}
 			}
 		}
 		

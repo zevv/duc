@@ -160,8 +160,11 @@ struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
 		buffer_get_varint(b, &mode);
 		buffer_get_varint(b, &dev);
 		buffer_get_varint(b, &ino);
-		
-		duc_dir_add_ent(dir, name, size, mode, dev, ino);
+	
+		if(name) {
+			duc_dir_add_ent(dir, name, size, mode, dev, ino);
+			free(name);
+		}
 	}
 
 	buffer_free(b);

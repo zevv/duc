@@ -54,6 +54,7 @@ struct db *db_open(const char *path_db, int flags, enum duc_errno *e)
 			*e = DUC_E_DB_VERSION_MISMATCH;
 			goto err3;
 		}
+		free(version);
 	} else {
 		db_put(db, "duc_db_version", 14, DB_VERSION, strlen(DB_VERSION));;
 	}
