@@ -49,6 +49,6 @@ $(LIB): $(OBJS)
 
 clean:	
 	$(P) " [CLEAN] $@"
-	$(E) rm -f $(OBJS) $(BIN) $(LIB) $(SHLIB) core
+	$(E) rm -f $(OBJS) $(BIN) $(LIB) $(SHLIB) core perf.data*
 	$(E) for dir in $(SUBDIRS); do $(MAKE) -C $$dir clean; done
 
