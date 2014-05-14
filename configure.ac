@@ -16,7 +16,7 @@ AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [main])
@@ -31,7 +31,7 @@ PKG_CHECK_MODULES([TC],[tokyocabinet])
 PKG_CHECK_MODULES([CAIRO],[cairo])
 
 # Check for Pango support
-PKG_CHECK_MODULES([PANGO],[pango])
+PKG_CHECK_MODULES([PANGO],[pango pangocairo])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h])
