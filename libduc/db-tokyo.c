@@ -16,7 +16,7 @@ struct db {
 	TCHDB* hdb;
 };
 
-#define DB_VERSION "6"
+#define DB_VERSION "7"
 
 struct db *db_open(const char *path_db, int flags, duc_errno *e)
 {
