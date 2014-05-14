@@ -10,14 +10,25 @@
 #include "duc-private.h"
 #include "db.h"
 
+duc *duc_new(void)
+{
+	duc *duc = malloc(sizeof *duc);
+	if(!duc) return NULL;
+	memset(duc, 0, sizeof *duc);
+	return duc;
+}
 
-struct duc *duc_open(const char *path_db, int flags, duc_errno *e)
+
+void duc_del(duc *duc)
+{
+	if(duc->db) duc_close(duc);
+	free(duc);
+}
+
+
+int duc_open(duc *duc, const char *path_db, int flags)
 {
 	char tmp[PATH_MAX];
-	
-	struct duc *duc = malloc(sizeof *duc);
-	if(duc == NULL) return NULL;
-	memset(duc, 0, sizeof *duc);
 
 	if(path_db == NULL) {
 		path_db = getenv("DUC_DATABASE");
@@ -30,28 +41,34 @@ struct duc *duc_open(const char *path_db, int flags, duc_errno *e)
 			path_db = tmp;
 		}
 	}
+	
+	if(path_db == NULL) {
+		duc->err = DUC_E_DB_NOT_FOUND;
+		return -1;
+	}
 
 	if(flags & DUC_OPEN_LOG_WRN) duc->loglevel = LG_WRN;
 	if(flags & DUC_OPEN_LOG_INF) duc->loglevel = LG_INF;
 	if(flags & DUC_OPEN_LOG_DBG) duc->loglevel = LG_DBG;
 
-	duc->db = db_open(path_db, flags, e);
+	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-		duc_log(duc, LG_WRN, "Error opening database: %s\n", duc_strerror(*e));
+		duc_log(duc, LG_WRN, "Error opening database: %s\n", duc_strerror(duc));
 		free(duc);
-		return NULL;
+		return -1;
 	}
 
-	return duc;
+	return 0;
 }
 
 
-void duc_close(struct duc *duc)
+int duc_close(struct duc *duc)
 {
 	if(duc->db) {
 		db_close(duc->db);
+		duc->db = NULL;
 	}
-	free(duc);
+	return 0;
 }
 
 
@@ -72,9 +89,9 @@ duc_errno duc_error(duc *duc)
 }
 
 
-const char *duc_strerror(duc_errno e)
+const char *duc_strerror(duc *duc)
 {
-	switch(e) {
+	switch(duc->err) {
 
 		case DUC_OK:                     return "No error: success"; break;
 		case DUC_E_DB_NOT_FOUND:         return "Database not found"; break;

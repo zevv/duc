@@ -43,49 +43,64 @@ struct duc_index_report {
 	off_t size_total;           /* Total disk size indexed */
 };
 
+typedef struct duc_dir duc_dir;
+
+typedef enum {
+	DUC_MODE_REG,               /* Regular file */
+	DUC_MODE_DIR,               /* Directory */
+	DUC_MODE_CHR,               /* Character device */
+	DUC_MODE_BLK,               /* Block device */
+	DUC_MODE_FIFO,              /* Fifo */
+	DUC_MODE_LNK,               /* Soft link */
+	DUC_MODE_SOCK,              /* Unix socket */
+	DUC_MODE_REST               /* Grouped 'rest', added by duc_limitdir() */
+} duc_dirent_mode;
+
+
+struct duc_dirent {
+	char name[256];             /* File name */
+	off_t size;                 /* File size */
+	duc_dirent_mode mode;       /* File mode */
+	dev_t dev;                  /* ID of device containing file */
+	ino_t ino;                  /* inode number */
+};
+
 
 /*
  * Create and destroy duc context
  */
 
-duc *duc_open(const char *path_db, int flags, duc_errno *e);
-void duc_close(duc *duc);
+duc *duc_new(void);
+void duc_del(duc *duc);
+
+
+/*
+ * Error reporting
+ */
 
 duc_errno duc_error(duc *duc);
-const char *duc_strerror(duc_errno e);
+const char *duc_strerror(duc *duc);
+
+
+/*
+ * Open and close database
+ */
+
+int duc_open(duc *duc, const char *path_db, int flags);
+int duc_close(duc *duc);
+
 
 /*
  * Index file systems
  */
 
-
 int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *report);
 
 
 /*
- * Reading the duc database
+ * Querying the duc database
  */
 
-typedef struct duc_dir duc_dir;
-
-typedef enum {
-	DUC_MODE_REG,
-	DUC_MODE_DIR,
-	DUC_MODE_CHR,
-	DUC_MODE_BLK,
-	DUC_MODE_FIFO,
-	DUC_MODE_LNK,
-	DUC_MODE_SOCK,
-	DUC_MODE_REST
-} duc_dirent_mode;
-
-struct duc_dirent {
-	char name[256];
-	off_t size;
-	duc_dirent_mode mode;
-	dev_t dev;
-	ino_t ino;
-};
 
 duc_dir *duc_opendir(duc *duc, const char *path);
 duc_dir *duc_opendirat(duc *duc, struct duc_dirent *e);

@@ -61,11 +61,16 @@ static int index_main(int argc, char **argv)
 		fprintf(stderr, "Required index PATH missing.\n");
 		return -2;
 	}
-
-	duc_errno e;
-	struct duc *duc = duc_open(path_db, open_flags, &e);
+	
+	struct duc *duc = duc_new();
 	if(duc == NULL) {
-		fprintf(stderr, "%s\n", duc_strerror(e));
+                fprintf(stderr, "Error creating duc context\n");
+                return -1;
+        }
+	
+	int r = duc_open(duc, path_db, open_flags);
+	if(r != DUC_OK) {
+		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
 
@@ -84,12 +89,13 @@ static int index_main(int argc, char **argv)
 					siz,
 					(long)(report.time_stop - report.time_start));
 		} else {
-			fprintf(stderr, "An error occured while indexing: %s", duc_strerror(r));
+			fprintf(stderr, "An error occured while indexing: %s", duc_strerror(duc));
 		}
 
 	}
 
 	duc_close(duc);
+	duc_del(duc);
 
 	return 0;
 }

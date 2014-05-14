@@ -68,17 +68,22 @@ static int ls_main(int argc, char **argv)
 	width = width - 36;
 
 	/* Open duc context */
-
-	duc_errno err;
-	struct duc *duc = duc_open(path_db, DUC_OPEN_RO, &err);
+	
+	duc *duc = duc_new();
 	if(duc == NULL) {
-		fprintf(stderr, "%s\n", duc_strerror(err));
+                fprintf(stderr, "Error creating duc context\n");
+                return -1;
+        }
+
+	int r = duc_open(duc, path_db, DUC_OPEN_RO);
+	if(r != DUC_OK) {
+		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
 
 	duc_dir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {
-		fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
+		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
 	
@@ -118,9 +123,17 @@ static int ls_main(int argc, char **argv)
 		printf("]\n");
 	}
 
+	char siz[32];
+	if(bytes) {
+		snprintf(siz, sizeof siz, "%jd", duc_sizedir(dir));
+	} else {
+		duc_humanize(duc_sizedir(dir), siz, sizeof siz);
+	}
+	printf("%-20.20s %11.11s\n", "Total size", siz);
 
 	duc_closedir(dir);
 	duc_close(duc);
+	duc_del(duc);
 
 	return 0;
 }

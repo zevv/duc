@@ -87,16 +87,21 @@ static char *find_xy(int x, int y)
 	char *path = cgi_get("path");
 	if(!path) return NULL;
 
-	duc_errno err;
-        duc *duc = duc_open("/home/ico/.duc.db", DUC_OPEN_RO, &err);
-        if(duc == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(err));
+	duc *duc = duc_new();
+	if(duc == NULL) {
+                fprintf(stderr, "Error creating duc context\n");
+                return NULL;
+        }
+
+        int r = duc_open(duc, "/home/ico/.duc.db", DUC_OPEN_RO);
+        if(r != DUC_OK) {
+                fprintf(stderr, "%s\n", duc_strerror(duc));
                 return NULL;
         }
 
         duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
+                fprintf(stderr, "%s\n", duc_strerror(duc));
                 return NULL;
         }
 
@@ -159,16 +164,20 @@ void do_image(void)
 	char *path = cgi_get("path");
 	if(!path) return;
 
-        duc_errno err;
-        duc *duc = duc_open("/home/ico/.duc.db", DUC_OPEN_RO, &err);
-        if(duc == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(err));
+	duc *duc = duc_new();
+	if(duc == NULL) {
+                fprintf(stderr, "Error creating duc context\n");
+        }
+
+        int r = duc_open(duc, "/home/ico/.duc.db", DUC_OPEN_RO);
+        if(r != DUC_OK) {
+                fprintf(stderr, "%s\n", duc_strerror(duc));
                 return;
         }
 
         duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
+                fprintf(stderr, "%s\n", duc_strerror(duc));
                 return;
         }
 

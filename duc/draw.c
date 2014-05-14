@@ -58,16 +58,21 @@ static int draw_main(int argc, char **argv)
 
         /* Open duc context */
 
-        duc_errno err;
-        duc *duc = duc_open(path_db, DUC_OPEN_RO, &err);
-        if(duc == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(err));
+	duc *duc = duc_new();
+	if(duc == NULL) {
+                fprintf(stderr, "Error creating duc context\n");
+                return -1;
+        }
+
+        int r = duc_open(duc, path_db, DUC_OPEN_RO);
+        if(r != DUC_OK) {
+                fprintf(stderr, "%s\n", duc_strerror(duc));
                 return -1;
         }
 
         duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
+                fprintf(stderr, "%s\n", duc_strerror(duc));
                 return -1;
         }
 

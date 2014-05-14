@@ -1,6 +1,9 @@
 #ifndef duc_internal_h
 #define duc_internal_h
 
+#define DUC_DB_VERSION "8"
+
+
 typedef enum {
 	LG_FTL,
 	LG_WRN,
@@ -8,6 +11,7 @@ typedef enum {
 	LG_DBG,
 	LG_DMP
 } duc_loglevel;
+
 
 struct duc {
 	struct db *db;
