@@ -67,10 +67,10 @@ Use the `duc ls` command to see the disk usage of a directory. A specific path
 can be specified as command line argument, the current directory is used if omitted.
 
 `dus ls` has some options similar to the normal `ls` program. For example, try
-`duc ls -hF` for a more friendly output.
+`duc ls -F` for a more friendly output.
 
 ```
-$ duc ls -n10 -hF /usr
+$ duc ls -n10 -F /usr
 lib/                       4.7G [==================================================]
 src/                       4.4G [=============================================     ]
 share/                     3.1G [========================                          ]
