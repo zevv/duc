@@ -43,7 +43,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 	struct duc *duc = index->duc;
 	off_t size_dir = 0;
 
-	int fd = openat(fd_dir, path, OPEN_FLAGS | O_NOATIME);
+	int fd = openat(fd_dir, path, OPEN_FLAGS);
 
 	if(fd == -1 && errno == EPERM) {
 		fd = openat(fd_dir, path, OPEN_FLAGS);
