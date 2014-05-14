@@ -23,6 +23,7 @@ struct cmd *cmd_list[] = {
 	&cmd_index,
 	&cmd_ls,
 	&cmd_draw,
+	&cmd_cgi,
 };
 
 #define SUBCOMMAND_COUNT (sizeof(cmd_list) / sizeof(cmd_list[0]))

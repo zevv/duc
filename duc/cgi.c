@@ -26,10 +26,10 @@ struct param {
 struct param *param_list = NULL;
 
 
-static void cgi_parse(void)
+static int cgi_parse(void)
 {
 	char *qs = getenv("QUERY_STRING");
-	if(qs == NULL) return;
+	if(qs == NULL) return -1;
 
 	char *p = qs;
 
@@ -62,6 +62,8 @@ static void cgi_parse(void)
 		if(*pn == 0) break;
 		p = pn+1;
 	}
+
+	return 0;
 }
 
 
@@ -116,13 +118,13 @@ static void do_index(duc *duc)
 		"Content-Type: text/html\n"
 		"\n"
 		"<!DOCTYPE html>\n"
-		"<head>"
-		"<style>"
+		"<head>\n"
+		"<style>\n"
 		"body { font-family: 'verdana', 'sans-serif', 'arial', 'helvetica'; font-size: 11px; }\n"
 		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
 		"#list { 100%%; }\n"
-		"</style>"
-		"</head>"
+		"</style>\n"
+		"</head>\n"
 	);
 	
 	char *path = cgi_get("path");
@@ -208,7 +210,36 @@ void do_image(duc *duc)
 
 static int cgi_main(int argc, char **argv)
 {
-	cgi_parse();
+	int r;
+	
+	r = cgi_parse();
+	if(r != 0) {
+		fprintf(stderr, 
+			"The 'cgi' subcommand is used for integrating Duc into a web server.\n"
+			"Please refer to the documentation for instructions how to install and configure.\n"
+		);
+		return(-1);
+	}
+
+	char *path_db = NULL;
+
+	struct option longopts[] = {
+		{ "database",       required_argument, NULL, 'd' },
+		{ NULL }
+	};
+
+	int c;
+	while( ( c = getopt_long(argc, argv, "d:", longopts, NULL)) != EOF) {
+
+		switch(c) {
+			case 'd':
+				path_db = optarg;
+				break;
+			default:
+				return -2;
+		}
+	}
+
 
 	char *cmd = cgi_get("cmd");
 	if(cmd == NULL) cmd = "index";
@@ -220,7 +251,7 @@ static int cgi_main(int argc, char **argv)
 		return -1;
         }
 
-        int r = duc_open(duc, NULL, DUC_OPEN_RO);
+        r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
 		printf("Content-Type: text/plain\n\n");
                 printf("%s\n", duc_strerror(duc));
@@ -240,9 +271,11 @@ static int cgi_main(int argc, char **argv)
 struct cmd cmd_cgi = {
 	.name = "cgi",
 	.description = "CGI interface",
-	.usage = "",
-	.help = "",
-	.main = cgi_main
+	.usage = "[options] [PATH]",
+	.help = 
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
+	.main = cgi_main,
+		
 };
 
 
