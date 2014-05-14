@@ -91,5 +91,10 @@ int duc_closedir(duc_dir *dir);
 int duc_graph(duc_dir *dir, int size, int depth, FILE *fout);
 int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *path, size_t path_len);
 
+/* 
+ * Helper functions
+ */
+
+void duc_format_size(off_t size, char *buf, size_t buflen);
 
 #endif

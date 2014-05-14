@@ -87,6 +87,26 @@ const char *duc_strerror(duc_errno e)
 
 	return "Unknown error, contact the author";
 }
+
+
+void duc_format_size(off_t size, char *buf, size_t buflen)
+{
+	char prefix[] = { '\0', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
+	double v = size;
+	char *p = prefix;
+
+	if(size < 1024) {
+		snprintf(buf, buflen, "%jd", size);
+	} else {
+		while(v >= 1024.0) {
+			v /= 1024.0;
+			p ++;
+		}
+		snprintf(buf, buflen, "%.1f%c", v, *p);
+	}
+
+}
+
 						 
 
 /*

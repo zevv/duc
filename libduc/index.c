@@ -1,15 +1,12 @@
 
-#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <dirent.h>
-#include <stdint.h>
+#include <time.h>
 
 #include "db.h"
 #include "duc.h"
@@ -155,7 +152,9 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 
 	/* Index directories */
 
+	report->time_start = time(NULL);
 	index_dir(&index, path_canon, 0, &stat);
+	report->time_stop = time(NULL);
 
 	/* Store report */
 
