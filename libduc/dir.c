@@ -207,7 +207,6 @@ int duc_limitdir(duc_dir *dir, size_t count)
 	ent->size = rest_size;
 	ent->dev = 0;
 	ent->ino = 0;
-	ent->mode = 0;
 
 	return 0;
 }
