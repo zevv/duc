@@ -62,7 +62,8 @@ struct ducent {
 };
 
 ducdir *duc_opendir(duc *duc, const char *path);
-ducdir *duc_opendirat(struct duc *duc, dev_t dev, ino_t ino);
+ducdir *duc_opendirat(duc *duc, dev_t dev, ino_t ino);
+int duc_limitdir(ducdir *dir, size_t count);
 struct ducent *duc_readdir(ducdir *dir);
 off_t duc_sizedir(ducdir *dir);
 struct ducent *duc_finddir(ducdir *dir, const char *name);

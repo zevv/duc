@@ -115,8 +115,11 @@ static void draw_section(struct graph *graph, double a_from, double a_to, int r_
 {
 	cairo_t *cr = graph->cr;
 			
-	double r, g, b;
-	hsv2rgb((a_from+a_to)*0.5, 1.0-brightness, brightness/2+0.5, &r, &g, &b);
+	double r = 0.6, g = 0.6, b = 0.6;
+
+	if(brightness > 0) {
+		hsv2rgb((a_from+a_to)*0.5, 1.0-brightness, brightness/2+0.5, &r, &g, &b);
+	}
 
 	cairo_pattern_t *pat;
 	pat = cairo_pattern_create_radial(graph->cx, graph->cy, 0, graph->cx, graph->cy, graph->cx-50);
@@ -144,6 +147,8 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 	double a_from = a_min;
 	double a_to = a_min;
 
+	duc_limitdir(dir, 50);
+
 	/* Calculate max and total size */
 	
 	off_t size_total = duc_sizedir(dir);
@@ -158,6 +163,8 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 			double r_to = r_from + graph->ring_width;
 		
 			double brightness = 0.8 * r_from / graph->cx;
+
+			if(strcmp(e->name, "rest") == 0) brightness = 0;
 
 			draw_section(graph, a_from, a_to, r_from, r_to, brightness);
 
@@ -192,6 +199,7 @@ static int find_spot(struct graph *graph, ducdir *dir, int level, double a_min, 
 	double a_range = a_max - a_min;
 	double a_from = a_min;
 	double a_to = a_min;
+	duc_limitdir(dir, 50);
 
 	/* Calculate max and total size */
 	

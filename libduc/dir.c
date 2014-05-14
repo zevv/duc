@@ -179,6 +179,33 @@ ducdir *duc_opendirat(struct duc *duc, dev_t dev, ino_t ino)
 }
 
 
+int duc_limitdir(ducdir *dir, size_t count)
+{
+	if(dir->ent_count <= count) return 0;
+
+	off_t size_rest = 0;
+
+	size_t i;
+	struct ducent *ent = dir->ent_list;
+	for(i=0; i<dir->ent_count; i++) {
+		if(i>=count-1) size_rest += ent->size;
+		ent++;
+	}
+
+	dir->ent_list = realloc(dir->ent_list, sizeof(struct ducent) * count);
+	dir->ent_count = count;
+	dir->ent_cur = 0;
+	ent = &dir->ent_list[count-1];
+	snprintf(ent->name, sizeof(ent->name), "rest");
+	ent->size = size_rest;
+	ent->dev = 0;
+	ent->ino = 0;
+	ent->mode = 0;
+
+	return 0;
+}
+
+
 struct ducent *duc_finddir(ducdir *dir, const char *name)
 {
 	size_t i;

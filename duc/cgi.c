@@ -121,7 +121,7 @@ static void do_index(void)
 
 	printf("Content-Type: text/html\n");
 	printf("\n");
-
+	
 	char *path = cgi_get("p");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
