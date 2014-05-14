@@ -73,7 +73,7 @@ static int fn_comp_ent(const void *a, const void *b)
 
 static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 {
-	return snprintf(key, keylen, "%jd/%jd", dev, ino);
+	return snprintf(key, keylen, "%jx/%jx", dev, ino);
 }
 
 
@@ -140,7 +140,7 @@ struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
 	keyl = mkkey(dev, ino, key, sizeof key);
 	char *val = db_get(duc->db, key, keyl, &vall);
 	if(val == NULL) {
-		duc_log(duc, LG_WRN, "Id %jd/%jd not found in database\n", dev, ino);
+		duc_log(duc, LG_WRN, "Key %s not found in database\n", key);
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		return NULL;
 	}
