@@ -112,8 +112,18 @@ static char *find_xy(duc *duc, int x, int y)
 static void do_index(duc *duc)
 {
 
-	printf("Content-Type: text/html\n");
-	printf("\n");
+	printf(
+		"Content-Type: text/html\n"
+		"\n"
+		"<!DOCTYPE html>\n"
+		"<head>"
+		"<style>"
+		"body { font-family: 'verdana', 'sans-serif', 'arial', 'helvetica'; font-size: 11px; }\n"
+		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
+		"#list { 100%%; }\n"
+		"</style>"
+		"</head>"
+	);
 	
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
@@ -133,12 +143,12 @@ static void do_index(duc *duc)
 		}
 	}
 
-	if(path == NULL) path = "/home/ico";
-	
 	struct duc_index_report report;
 	int i = 0;
 
-	printf("<table>");
+	printf("<center>");
+
+	printf("<table id=list>");
 	while( duc_list(duc, i, &report) == 0) {
 
 		char ts_date[32];
@@ -150,22 +160,26 @@ static void do_index(duc *duc)
 		char url[PATH_MAX];
 		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report.path);
 
+		char siz[32];
+		duc_humanize(report.size_total, siz, sizeof siz);
+
 		printf("<tr>");
+		printf("<td><a href='%s'>%s</a></td>", url, report.path);
+		printf("<td>%s</td>", siz);
 		printf("<td>%s</td>", ts_date);
 		printf("<td>%s</td>", ts_time);
-		printf("<td><a href='%s'>%s</a></td>", url, report.path);
 		printf("</tr>\n");
 
 		i++;
 	}
 	printf("</table>");
 
-
-	printf("<center>");
-	printf("<b>%s</b><br>", path);
-	printf("<a href='%s?cmd=index&path=%s&'>", script, path);
-	printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
-	printf("</a>");
+	if(path) {
+		printf("<a href='%s?cmd=index&path=%s&'>", script, path);
+		printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
+		printf("</a><br>");
+		printf("<b>%s</b><br>", path);
+	}
 	fflush(stdout);
 }
 
@@ -201,13 +215,15 @@ static int cgi_main(int argc, char **argv)
 	
 	duc *duc = duc_new();
 	if(duc == NULL) {
-                fprintf(stderr, "Error creating duc context\n");
+		printf("Content-Type: text/plain\n\n");
+                printf("Error creating duc context\n");
 		return -1;
         }
 
-        int r = duc_open(duc, "/home/ico/.duc.db", DUC_OPEN_RO);
+        int r = duc_open(duc, NULL, DUC_OPEN_RO);
         if(r != DUC_OK) {
-                fprintf(stderr, "%s\n", duc_strerror(duc));
+		printf("Content-Type: text/plain\n\n");
+                printf("%s\n", duc_strerror(duc));
 		return -1;
         }
 

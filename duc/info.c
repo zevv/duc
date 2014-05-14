@@ -53,10 +53,15 @@ static int info_main(int argc, char **argv)
 
 	printf("Available indices:\n");
 	while( duc_list(duc, i, &report) == 0) {
+
 		char ts[32];
 		struct tm *tm = localtime(&report.time_start);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
-		printf("  %s %s\n", ts, report.path);
+
+		char siz[32];
+		duc_humanize(report.size_total, siz, sizeof siz);
+
+		printf("  %s %7.7s %s\n", ts, siz, report.path);
 		i++;
 	}
 
