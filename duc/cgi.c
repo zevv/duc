@@ -80,13 +80,13 @@ static char *cgi_get(const char *key)
 
 
 
-static char *find_xy(x, y)
+static char *find_xy(int x, int y)
 {
 	static char path_out[PATH_MAX];
 
 	char *path = cgi_get("path");
 	if(!path) return NULL;
-        
+
 	duc_errno err;
         duc *duc = duc_open("/home/ico/.duc.db", DUC_OPEN_RO, &err);
         if(duc == NULL) {
