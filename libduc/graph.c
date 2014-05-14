@@ -194,7 +194,7 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 				struct label *label = malloc(sizeof *label);
 				pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
 				char siz[32];
-				duc_format_size(e->size, siz, sizeof siz);
+				duc_humanize(e->size, siz, sizeof siz);
 				int r = asprintf(&label->text, "%s\n%s", e->name, siz);
 				if(r > 0) {
 					label->next = graph->label_list;

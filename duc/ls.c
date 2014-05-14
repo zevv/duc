@@ -106,7 +106,7 @@ static int ls_main(int argc, char **argv)
 		if(bytes) {
 			snprintf(siz, sizeof siz, "%jd", e->size);
 		} else {
-			duc_format_size(e->size, siz, sizeof siz);
+			duc_humanize(e->size, siz, sizeof siz);
 		}
 
 		printf("%-20.20s %11.11s [", e->name, siz);

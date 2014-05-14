@@ -108,6 +108,6 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
  * Helper functions
  */
 
-void duc_format_size(off_t size, char *buf, size_t buflen);
+void duc_humanize(off_t size, char *buf, size_t buflen);
 
 #endif

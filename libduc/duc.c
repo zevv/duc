@@ -89,7 +89,7 @@ const char *duc_strerror(duc_errno e)
 }
 
 
-void duc_format_size(off_t size, char *buf, size_t buflen)
+void duc_humanize(off_t size, char *buf, size_t buflen)
 {
 	char prefix[] = { '\0', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	double v = size;
