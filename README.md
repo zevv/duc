@@ -93,6 +93,7 @@ For a graphical representation of the disk usage, use the command `duc draw`
 ```
 $ duc help
 $ duc help index
+$ duc info
 $ duc index /usr
 $ duc ls /usr/bin
 $ duc draw /usr
