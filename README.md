@@ -38,6 +38,12 @@ Duc needs an index file of the file system before it is able to show any
 information.  To create the index, run the `duc index` command. For example, to
 create an index of your home directory run `duc index ~`
 
+```
+$ duc index /usr
+Skipping lost+found: Permission denied
+Indexed 333823 files and 48200 directories, (35.0GB total) in 1 seconds
+```
+
 The default location of the database is `$HOME/.duc.db`. To use a different database
 location, use the DUC_DATABASE environment variable or specify the database
 location with the --database argument.
@@ -46,6 +52,16 @@ You can run `duc index` at any time later to rebuild the index.
 
 
 #### Querying the index
+
+`duc info` shows a list of available directory trees in the database, and the time
+and date of the last scan.
+
+```
+Available indices:
+ 2014-05-14 19:06:27   27.7G /var
+ 2014-05-14 19:06:30   35.0G /usr
+ 2014-05-14 19:06:49    6.3G /
+```
 
 Use the `duc ls` command to see the disk usage of a directory. A specific path
 can be specified as command line argument, the current directory is used if omitted.
