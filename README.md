@@ -13,15 +13,17 @@ graphs showing you where your bytes are.
 
 ### install
 
-Duc depends on the Tokyo Cabinet [1] database library, and on Cairo [2] for writing
-graphs.
+Duc depends on the Tokyo Cabinet [1] database library, and on Cairo [2] and
+Pango [3] for writing graphs.
 
 1. http://fallabs.com/tokyocabinet/
 2. http://cairographics.org/
+3. http://www.pango.org/
+
 
 On Ubuntu or Debian, the following will install all dependencies:
 
-$ sudo apt-get install libcairo2-dev libtokyocabinet-dev
+$ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev
 
 
 ### usage
