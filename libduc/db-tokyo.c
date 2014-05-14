@@ -10,13 +10,12 @@
 #include <stdint.h> 
 
 #include "duc.h"
+#include "duc-private.h"
 #include "db.h"
 
 struct db {
 	TCHDB* hdb;
 };
-
-#define DB_VERSION "7"
 
 struct db *db_open(const char *path_db, int flags, duc_errno *e)
 {
@@ -50,13 +49,13 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	size_t vall;
 	char *version = db_get(db, "duc_db_version", 14, &vall);
 	if(version) {
-		if(strcmp(version, DB_VERSION) != 0) {
+		if(strcmp(version, DUC_DB_VERSION) != 0) {
 			*e = DUC_E_DB_VERSION_MISMATCH;
 			goto err3;
 		}
 		free(version);
 	} else {
-		db_put(db, "duc_db_version", 14, DB_VERSION, strlen(DB_VERSION));;
+		db_put(db, "duc_db_version", 14, DUC_DB_VERSION, strlen(DUC_DB_VERSION));
 	}
 
 	return db;

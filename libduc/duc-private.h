@@ -1,6 +1,9 @@
 #ifndef duc_internal_h
 #define duc_internal_h
 
+#define DUC_DB_VERSION "8"
+
+
 typedef enum {
 	LG_FTL,
 	LG_WRN,
