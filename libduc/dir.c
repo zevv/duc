@@ -234,7 +234,6 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
-		duc_log(duc, LG_WRN, "Error converting path %s: %s\n", path, strerror(errno));
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		return NULL;
 	}

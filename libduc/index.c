@@ -158,7 +158,7 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 
 	/* Store report */
 
-	db_putcat(duc->db, path_canon, strlen(path_canon), report, sizeof *report);
+	db_put(duc->db, path_canon, strlen(path_canon), report, sizeof *report);
 
 	free(path_canon);
 
