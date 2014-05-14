@@ -94,7 +94,7 @@ static char *find_xy(x, y)
                 return NULL;
         }
 
-        ducdir *dir = duc_opendir(duc, path);
+        duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
                 fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
                 return NULL;
@@ -166,7 +166,7 @@ void do_image(void)
                 return;
         }
 
-        ducdir *dir = duc_opendir(duc, path);
+        duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
                 fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
                 return;

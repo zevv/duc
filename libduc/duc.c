@@ -66,17 +66,6 @@ void duc_log(struct duc *duc, enum duc_loglevel level, const char *fmt, ...)
 }
 
 
-int duc_root_write(struct duc *duc, const char *path, dev_t dev, ino_t ino)
-{
-	char key[PATH_MAX];
-	char val[32];
-	snprintf(key, sizeof key, "%s", path);
-	snprintf(val, sizeof val, "%jd %jd", dev, ino);
-	db_put(duc->db, key, strlen(key), val, strlen(val));
-	return 0;
-}
-
-
 enum duc_errno duc_error(duc *duc)
 {
 	return duc->err;

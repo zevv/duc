@@ -99,7 +99,7 @@ static int ls_main(int argc, char **argv)
 		return -1;
 	}
 
-	ducdir *dir = duc_opendir(duc, path);
+	duc_dir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {
 		fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
 		return -1;
@@ -110,7 +110,7 @@ static int ls_main(int argc, char **argv)
 	off_t size_total = 0;
 	off_t size_max = 0;
 
-	struct ducent *e;
+	struct duc_dirent *e;
 	while( (e = duc_readdir(dir)) != NULL) {
 		if(e->size > size_max) size_max = e->size;
 		size_total += e->size;

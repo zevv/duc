@@ -16,7 +16,7 @@ struct db {
 	TCHDB* hdb;
 };
 
-#define DB_VERSION "5"
+#define DB_VERSION "6"
 
 struct db *db_open(const char *path_db, int flags, enum duc_errno *e)
 {
@@ -81,6 +81,13 @@ void db_close(struct db *db)
 duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
 {
 	int r = tchdbput(db->hdb, key, key_len, val, val_len);
+	return (r==1) ? DUC_OK : DUC_E_UNKNOWN;
+}
+
+
+duc_errno db_putcat(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
+{
+	int r = tchdbputcat(db->hdb, key, key_len, val, val_len);
 	return (r==1) ? DUC_OK : DUC_E_UNKNOWN;
 }
 

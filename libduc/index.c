@@ -20,10 +20,9 @@
 
 struct index {
 	struct duc *duc;
+	struct duc_index_report *report;
 	int one_file_system;
 	dev_t dev;
-	size_t file_count;
-	size_t dir_count;
 	int depth;
 };
 
@@ -31,7 +30,7 @@ struct index {
 off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *stat_dir)
 {
 	struct duc *duc = index->duc;
-	off_t size_total = 0;
+	off_t size_dir = 0;
 
 	int fd = openat(fd_dir, path, OPEN_FLAGS | O_NOATIME);
 
@@ -50,7 +49,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		return 0;
 	}
 
-	struct ducdir *dir = ducdir_new(index->duc, 8);
+	struct duc_dir *dir = duc_dir_new(index->duc, 8);
 			
 	if(index->dev == 0) {
 		index->dev = stat_dir->st_dev;
@@ -93,36 +92,45 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 			index->depth ++;
 			size = index_dir(index, e->d_name, fd, &stat);
 			index->depth --;
-			index->dir_count ++;
+			index->report->dir_count ++;
 		} else {
 			size = stat.st_size;
-			index->file_count ++;
+			index->report->file_count ++;
 		}
 
 		duc_log(duc, LG_DBG, "%s %jd\n", e->d_name, size);
 
 		/* Store record */
 
-		ducdir_add_ent(dir, e->d_name, size, stat.st_mode, stat.st_dev, stat.st_ino);
-		size_total += size;
+		duc_dir_add_ent(dir, e->d_name, size, stat.st_mode, stat.st_dev, stat.st_ino);
+		size_dir += size;
+		index->report->size_total += size;
 	}
 
-	ducdir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
+	duc_dir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
 	duc_closedir(dir);
 
 	closedir(d);
 
-	return size_total;
+	return size_dir;
 }	
 
 
-int duc_index(duc *duc, const char *path, int flags)
+
+int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *report)
 {
 	struct index index;
 	memset(&index, 0, sizeof index);
 
+	static struct duc_index_report dummy_report;
+	if(report == NULL) report = &dummy_report;
+	memset(report, 0, sizeof *report);
+
+	snprintf(report->path, sizeof(report->path), "%s", path);
+
 	index.duc = duc;
 	index.one_file_system = flags & DUC_INDEX_XDEV;
+	index.report = report;
 
 	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
@@ -142,14 +150,18 @@ int duc_index(duc *duc, const char *path, int flags)
 		return -1;
 	}
 
-	duc_root_write(duc, path_canon, stat.st_dev, stat.st_ino);
+	report->dev = stat.st_dev;
+	report->ino = stat.st_ino;
 
-	off_t size = index_dir(&index, path_canon, 0, &stat);
+	/* Index directories */
+
+	index_dir(&index, path_canon, 0, &stat);
+
+	/* Store report */
+
+	db_putcat(duc->db, path_canon, strlen(path_canon), report, sizeof *report);
 
 	free(path_canon);
-
-	duc_log(duc, LG_INF, "Indexed %zu files and %zu directories, %jd bytes\n", 
-			index.file_count, index.dir_count, size);
 
 	return 0;
 }

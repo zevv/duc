@@ -2,6 +2,9 @@
 #ifndef duc_h
 #define duc_h
 
+#include <limits.h>
+
+
 /*
  * Create and destroy duc context
  */
@@ -43,17 +46,27 @@ const char *duc_strerror(enum duc_errno e);
  * Index file systems
  */
 
+struct duc_index_report {
+	char path[PATH_MAX];
+	dev_t dev;
+	ino_t ino;
+	time_t time_start;
+	time_t time_stop;
+	size_t file_count;
+	size_t dir_count;
+	off_t size_total;
+};
 
-int duc_index(duc *duc, const char *path, int flags);
+int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *report);
 
 
 /*
  * Reading the duc database
  */
 
-typedef struct ducdir ducdir;
+typedef struct duc_dir duc_dir;
 
-struct ducent {
+struct duc_dirent {
 	char name[256];
 	off_t size;
 	mode_t mode;
@@ -61,22 +74,22 @@ struct ducent {
 	ino_t ino;
 };
 
-ducdir *duc_opendir(duc *duc, const char *path);
-ducdir *duc_opendirat(duc *duc, dev_t dev, ino_t ino);
-int duc_limitdir(ducdir *dir, size_t count);
-struct ducent *duc_readdir(ducdir *dir);
-off_t duc_sizedir(ducdir *dir);
-struct ducent *duc_finddir(ducdir *dir, const char *name);
-int duc_rewinddir(ducdir *dir);
-int duc_closedir(ducdir *dir);
+duc_dir *duc_opendir(duc *duc, const char *path);
+duc_dir *duc_opendirat(duc *duc, dev_t dev, ino_t ino);
+int duc_limitdir(duc_dir *dir, size_t count);
+struct duc_dirent *duc_readdir(duc_dir *dir);
+off_t duc_sizedir(duc_dir *dir);
+struct duc_dirent *duc_finddir(duc_dir *dir, const char *name);
+int duc_rewinddir(duc_dir *dir);
+int duc_closedir(duc_dir *dir);
 
 
 /* 
  * Graph drawing
  */
 
-int duc_graph(ducdir *dir, int size, int depth, FILE *fout);
-int duc_graph_xy_to_path(ducdir *dir, int size, int depth, int x, int y, char *path, size_t path_len);
+int duc_graph(duc_dir *dir, int size, int depth, FILE *fout);
+int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *path, size_t path_len);
 
 
 #endif

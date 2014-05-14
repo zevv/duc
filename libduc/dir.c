@@ -12,9 +12,9 @@
 #include "duc-private.h"
 #include "varint.h"
 
-struct ducdir *ducdir_new(struct duc *duc, size_t ent_max)
+struct duc_dir *duc_dir_new(struct duc *duc, size_t ent_max)
 {
-	struct ducdir *dir = malloc(sizeof(struct ducdir));
+	struct duc_dir *dir = malloc(sizeof(struct duc_dir));
 
 	if(dir == NULL) {
 		duc->err = DUC_E_OUT_OF_MEMORY;
@@ -26,7 +26,7 @@ struct ducdir *ducdir_new(struct duc *duc, size_t ent_max)
 	dir->ent_count = 0;
 	dir->size_total = 0;
 	dir->ent_max = ent_max;
-	dir->ent_list = malloc(sizeof(struct ducent) * ent_max);
+	dir->ent_list = malloc(sizeof(struct duc_dirent) * ent_max);
 
 	if(dir->ent_list == NULL) {
 		duc->err = DUC_E_OUT_OF_MEMORY;
@@ -38,18 +38,18 @@ struct ducdir *ducdir_new(struct duc *duc, size_t ent_max)
 }
 
 
-int ducdir_add_ent(struct ducdir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino)
+int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino)
 {
 	if(dir->ent_count >= dir->ent_max) {
 		dir->ent_max *= 2;
-		dir->ent_list = realloc(dir->ent_list, sizeof(struct ducent) * dir->ent_max);
+		dir->ent_list = realloc(dir->ent_list, sizeof(struct duc_dirent) * dir->ent_max);
 		if(dir->ent_list == NULL) {
 			dir->duc->err = DUC_E_OUT_OF_MEMORY;
 			return -1;
 		}
 	}
 
-	struct ducent *ent = &dir->ent_list[dir->ent_count];
+	struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
 	dir->size_total += size;
 	dir->ent_count ++;
 
@@ -65,8 +65,8 @@ int ducdir_add_ent(struct ducdir *dir, const char *name, off_t size, mode_t mode
 
 static int fn_comp_ent(const void *a, const void *b)
 {
-	const struct ducent *ea = a;
-	const struct ducent *eb = b;
+	const struct duc_dirent *ea = a;
+	const struct duc_dirent *eb = b;
 	return(ea->size < eb->size);
 }
 
@@ -77,17 +77,17 @@ static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 }
 
 
-off_t duc_sizedir(ducdir *dir)
+off_t duc_sizedir(duc_dir *dir)
 {
 	return dir->size_total;
 }
 
 
 /*
- * Serialize ducdir into a database record
+ * Serialize duc_dir into a database record
  */
 
-int ducdir_write(struct ducdir *dir, dev_t dev, ino_t ino)
+int duc_dir_write(struct duc_dir *dir, dev_t dev, ino_t ino)
 {
 	struct buffer *b = buffer_new(NULL, 0);
 	if(b == NULL) {
@@ -96,7 +96,7 @@ int ducdir_write(struct ducdir *dir, dev_t dev, ino_t ino)
 	}
 
 	int i;
-	struct ducent *ent = dir->ent_list;
+	struct duc_dirent *ent = dir->ent_list;
 
 	for(i=0; i<dir->ent_count; i++) {
 		buffer_put_string(b, ent->name);
@@ -122,12 +122,12 @@ int ducdir_write(struct ducdir *dir, dev_t dev, ino_t ino)
 
 
 /*
- * Read database record and deserialize into ducdir
+ * Read database record and deserialize into duc_dir
  */
 
-struct ducdir *ducdir_read(struct duc *duc, dev_t dev, ino_t ino)
+struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
 {
-	struct ducdir *dir = ducdir_new(duc, 8);
+	struct duc_dir *dir = duc_dir_new(duc, 8);
 	if(dir == NULL) {
 		duc->err = DUC_E_OUT_OF_MEMORY;
 		return NULL;
@@ -161,38 +161,40 @@ struct ducdir *ducdir_read(struct duc *duc, dev_t dev, ino_t ino)
 		buffer_get_varint(b, &dev);
 		buffer_get_varint(b, &ino);
 		
-		ducdir_add_ent(dir, name, size, mode, dev, ino);
+		duc_dir_add_ent(dir, name, size, mode, dev, ino);
 	}
 
+	buffer_free(b);
+
 	return dir;
 }
 
 
-ducdir *duc_opendirat(struct duc *duc, dev_t dev, ino_t ino)
+duc_dir *duc_opendirat(struct duc *duc, dev_t dev, ino_t ino)
 {
-	struct ducdir *dir = ducdir_read(duc, dev, ino);
+	struct duc_dir *dir = duc_dir_read(duc, dev, ino);
 	if(dir == NULL) return NULL;
 
-	qsort(dir->ent_list, dir->ent_count, sizeof(struct ducent), fn_comp_ent);
+	qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp_ent);
 
 	return dir;
 }
 
 
-int duc_limitdir(ducdir *dir, size_t count)
+int duc_limitdir(duc_dir *dir, size_t count)
 {
 	if(dir->ent_count <= count) return 0;
 
 	off_t size_rest = 0;
 
 	size_t i;
-	struct ducent *ent = dir->ent_list;
+	struct duc_dirent *ent = dir->ent_list;
 	for(i=0; i<dir->ent_count; i++) {
 		if(i>=count-1) size_rest += ent->size;
 		ent++;
 	}
 
-	dir->ent_list = realloc(dir->ent_list, sizeof(struct ducent) * count);
+	dir->ent_list = realloc(dir->ent_list, sizeof(struct duc_dirent) * count);
 	dir->ent_count = count;
 	dir->ent_cur = 0;
 	ent = &dir->ent_list[count-1];
@@ -206,10 +208,10 @@ int duc_limitdir(ducdir *dir, size_t count)
 }
 
 
-struct ducent *duc_finddir(ducdir *dir, const char *name)
+struct duc_dirent *duc_finddir(duc_dir *dir, const char *name)
 {
 	size_t i;
-	struct ducent *ent = dir->ent_list;
+	struct duc_dirent *ent = dir->ent_list;
 
 	for(i=0; i<dir->ent_count; i++) {
 		if(strcmp(name, ent->name) == 0) {
@@ -223,7 +225,7 @@ struct ducent *duc_finddir(ducdir *dir, const char *name)
 }
 
 
-ducdir *duc_opendir(struct duc *duc, const char *path)
+duc_dir *duc_opendir(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
 
@@ -237,14 +239,16 @@ ducdir *duc_opendir(struct duc *duc, const char *path)
 	/* Find top path in database */
 
 	int l = strlen(path_canon);
-	dev_t dev;
-	ino_t ino;
+	dev_t dev = 0;
+	ino_t ino = 0;
 	while(l > 0) {
-		size_t vallen;
-		char *val = db_get(duc->db, path_canon, l, &vallen);
-		if(val) {
-			sscanf(val, "%jd %jd", &dev, &ino);
-			free(val);
+		struct duc_index_report *report;
+		size_t report_len;
+		report = db_get(duc->db, path_canon, l, &report_len);
+		if(report && report_len == sizeof(*report)) {
+			dev = report->dev;
+			ino = report->ino;
+			free(report);
 			break;
 		}
 		l--;
@@ -258,7 +262,7 @@ ducdir *duc_opendir(struct duc *duc, const char *path)
 		return NULL;
 	}
 
-	struct ducdir *dir;
+	struct duc_dir *dir;
 
 	dir = duc_opendirat(duc, dev, ino);
 	if(dir == NULL) {
@@ -275,9 +279,9 @@ ducdir *duc_opendir(struct duc *duc, const char *path)
 
 	while(dir && name) {
 
-		struct ducent *ent = duc_finddir(dir, name);
+		struct duc_dirent *ent = duc_finddir(dir, name);
 
-		struct ducdir *dir_next = NULL;
+		struct duc_dir *dir_next = NULL;
 
 		if(ent) {
 			dir_next = duc_opendirat(duc, ent->dev, ent->ino);
@@ -292,11 +296,11 @@ ducdir *duc_opendir(struct duc *duc, const char *path)
 }
 
 
-struct ducent *duc_readdir(ducdir *dir)
+struct duc_dirent *duc_readdir(duc_dir *dir)
 {
 	dir->duc->err = 0;
 	if(dir->ent_cur < dir->ent_count) {
-		struct ducent *ent = &dir->ent_list[dir->ent_cur];
+		struct duc_dirent *ent = &dir->ent_list[dir->ent_cur];
 		dir->ent_cur ++;
 		return ent;
 	} else {
@@ -305,14 +309,14 @@ struct ducent *duc_readdir(ducdir *dir)
 }
 
 
-int duc_rewinddir(ducdir *dir)
+int duc_rewinddir(duc_dir *dir)
 {
 	dir->ent_cur = 0;
 	return 0;
 }
 
 
-int duc_closedir(ducdir *dir)
+int duc_closedir(duc_dir *dir)
 {
 	free(dir->ent_list);
 	free(dir);

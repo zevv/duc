@@ -73,7 +73,17 @@ static int index_main(int argc, char **argv)
 
 	int i;
 	for(i=0; i<argc; i++) {
-		duc_index(duc, argv[i], index_flags);
+		struct duc_index_report report;
+		int r = duc_index(duc, argv[i], index_flags, &report);
+		if(r == DUC_OK) {
+			fprintf(stderr, "Indexed %zu files and %zu directories, %jd bytes\n", 
+					report.file_count, 
+					report.dir_count,
+					report.size_total);
+		} else {
+			fprintf(stderr, "An error occured while indexing: %s", duc_strerror(r));
+		}
+
 	}
 
 	duc_close(duc);

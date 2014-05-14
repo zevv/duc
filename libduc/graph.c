@@ -141,7 +141,7 @@ static void draw_section(struct graph *graph, double a_from, double a_to, int r_
 }
 
 
-static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min, double a_max)
+static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min, double a_max)
 {
 	double a_range = a_max - a_min;
 	double a_from = a_min;
@@ -153,7 +153,7 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 	
 	off_t size_total = duc_sizedir(dir);
 
-	struct ducent *e;
+	struct duc_dirent *e;
 	while( (e = duc_readdir(dir)) != NULL) {
 
 		a_to += a_range * e->size / size_total;
@@ -170,7 +170,7 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 
 			if(S_ISDIR(e->mode)) {
 				if(level+1 < graph->depth) {
-					ducdir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
+					duc_dir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
 					if(dir_child) {
 						draw_ring(graph, dir_child, level + 1, a_from, a_to);
 						duc_closedir(dir_child);
@@ -194,7 +194,7 @@ static void draw_ring(struct graph *graph, ducdir *dir, int level, double a_min,
 }
 
 
-static int find_spot(struct graph *graph, ducdir *dir, int level, double a_min, double a_max, char *part[])
+static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min, double a_max, char *part[])
 {
 	double a_range = a_max - a_min;
 	double a_from = a_min;
@@ -205,7 +205,7 @@ static int find_spot(struct graph *graph, ducdir *dir, int level, double a_min, 
 	
 	off_t size_total = duc_sizedir(dir);
 
-	struct ducent *e;
+	struct duc_dirent *e;
 	while( (e = duc_readdir(dir)) != NULL) {
 
 		a_to += a_range * e->size / size_total;
@@ -224,7 +224,7 @@ static int find_spot(struct graph *graph, ducdir *dir, int level, double a_min, 
 
 			if(S_ISDIR(e->mode)) {
 				if(level+1 < graph->depth) {
-					ducdir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
+					duc_dir *dir_child = duc_opendirat(graph->duc, e->dev, e->ino);
 					int r = find_spot(graph, dir_child, level + 1, a_from, a_to, part);
 					duc_closedir(dir_child);
 					if(r) {
@@ -251,7 +251,7 @@ static cairo_status_t cairo_writer(void *closure, const unsigned char *data, uns
 }
 
 
-int duc_graph(ducdir *dir, int size, int depth, FILE *fout)
+int duc_graph(duc_dir *dir, int size, int depth, FILE *fout)
 {
 	struct graph graph;
 	memset(&graph, 0, sizeof graph);
@@ -304,7 +304,7 @@ int duc_graph(ducdir *dir, int size, int depth, FILE *fout)
 }
 
 
-int duc_graph_xy_to_path(ducdir *dir, int size, int depth, int x, int y, char *path, size_t path_len)
+int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *path, size_t path_len)
 {
 	struct graph graph;
 	memset(&graph, 0, sizeof graph);

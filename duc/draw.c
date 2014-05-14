@@ -65,7 +65,7 @@ static int draw_main(int argc, char **argv)
                 return -1;
         }
 
-        ducdir *dir = duc_opendir(duc, path);
+        duc_dir *dir = duc_opendir(duc, path);
         if(dir == NULL) {
                 fprintf(stderr, "%s\n", duc_strerror(duc_error(duc)));
                 return -1;
