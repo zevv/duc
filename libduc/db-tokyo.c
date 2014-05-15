@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include <tcutil.h>
-#include <tchdb.h>
+#include <tcbdb.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h> 
@@ -16,7 +16,7 @@
 #include "db.h"
 
 struct db {
-	TCHDB* hdb;
+	TCBDB* hdb;
 };
 
 struct db *db_open(const char *path_db, int flags, duc_errno *e)
@@ -32,17 +32,17 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	db = malloc(sizeof *db);
 	assert(db);
 
-	db->hdb = tchdbnew();
+	db->hdb = tcbdbnew();
 	if(!db->hdb) {
 		*e = DUC_E_UNKNOWN;
 		goto err1;
 	}
 
 	if(compress) {
-		tchdbtune(db->hdb, -1, -1, -1, HDBTDEFLATE);
+		tcbdbtune(db->hdb, -1, -1, -1, -1, -1, BDBTDEFLATE);
 	}
 
-	int r = tchdbopen(db->hdb, path_db, mode);
+	int r = tcbdbopen(db->hdb, path_db, mode);
 	if(r == 0) {
 		*e = DUC_E_DB_NOT_FOUND;
 		goto err2;
@@ -63,9 +63,9 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	return db;
 
 err3:
-	tchdbclose(db->hdb);
+	tcbdbclose(db->hdb);
 err2:
-	tchdbdel(db->hdb);
+	tcbdbdel(db->hdb);
 err1:
 	free(db);
 	return NULL;
@@ -74,22 +74,22 @@ err1:
 
 void db_close(struct db *db)
 {
-	tchdbclose(db->hdb);
-	tchdbdel(db->hdb);
+	tcbdbclose(db->hdb);
+	tcbdbdel(db->hdb);
 	free(db);
 }
 
 
 duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
 {
-	int r = tchdbput(db->hdb, key, key_len, val, val_len);
+	int r = tcbdbput(db->hdb, key, key_len, val, val_len);
 	return (r==1) ? DUC_OK : DUC_E_UNKNOWN;
 }
 
 
 duc_errno db_putcat(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
 {
-	int r = tchdbputcat(db->hdb, key, key_len, val, val_len);
+	int r = tcbdbputcat(db->hdb, key, key_len, val, val_len);
 	return (r==1) ? DUC_OK : DUC_E_UNKNOWN;
 }
 
@@ -97,7 +97,7 @@ duc_errno db_putcat(struct db *db, const void *key, size_t key_len, const void *
 void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len)
 {
 	int vall;
-	void *val = tchdbget(db->hdb, key, key_len, &vall);
+	void *val = tcbdbget(db->hdb, key, key_len, &vall);
 	*val_len = vall;
 	return val;
 }
