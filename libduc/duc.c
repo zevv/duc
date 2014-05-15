@@ -110,7 +110,7 @@ const char *duc_strerror(duc *duc)
 
 void duc_humanize(off_t size, char *buf, size_t buflen)
 {
-	char prefix[] = { '\0', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
+	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	double v = size;
 	char *p = prefix;
 
