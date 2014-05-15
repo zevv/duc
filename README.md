@@ -30,6 +30,36 @@ On RHEL or CentOS systems, you need to do:
   $ sudo yum install pango-devel cairo-devel tokyocabinet-devel
 
 
+### Compiling
+
+Duc use the GNU Autoconf system for compiling if you do not have a
+pre-built package.  So you can normally just do:
+
+  $ ./configure
+  $ make
+  $ make install
+
+to install duc into /usr/local/bin
+
+If you need to edit the source, you will need to have the GNU autoconf
+tools installed first, which you can do with:
+
+  Ubuntu/Debian:  
+
+    $ sudo apt-get install autoconf
+
+  RHEL/CentOS:
+
+    $ sudo yum install autoconf
+
+Then you will need to do:
+
+  $ autoreconf --install
+
+to generate the correct files.  Once that is done, you can do the
+above configure, make and make install steps.
+
+
 ### Usage
 
 Duc comes with a command line tool called `duc`, which is used to create,
