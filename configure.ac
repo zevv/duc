@@ -10,6 +10,7 @@ AC_PREREQ([2.68])
 AC_INIT([duc], [0.1], [philesight@zevv.nl])
 AM_INIT_AUTOMAKE([foreign no-dependencies])
 AC_CONFIG_HEADER([config.h])
+AC_GNU_SOURCE
 
 # Turn off GNU standards like README, etc, for now.
 # Do not do dependency tracking either.
@@ -32,6 +33,9 @@ PKG_CHECK_MODULES([CAIRO],[cairo])
 
 # Check for Pango support
 PKG_CHECK_MODULES([PANGO],[pango])
+
+# Check for Pangocairo support
+PKG_CHECK_MODULES([PANGOCAIRO],[pangocairo])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h])
