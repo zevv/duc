@@ -5,11 +5,10 @@
 # which is just:
 #    aclocal && autoconf && automake -a -f && ./configure && make
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.13])
 
 AC_INIT([duc], [0.1], [duc@zevv.nl])
 AM_INIT_AUTOMAKE([foreign no-dependencies])
-AM_SILENT_RULES([yes])
 AC_CONFIG_HEADER([config.h])
 AC_GNU_SOURCE
 
