@@ -4,10 +4,13 @@ compiler:
   - clang
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq libcairo2-dev libpango1.0-dev libtokyocabinet-dev
+  - sudo apt-get install -qq libcairo2-dev libpango1.0-dev libtokyocabinet-dev imagemagick
 script: 
   - autoreconf -i 
   - ./configure
   - make
+  - sudo make install
 after_success:
-  - duc/duc index -x /
+  - sudo duc index -x /
+  - sudo duc draw /
+  - indentify duc.png
