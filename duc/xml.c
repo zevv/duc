@@ -49,7 +49,6 @@ static int xml_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-	int classify = 0;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },

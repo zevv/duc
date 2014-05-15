@@ -1,3 +1,6 @@
+
+CFLAGS = -Wall
+
 bin_PROGRAMS = duc
 duc_SOURCES = draw.c index.c ls.c main.c info.c cgi.c xml.c
 
