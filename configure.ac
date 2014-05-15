@@ -9,6 +9,7 @@ AC_PREREQ([2.68])
 
 AC_INIT([duc], [0.1], [philesight@zevv.nl])
 AM_INIT_AUTOMAKE([foreign no-dependencies])
+AM_SILENT_RULES([yes])
 AC_CONFIG_HEADER([config.h])
 AC_GNU_SOURCE
 
