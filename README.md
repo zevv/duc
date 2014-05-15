@@ -1,4 +1,6 @@
 
+[![Build Status](https://travis-ci.org/zevv/duc.svg?branch=master)](https://travis-ci.org/zevv/duc)
+
 ![Duc](/img/duc.png) 
 
 ### Introduction
