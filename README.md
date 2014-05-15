@@ -1,7 +1,7 @@
 
 ![Duc](/img/duc.png) 
 
-### introduction
+### Introduction
 
 Duc is a small library and a collection of tools for inspecting and visualizing
 disk usage. 
@@ -11,7 +11,7 @@ system, and allows you to query this database with some tools, or create fancy
 graphs showing you where your bytes are.
 
 
-### install
+### Install
 
 Duc depends on the Tokyo Cabinet [1] database library, and on Cairo [2] and
 Pango [3] for writing graphs.
@@ -23,10 +23,14 @@ Pango [3] for writing graphs.
 
 On Ubuntu or Debian, the following will install all dependencies:
 
-$ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev
+  $ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev
+
+On RHEL or CentOS systems, you need to do:
+
+  $ sudo yum install pango-devel cairo-devel tokyocabinet-devel
 
 
-### usage
+### Usage
 
 Duc comes with a command line tool called `duc`, which is used to create,
 maintain and query the disk usage database.  run `duc help` to get a list of
@@ -102,7 +106,7 @@ $ duc draw /usr
 ```
 
 
-### history
+### History
 
 Duc is the replacement for Philesight[1], which I wrote a few years ago but has
 some shortcomings (slow indexing, large database) which I felt were not simple
@@ -113,6 +117,11 @@ will get. Duc is about ten times faster then Philesight when indexing, with a
 database size which is about eight times smaller.
 
 1. http://zevv.nl/play/code/philesight/
+
+
+### Author
+
+Ico Doornekamp <philesight@zevv.nl>
 
 
 ### License
