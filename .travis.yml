@@ -2,5 +2,12 @@ language: c
 compiler:
   - gcc
   - clang
-script: autoreconf -i && ./configure && make
-install: libcairo2-dev libpango1.0-dev libtokyocabinet-dev
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libcairo2-dev libpango1.0-dev libtokyocabinet-dev
+script: 
+  - autoreconf -i 
+  - ./configure
+  - make
+after_success:
+  - duc/duc index -x /
