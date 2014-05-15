@@ -23,7 +23,6 @@ struct index {
 	struct duc_index_report *report;
 	int one_file_system;
 	dev_t dev;
-	int depth;
 };
 
 
@@ -102,9 +101,7 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 		off_t size = 0;
 		
 		if(S_ISDIR(stat.st_mode)) {
-			index->depth ++;
-			size = index_dir(index, e->d_name, fd, &stat);
-			index->depth --;
+			size += index_dir(index, e->d_name, fd, &stat);
 			index->report->dir_count ++;
 		} else {
 			size = stat.st_size;
@@ -117,9 +114,8 @@ off_t index_dir(struct index *index, const char *path, int fd_dir, struct stat *
 
 		duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(stat.st_mode), stat.st_dev, stat.st_ino);
 		size_dir += size;
-		index->report->size_total += size;
 	}
-
+		
 	duc_dir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
 	duc_closedir(dir);
 
@@ -170,7 +166,7 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 	/* Recursively index subdirectories */
 
 	report->time_start = time(NULL);
-	index_dir(&index, path_canon, 0, &stat);
+	report->size_total = index_dir(&index, path_canon, 0, &stat);
 	report->time_stop = time(NULL);
 	
 	/* Fill in report */
@@ -191,6 +187,8 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 	}
 
 	db_put(duc->db, path_canon, strlen(path_canon), report, sizeof *report);
+
+	printf("%jd\n", report->size_total);
 
 	free(path_canon);
 
