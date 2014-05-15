@@ -103,12 +103,14 @@ static char *find_xy(duc *duc, int x, int y)
 	if(found) {
 		snprintf(path_out, sizeof(path_out), "%s%s", path, path_found);
 		fprintf(stderr, "found %s", path_out);
-		return path_out;
+	} else {
+		snprintf(path_out, sizeof(path_out), "%s", path);
+		char *p = strrchr(path_out, '/');
+		if(p) *p = '\0';
 	}
 	
 	duc_closedir(dir);
-
-	return NULL;
+	return path_out;
 }
 
 
