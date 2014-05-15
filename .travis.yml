@@ -13,7 +13,7 @@ script:
   - ./configure
   - make
   - sudo make install
-after_success:
   - sudo duc index -x /
+  - sudo duc ls /usr
   - sudo duc draw /
-  - indentify duc.png
+  - identify duc.png
