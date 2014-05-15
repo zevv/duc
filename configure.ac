@@ -5,11 +5,10 @@
 # which is just:
 #    aclocal && autoconf && automake -a -f && ./configure && make
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.13])
 
 AC_INIT([duc], [0.1], [duc@zevv.nl])
 AM_INIT_AUTOMAKE([foreign no-dependencies])
-AM_SILENT_RULES([yes])
 AC_CONFIG_HEADER([config.h])
 AC_GNU_SOURCE
 
@@ -27,7 +26,22 @@ AC_CHECK_LIB([m], [main])
 PKG_PROG_PKG_CONFIG
 
 # Check for tokyocabinet
-PKG_CHECK_MODULES([TC],[tokyocabinet])
+PKG_CHECK_MODULES([TC],[tokyocabinet],[
+   LIBS="$TC_LIBS $LIBS"
+   CFLAGS="$TC_CFLAGS $CFLAGS"], [
+   AC_CHECK_HEADER(tcadb.h, HAVE_TC_H=1)
+   AC_CHECK_LIB(tokyocabinet, tcfree , HAVE_TC=1)
+   if test -n "$HAVE_TC_H" -a -n "$HAVE_TC";  the
+      LIBS="-ltokyocabinet $LIBS"
+   else
+      echo -e "Error:  both library and header files for the tokyocabinet library\n"\
+      "are required to build this package.  See README file for"\
+      "further information."
+      exit 1;
+   fi
+])
+
+AC_CHECK_LIB([tokyocabinet],[tcfree])
 
 # Check for Cairo support
 PKG_CHECK_MODULES([CAIRO],[cairo])
