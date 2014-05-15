@@ -55,7 +55,7 @@ static int xml_main(int argc, char **argv)
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
