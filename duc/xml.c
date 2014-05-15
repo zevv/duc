@@ -93,7 +93,7 @@ static int xml_main(int argc, char **argv)
 	}
 
 	printf("<?xml version='1.0' encoding='UTF-8'?>\n");
-	printf("<duc root='%s'>\n", path);
+	printf("<duc root='%s' size='%jd'>\n", path, duc_sizedir(dir));
 	dump(duc, dir, 1);
 	printf("</duc>\n");
 
