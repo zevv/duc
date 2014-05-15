@@ -125,6 +125,7 @@ static void do_index(duc *duc)
 		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
 		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
 		"#list { 100%%; }\n"
+		"#list td { padding-left: 5px; }\n"
 		"</style>\n"
 		"</head>\n"
 	);
@@ -153,6 +154,15 @@ static void do_index(duc *duc)
 	printf("<center>");
 
 	printf("<table id=list>");
+	printf("<tr>");
+	printf("<th>Path</th>");
+	printf("<th>Size</th>");
+	printf("<th>Files</th>");
+	printf("<th>Directories</th>");
+	printf("<th>Date</th>");
+	printf("<th>Time</th>");
+	printf("</tr>");
+
 	while( duc_list(duc, i, &report) == 0) {
 
 		char ts_date[32];
@@ -170,6 +180,8 @@ static void do_index(duc *duc)
 		printf("<tr>");
 		printf("<td><a href='%s'>%s</a></td>", url, report.path);
 		printf("<td>%s</td>", siz);
+		printf("<td>%ld</td>", report.file_count);
+		printf("<td>%ld</td>", report.dir_count);
 		printf("<td>%s</td>", ts_date);
 		printf("<td>%s</td>", ts_time);
 		printf("</tr>\n");

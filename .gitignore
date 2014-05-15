@@ -1,0 +1,17 @@
+*.o
+*.a
+*.la
+*.lo
+*.swp
+aclocal.m4
+autom4te.cache/
+config.*
+config.status
+Makefile
+Makefile.in
+/configure
+/libtool
+/ltmain.sh
+/missing
+/stamp-h1
+/install-sh
