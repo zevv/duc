@@ -151,7 +151,7 @@ database size which is about eight times smaller.
 
 ### Author
 
-Ico Doornekamp <philesight@zevv.nl>
+Ico Doornekamp <duc@zevv.nl>
 
 
 ### License
