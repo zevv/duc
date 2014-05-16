@@ -36,7 +36,7 @@ struct duc_dir {
 };
 
 void *duc_malloc(size_t s);
-void *duc_remalloc(void *p, size_t s);
+void *duc_realloc(void *p, size_t s);
 char *duc_strdup(const char *s);
 
 void duc_log(struct duc *duc, duc_loglevel lvl, const char *fmt, ...);
