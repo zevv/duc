@@ -31,7 +31,7 @@ PKG_CHECK_MODULES([TC],[tokyocabinet],[
    CFLAGS="$TC_CFLAGS $CFLAGS"], [
    AC_CHECK_HEADER(tcadb.h, HAVE_TC_H=1)
    AC_CHECK_LIB(tokyocabinet, tcfree , HAVE_TC=1)
-   if test -n "$HAVE_TC_H" -a -n "$HAVE_TC";  the
+   if test -n "$HAVE_TC_H" -a -n "$HAVE_TC";  then
       LIBS="-ltokyocabinet $LIBS"
    else
       echo -e "Error:  both library and header files for the tokyocabinet library\n"\
