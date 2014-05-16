@@ -41,8 +41,6 @@ PKG_CHECK_MODULES([TC],[tokyocabinet],[
    fi
 ])
 
-AC_CHECK_LIB([tokyocabinet],[tcfree])
-
 # Check for Cairo support
 PKG_CHECK_MODULES([CAIRO],[cairo])
 
