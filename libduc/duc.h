@@ -86,7 +86,7 @@ const char *duc_strerror(duc *duc);
  * Open and close database
  */
 
-int duc_open(duc *duc, const char *path_db, int flags);
+int duc_open(duc *duc, const char *path_db, duc_open_flags flags);
 int duc_close(duc *duc);
 
 
@@ -94,9 +94,9 @@ int duc_close(duc *duc);
  * Index file systems
  */
 
-duc_index_req *duc_index_req_new(duc *duc, duc_index_flags flags);
+duc_index_req *duc_index_req_new(duc *duc);
 int duc_index_req_add_exclude(duc_index_req *req, const char *pattern);
-struct duc_index_report *duc_index(duc_index_req *req, const char *path);
+struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
 int duc_index_report_free(struct duc_index_report *rep);
 

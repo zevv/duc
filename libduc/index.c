@@ -44,13 +44,12 @@ static duc_dirent_mode mode_t_to_duc_mode(mode_t m)
 
 
 
-duc_index_req *duc_index_req_new(duc *duc, duc_index_flags flags)
+duc_index_req *duc_index_req_new(duc *duc)
 {
 	struct duc_index_req *req = duc_malloc(sizeof(struct duc_index_req));
 	memset(req, 0, sizeof *req);
 
 	req->duc = duc;
-	req->flags = flags;
 
 	return req;
 }
@@ -190,9 +189,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 }	
 
 
-struct duc_index_report *duc_index(duc_index_req *req, const char *path)
+struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags)
 {
 	duc *duc = req->duc;
+
+	req->flags = flags;
 
 	/* Canonalize index path */
 
@@ -244,8 +245,6 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path)
 	}
 
 	db_put(duc->db, path_canon, strlen(path_canon), report, sizeof *report);
-
-	printf("%jd\n", report->size_total);
 
 	free(path_canon);
 

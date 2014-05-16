@@ -30,7 +30,7 @@ static int index_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-	int index_flags = 0;
+	duc_index_flags index_flags = 0;
 	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_INF;
 	
 	struct duc *duc = duc_new();
@@ -39,7 +39,7 @@ static int index_main(int argc, char **argv)
                 return -1;
         }
 		
-	duc_index_req *req = duc_index_req_new(duc, index_flags);
+	duc_index_req *req = duc_index_req_new(duc);
 
 	while( ( c = getopt_long(argc, argv, "cd:e:qxv", longopts, NULL)) != EOF) {
 
@@ -88,7 +88,7 @@ static int index_main(int argc, char **argv)
 	for(i=0; i<argc; i++) {
 
 		struct duc_index_report *report;
-		report = duc_index(req, argv[i]);
+		report = duc_index(req, argv[i], index_flags);
 
 		char siz[16];
 		duc_humanize(report->size_total, siz, sizeof siz);
