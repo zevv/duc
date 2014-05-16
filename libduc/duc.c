@@ -55,7 +55,7 @@ int duc_open(duc *duc, const char *path_db, int flags)
 
 	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-		duc_log(duc, LG_WRN, "Error opening database: %s\n", duc_strerror(duc));
+	  duc_log(duc, LG_WRN, "Error opening: %s - %s\n", path_db, duc_strerror(duc));
 		free(duc);
 		return -1;
 	}
