@@ -1,6 +1,8 @@
 #ifndef duc_internal_h
 #define duc_internal_h
 
+#include "duc.h"
+
 #define DUC_DB_VERSION "8"
 
 #ifndef AT_NO_AUTOMOUNT
@@ -33,6 +35,9 @@ struct duc_dir {
 	size_t ent_max;
 };
 
+void *duc_malloc(size_t s);
+void *duc_remalloc(void *p, size_t s);
+char *duc_strdup(const char *s);
 
 void duc_log(struct duc *duc, duc_loglevel lvl, const char *fmt, ...);
 

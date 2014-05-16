@@ -6,6 +6,7 @@
 
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;
+typedef struct duc_index_req duc_index_req;
 
 typedef enum {
 	DUC_OPEN_RO = 1<<0,        /* Open read-only (for querying)*/
@@ -56,7 +57,6 @@ struct duc_index_report {
 	off_t size_total;           /* Total disk size indexed */
 };
 
-
 struct duc_dirent {
 	char name[256];             /* File name */
 	off_t size;                 /* File size */
@@ -94,7 +94,11 @@ int duc_close(duc *duc);
  * Index file systems
  */
 
-int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *report);
+duc_index_req *duc_index_req_new(duc *duc, duc_index_flags flags);
+int duc_index_req_add_exclude(duc_index_req *req, const char *pattern);
+struct duc_index_report *duc_index(duc_index_req *req, const char *path);
+int duc_index_req_free(duc_index_req *req);
+int duc_index_report_free(struct duc_index_report *rep);
 
 
 /*

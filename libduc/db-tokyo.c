@@ -2,7 +2,6 @@
 #include "config.h"
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <tcutil.h>
@@ -29,8 +28,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	if(flags & DUC_OPEN_COMPRESS) compress = 1;
 
 
-	db = malloc(sizeof *db);
-	assert(db);
+	db = duc_malloc(sizeof *db);
 
 	db->hdb = tcbdbnew();
 	if(!db->hdb) {

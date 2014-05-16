@@ -193,7 +193,7 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 			}
 
 			if(r_from * (a_to - a_from) > 5) {
-				struct label *label = malloc(sizeof *label);
+				struct label *label = duc_malloc(sizeof *label);
 				pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
 				char siz[32];
 				duc_humanize(e->size, siz, sizeof siz);
@@ -237,7 +237,7 @@ static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min,
 			double r = graph->spot_r;
 
 			if(a >= a_from && a <= a_to && r >= r_from && r <= r_to) {
-				part[level] = strdup(e->name);
+				part[level] = duc_strdup(e->name);
 				return 1;
 			}
 
@@ -248,7 +248,7 @@ static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min,
 						int r = find_spot(graph, dir_child, level + 1, a_from, a_to, part);
 						duc_closedir(dir_child);
 						if(r) {
-							part[level] = strdup(e->name);
+							part[level] = duc_strdup(e->name);
 							return 1;
 						}
 					}
