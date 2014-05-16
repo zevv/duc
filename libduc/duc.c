@@ -28,7 +28,7 @@ void duc_del(duc *duc)
 }
 
 
-int duc_open(duc *duc, const char *path_db, int flags)
+int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[PATH_MAX];
 
