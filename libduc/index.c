@@ -260,32 +260,24 @@ int duc_index_report_free(struct duc_index_report *rep)
 }
 
 
-int duc_list(duc *duc, size_t id, struct duc_index_report *report)
+struct duc_index_report *duc_get_report(duc *duc, size_t id)
 {
 	size_t indexl;
 
 	char *index = db_get(duc->db, "duc_index_reports", 17, &indexl);
-	if(index == NULL) return -1;
+	if(index == NULL) return NULL;
 
 	int report_count = indexl / PATH_MAX;
-	if(id >= report_count) return -1;
+	if(id >= report_count) return NULL;
 
 	char *path = index + id * PATH_MAX;
 
 	size_t rlen;
 	struct duc_index_report *r = db_get(duc->db, path, strlen(path), &rlen);
-	if(r == NULL) {
-		free(index);
-		return -1;
-	}
+
 	free(index);
 
-	if(rlen == sizeof *report) {
-		memcpy(report, r, sizeof *report);
-		return 0;
-	}
-
-	return -1;
+	return r;
 } 
 
 

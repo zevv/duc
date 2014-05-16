@@ -105,7 +105,7 @@ int duc_index_report_free(struct duc_index_report *rep);
  * Querying the duc database
  */
 
-int duc_list(duc *duc, size_t id, struct duc_index_report *report);
+struct duc_index_report *duc_get_report(duc *duc, size_t id);
 
 duc_dir *duc_opendir(duc *duc, const char *path);
 duc_dir *duc_opendirat(duc *duc, struct duc_dirent *e);

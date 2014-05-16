@@ -150,7 +150,7 @@ static void do_index(duc *duc)
 		}
 	}
 
-	struct duc_index_report report;
+	struct duc_index_report *report;
 	int i = 0;
 
 	printf("<center>");
@@ -165,29 +165,30 @@ static void do_index(duc *duc)
 	printf("<th>Time</th>");
 	printf("</tr>");
 
-	while( duc_list(duc, i, &report) == 0) {
+	while( (report = duc_get_report(duc, i)) != NULL) {
 
 		char ts_date[32];
 		char ts_time[32];
-		struct tm *tm = localtime(&report.time_start);
+		struct tm *tm = localtime(&report->time_start);
 		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 
 		char url[PATH_MAX];
-		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report.path);
+		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report->path);
 
 		char siz[32];
-		duc_humanize(report.size_total, siz, sizeof siz);
+		duc_humanize(report->size_total, siz, sizeof siz);
 
 		printf("<tr>");
-		printf("<td><a href='%s'>%s</a></td>", url, report.path);
+		printf("<td><a href='%s'>%s</a></td>", url, report->path);
 		printf("<td>%s</td>", siz);
-		printf("<td>%ld</td>", report.file_count);
-		printf("<td>%ld</td>", report.dir_count);
+		printf("<td>%ld</td>", report->file_count);
+		printf("<td>%ld</td>", report->dir_count);
 		printf("<td>%s</td>", ts_date);
 		printf("<td>%s</td>", ts_time);
 		printf("</tr>\n");
 
+		duc_index_report_free(report);
 		i++;
 	}
 	printf("</table>");
