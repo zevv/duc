@@ -3,6 +3,9 @@
 
 #define DUC_DB_VERSION "8"
 
+#ifndef AT_NO_AUTOMOUNT
+  #define AT_NO_AUTOMOUNT 0
+#endif
 
 typedef enum {
 	LG_FTL,
