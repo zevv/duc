@@ -12,10 +12,10 @@
 #include "duc-private.h"
 #include "db.h"
 
+
 duc *duc_new(void)
 {
-	duc *duc = malloc(sizeof *duc);
-	if(!duc) return NULL;
+	duc *duc = duc_malloc(sizeof *duc);
 	memset(duc, 0, sizeof *duc);
 	return duc;
 }
@@ -28,7 +28,7 @@ void duc_del(duc *duc)
 }
 
 
-int duc_open(duc *duc, const char *path_db, int flags)
+int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[PATH_MAX];
 
@@ -126,7 +126,40 @@ void duc_humanize(off_t size, char *buf, size_t buflen)
 
 }
 
-						 
+
+void *duc_malloc(size_t s)
+{
+	void *p = malloc(s);
+	if(p == NULL) {
+		fprintf(stderr, "out of memory");
+		exit(1);
+	}
+	return p;
+}
+
+
+void *duc_realloc(void *p, size_t s)
+{
+	void *p2 = realloc(p, s);
+	if(p2 == NULL) {
+		fprintf(stderr, "out of memory\n");
+		exit(1);
+	}
+	return p2;
+}
+
+
+char *duc_strdup(const char *s)
+{
+	char *s2 = strdup(s);
+	if(s2 == NULL) {
+		fprintf(stderr, "out of memory");
+		exit(1);
+	}
+	return s2;
+}
+
+
 
 /*
  * End
