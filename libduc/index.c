@@ -107,10 +107,6 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 	int fd = openat(fd_dir, path, OPEN_FLAGS);
 
-	if(fd == -1 && errno == EPERM) {
-		fd = openat(fd_dir, path, OPEN_FLAGS);
-	}
-
 	if(fd == -1) {
 		duc_log(duc, LG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
