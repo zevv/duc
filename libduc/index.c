@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <dirent.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include "db.h"
 #include "duc.h"
@@ -165,9 +165,9 @@ int duc_index(duc *duc, const char *path, int flags, struct duc_index_report *re
 
 	/* Recursively index subdirectories */
 
-	report->time_start = time(NULL);
+	gettimeofday(&report->time_start, NULL);
 	report->size_total = index_dir(&index, path_canon, 0, &stat);
-	report->time_stop = time(NULL);
+	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */
 

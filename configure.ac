@@ -65,7 +65,7 @@ AC_TYPE_UINT8_T
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([floor memset realpath strchr strdup strerror])
+AC_CHECK_FUNCS([floor memset realpath strchr strdup strerror gettimeofday])
 
 AC_CONFIG_FILES([Makefile libduc/Makefile duc/Makefile])
 AC_OUTPUT

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "duc.h"
 #include "duc-private.h"
@@ -124,6 +125,37 @@ void duc_humanize(off_t size, char *buf, size_t buflen)
 		snprintf(buf, buflen, "%.1f%c", v, *p);
 	}
 
+}
+
+void duc_fmttime(char *human, struct timeval start, struct timeval stop) {
+
+  double start_secs, stop_secs, secs;
+  unsigned int days, hours, mins; 
+  // char human_time[80];
+
+  start_secs=start.tv_sec + (start.tv_usec / 1000000.0);  
+  stop_secs=stop.tv_sec + (stop.tv_usec / 1000000.0);  
+  secs = stop_secs - start_secs;
+
+  days = secs / 86400;
+  secs = secs - (days * 86400);
+  hours = secs / 3600;
+  secs = secs - (hours * 3600);
+  mins = secs / 60;
+  secs = secs - (mins * 60);
+  
+  if (days) {
+	sprintf(human,"%d days, %02d hours, %02d minutes, and %.2f seconds.", days, hours, mins, secs); 
+  }
+  else if (hours) {
+	sprintf(human,"%02d hours, %02d minutes, and %.2f seconds.", hours, mins, secs);
+  }
+  else if (mins) {
+	sprintf(human,"%02d minutes, and %.2f seconds.", mins, secs);
+  }
+  else {
+	sprintf(human,"%.2f secs.", secs);
+  }
 }
 
 						 

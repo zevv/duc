@@ -49,8 +49,8 @@ struct duc_index_report {
 	char path[PATH_MAX];        /* Indexed path */
 	dev_t dev;                  /* Index top device id */
 	ino_t ino;                  /* Index top inode */
-	time_t time_start;          /* Index start time */
-	time_t time_stop;           /* Index finished time */
+    struct timeval time_start;  /* Index start time */
+	struct timeval time_stop;   /* Index finished time */
 	size_t file_count;          /* Total number of files indexed */
 	size_t dir_count;           /* Total number of directories indexed */
 	off_t size_total;           /* Total disk size indexed */
@@ -125,5 +125,6 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
  */
 
 void duc_humanize(off_t size, char *buf, size_t buflen);
+void duc_fmttime(char *human, struct timeval start, struct timeval end);
 
 #endif
