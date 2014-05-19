@@ -94,7 +94,7 @@ static int index_main(int argc, char **argv)
 		duc_humanize(report->size_total, siz, sizeof siz);
 		if(r == DUC_OK) {
 		  char human[120];
-		  duc_fmttime(human, report.time_start, report.time_stop);
+		  duc_fmttime(human, report->time_start, report->time_stop);
 			fprintf(stderr, "Indexed %zu files and %zu directories, (%sB total) in %s\n", 
 					report->file_count, 
 					report->dir_count,
