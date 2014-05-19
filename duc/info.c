@@ -50,20 +50,22 @@ static int info_main(int argc, char **argv)
 		return -1;
 	}
 
-	struct duc_index_report report;
+	struct duc_index_report *report;
 	int i = 0;
 
 	printf("Available indices:\n");
-	while( duc_list(duc, i, &report) == 0) {
+	while(( report = duc_get_report(duc, i)) != NULL) {
 
 		char ts[32];
-		struct tm *tm = localtime(&report.time_start);
+		struct tm *tm = localtime(&report->time_start);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
 		char siz[32];
-		duc_humanize(report.size_total, siz, sizeof siz);
+		duc_humanize(report->size_total, siz, sizeof siz);
 
-		printf("  %s %7.7s %s\n", ts, siz, report.path);
+		printf("  %s %7.7s %s\n", ts, siz, report->path);
+
+		duc_index_report_free(report);
 		i++;
 	}
 

@@ -7,7 +7,7 @@ compiler:
   - clang
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq libcairo2-dev libpango1.0-dev libtokyocabinet-dev imagemagick
+  - sudo apt-get install -qq libcairo2-dev libpango1.0-dev libtokyocabinet-dev imagemagick jp2a
 script: 
   - autoreconf -i 
   - ./configure
@@ -17,3 +17,5 @@ script:
   - sudo duc ls /usr
   - sudo duc draw /
   - identify duc.png
+  - convert duc.png duc.jpg
+  - jp2a duc.jpg

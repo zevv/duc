@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdint.h>
 
+#include "duc-private.h"
 #include "buffer.h"
 #include "varint.h"
 
@@ -21,8 +22,7 @@ struct buffer *buffer_new(void *data, size_t len)
 {
 	struct buffer *b;
 
-	b = malloc(sizeof(struct buffer));
-	if(b == NULL) return NULL;
+	b = duc_malloc(sizeof(struct buffer));
 	b->ptr = 0;
 
 	if(data) {
@@ -32,12 +32,7 @@ struct buffer *buffer_new(void *data, size_t len)
 	} else {
 		b->max = 1024;
 		b->len = 0;
-		b->data = malloc(b->max);
-	}
-		
-	if(b->data == NULL) {
-		free(b);
-		b = NULL;
+		b->data = duc_malloc(b->max);
 	}
 
 	return b;
@@ -50,10 +45,7 @@ static int buffer_prep(struct buffer *b, size_t n)
 		while(b->len + n > b->max) {
 			b->max *= 2;
 		}
-		b->data = realloc(b->data, b->max);
-		if(b->data == NULL) {
-			return -1;
-		}
+		b->data = duc_realloc(b->data, b->max);
 	}
 	return 0;
 }

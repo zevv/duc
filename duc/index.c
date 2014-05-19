@@ -16,28 +16,39 @@
 #include "cmd.h"
 #include "duc.h"
 
+static struct option longopts[] = {
+	{ "compress",        no_argument,       NULL, 'c' },
+	{ "database",        required_argument, NULL, 'd' },
+	{ "one-file-system", required_argument, NULL, 'x' },
+	{ "quiet",           no_argument,       NULL, 'q' },
+	{ "verbose",         required_argument, NULL, 'v' },
+	{ NULL }
+};
+
 
 static int index_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-	int index_flags = 0;
+	duc_index_flags index_flags = 0;
 	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_INF;
+	
+	struct duc *duc = duc_new();
+	if(duc == NULL) {
+                fprintf(stderr, "Error creating duc context\n");
+                return -1;
+        }
+		
+	duc_index_req *req = duc_index_req_new(duc);
 
-	struct option longopts[] = {
-		{ "compress",        no_argument,       NULL, 'c' },
-		{ "database",        required_argument, NULL, 'd' },
-		{ "one-file-system", required_argument, NULL, 'x' },
-		{ "quiet",           no_argument,       NULL, 'q' },
-		{ "verbose",         required_argument, NULL, 'v' },
-		{ NULL }
-	};
-
-	while( ( c = getopt_long(argc, argv, "cd:qxv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "cd:e:qxv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'c':
 				open_flags |= DUC_OPEN_COMPRESS;
+				break;
+			case 'e':
+				duc_index_req_add_exclude(req, optarg);
 				break;
 			case 'd':
 				path_db = optarg;
@@ -64,11 +75,6 @@ static int index_main(int argc, char **argv)
 		return -2;
 	}
 	
-	struct duc *duc = duc_new();
-	if(duc == NULL) {
-                fprintf(stderr, "Error creating duc context\n");
-                return -1;
-        }
 	
 	int r = duc_open(duc, path_db, open_flags);
 	if(r != DUC_OK) {
@@ -80,22 +86,25 @@ static int index_main(int argc, char **argv)
 
 	int i;
 	for(i=0; i<argc; i++) {
-		struct duc_index_report report;
-		int r = duc_index(duc, argv[i], index_flags, &report);
+
+		struct duc_index_report *report;
+		report = duc_index(req, argv[i], index_flags);
+
 		char siz[16];
-		duc_humanize(report.size_total, siz, sizeof siz);
+		duc_humanize(report->size_total, siz, sizeof siz);
 		if(r == DUC_OK) {
 		  char human[120];
 		  duc_fmttime(human, report.time_start, report.time_stop);
 			fprintf(stderr, "Indexed %zu files and %zu directories, (%sB total) in %s\n", 
-					report.file_count, 
-					report.dir_count,
+					report->file_count, 
+					report->dir_count,
 					siz,
 					human);
 		} else {
 			fprintf(stderr, "An error occured while indexing: %s", duc_strerror(duc));
 		}
 
+		duc_index_report_free(report);
 	}
 
 	duc_close(duc);
@@ -113,6 +122,7 @@ struct cmd cmd_index = {
 	.help = 
 		"  -c, --compress          create compressed database, favour size over speed\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -e, --exclude=PATTERN   exclude files matching PATTERN\n"
 		"  -q, --quiet             do not report errors\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"
 		"  -v, --verbose           show what is happening\n"
