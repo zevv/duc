@@ -8,12 +8,19 @@
 AC_PREREQ([2.13])
 
 AC_INIT([duc], [0.1], [duc@zevv.nl])
-AM_INIT_AUTOMAKE([foreign no-dependencies])
-AC_CONFIG_HEADER([config.h])
-AC_GNU_SOURCE
 
 # Turn off GNU standards like README, etc, for now.
 # Do not do dependency tracking either.
+AM_INIT_AUTOMAKE([foreign no-dependencies])
+
+AC_CONFIG_HEADER([config.h])
+AC_GNU_SOURCE
+
+# We need LARGEFILE support turned on by default
+AC_SYS_LARGEFILE
+
+# Support long filenames too.
+AC_SYS_LONG_FILE_NAMES
 
 # Checks for programs.
 AC_PROG_CC
