@@ -224,15 +224,9 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	/* Recursively index subdirectories */
 
-<<<<<<< HEAD
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(&index, path_canon, 0, &stat);
-	gettimeofday(&report->time_stop, NULL);
-=======
-	report->time_start = time(NULL);
 	report->size_total = index_dir(req, report, path_canon, 0, &stat);
-	report->time_stop = time(NULL);
->>>>>>> 21219ebe4ab8a968481d159a6634afa7c66e6035
+	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */
 
