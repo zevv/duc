@@ -137,6 +137,34 @@ For a graphical representation of the disk usage, use the command `duc draw`
 
 ![Example](/img/example.png) 
 
+
+#### CGI interfacing
+
+The `duc` binary has support for a rudimentary CGI interface, currently only
+tested with apache.  The CGI interface generates a simple HTML page with a list
+of indexed directories, and shows a clickable graph for navigating the file
+system.
+
+Configuration is done by creating a simple shell script as .cgi in a directory
+which is configured for CGI execution by your web server (usually
+`/usr/lib/cgi-bin`). The shell script should simply start duc, and pass the
+location of the database to offer.
+
+An example duc.cgi script would be
+
+```
+#!/bin/sh
+/usr/local/bin/duc cgi -d /home/jenny/.duc.db
+```
+
+* Make sure the database file is readable by the user (usually www-data)
+* Debuggin is best done by inspecting the web server's error log
+* Make sure the .cgi script has execute permissions (`chmod +x duc.cgi`)
+
+The current CGI configuration is not very flexible, nor secure. Use at your own
+risk!
+
+
 #### TL;DR
 
 ```
