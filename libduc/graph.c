@@ -355,7 +355,7 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
 	memset(part, 0, sizeof part);
 
 	duc_rewinddir(dir);
-	int found = find_spot(&graph, dir, 0, 0, 1, part);
+	int found = find_spot(&graph, dir, 1, 0, 1, part);
 		
 	path[0] = '\0';
 
