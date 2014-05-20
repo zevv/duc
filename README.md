@@ -190,9 +190,10 @@ database size which is about eight times smaller.
 1. http://zevv.nl/play/code/philesight/
 
 
-### Author
+### Authors
 
 Ico Doornekamp <duc@zevv.nl>
+John Stoffel <john@stoffel.org>
 
 
 ### License
