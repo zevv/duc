@@ -8,6 +8,7 @@
 #include <time.h>
 #include <assert.h>
 #include <unistd.h>
+#include <libgen.h>
 
 #include "cmd.h"
 #include "duc.h"
@@ -101,12 +102,11 @@ static char *find_xy(duc *duc, int x, int y)
 	char path_found[PATH_MAX];
 	int found = duc_graph_xy_to_path(dir, size, depth, x, y, path_found, sizeof(path_found));
 	if(found) {
-		snprintf(path_out, sizeof(path_out), "%s%s", path, path_found);
+		snprintf(path_out, sizeof(path_out), "%s", path_found);
 		fprintf(stderr, "found %s", path_out);
 	} else {
 		snprintf(path_out, sizeof(path_out), "%s", path);
-		char *p = strrchr(path_out, '/');
-		if(p) *p = '\0';
+		dirname(path_out);
 	}
 	
 	duc_closedir(dir);
