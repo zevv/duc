@@ -5,6 +5,7 @@
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <sys/poll.h>
+#include <libgen.h>
 
 #include <stdio.h>
 #include <stdlib.h>

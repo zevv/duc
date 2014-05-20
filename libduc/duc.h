@@ -51,7 +51,7 @@ struct duc_index_report {
 	char path[PATH_MAX];        /* Indexed path */
 	dev_t dev;                  /* Index top device id */
 	ino_t ino;                  /* Index top inode */
-    struct timeval time_start;  /* Index start time */
+	struct timeval time_start;  /* Index start time */
 	struct timeval time_stop;   /* Index finished time */
 	size_t file_count;          /* Total number of files indexed */
 	size_t dir_count;           /* Total number of directories indexed */

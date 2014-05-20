@@ -286,6 +286,8 @@ int duc_graph(duc_dir *dir, int size, int depth, FILE *fout)
 	cairo_destroy(cr);
 	cairo_surface_write_to_png_stream(surface, cairo_writer, fout);
 	cairo_surface_destroy(surface);
+
+	return 0;
 }
 
 

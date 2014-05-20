@@ -57,7 +57,7 @@ static int info_main(int argc, char **argv)
 	while(( report = duc_get_report(duc, i)) != NULL) {
 
 		char ts[32];
-		struct tm *tm = localtime(&report->time_start);
+		struct tm *tm = localtime(&report->time_start.tv_sec);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
 		char siz[32];

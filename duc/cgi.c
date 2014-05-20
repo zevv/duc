@@ -169,7 +169,7 @@ static void do_index(duc *duc)
 
 		char ts_date[32];
 		char ts_time[32];
-		struct tm *tm = localtime(&report->time_start);
+		struct tm *tm = localtime(&report->time_start.tv_sec);
 		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 

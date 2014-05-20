@@ -1,5 +1,5 @@
 
-CFLAGS = -Wall
+CFLAGS = -Wall -Werror
 
 bin_PROGRAMS = duc
 duc_SOURCES = draw.c index.c ls.c main.c info.c cgi.c xml.c gui.c
