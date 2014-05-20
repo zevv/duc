@@ -31,7 +31,7 @@ static int index_main(int argc, char **argv)
 	int c;
 	char *path_db = NULL;
 	duc_index_flags index_flags = 0;
-	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_INF;
+	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_INF | DUC_OPEN_COMPRESS;
 	
 	struct duc *duc = duc_new();
 	if(duc == NULL) {
@@ -41,26 +41,26 @@ static int index_main(int argc, char **argv)
 		
 	duc_index_req *req = duc_index_req_new(duc);
 
-	while( ( c = getopt_long(argc, argv, "cd:e:qxv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:e:qxuv", longopts, NULL)) != EOF) {
 
 		switch(c) {
-			case 'c':
-				open_flags |= DUC_OPEN_COMPRESS;
+			case 'd':
+				path_db = optarg;
 				break;
 			case 'e':
 				duc_index_req_add_exclude(req, optarg);
 				break;
-			case 'd':
-				path_db = optarg;
-				break;
 			case 'q':
 				open_flags &= ~DUC_OPEN_LOG_INF;
 				break;
-			case 'x':
-				index_flags |= DUC_INDEX_XDEV;
+			case 'u':
+				open_flags &= ~DUC_OPEN_COMPRESS;
 				break;
 			case 'v':
 				open_flags |= DUC_OPEN_LOG_DBG;
+				break;
+			case 'x':
+				index_flags |= DUC_INDEX_XDEV;
 				break;
 			default:
 				return -2;
@@ -120,12 +120,12 @@ struct cmd cmd_index = {
 	.description = "Index filesystem",
 	.usage = "[options] PATH ...",
 	.help = 
-		"  -c, --compress          create compressed database, favour size over speed\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -e, --exclude=PATTERN   exclude files matching PATTERN\n"
 		"  -q, --quiet             do not report errors\n"
-		"  -x, --one-file-system   don't cross filesystem boundaries\n"
+		"  -u, --uncompressed      do not use compression for database\n"
 		"  -v, --verbose           show what is happening\n"
+		"  -x, --one-file-system   don't cross filesystem boundaries\n"
 		,
 	.main = index_main
 };
