@@ -24,6 +24,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, size_t ent_max)
 		return NULL;
 	}
 
+	dir->path = NULL;
 	dir->duc = duc;
 	dir->ent_cur = 0;
 	dir->ent_count = 0;
@@ -80,9 +81,15 @@ static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 }
 
 
-off_t duc_sizedir(duc_dir *dir)
+off_t duc_dirsize(duc_dir *dir)
 {
 	return dir->size_total;
+}
+
+
+char *duc_dirpath(duc_dir *dir)
+{
+	return dir->path;
 }
 
 
@@ -172,18 +179,19 @@ struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
 
 	buffer_free(b);
 
+	qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp_ent);
+
 	return dir;
 }
 
 
-duc_dir *duc_opendirat(duc *duc, struct duc_dirent *e)
+duc_dir *duc_opendirat(duc_dir *dir, struct duc_dirent *e)
 {
-	struct duc_dir *dir = duc_dir_read(duc, e->dev, e->ino);
-	if(dir == NULL) return NULL;
-
-	qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp_ent);
-
-	return dir;
+	duc_dir *dir2 = duc_dir_read(dir->duc, e->dev, e->ino);
+	if(dir2) {
+		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
+	}
+	return dir2;
 }
 
 
@@ -273,11 +281,8 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
-	struct duc_dirent e;
-	e.dev = dev;
-	e.ino = ino;
+	dir = duc_dir_read(duc, dev, ino);
 
-	dir = duc_opendirat(duc, &e);
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		free(path_canon);
@@ -297,12 +302,16 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 		struct duc_dir *dir_next = NULL;
 
 		if(ent) {
-			dir_next = duc_opendirat(duc, ent);
+			dir_next = duc_opendirat(dir, ent);
 		}
 
 		duc_closedir(dir);
 		dir = dir_next;
 		name = strtok_r(NULL, "/", &save);
+	}
+
+	if(dir) {
+		dir->path = strdup(path_canon);
 	}
 
 	return dir;
@@ -331,6 +340,7 @@ int duc_rewinddir(duc_dir *dir)
 
 int duc_closedir(duc_dir *dir)
 {
+	if(dir->path) free(dir->path);
 	free(dir->ent_list);
 	free(dir);
 	return 0;

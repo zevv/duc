@@ -165,7 +165,7 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 
 	/* Calculate max and total size */
 	
-	off_t size_total = duc_sizedir(dir);
+	off_t size_total = duc_dirsize(dir);
 
 	struct duc_dirent *e;
 	while( (e = duc_readdir(dir)) != NULL) {
@@ -184,7 +184,7 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 
 			if(e->mode == DUC_MODE_DIR) {
 				if(level+1 < graph->depth) {
-					duc_dir *dir_child = duc_opendirat(graph->duc, e);
+					duc_dir *dir_child = duc_opendirat(dir, e);
 					if(dir_child) {
 						draw_ring(graph, dir_child, level + 1, a_from, a_to);
 						duc_closedir(dir_child);
@@ -224,7 +224,7 @@ static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min,
 
 	/* Calculate max and total size */
 	
-	off_t size_total = duc_sizedir(dir);
+	off_t size_total = duc_dirsize(dir);
 
 	struct duc_dirent *e;
 	while( (e = duc_readdir(dir)) != NULL) {
@@ -245,7 +245,7 @@ static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min,
 
 			if(e->mode == DUC_MODE_DIR) {
 				if(level+1 < graph->depth) {
-					duc_dir *dir_child = duc_opendirat(graph->duc, e);
+					duc_dir *dir_child = duc_opendirat(dir, e);
 					if(dir_child) {
 						int r = find_spot(graph, dir_child, level + 1, a_from, a_to, part);
 						duc_closedir(dir_child);
@@ -357,7 +357,7 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
 	duc_rewinddir(dir);
 	int found = find_spot(&graph, dir, 1, 0, 1, part);
 		
-	path[0] = '\0';
+	strncpy(path, dir->path, path_len);
 
 	if(found) {
 

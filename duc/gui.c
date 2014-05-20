@@ -75,7 +75,6 @@ int do_gui(duc *duc, char *root)
 		if(r == 0) {
 
 			if(redraw) {
-				printf("redraw\n");
 				XClearWindow(dpy, win);
 				cairo_move_to(cr, 20, 20);
 				cairo_show_text(cr, path);
@@ -108,23 +107,24 @@ int do_gui(duc *duc, char *root)
 
 					int x = e.xbutton.x;
 					int y = e.xbutton.y;
+
 					char newpath[PATH_MAX];
 					int r = duc_graph_xy_to_path(dir, size, 4, x, y, newpath, sizeof newpath);
-					if(r) {
-						char oldpath[PATH_MAX];
-						snprintf(oldpath, sizeof oldpath, "%s", path);
-						snprintf(path, sizeof path, "%s%s", oldpath, newpath);
-					} else {
-						dirname(path);
+					if(!r) {
+						strncpy(newpath, path, sizeof newpath);
+						dirname(newpath);
 					}
 
-					printf("%s\n", path);
-					duc_dir *dir_new = duc_opendir(duc, path);
-					if(dir_new) {
+					duc_dir *dir2 = duc_opendir(duc, newpath);
+					if(dir2) {
 						duc_closedir(dir);
-						dir = dir_new;
-						redraw = 1;
+						dir = dir2;
+						snprintf(path, sizeof path, "%s", newpath);
 					}
+					
+					printf("%s\n", path);
+
+					redraw = 1;
 
 					break;
 				}

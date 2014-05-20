@@ -26,6 +26,7 @@ struct duc {
 
 
 struct duc_dir {
+	char *path;
 	struct duc *duc;
 	struct duc_dirent *ent_list;
 	off_t size_total;

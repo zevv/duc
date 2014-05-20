@@ -127,9 +127,9 @@ static int ls_main(int argc, char **argv)
 
 	char siz[32];
 	if(bytes) {
-		snprintf(siz, sizeof siz, "%jd", duc_sizedir(dir));
+		snprintf(siz, sizeof siz, "%jd", duc_dirsize(dir));
 	} else {
-		duc_humanize(duc_sizedir(dir), siz, sizeof siz);
+		duc_humanize(duc_dirsize(dir), siz, sizeof siz);
 	}
 	printf("%-20.20s %11.11s\n", "Total size", siz);
 
