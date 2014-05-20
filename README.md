@@ -192,8 +192,8 @@ database size which is about eight times smaller.
 
 ### Authors
 
-Ico Doornekamp <duc@zevv.nl>
-John Stoffel <john@stoffel.org>
+* Ico Doornekamp <duc@zevv.nl>
+* John Stoffel <john@stoffel.org>
 
 
 ### License
