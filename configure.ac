@@ -28,6 +28,7 @@ AC_PROG_RANLIB
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [main])
+AC_CHECK_LIB([X11], [XOpenDisplay])
 
 # Check for pkg-config, needs fallback for when it doesn't exist...
 PKG_PROG_PKG_CONFIG

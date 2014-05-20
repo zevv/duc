@@ -3,6 +3,7 @@
 #define duc_h
 
 #include <limits.h>
+#include <cairo.h>
 
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;
@@ -122,6 +123,7 @@ int duc_closedir(duc_dir *dir);
  */
 
 int duc_graph(duc_dir *dir, int size, int depth, FILE *fout);
+int duc_graph_cairo(duc_dir *dir, int size, int depth, cairo_t *cr);
 int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *path, size_t path_len);
 
 /* 
