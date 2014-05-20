@@ -135,9 +135,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			if(n[1] == '.' && n[2] == '\0') continue;
 		}
 
-		if(req->exclude_list) {
-			if(match_list(e->d_name, req->exclude_list)) continue;
-		}
+		if(match_list(e->d_name, req->exclude_list)) continue;
 
 		/* Get file info */
 
