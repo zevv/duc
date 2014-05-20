@@ -28,7 +28,6 @@ struct duc {
 struct duc_dir {
 	struct duc *duc;
 	struct duc_dirent *ent_list;
-	duc_dirent_mode mode;
 	off_t size_total;
 	size_t ent_cur;
 	size_t ent_count;
