@@ -4,6 +4,7 @@
 #include <string.h>
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
+#include <X11/keysym.h>
 #include <sys/poll.h>
 #include <libgen.h>
 
@@ -16,8 +17,8 @@
 
 #define SIZEX 600
 #define SIZEY 600
-#define DEPTH 4
 
+static int depth = 4;
 
 
 int do_gui(duc *duc, char *root)
@@ -55,7 +56,7 @@ int do_gui(duc *duc, char *root)
 			SIZEX, SIZEY, 0, 
 			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
 
-	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask);
+	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask);
 	XMapWindow(dpy, win);
 
 	cs =  cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), SIZEX, SIZEY);
@@ -78,7 +79,7 @@ int do_gui(duc *duc, char *root)
 				XClearWindow(dpy, win);
 				cairo_move_to(cr, 20, 20);
 				cairo_show_text(cr, path);
-				duc_graph_cairo(dir, size, DEPTH, cr);
+				duc_graph_cairo(dir, size, depth, cr);
 				redraw = 0;
 			}
 		}
@@ -102,6 +103,18 @@ int do_gui(duc *duc, char *root)
 				case Expose:
 					if(e.xexpose.count < 1) redraw = 1;
 					break;
+				
+				case KeyPress: {
+					KeySym k = XLookupKeysym(&e.xkey, 0);
+					if(k == XK_minus) depth--;
+					if(k == XK_equal) depth++;
+					if(k == XK_Escape) exit(0);
+					if(k == XK_q) exit(0);
+					if(depth < 2) depth = 2;
+					if(depth > 10) depth = 10;
+					redraw = 1;
+					break;
+				}
 
 				case ButtonPress: {
 
