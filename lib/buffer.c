@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "duc-private.h"
+#include "private.h"
 #include "buffer.h"
 #include "varint.h"
 

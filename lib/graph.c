@@ -17,7 +17,7 @@
 #include <pango/pangocairo.h>
 
 #include "duc.h"
-#include "duc-private.h"
+#include "private.h"
 
 struct label {
 	int x, y;

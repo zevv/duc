@@ -11,7 +11,7 @@
 #include <stdint.h> 
 
 #include "duc.h"
-#include "duc-private.h"
+#include "private.h"
 #include "db.h"
 
 struct db {

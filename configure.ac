@@ -75,5 +75,5 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([floor memset realpath strchr strdup strerror gettimeofday])
 
-AC_CONFIG_FILES([Makefile libduc/Makefile duc/Makefile])
+AC_CONFIG_FILES([Makefile lib/Makefile duc/Makefile])
 AC_OUTPUT

@@ -1,1 +1,1 @@
-SUBDIRS = libduc duc
+SUBDIRS = lib duc

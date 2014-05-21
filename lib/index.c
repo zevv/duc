@@ -16,7 +16,7 @@
 #include "db.h"
 #include "duc.h"
 #include "list.h"
-#include "duc-private.h"
+#include "private.h"
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
 

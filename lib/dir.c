@@ -11,7 +11,7 @@
 #include "duc.h"
 #include "db.h"
 #include "buffer.h"
-#include "duc-private.h"
+#include "private.h"
 #include "varint.h"
 
 
