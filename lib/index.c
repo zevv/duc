@@ -140,7 +140,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		/* Get file info */
 
 		struct stat stat;
-		int r = fstatat(fd, e->d_name, &stat, AT_NO_AUTOMOUNT | AT_SYMLINK_NOFOLLOW);
+		int r = fstatat(fd, e->d_name, &stat, AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
 			duc_log(duc, LG_WRN, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			continue;
