@@ -365,7 +365,7 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
 	double r = hypot(x - size/2, y - size/2) / graph.ring_width;
 
 	if(r < 2) {
-		snprintf(path, path_len, dir->path);
+		snprintf(path, path_len, "%s", dir->path);
 		dirname(path);
 		return 1;
 	}
