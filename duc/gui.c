@@ -111,7 +111,7 @@ int do_gui(duc *duc, char *root)
 					if(k == XK_Escape) exit(0);
 					if(k == XK_q) exit(0);
 					if(depth < 2) depth = 2;
-					if(depth > 10) depth = 10;
+					if(depth > 20) depth = 20;
 					redraw = 1;
 					break;
 				}
@@ -122,7 +122,7 @@ int do_gui(duc *duc, char *root)
 					int y = e.xbutton.y;
 
 					char newpath[PATH_MAX];
-					int r = duc_graph_xy_to_path(dir, size, 4, x, y, newpath, sizeof newpath);
+					int r = duc_graph_xy_to_path(dir, size, depth, x, y, newpath, sizeof newpath);
 					if(r) {
 
 						duc_dir *dir2 = duc_opendir(duc, newpath);
