@@ -80,6 +80,7 @@ int do_gui(duc *duc, char *root)
 				cairo_move_to(cr, 20, 20);
 				cairo_show_text(cr, path);
 				duc_graph_cairo(dir, size, depth, cr);
+				XFlush(dpy);
 				redraw = 0;
 			}
 		}
