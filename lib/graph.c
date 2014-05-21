@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <dirent.h>
 #include <stdint.h>
+#include <libgen.h>
 
 #include <cairo.h>
 #include <pango/pangocairo.h>
@@ -342,13 +343,23 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
 	struct graph graph;
 	memset(&graph, 0, sizeof graph);
 
+	/* If clicked in the center, go up one directory */
+
 	graph.duc = dir->duc;
 	graph.depth = depth;
 	graph.ring_width = ((size-30) / 2) / (graph.depth + 1);
 	graph.label_list = NULL;
 	graph.cx = size / 2;
 	graph.cy = size / 2;
-			
+
+	double r = hypot(x - size/2, y - size/2) / graph.ring_width;
+
+	if(r < 2) {
+		snprintf(path, path_len, dir->path);
+		dirname(path);
+		return 1;
+	}
+
 	car2pol(&graph, x, y, &graph.spot_a, &graph.spot_r);
 
 	char *part[graph.depth];
