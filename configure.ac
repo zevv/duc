@@ -9,6 +9,15 @@ AC_PREREQ([2.13])
 
 AC_INIT([duc], [0.1], [duc@zevv.nl])
 
+dnl Library versioning
+dnl We begin with 1:0:0
+LIB_CURRENT=1
+LIB_REVISION=0
+LIB_AGE=0
+AC_SUBST(LIB_CURRENT)
+AC_SUBST(LIB_REVISION)
+AC_SUBST(LIB_AGE)
+
 # Turn off GNU standards like README, etc, for now.
 # Do not do dependency tracking either.
 AM_INIT_AUTOMAKE([foreign no-dependencies])
@@ -24,7 +33,12 @@ AC_SYS_LONG_FILE_NAMES
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
+
+# Initialize libtool, but disable static libs for now
+AM_DISABLE_STATIC
+AM_PROG_LIBTOOL
+
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [main])
