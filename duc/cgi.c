@@ -104,9 +104,6 @@ static char *find_xy(duc *duc, int x, int y)
 	if(found) {
 		snprintf(path_out, sizeof(path_out), "%s", path_found);
 		fprintf(stderr, "found %s", path_out);
-	} else {
-		snprintf(path_out, sizeof(path_out), "%s", path);
-		dirname(path_out);
 	}
 	
 	duc_closedir(dir);

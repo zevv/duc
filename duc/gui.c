@@ -110,21 +110,17 @@ int do_gui(duc *duc, char *root)
 
 					char newpath[PATH_MAX];
 					int r = duc_graph_xy_to_path(dir, size, 4, x, y, newpath, sizeof newpath);
-					if(!r) {
-						strncpy(newpath, path, sizeof newpath);
-						dirname(newpath);
-					}
+					if(r) {
 
-					duc_dir *dir2 = duc_opendir(duc, newpath);
-					if(dir2) {
-						duc_closedir(dir);
-						dir = dir2;
-						snprintf(path, sizeof path, "%s", newpath);
+						duc_dir *dir2 = duc_opendir(duc, newpath);
+						if(dir2) {
+							duc_closedir(dir);
+							dir = dir2;
+							snprintf(path, sizeof path, "%s", newpath);
+						}
+						
+						redraw = 1;
 					}
-					
-					printf("%s\n", path);
-
-					redraw = 1;
 
 					break;
 				}
