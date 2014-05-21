@@ -21,6 +21,9 @@
 #include "duc.h"
 #include "private.h"
 
+#define FONT_SIZE_LABEL 8
+#define FONT_SIZE_BACK 12
+
 struct label {
 	int x, y;
 	char *text;
@@ -82,10 +85,12 @@ static void hsv2rgb(double h, double s, double v, double *r, double *g, double *
 }
 
 
-static void draw_text(cairo_t *cr, int x, int y, char *text)
+static void draw_text(cairo_t *cr, int x, int y, int size, char *text)
 {
+	char font[32];
+	snprintf(font, sizeof font, "Arial, Sans, %d", size);
 	PangoLayout *layout = pango_cairo_create_layout(cr);
-	PangoFontDescription *desc = pango_font_description_from_string("Arial, Sans, 8");
+	PangoFontDescription *desc = pango_font_description_from_string(font);
 
 	pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
 	pango_layout_set_text(layout, text, -1);
@@ -317,6 +322,8 @@ int duc_graph_cairo(duc_dir *dir, int size, int depth, cairo_t *cr)
 
 	graph.cr = cr;
 
+	cairo_save(cr);
+
 	/* Recursively draw graph */
 	
 	duc_rewinddir(dir);
@@ -324,28 +331,18 @@ int duc_graph_cairo(duc_dir *dir, int size, int depth, cairo_t *cr)
 
 	/* Draw collected labels */
 
-	cairo_set_line_width(cr, 0.3);
-	cairo_set_source_rgba(graph.cr, 0, 0, 0, 0.7);
-	cairo_stroke(cr);
-
-	if(0) {
-	int i;
-	for(i=2; i<=graph.depth+1; i++) {
-		cairo_new_path(cr);
-		cairo_arc(graph.cr, graph.cx, graph.cy, i * graph.ring_width, 0, 2*M_PI);
-		cairo_stroke(cr);
-	}
-	cairo_stroke(graph.cr);
-	}
-
 	struct label *label = graph.label_list;
 	while(label) {
-		draw_text(cr, label->x, label->y, label->text);
+		draw_text(cr, label->x, label->y, FONT_SIZE_LABEL, label->text);
 		free(label->text);
 		struct label *next = label->next;
 		free(label);
 		label = next;
 	}
+
+	draw_text(cr, graph.cx, graph.cy, 16, "cd ../");
+	
+	cairo_restore(cr);
 
 	return 0;
 }
