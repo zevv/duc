@@ -15,7 +15,7 @@ script:
   - sudo make install
   - sudo duc index -x /
   - sudo duc ls /usr
-  - sudo duc draw /
+  - sudo duc graph /
   - identify duc.png
   - convert duc.png duc.jpg
   - jp2a duc.jpg
