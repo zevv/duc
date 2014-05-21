@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #include "duc.h"
+#include "duc-graph.h"
 #include "cmd.h"
 
 
@@ -83,7 +84,7 @@ static int graph_main(int argc, char **argv)
 		return -1;
 	}
 
-	duc_graph(dir, size, depth, f);
+	duc_graph(duc, dir, size, depth, f);
 
 	duc_closedir(dir);
 	duc_close(duc);

@@ -19,7 +19,7 @@
 #include <pango/pangocairo.h>
 
 #include "duc.h"
-#include "private.h"
+#include "duc-graph.h"
 
 #define FONT_SIZE_LABEL 8
 #define FONT_SIZE_BACK 12
@@ -291,14 +291,14 @@ static cairo_status_t cairo_writer(void *closure, const unsigned char *data, uns
 }
 
 
-int duc_graph(duc_dir *dir, int size, int depth, FILE *fout)
+int duc_graph(duc *duc, duc_dir *dir, int size, int depth, FILE *fout)
 {
 	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
 	assert(surface);
 	cairo_t *cr = cairo_create(surface);
 	assert(cr);
 
-	duc_graph_cairo(dir, size, depth, cr);
+	duc_graph_cairo(duc, dir, size, depth, cr);
 
 	cairo_destroy(cr);
 	cairo_surface_write_to_png_stream(surface, cairo_writer, fout);
@@ -308,12 +308,12 @@ int duc_graph(duc_dir *dir, int size, int depth, FILE *fout)
 }
 
 
-int duc_graph_cairo(duc_dir *dir, int size, int depth, cairo_t *cr)
+int duc_graph_cairo(duc *duc, duc_dir *dir, int size, int depth, cairo_t *cr)
 {
 	struct graph graph;
 	memset(&graph, 0, sizeof graph);
 
-	graph.duc = dir->duc;
+	graph.duc = duc;
 	graph.depth = depth;
 	graph.ring_width = ((size-30) / 2) / (graph.depth + 1);
 	graph.label_list = NULL;
@@ -348,14 +348,14 @@ int duc_graph_cairo(duc_dir *dir, int size, int depth, cairo_t *cr)
 }
 
 
-int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *path, size_t path_len)
+int duc_graph_xy_to_path(duc *duc, duc_dir *dir, int size, int depth, int x, int y, char *path, size_t path_len)
 {
 	struct graph graph;
 	memset(&graph, 0, sizeof graph);
 
 	/* If clicked in the center, go up one directory */
 
-	graph.duc = dir->duc;
+	graph.duc = duc;
 	graph.depth = depth;
 	graph.ring_width = ((size-30) / 2) / (graph.depth + 1);
 	graph.label_list = NULL;
@@ -365,7 +365,7 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
 	double r = hypot(x - size/2, y - size/2) / graph.ring_width;
 
 	if(r < 2) {
-		snprintf(path, path_len, "%s", dir->path);
+		snprintf(path, path_len, "%s", duc_dirpath(dir));
 		dirname(path);
 		return 1;
 	}
@@ -378,7 +378,7 @@ int duc_graph_xy_to_path(duc_dir *dir, int size, int depth, int x, int y, char *
 	duc_rewinddir(dir);
 	int found = find_spot(&graph, dir, 1, 0, 1, part);
 		
-	strncpy(path, dir->path, path_len);
+	strncpy(path, duc_dirpath(dir), path_len);
 
 	if(found) {
 

@@ -12,6 +12,7 @@
 
 #include "cmd.h"
 #include "duc.h"
+#include "duc-graph.h"
 
 int size = 600;
 int depth = 4;
@@ -100,7 +101,7 @@ static char *find_xy(duc *duc, int x, int y)
         }
 
 	char path_found[PATH_MAX];
-	int found = duc_graph_xy_to_path(dir, size, depth, x, y, path_found, sizeof(path_found));
+	int found = duc_graph_xy_to_path(duc, dir, size, depth, x, y, path_found, sizeof(path_found));
 	if(found) {
 		snprintf(path_out, sizeof(path_out), "%s", path_found);
 		fprintf(stderr, "found %s", path_out);
@@ -214,7 +215,7 @@ void do_image(duc *duc)
                 return;
         }
 
-	duc_graph(dir, size, depth, stdout);
+	duc_graph(duc, dir, size, depth, stdout);
 
 	duc_closedir(dir);
 	duc_close(duc);

@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "duc.h"
+#include "duc-graph.h"
 #include "cmd.h"
 
 #define SIZEX 600
@@ -79,7 +80,7 @@ int do_gui(duc *duc, char *root)
 				XClearWindow(dpy, win);
 				cairo_move_to(cr, 20, 20);
 				cairo_show_text(cr, path);
-				duc_graph_cairo(dir, size, depth, cr);
+				duc_graph_cairo(duc, dir, size, depth, cr);
 				XFlush(dpy);
 				redraw = 0;
 			}
@@ -123,7 +124,7 @@ int do_gui(duc *duc, char *root)
 					int y = e.xbutton.y;
 
 					char newpath[PATH_MAX];
-					int r = duc_graph_xy_to_path(dir, size, depth, x, y, newpath, sizeof newpath);
+					int r = duc_graph_xy_to_path(duc, dir, size, depth, x, y, newpath, sizeof newpath);
 					if(r) {
 
 						duc_dir *dir2 = duc_opendir(duc, newpath);
