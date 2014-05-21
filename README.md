@@ -133,7 +133,7 @@ sbin/                     20.3M [                                               
 Omitted files             29.7M
 ```
 
-For a graphical representation of the disk usage, use the command `duc draw`
+For a graphical representation of the disk usage, use the command `duc graph`
 
 ![Example](/img/example.png) 
 
@@ -173,7 +173,7 @@ $ duc help index
 $ duc info
 $ duc index /usr
 $ duc ls /usr/bin
-$ duc draw /usr
+$ duc graph /usr
 ```
 
 

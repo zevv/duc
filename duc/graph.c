@@ -16,7 +16,7 @@
 #include "cmd.h"
 
 
-static int draw_main(int argc, char **argv)
+static int graph_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
@@ -93,8 +93,8 @@ static int draw_main(int argc, char **argv)
 
 
 	
-struct cmd cmd_draw = {
-	.name = "draw",
+struct cmd cmd_graph = {
+	.name = "graph",
 	.description = "Draw graph",
 	.usage = "[options] [PATH]",
 	.help = 
@@ -102,7 +102,7 @@ struct cmd cmd_draw = {
 	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
 		"  -o, --output=ARG        output file name [duc.png]\n"
 	        "  -s, --size=ARG          image size [800]\n",
-	.main = draw_main
+	.main = graph_main
 };
 
 /*
