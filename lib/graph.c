@@ -178,7 +178,7 @@ double ang(double a)
 }
 
 
-static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r_from, int r_to, double hue, double brightness)
+static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r1, int r_to, double hue, double brightness)
 {
 	if(cr == NULL) return;
 
@@ -189,13 +189,13 @@ static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r_
 	}
 
 	cairo_new_path(cr);
-	cairo_arc(cr, g->cx, g->cy, r_from, ang(a1), ang(a2));
+	cairo_arc(cr, g->cx, g->cy, r1, ang(a1), ang(a2));
 	cairo_arc_negative(cr, g->cx, g->cy, r_to, ang(a2), ang(a1));
 	cairo_close_path(cr);
 
 	cairo_pattern_t *pat;
 	pat = cairo_pattern_create_radial(g->cx, g->cy, 0, g->cx, g->cy, g->cx-50);
-	cairo_pattern_add_color_stop_rgb(pat, (double)r_from / g->cx, R*0.5, G*0.5, B*0.5);
+	cairo_pattern_add_color_stop_rgb(pat, (double)r1 / g->cx, R*0.5, G*0.5, B*0.5);
 	cairo_pattern_add_color_stop_rgb(pat, (double)r_to   / g->cx, R*1.5, G*1.5, B*1.5);
 	cairo_set_source(cr, pat);
 
@@ -216,15 +216,15 @@ static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r_
  *   that is below that spot
  */
 
-static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r_from, double a_min, double a_max)
+static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1, double a1_dir, double a2_dir)
 {
-	double a_range = a_max - a_min;
-	double a1 = a_min;
-	double a2 = a_min;
+	double a_range = a2_dir - a1_dir;
+	double a1 = a1_dir;
+	double a2 = a1_dir;
 			
 	double ring_width = (g->size/2 - g->r_start - 10) / g->max_level;
 
-	double r_to = r_from + ring_width;
+	double r_to = r1 + ring_width;
 
 	/* Calculate max and total size */
 	
@@ -261,7 +261,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r_f
 		 * objects in the same directory */
 
 		double hue = 0.8 - 0.8 * size_nrel;
-		double brightness = 0.8 * r_from / g->cx;
+		double brightness = 0.8 * r1 / g->cx;
 
 		/* Check if the requested spot lies in this section */
 
@@ -269,14 +269,14 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r_f
 			double a = g->spot_a;
 			double r = g->spot_r;
 
-			if(a >= a1 && a < a2 && r >= r_from && r < r_to) {
+			if(a >= a1 && a < a2 && r >= r1 && r < r_to) {
 				g->spot_dir = duc_opendirent(dir, e);
 			}
 		}
 
 		/* Draw section for this object */
 
-		draw_section(g, cr, a1, a2, r_from, r_to, hue, brightness);
+		draw_section(g, cr, a1, a2, r1, r_to, hue, brightness);
 
 		/* Recurse into subdirectories */
 
@@ -294,9 +294,9 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r_f
 		/* Place labels if there is enough room to display */
 
 		if(cr) {
-			if(r_from * (a2 - a1) > 5) {
+			if(r1 * (a2 - a1) > 5) {
 				struct label *label = malloc(sizeof *label);
-				pol2car(g, ang((a1+a2)/2), (r_from+r_to)/2, &label->x, &label->y);
+				pol2car(g, ang((a1+a2)/2), (r1+r_to)/2, &label->x, &label->y);
 				char siz[32];
 				duc_humanize(e->size, siz, sizeof siz);
 				asprintf(&label->text, "%s\n%s", e->name, siz);
