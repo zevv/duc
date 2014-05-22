@@ -3,6 +3,7 @@
 
 ![Duc](/img/duc.png) 
 
+
 ### Introduction
 
 Duc is a small library and a collection of tools for inspecting and visualizing
@@ -11,6 +12,8 @@ disk usage.
 Duc maintains a database of accumulated sizes of directories of your file
 system, and allows you to query this database with some tools, or create fancy
 graphs showing you where your bytes are.
+
+![Example](/img/example.png) 
 
 
 ### Install
@@ -34,6 +37,7 @@ On RHEL or CentOS systems, you need to do:
 ```
 $ sudo yum install pango-devel cairo-devel tokyocabinet-devel
 ```
+
 
 ### Compiling
 
@@ -133,11 +137,11 @@ sbin/                     20.3M [                                               
 Omitted files             29.7M
 ```
 
-For a graphical representation of the disk usage, use the command `duc graph`
+For a graphical representation of the disk usage, use the command `duc graph`. This will create
+a .png image with the graph of the requested directory.
 
-![Example](/img/example.png) 
 
-#### GUI
+#### Graphical user interface
 
 For a graphical view, run the `duc gui` tool.
 
@@ -150,6 +154,7 @@ Key bindings:
 p           toggle palettes
 backspace   cd ..
 ```
+
 
 #### CGI interfacing
 
@@ -186,7 +191,8 @@ $ duc help index
 $ duc info
 $ duc index /usr
 $ duc ls /usr/bin
-$ duc graph /usr
+$ duc gui /usr
+$ duc graph -o /tmp/usr.png /usr
 ```
 
 
