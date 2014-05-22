@@ -82,6 +82,8 @@ static int index_main(int argc, char **argv)
 		return -1;
 	}
 
+	fprintf(stderr,"Writing to %s\n",path_db);
+
 	/* Index all paths passed on the cmdline */
 
 	int i;
