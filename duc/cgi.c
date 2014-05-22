@@ -181,8 +181,9 @@ void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 	printf("Content-Type: image/png\n");
 	printf("\n");
 
-	duc_graph_draw_file(graph, dir, stdout);
-
+	if(dir) {
+		duc_graph_draw_file(graph, dir, stdout);
+	}
 }
 
 
@@ -253,8 +254,8 @@ static int cgi_main(int argc, char **argv)
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
-	
-	duc_closedir(dir);
+
+	if(dir) duc_closedir(dir);
 	duc_close(duc);
 	duc_del(duc);
 

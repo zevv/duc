@@ -31,8 +31,9 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 	int scr;
 	cairo_surface_t *cs;
 	cairo_t *cr;
-	int size = 400;
 	int palette = 0;
+	int win_w = 400;
+	int win_h = 400;
 
 	duc_dir *dir = duc_opendir(duc, root);
 	if(dir == NULL) {
@@ -81,7 +82,12 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 				cairo_show_text(cr, path);
 				free(path);
 
+				int size = win_w < win_h ? win_w : win_h;
+				int pos_x = (win_w - size) / 2;
+				int pos_y = (win_h - size) / 2;
+
 				duc_graph_set_size(graph, size);
+				duc_graph_set_position(graph, pos_x, pos_y);
 				duc_graph_set_max_level(graph, depth);
 				duc_graph_draw_cairo(graph, dir, cr);
 				XFlush(dpy);
@@ -96,11 +102,9 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 			switch(e.type) {
 
 				case ConfigureNotify: {
-					int w = e.xconfigure.width;
-					int h = e.xconfigure.height;
-					size = w;
-					if(h < w) size = h;
-					cairo_xlib_surface_set_size(cs, w, h);
+					win_w = e.xconfigure.width;
+					win_h = e.xconfigure.height;
+					cairo_xlib_surface_set_size(cs, win_w, win_h);
 					redraw = 1;
 					break;
 				}

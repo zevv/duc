@@ -40,6 +40,7 @@ struct duc_graph {
 	struct duc *duc;
 	double size;
 	double cx, cy;
+	double pos_x, pos_y;
 	double r_start;
 	int max_level;
 	enum duc_graph_palette palette;
@@ -89,6 +90,12 @@ void duc_graph_set_size(duc_graph *g, int size)
 	g->r_start = size / 10;
 }
 
+
+void duc_graph_set_position(duc_graph *g, int pos_x, int pos_y)
+{
+	g->pos_x = pos_x;
+	g->pos_y = pos_y;
+}
 
 void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p)
 {
@@ -371,6 +378,8 @@ int duc_graph_draw_file(duc_graph *g, duc_dir *dir, FILE *fout)
 
 int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 {
+	cairo_save(cr);
+	cairo_translate(cr, g->pos_x, g->pos_y);
 
 	/* Recursively draw graph */
 	
@@ -391,6 +400,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	draw_text(cr, g->cx, g->cy, 16, "cd ../");
 
 	g->label_list = NULL;
+	cairo_restore(cr);
 
 	return 0;
 }
@@ -400,7 +410,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 {
 	duc_dir *dir2 = NULL;
 
-	car2pol(g, x, y, &g->spot_a, &g->spot_r);
+	car2pol(g, x - g->pos_x, y - g->pos_y, &g->spot_a, &g->spot_r);
 	double r = hypot(x - g->cx, y - g->cy);
 
 	if(r < g->r_start) {
