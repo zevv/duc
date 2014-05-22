@@ -279,13 +279,13 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 			case DUC_GRAPH_PALETTE_SIZE:
 				H = 0.8 - 0.8 * size_nrel;
-				S = 1.0 - 0.5 *(double)level / g->max_level;
+				S = 1.0 - 0.8 *(double)level / g->max_level;
 				V = 1;
 				break;
 
 			case DUC_GRAPH_PALETTE_RAINBOW:
 				H = (a1 + a2) / 2;
-				S = 1.0 - 0.5 *(double)level / g->max_level;
+				S = 1.0 - 0.8 *(double)level / g->max_level;
 				V = 1;
 				break;
 			
