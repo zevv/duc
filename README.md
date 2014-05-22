@@ -137,6 +137,19 @@ For a graphical representation of the disk usage, use the command `duc graph`
 
 ![Example](/img/example.png) 
 
+#### GUI
+
+For a graphical view, run the `duc gui` tool.
+
+Key bindings:
+
+```
++           increase maximum graph depth
+-           decrease maximum graph depth
+0           Set default graph depth
+p           toggle palettes
+backspace   cd ..
+```
 
 #### CGI interfacing
 
