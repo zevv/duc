@@ -13,6 +13,7 @@ script:
   - ./configure
   - make
   - sudo make install
+  - sudo ldconfig
   - sudo duc index -x /
   - sudo duc ls /usr
   - sudo duc graph /
