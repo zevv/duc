@@ -86,6 +86,7 @@ const char *duc_strerror(duc *duc);
  * Open and close database
  */
 
+char *duc_pick_db_path(const char * path_db);
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags);
 int duc_close(duc *duc);
 

@@ -75,7 +75,7 @@ static int index_main(int argc, char **argv)
 		return -2;
 	}
 	
-	
+	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, open_flags);
 	if(r != DUC_OK) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));

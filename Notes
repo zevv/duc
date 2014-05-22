@@ -1,0 +1,36 @@
+Development Notes
+
+Global and Command specific args
+
+
+
+Arg		Global	index	info	ls	graph	xml	gui 	cgi
+-------------	------	------	------	------	------	------	------	------
+-b
+ --bytes				X
+-d file		X
+ --database	X
+--display							X
+-e name			X
+ --exclude		X
+-F
+ --classify				X
+--geometry							X
+-h					X
+ --human
+-l count					X
+ --levels					X
+-n num
+ --limit				X
+-o file						X
+ --output
+-q		X
+ --quiet	X
+-s num						X
+ --size
+-u			X
+ --uncompressed		X
+-v		X
+ --verbose	X
+-x			X
+
