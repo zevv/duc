@@ -24,6 +24,8 @@
 #define FONT_SIZE_LABEL 8
 #define FONT_SIZE_BACK 12
 
+#define MAX_DEPTH 32
+
 struct label {
 	int x, y;
 	char *text;
@@ -35,10 +37,13 @@ struct graph {
 	struct duc *duc;
 	int cx, cy;
 	int ring_width;
-	int depth;
+	int max_level;
 	struct label *label_list;
 	cairo_t *cr;
-	double spot_a, spot_r;
+
+	double spot_a;
+	double spot_r;
+	char *spot_part[MAX_DEPTH];
 };
 
 
@@ -130,41 +135,57 @@ double ang(double a)
 }
 
 
-static void draw_section(struct graph *graph, double a_from, double a_to, int r_from, int r_to, double hue, double brightness)
+static int draw_section(struct graph *graph, double a1, double a2, int r_from, int r_to, double hue, double brightness)
 {
+
 	cairo_t *cr = graph->cr;
+	
+	if(cr) {
 
-	double r = 0.6, g = 0.6, b = 0.6;
+		double r = 0.6, g = 0.6, b = 0.6;
 
-	if(brightness > 0) {
-		hsv2rgb(hue, 1.0-brightness, brightness/2+0.5, &r, &g, &b);
+		if(brightness > 0) {
+			hsv2rgb(hue, 1.0-brightness, brightness/2+0.5, &r, &g, &b);
+		}
+			
+		cairo_new_path(cr);
+		cairo_arc(cr, graph->cx, graph->cy, r_from, ang(a1), ang(a2));
+		cairo_arc_negative(cr, graph->cx, graph->cy, r_to, ang(a2), ang(a1));
+		cairo_close_path(cr);
+
+		cairo_pattern_t *pat;
+		pat = cairo_pattern_create_radial(graph->cx, graph->cy, 0, graph->cx, graph->cy, graph->cx-50);
+		cairo_pattern_add_color_stop_rgb(pat, (double)r_from / graph->cx, r*0.5, g*0.5, b*0.5);
+		cairo_pattern_add_color_stop_rgb(pat, (double)r_to   / graph->cx, r*1.5, g*1.5, b*1.5);
+		cairo_set_source(cr, pat);
+
+		cairo_fill_preserve(cr);
+		cairo_pattern_destroy(pat);
+
+		cairo_set_line_width(cr, 0.5);
+		cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, 0.9);
+		cairo_stroke(cr);
 	}
-		
-	cairo_new_path(cr);
-	cairo_arc(cr, graph->cx, graph->cy, r_from, ang(a_from), ang(a_to));
-	cairo_arc_negative(cr, graph->cx, graph->cy, r_to, ang(a_to), ang(a_from));
-	cairo_close_path(cr);
 
-	cairo_pattern_t *pat;
-	pat = cairo_pattern_create_radial(graph->cx, graph->cy, 0, graph->cx, graph->cy, graph->cx-50);
-	cairo_pattern_add_color_stop_rgb(pat, (double)r_from / graph->cx, r*0.5, g*0.5, b*0.5);
-	cairo_pattern_add_color_stop_rgb(pat, (double)r_to   / graph->cx, r*1.5, g*1.5, b*1.5);
-	cairo_set_source(cr, pat);
-
-	cairo_fill_preserve(cr);
-	cairo_pattern_destroy(pat);
-
-	cairo_set_line_width(cr, 0.5);
-	cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, 0.9);
-	cairo_stroke(cr);
+	return 0;
 }
 
 
-static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min, double a_max)
+/*
+ * This function has two purposes:
+ *
+ * - If a cairo context is provided, a graph will be drawn on that context
+ * - if spot_a and spot_r are defined, it will find the path on the graph
+ *   that is below that spot
+ */
+
+static int do_dir(struct graph *graph, duc_dir *dir, int level, double a_min, double a_max)
 {
+	int spot_found = 0;
+
 	double a_range = a_max - a_min;
-	double a_from = a_min;
-	double a_to = a_min;
+	double a1 = a_min;
+	double a2 = a_min;
 			
 	double r_from = (level+1) * graph->ring_width;
 	double r_to = r_from + graph->ring_width;
@@ -183,45 +204,67 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 		if(e->size > size_max) size_max = e->size;
 	}
 
+	/* Rewind and iterate the objects to graph */
+
 	duc_rewinddir(dir);
 	while( (e = duc_readdir(dir)) != NULL) {
+		
+		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
-		a_to += a_range * e->size / size_total;
+		double size_rel = (double)e->size / size_total;
+		double size_nrel = (size_max == size_min) ? 0 : ((double)e->size - size_min) / (size_max - size_min);
+
+		a2 += a_range * size_rel;
 
 		/* Skip any segments that would be smaller then one pixel */
 
-		if(r_to * (a_to - a_from) * M_PI * 2 < 2) break;
-		if(a_to <= a_from) break;
+		if(r_to * (a2 - a1) * M_PI * 2 < 2) break;
+		if(a2 <= a1) break;
 
 		/* Color of the segment depends on it's relative size to other
 		 * objects in the same directory */
 
-		double hue = 0.8 - 0.8 * (double)(e->size - size_min + 1) / (size_max - size_min + 1);
+		double hue = 0.8 - 0.8 * size_nrel;
 		double brightness = 0.8 * r_from / graph->cx;
+
+		/* Check if the requested spot lies in this section */
+
+		if(graph->spot_r > 0) {
+			double a = graph->spot_a;
+			double r = graph->spot_r;
+
+			if(a >= a1 && a < a2 && r >= r_from && r < r_to) {
+				spot_found = 1;
+			}
+		}
 
 		/* Draw section for this object */
 
-		draw_section(graph, a_from, a_to, r_from, r_to, hue, brightness);
+		int found = draw_section(graph, a1, a2, r_from, r_to, hue, brightness);
+		if(found) {
+			graph->spot_part[level] = strdup(e->name);
+			return 1;
+		}
 
 		/* Recurse into subdirectories */
 
 		if(e->mode == DUC_MODE_DIR) {
-			if(level+1 < graph->depth) {
+			if(level+1 < graph->max_level) {
 				duc_dir *dir_child = duc_opendirat(dir, e);
-				if(dir_child) {
-					draw_ring(graph, dir_child, level + 1, a_from, a_to);
-					duc_closedir(dir_child);
-				}
+				if(!dir_child) continue;
+				int r = do_dir(graph, dir_child, level + 1, a1, a2);
+				duc_closedir(dir_child);
+				if(r) spot_found = 1;
 			} else {
-				draw_section(graph, a_from, a_to, r_to, r_to+5, hue, 0.5);
+				draw_section(graph, a1, a2, r_to, r_to+5, hue, 0.5);
 			}
 		}
 
 		/* Place labels if there is enough room to display */
 
-		if(r_from * (a_to - a_from) > 5) {
+		if(r_from * (a2 - a1) > 5) {
 			struct label *label = malloc(sizeof *label);
-			pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
+			pol2car(graph, ang((a1+a2)/2), (r_from+r_to)/2, &label->x, &label->y);
 			char siz[32];
 			duc_humanize(e->size, siz, sizeof siz);
 			int r = asprintf(&label->text, "%s\n%s", e->name, siz);
@@ -232,56 +275,13 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 				free(label);
 			}
 		}
-		
-		a_from = a_to;
-	}
-}
 
-
-static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min, double a_max, char *part[])
-{
-	double a_range = a_max - a_min;
-	double a_from = a_min;
-	double a_to = a_min;
-
-	/* Calculate max and total size */
-	
-	off_t size_total = duc_dirsize(dir);
-
-	struct duc_dirent *e;
-	while( (e = duc_readdir(dir)) != NULL) {
-
-		a_to += a_range * e->size / size_total;
-
-		if(a_to > a_from) {
-			double r_from = (level+1) * graph->ring_width;
-			double r_to = r_from + graph->ring_width;
-		
-			double a = graph->spot_a;
-			double r = graph->spot_r;
-
-			if(a >= a_from && a <= a_to && r >= r_from && r <= r_to) {
-				part[level] = strdup(e->name);
-				return 1;
-			}
-
-			if(e->mode == DUC_MODE_DIR) {
-				if(level+1 < graph->depth) {
-					duc_dir *dir_child = duc_opendirat(dir, e);
-					if(dir_child) {
-						int r = find_spot(graph, dir_child, level + 1, a_from, a_to, part);
-						duc_closedir(dir_child);
-						if(r) {
-							part[level] = strdup(e->name);
-							return 1;
-						}
-					}
-				}
-			}
-
+		if(spot_found) {
+			graph->spot_part[level] = strdup(e->name);
+			return 1;
 		}
 		
-		a_from = a_to;
+		a1 = a2;
 	}
 
 	return 0;
@@ -296,14 +296,14 @@ static cairo_status_t cairo_writer(void *closure, const unsigned char *data, uns
 }
 
 
-int duc_graph(duc *duc, duc_dir *dir, int size, int depth, FILE *fout)
+int duc_graph(duc *duc, duc_dir *dir, int size, int max_level, FILE *fout)
 {
 	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
 	assert(surface);
 	cairo_t *cr = cairo_create(surface);
 	assert(cr);
 
-	duc_graph_cairo(duc, dir, size, depth, cr);
+	duc_graph_cairo(duc, dir, size, max_level, cr);
 
 	cairo_destroy(cr);
 	cairo_surface_write_to_png_stream(surface, cairo_writer, fout);
@@ -313,18 +313,17 @@ int duc_graph(duc *duc, duc_dir *dir, int size, int depth, FILE *fout)
 }
 
 
-int duc_graph_cairo(duc *duc, duc_dir *dir, int size, int depth, cairo_t *cr)
+int duc_graph_cairo(duc *duc, duc_dir *dir, int size, int max_level, cairo_t *cr)
 {
 	struct graph graph;
 	memset(&graph, 0, sizeof graph);
 
 	graph.duc = duc;
-	graph.depth = depth;
-	graph.ring_width = ((size-30) / 2) / (graph.depth + 1);
+	graph.max_level = max_level;
+	graph.ring_width = ((size-30) / 2) / (graph.max_level + 1);
 	graph.label_list = NULL;
 	graph.cx = size / 2;
 	graph.cy = size / 2;
-
 	graph.cr = cr;
 
 	cairo_save(cr);
@@ -332,7 +331,7 @@ int duc_graph_cairo(duc *duc, duc_dir *dir, int size, int depth, cairo_t *cr)
 	/* Recursively draw graph */
 	
 	duc_rewinddir(dir);
-	draw_ring(&graph, dir, 1, 0, 1);
+	do_dir(&graph, dir, 1, 0, 1);
 
 	/* Draw collected labels */
 
@@ -353,19 +352,22 @@ int duc_graph_cairo(duc *duc, duc_dir *dir, int size, int depth, cairo_t *cr)
 }
 
 
-int duc_graph_xy_to_path(duc *duc, duc_dir *dir, int size, int depth, int x, int y, char *path, size_t path_len)
+int duc_graph_xy_to_path(duc *duc, duc_dir *dir, int size, int max_level, int x, int y, char *path, size_t path_len)
 {
+
 	struct graph graph;
 	memset(&graph, 0, sizeof graph);
 
-	/* If clicked in the center, go up one directory */
-
 	graph.duc = duc;
-	graph.depth = depth;
-	graph.ring_width = ((size-30) / 2) / (graph.depth + 1);
+	graph.max_level = max_level;
+	graph.ring_width = ((size-30) / 2) / (graph.max_level + 1);
 	graph.label_list = NULL;
 	graph.cx = size / 2;
 	graph.cy = size / 2;
+
+	car2pol(&graph, x, y, &graph.spot_a, &graph.spot_r);
+
+	/* If clicked in the center, go up one directory */
 
 	double r = hypot(x - size/2, y - size/2) / graph.ring_width;
 
@@ -375,24 +377,19 @@ int duc_graph_xy_to_path(duc *duc, duc_dir *dir, int size, int depth, int x, int
 		return 1;
 	}
 
-	car2pol(&graph, x, y, &graph.spot_a, &graph.spot_r);
-
-	char *part[graph.depth];
-	memset(part, 0, sizeof part);
-
 	duc_rewinddir(dir);
-	int found = find_spot(&graph, dir, 1, 0, 1, part);
+	int found = do_dir(&graph, dir, 1, 0, 1);
 		
 	strncpy(path, duc_dirpath(dir), path_len);
 
 	if(found) {
 
 		int i;
-		for(i=0; i<graph.depth; i++) {
-			if(part[i]) {
+		for(i=0; i<graph.max_level; i++) {
+			if(graph.spot_part[i]) {
 				strcat(path, "/");
-				strcat(path, part[i]);
-				free(part[i]);
+				strcat(path, graph.spot_part[i]);
+				free(graph.spot_part[i]);
 			}
 		}
 	}
