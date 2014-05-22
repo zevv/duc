@@ -54,7 +54,7 @@ static int info_main(int argc, char **argv)
 	struct duc_index_report *report;
 	int i = 0;
 
-	printf("Available indices:\n");
+	printf("Reading %s, available indices:\n",path_db);
 	while(( report = duc_get_report(duc, i)) != NULL) {
 
 		char ts[32];

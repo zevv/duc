@@ -83,6 +83,7 @@ static int ls_main(int argc, char **argv)
 	  fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
+	printf("Reading %s\n",path_db);
 
 	duc_dir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {

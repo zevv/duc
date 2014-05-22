@@ -87,6 +87,8 @@ static int xml_main(int argc, char **argv)
 		return -1;
 	}
 
+	fprintf(stderr,"Reading %s\n",path_db);
+
 	duc_dir *dir = duc_opendir(duc, path);
 	if(dir == NULL) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));
