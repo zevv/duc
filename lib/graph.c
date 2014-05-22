@@ -130,7 +130,7 @@ double ang(double a)
 }
 
 
-static void draw_section(struct graph *graph, double a_from, double a_to, int r_from, int r_to, double hue, double brightness, int isdir)
+static void draw_section(struct graph *graph, double a_from, double a_to, int r_from, int r_to, double hue, double brightness)
 {
 	cairo_t *cr = graph->cr;
 
@@ -165,8 +165,9 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 	double a_range = a_max - a_min;
 	double a_from = a_min;
 	double a_to = a_min;
-
-	duc_limitdir(dir, a_range * level * 50 + 1);
+			
+	double r_from = (level+1) * graph->ring_width;
+	double r_to = r_from + graph->ring_width;
 
 	/* Calculate max and total size */
 	
@@ -187,42 +188,48 @@ static void draw_ring(struct graph *graph, duc_dir *dir, int level, double a_min
 
 		a_to += a_range * e->size / size_total;
 
-		if(a_to > a_from) {
-			double r_from = (level+1) * graph->ring_width;
-			double r_to = r_from + graph->ring_width;
-	
-			double hue = 0.8 - 0.8 * (double)(e->size - size_min + 1) / (size_max - size_min + 1);
-			double brightness = 0.8 * r_from / graph->cx;
+		/* Skip any segments that would be smaller then one pixel */
 
-			if(e->mode == DUC_MODE_REST) brightness = 0;
-			int isdir = (e->mode == DUC_MODE_DIR);
+		if(r_to * (a_to - a_from) * M_PI * 2 < 2) break;
+		if(a_to <= a_from) break;
 
-			draw_section(graph, a_from, a_to, r_from, r_to, hue, brightness, isdir);
+		/* Color of the segment depends on it's relative size to other
+		 * objects in the same directory */
 
-			if(e->mode == DUC_MODE_DIR) {
-				if(level+1 < graph->depth) {
-					duc_dir *dir_child = duc_opendirat(dir, e);
-					if(dir_child) {
-						draw_ring(graph, dir_child, level + 1, a_from, a_to);
-						duc_closedir(dir_child);
-					}
-				} else {
-					draw_section(graph, a_from, a_to, r_to, r_to+5, hue, 0.5, 1);
+		double hue = 0.8 - 0.8 * (double)(e->size - size_min + 1) / (size_max - size_min + 1);
+		double brightness = 0.8 * r_from / graph->cx;
+
+		/* Draw section for this object */
+
+		draw_section(graph, a_from, a_to, r_from, r_to, hue, brightness);
+
+		/* Recurse into subdirectories */
+
+		if(e->mode == DUC_MODE_DIR) {
+			if(level+1 < graph->depth) {
+				duc_dir *dir_child = duc_opendirat(dir, e);
+				if(dir_child) {
+					draw_ring(graph, dir_child, level + 1, a_from, a_to);
+					duc_closedir(dir_child);
 				}
+			} else {
+				draw_section(graph, a_from, a_to, r_to, r_to+5, hue, 0.5);
 			}
+		}
 
-			if(r_from * (a_to - a_from) > 5) {
-				struct label *label = malloc(sizeof *label);
-				pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
-				char siz[32];
-				duc_humanize(e->size, siz, sizeof siz);
-				int r = asprintf(&label->text, "%s\n%s", e->name, siz);
-				if(r > 0) {
-					label->next = graph->label_list;
-					graph->label_list = label;
-				} else {
-					free(label);
-				}
+		/* Place labels if there is enough room to display */
+
+		if(r_from * (a_to - a_from) > 5) {
+			struct label *label = malloc(sizeof *label);
+			pol2car(graph, ang((a_from+a_to)/2), (r_from+r_to)/2, &label->x, &label->y);
+			char siz[32];
+			duc_humanize(e->size, siz, sizeof siz);
+			int r = asprintf(&label->text, "%s\n%s", e->name, siz);
+			if(r > 0) {
+				label->next = graph->label_list;
+				graph->label_list = label;
+			} else {
+				free(label);
 			}
 		}
 		
@@ -236,8 +243,6 @@ static int find_spot(struct graph *graph, duc_dir *dir, int level, double a_min,
 	double a_range = a_max - a_min;
 	double a_from = a_min;
 	double a_to = a_min;
-
-	duc_limitdir(dir, 30);
 
 	/* Calculate max and total size */
 	
