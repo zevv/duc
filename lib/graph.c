@@ -278,7 +278,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		switch(g->palette) {
 
 			case DUC_GRAPH_PALETTE_SIZE:
-				H = 0.8 - 0.8 * (size_rel + size_nrel) * 0.5;
+				H = 0.8 - 0.7 * size_nrel - 0.1 * size_rel;
 				S = 1.0 - 0.8 *(double)level / g->max_level;
 				V = 1;
 				L = 1;
@@ -331,7 +331,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
 				duc_closedir(dir_child);
 			} else {
-				draw_section(g, cr, a1, a2, r2, r2+5, H, S, V, L);
+				draw_section(g, cr, a1, a2, r2, r2+5, H, S, V/2, L);
 			}
 		}
 
