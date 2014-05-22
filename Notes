@@ -4,10 +4,11 @@ Global and Command specific args
 
 
 
-Arg		Global	index	info	ls	graph	xml	gui 	cgi
+Arg|ENV		Global	index	info	ls	graph	xml	gui 	cgi
 -------------	------	------	------	------	------	------	------	------
 -b
  --bytes				X
+DUC_DATABASE	X
 -d file		X
  --database	X
 --display							X
