@@ -14,8 +14,6 @@
 #include "duc.h"
 #include "duc-graph.h"
 
-int size = 600;
-int depth = 4;
 
 /*
  * Simple parser for CGI parameter line. Does not excape CGI strings.
@@ -86,34 +84,7 @@ static char *cgi_get(const char *key)
 }
 
 
-
-static char *find_xy(duc *duc, int x, int y)
-{
-	static char path_out[PATH_MAX];
-
-	char *path = cgi_get("path");
-	if(!path) return NULL;
-
-        duc_dir *dir = duc_opendir(duc, path);
-        if(dir == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(duc));
-                return NULL;
-        }
-
-	char path_found[PATH_MAX];
-	int found = duc_graph_xy_to_path(duc, dir, size, depth, x, y, path_found, sizeof(path_found));
-	if(found) {
-		snprintf(path_out, sizeof(path_out), "%s", path_found);
-		fprintf(stderr, "found %s", path_out);
-	}
-	
-	duc_closedir(dir);
-	return path_out;
-}
-
-
-
-static void do_index(duc *duc)
+static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 
 	printf(
@@ -135,7 +106,7 @@ static void do_index(duc *duc)
 	if(!script) return;
 
 	char *qs = getenv("QUERY_STRING");
-	int x, y;
+	int x = 0, y = 0;
 	if(qs) {
 		char *p1 = strchr(qs, '?');
 		if(p1) {
@@ -143,9 +114,13 @@ static void do_index(duc *duc)
 			if(p2) {
 				x = atoi(p1+1);
 				y = atoi(p2+1);
-				path = find_xy(duc, x, y);
 			}
 		}
+	}
+
+	if(x || y) {
+		//char newpath[PATH_MAX];
+		//duc_graph_xy_to_path(graph, dir, x, y, newpath, sizeof newpath);
 	}
 
 	struct duc_index_report *report;
@@ -201,24 +176,13 @@ static void do_index(duc *duc)
 }
 
 
-void do_image(duc *duc)
+void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 	printf("Content-Type: image/png\n");
 	printf("\n");
 
-	char *path = cgi_get("path");
-	if(!path) return;
+	duc_graph_draw_file(graph, dir, stdout);
 
-        duc_dir *dir = duc_opendir(duc, path);
-        if(dir == NULL) {
-                fprintf(stderr, "%s\n", duc_strerror(duc));
-                return;
-        }
-
-	duc_graph(duc, dir, size, depth, stdout);
-
-	duc_closedir(dir);
-	duc_close(duc);
 }
 
 
@@ -273,9 +237,24 @@ static int cgi_main(int argc, char **argv)
 		return -1;
         }
 
-	if(strcmp(cmd, "index") == 0) do_index(duc);
-	if(strcmp(cmd, "image") == 0) do_image(duc);
+	duc_dir *dir = NULL;
+	char *path = cgi_get("path");
+	if(path) {
+		dir = duc_opendir(duc, path);
+		if(dir == NULL) {
+			fprintf(stderr, "%s\n", duc_strerror(duc));
+			return 0;
+		}
+	}
+
+	duc_graph *graph = duc_graph_new(duc);
+	duc_graph_set_size(graph, 600);
+	duc_graph_set_max_level(graph, 4);
+
+	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
+	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
 	
+	duc_closedir(dir);
 	duc_close(duc);
 	duc_del(duc);
 

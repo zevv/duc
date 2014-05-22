@@ -28,6 +28,7 @@ struct duc {
 struct duc_dir {
 	char *path;
 	struct duc *duc;
+	duc_dir *parent;
 	struct duc_dirent *ent_list;
 	off_t size_total;
 	size_t ent_cur;

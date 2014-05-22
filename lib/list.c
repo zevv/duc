@@ -5,7 +5,7 @@
 #include "list.h"
 
 
-void list_push(struct list **list, char *data)
+void list_push(struct list **list, void *data)
 {
 	struct list *ln = malloc(sizeof(struct list));
 	assert(ln);

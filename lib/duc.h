@@ -108,7 +108,9 @@ int duc_index_report_free(struct duc_index_report *rep);
 struct duc_index_report *duc_get_report(duc *duc, size_t id);
 
 duc_dir *duc_opendir(duc *duc, const char *path);
-duc_dir *duc_opendirat(duc_dir *dir, struct duc_dirent *e);
+duc_dir *duc_parentdir(duc_dir *dir);
+duc_dir *duc_opendirat(duc_dir *dir, const char *name);
+duc_dir *duc_opendirent(duc_dir *dir, struct duc_dirent *e);
 int duc_limitdir(duc_dir *dir, size_t count);
 struct duc_dirent *duc_readdir(duc_dir *dir);
 char *duc_dirpath(duc_dir *dir);

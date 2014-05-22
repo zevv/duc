@@ -23,7 +23,7 @@ static int graph_main(int argc, char **argv)
 	char *path_db = NULL;
 	int size = 800;
 	char *path_out = "duc.png";
-	int depth = 4;
+	int max_level = 4;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
@@ -40,7 +40,7 @@ static int graph_main(int argc, char **argv)
 				path_db = optarg;
 				break;
 			case 'l':
-				depth = atoi(optarg);
+				max_level = atoi(optarg);
 				break;
 			case 'o':
 				path_out = optarg;
@@ -79,13 +79,18 @@ static int graph_main(int argc, char **argv)
                 return -1;
         }
 
+	duc_graph *graph = duc_graph_new(duc);
+	duc_graph_set_size(graph, size);
+	duc_graph_set_max_level(graph, max_level);
+
 	FILE *f = fopen(path_out, "w");
 	if(f == NULL) {
 		return -1;
 	}
 
-	duc_graph(duc, dir, size, depth, f);
+	duc_graph_draw_file(graph, dir, f);
 
+	duc_graph_free(graph);
 	duc_closedir(dir);
 	duc_close(duc);
 

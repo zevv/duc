@@ -31,7 +31,7 @@ static void dump(duc *duc, duc_dir *dir, int depth)
 		if(e->mode == DUC_MODE_DIR) {
 			indent(depth);
 			printf("<ent name='%s' size='%jd'>\n", e->name, e->size);
-			duc_dir *dir_child = duc_opendirat(dir, e);
+			duc_dir *dir_child = duc_opendirent(dir, e);
 			if(dir_child) {
 				dump(duc, dir_child, depth + 1);
 				indent(depth);

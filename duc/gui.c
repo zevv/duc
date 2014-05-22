@@ -1,4 +1,4 @@
-
+ 
 #include <getopt.h>
 #include <cairo.h>
 #include <string.h>
@@ -22,7 +22,7 @@
 static int depth = 4;
 
 
-int do_gui(duc *duc, char *root)
+int do_gui(duc *duc, duc_graph *graph, char *root)
 {
 	Display *dpy;
 	Window rootwin;
@@ -80,7 +80,9 @@ int do_gui(duc *duc, char *root)
 				XClearWindow(dpy, win);
 				cairo_move_to(cr, 20, 20);
 				cairo_show_text(cr, path);
-				duc_graph_cairo(duc, dir, size, depth, cr);
+				duc_graph_set_size(graph, size);
+				duc_graph_set_max_level(graph, depth);
+				duc_graph_draw_cairo(graph, dir, cr);
 				XFlush(dpy);
 				redraw = 0;
 			}
@@ -108,8 +110,9 @@ int do_gui(duc *duc, char *root)
 				
 				case KeyPress: {
 					KeySym k = XLookupKeysym(&e.xkey, 0);
-					if(k == XK_minus) depth--;
-					if(k == XK_equal) depth++;
+					if(k == XK_minus) depth++;
+					if(k == XK_equal) depth--;
+					if(k == XK_0) depth = 4;
 					if(k == XK_Escape) exit(0);
 					if(k == XK_q) exit(0);
 					if(depth < 2) depth = 2;
@@ -123,17 +126,13 @@ int do_gui(duc *duc, char *root)
 					int x = e.xbutton.x;
 					int y = e.xbutton.y;
 
-					char newpath[PATH_MAX];
-					int r = duc_graph_xy_to_path(duc, dir, size, depth, x, y, newpath, sizeof newpath);
-					if(r) {
-
-						duc_dir *dir2 = duc_opendir(duc, newpath);
-						if(dir2) {
-							duc_closedir(dir);
-							dir = dir2;
-							snprintf(path, sizeof path, "%s", newpath);
-						}
-						
+					duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+					if(dir2) {
+						duc_closedir(dir);
+						dir = dir2;
+						char *p = duc_dirpath(dir);
+						snprintf(path, sizeof path, "%s", p);
+						free(p);
 						redraw = 1;
 					}
 
@@ -188,9 +187,10 @@ int gui_main(int argc, char *argv[])
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
-	
 
-	do_gui(duc, path);
+	duc_graph *graph = duc_graph_new(duc);
+
+	do_gui(duc, graph, path);
 
 	return 0;
 }

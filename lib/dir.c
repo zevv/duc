@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <stdint.h>
+#include <libgen.h>
 
 #include "duc.h"
 #include "db.h"
@@ -89,7 +90,7 @@ off_t duc_dirsize(duc_dir *dir)
 
 char *duc_dirpath(duc_dir *dir)
 {
-	return dir->path;
+	return strdup(dir->path);
 }
 
 
@@ -185,13 +186,43 @@ struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
 }
 
 
-duc_dir *duc_opendirat(duc_dir *dir, struct duc_dirent *e)
+duc_dir *duc_opendirent(duc_dir *dir, struct duc_dirent *e)
 {
 	duc_dir *dir2 = duc_dir_read(dir->duc, e->dev, e->ino);
 	if(dir2) {
 		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
 	}
 	return dir2;
+}
+
+
+duc_dir *duc_opendirat(duc_dir *dir, const char *name)
+{
+	if(strcmp(name, "..") == 0) {
+
+		/* Special case: go up one directory */
+
+		char *p = duc_dirpath(dir);
+		dirname(p);
+		duc_dir *dir2 = duc_opendir(dir->duc, p);
+		free(p);
+		return dir2;
+
+	} else {
+
+		/* Find given name in dir */
+
+		size_t i;
+		struct duc_dirent *e = dir->ent_list;
+		for(i=0; i<dir->ent_count; i++) {
+			if(strcmp(e->name, name) == 0) {
+				return duc_opendirent(dir, e);
+			}
+			e++;
+		}
+	}
+
+	return NULL;
 }
 
 
@@ -241,6 +272,7 @@ struct duc_dirent *duc_finddir(duc_dir *dir, const char *name)
 	dir->duc->err = DUC_E_PATH_NOT_FOUND;
 	return NULL;
 }
+
 
 
 duc_dir *duc_opendir(struct duc *duc, const char *path)
@@ -302,7 +334,7 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 		struct duc_dir *dir_next = NULL;
 
 		if(ent) {
-			dir_next = duc_opendirat(dir, ent);
+			dir_next = duc_opendirent(dir, ent);
 		}
 
 		duc_closedir(dir);
