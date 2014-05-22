@@ -410,7 +410,10 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 {
 	duc_dir *dir2 = NULL;
 
-	car2pol(g, x - g->pos_x, y - g->pos_y, &g->spot_a, &g->spot_r);
+	x -= g->pos_x;
+	y -= g->pos_y;
+
+	car2pol(g, x, y, &g->spot_a, &g->spot_r);
 	double r = hypot(x - g->cx, y - g->cy);
 
 	if(r < g->r_start) {
