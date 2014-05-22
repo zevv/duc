@@ -42,6 +42,7 @@ struct duc_graph {
 	double cx, cy;
 	double pos_x, pos_y;
 	double r_start;
+	double fuzz;
 	int max_level;
 	enum duc_graph_palette palette;
 
@@ -63,6 +64,7 @@ duc_graph *duc_graph_new(duc *duc)
 
 	g->duc = duc;
 	g->r_start = 100;
+	g->fuzz = 0;
 	duc_graph_set_max_level(g, 3);
 	duc_graph_set_size(g, 400);
 
@@ -100,6 +102,12 @@ void duc_graph_set_position(duc_graph *g, int pos_x, int pos_y)
 void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p)
 {
 	g->palette = p;
+}
+
+
+void duc_graph_set_fuzz(duc_graph *g, double fuzz)
+{
+	g->fuzz = fuzz;
 }
 
 
@@ -238,8 +246,6 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			
 	double ring_width = (g->size/2 - g->r_start - 10) / g->max_level;
 
-	double r2 = r1 + ring_width;
-
 	/* Calculate max and total size */
 	
 	off_t size_total = duc_dirsize(dir);
@@ -262,8 +268,9 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
 		double size_rel = (double)e->size / size_total;
-		double size_nrel = (size_max == size_min) ? 0 : ((double)e->size - size_min) / (size_max - size_min);
+		double size_nrel = (size_max == size_min) ? 1 : ((double)e->size - size_min) / (size_max - size_min);
 
+		double r2 = r1 + ring_width * (1 - (1 - size_nrel) * g->fuzz);
 		a2 += a_range * size_rel;
 
 		/* Skip any segments that would be smaller then one pixel */

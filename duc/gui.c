@@ -34,6 +34,7 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 	int palette = 0;
 	int win_w = 400;
 	int win_h = 400;
+	double fuzz = 0;
 
 	duc_dir *dir = duc_opendir(duc, root);
 	if(dir == NULL) {
@@ -85,10 +86,14 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 				int size = win_w < win_h ? win_w : win_h;
 				int pos_x = (win_w - size) / 2;
 				int pos_y = (win_h - size) / 2;
+					
+				if(depth < 2) depth = 2;
+				if(depth > 10) depth = 10;
 
 				duc_graph_set_size(graph, size);
 				duc_graph_set_position(graph, pos_x, pos_y);
 				duc_graph_set_max_level(graph, depth);
+				duc_graph_set_fuzz(graph, fuzz);
 				duc_graph_draw_cairo(graph, dir, cr);
 				XFlush(dpy);
 				redraw = 0;
@@ -120,6 +125,7 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 					if(k == XK_0) depth = 4;
 					if(k == XK_Escape) exit(0);
 					if(k == XK_q) exit(0);
+					if(k == XK_f) fuzz = 0.7 - fuzz;
 					if(k == XK_p) {
 						palette = (palette + 1) % 4;
 						duc_graph_set_palette(graph, palette);
@@ -131,8 +137,6 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 							dir = dir2;
 						}
 					}
-					if(depth < 2) depth = 2;
-					if(depth > 20) depth = 20;
 					redraw = 1;
 					break;
 				}
@@ -141,14 +145,27 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 
 					int x = e.xbutton.x;
 					int y = e.xbutton.y;
+					int b = e.xbutton.button;
 
-					duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
-					if(dir2) {
-						duc_closedir(dir);
-						dir = dir2;
-						redraw = 1;
+					if(b == 1) {
+						duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+						if(dir2) {
+							duc_closedir(dir);
+							dir = dir2;
+						}
+					}
+					if(b == 3) {
+						duc_dir *dir2 = duc_opendirat(dir, "..");
+						if(dir2) {
+							duc_closedir(dir);
+							dir = dir2;
+						}
 					}
 
+					if(b == 4) depth --;
+					if(b == 5) depth ++;
+
+					redraw = 1;
 					break;
 				}
 			}
