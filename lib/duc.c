@@ -36,16 +36,12 @@ char *duc_pick_db_path(const char *path_db)
   if (path_db) {
 	tmp = strdup(path_db);
   }
-  printf("path_db = %s, tmp = %s\n",path_db,tmp);
-  
+
   if(tmp == NULL) {
-	printf(" Checking DUC_DATABASE...\n");
 	tmp = getenv("DUC_DATABASE");
-	printf("path_db = %s, tmp = %s\n",path_db,tmp);
   }
   
   if(tmp == NULL) {
-	printf(" Checking HOME/.duc.db\n");
 	char *home = getenv("HOME");
 	if(home) {
 	  /* PATH_MAX is overkill, but memory is cheap... */
@@ -53,9 +49,7 @@ char *duc_pick_db_path(const char *path_db)
 	  tmp = memset(tmp, 0, PATH_MAX);
 	  snprintf(tmp, PATH_MAX, "%s/.duc.db", home);
 	}
-	printf("path_db = %s, tmp = %s\n",path_db,tmp);
   }
-  printf("Using: %s\n",tmp);
   return(tmp);
 }
 
