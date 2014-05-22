@@ -191,7 +191,7 @@ double ang(double a)
 }
 
 
-static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r1, int r2, double H, double S, double V)
+static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, double r1, double r2, double H, double S, double V, double line)
 {
 	if(cr == NULL) return;
 
@@ -206,8 +206,8 @@ static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r1
 	if(R != 1.0 || G != 1.0 || B != 1.0) {
 		cairo_pattern_t *pat;
 		pat = cairo_pattern_create_radial(g->cx, g->cy, 0, g->cx, g->cy, g->cx-50);
-		double off1 = (double)r2 / g->cx;
-		double off2 = (double)r1 / g->cx;
+		double off1 = r2 / g->cx;
+		double off2 = r1 / g->cx;
 		cairo_pattern_add_color_stop_rgb(pat, off1, R, G, B);
 		cairo_pattern_add_color_stop_rgb(pat, off2, R * 0.6, G * 0.6, B * 0.6);
 		cairo_set_source(cr, pat);
@@ -217,7 +217,7 @@ static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r1
 	}
 
 	cairo_set_line_width(cr, 0.5);
-	cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, 0.9);
+	cairo_set_source_rgba(cr, line, line, line, 0.9);
 	cairo_stroke(cr);
 }
 
@@ -238,7 +238,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			
 	double ring_width = (g->size/2 - g->r_start - 10) / g->max_level;
 
-	double r_to = r1 + ring_width;
+	double r2 = r1 + ring_width;
 
 	/* Calculate max and total size */
 	
@@ -268,37 +268,41 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 		/* Skip any segments that would be smaller then one pixel */
 
-		if(r_to * (a2 - a1) * M_PI * 2 < 2) break;
+		if(r2 * (a2 - a1) * M_PI * 2 < 2) break;
 		if(a2 <= a1) break;
 
 		/* Determine section color */
 
-		double H, S, V;
+		double H, S, V, L;
 
 		switch(g->palette) {
 
 			case DUC_GRAPH_PALETTE_SIZE:
-				H = 0.8 - 0.8 * size_nrel;
+				H = 0.8 - 0.8 * (size_rel + size_nrel) * 0.5;
 				S = 1.0 - 0.8 *(double)level / g->max_level;
 				V = 1;
+				L = 1;
 				break;
 
 			case DUC_GRAPH_PALETTE_RAINBOW:
 				H = (a1 + a2) / 2;
 				S = 1.0 - 0.8 *(double)level / g->max_level;
 				V = 1;
+				L = 0;
 				break;
 			
 			case DUC_GRAPH_PALETTE_GREYSCALE:
 				H = 0;
 				S = 0;
 				V = 1.0 - 0.5 * size_nrel;
+				L = 1;
 				break;
 
 			case DUC_GRAPH_PALETTE_MONOCHROME:
 				H = 0;
 				S = 0;
 				V = 1;
+				L = 0;
 				break;
 		}
 	
@@ -309,14 +313,14 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			double a = g->spot_a;
 			double r = g->spot_r;
 
-			if(a >= a1 && a < a2 && r >= r1 && r < r_to) {
+			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
 				g->spot_dir = duc_opendirent(dir, e);
 			}
 		}
 
 		/* Draw section for this object */
 
-		draw_section(g, cr, a1, a2, r1, r_to, H, S, V);
+		draw_section(g, cr, a1, a2, r1, r2, H, S, V, L);
 
 		/* Recurse into subdirectories */
 
@@ -324,10 +328,10 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			if(level+1 < g->max_level) {
 				duc_dir *dir_child = duc_opendirent(dir, e);
 				if(!dir_child) continue;
-				do_dir(g, cr, dir_child, level + 1, r_to, a1, a2);
+				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
 				duc_closedir(dir_child);
 			} else {
-				draw_section(g, cr, a1, a2, r_to, r_to+5, H, S, V);
+				draw_section(g, cr, a1, a2, r2, r2+5, H, S, V, L);
 			}
 		}
 
@@ -336,7 +340,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		if(cr) {
 			if(r1 * (a2 - a1) > 5) {
 				struct label *label = malloc(sizeof *label);
-				pol2car(g, ang((a1+a2)/2), (r1+r_to)/2, &label->x, &label->y);
+				pol2car(g, ang((a1+a2)/2), (r1+r2)/2, &label->x, &label->y);
 				char siz[32];
 				duc_humanize(e->size, siz, sizeof siz);
 				asprintf(&label->text, "%s\n%s", e->name, siz);

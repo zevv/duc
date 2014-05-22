@@ -59,7 +59,7 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask);
 	XMapWindow(dpy, win);
 
-	cs =  cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), SIZEX, SIZEY);
+	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), SIZEX, SIZEY);
 	cr = cairo_create(cs);
 
 	int redraw = 0;
