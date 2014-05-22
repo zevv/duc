@@ -42,6 +42,7 @@ struct duc_graph {
 	double cx, cy;
 	double r_start;
 	int max_level;
+	enum duc_graph_palette palette;
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
@@ -88,6 +89,11 @@ void duc_graph_set_size(duc_graph *g, int size)
 	g->r_start = size / 10;
 }
 
+
+void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p)
+{
+	g->palette = p;
+}
 
 
 static void pol2car(duc_graph *g, double a, double r, int *x, int *y)
@@ -160,7 +166,7 @@ static void draw_text(cairo_t *cr, int x, int y, int size, char *text)
 	/* light grey background */
 
 	cairo_set_line_join (cr, CAIRO_LINE_JOIN_BEVEL);
-	cairo_set_source_rgba(cr, 1, 1, 1, 0.4);
+	cairo_set_source_rgba(cr, 1, 1, 1, 0.6);
 	cairo_set_line_width(cr, 3);
 	cairo_stroke_preserve(cr);
 
@@ -178,29 +184,30 @@ double ang(double a)
 }
 
 
-static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r1, int r_to, double hue, double brightness)
+static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, int r1, int r2, double H, double S, double V)
 {
 	if(cr == NULL) return;
 
-	double R = 0.6, G = 0.6, B = 0.6;
-
-	if(brightness > 0) {
-		hsv2rgb(hue, 1.0-brightness, brightness/2+0.5, &R, &G, &B);
-	}
+	double R, G, B;
+	hsv2rgb(H, S, V, &R, &G, &B);
 
 	cairo_new_path(cr);
 	cairo_arc(cr, g->cx, g->cy, r1, ang(a1), ang(a2));
-	cairo_arc_negative(cr, g->cx, g->cy, r_to, ang(a2), ang(a1));
+	cairo_arc_negative(cr, g->cx, g->cy, r2, ang(a2), ang(a1));
 	cairo_close_path(cr);
 
-	cairo_pattern_t *pat;
-	pat = cairo_pattern_create_radial(g->cx, g->cy, 0, g->cx, g->cy, g->cx-50);
-	cairo_pattern_add_color_stop_rgb(pat, (double)r1 / g->cx, R*0.5, G*0.5, B*0.5);
-	cairo_pattern_add_color_stop_rgb(pat, (double)r_to   / g->cx, R*1.5, G*1.5, B*1.5);
-	cairo_set_source(cr, pat);
+	if(R != 1.0 || G != 1.0 || B != 1.0) {
+		cairo_pattern_t *pat;
+		pat = cairo_pattern_create_radial(g->cx, g->cy, 0, g->cx, g->cy, g->cx-50);
+		double off1 = (double)r2 / g->cx;
+		double off2 = (double)r1 / g->cx;
+		cairo_pattern_add_color_stop_rgb(pat, off1, R, G, B);
+		cairo_pattern_add_color_stop_rgb(pat, off2, R * 0.6, G * 0.6, B * 0.6);
+		cairo_set_source(cr, pat);
 
-	cairo_fill_preserve(cr);
-	cairo_pattern_destroy(pat);
+		cairo_fill_preserve(cr);
+		cairo_pattern_destroy(pat);
+	}
 
 	cairo_set_line_width(cr, 0.5);
 	cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, 0.9);
@@ -257,11 +264,37 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		if(r_to * (a2 - a1) * M_PI * 2 < 2) break;
 		if(a2 <= a1) break;
 
-		/* Color of the segment depends on it's relative size to other
-		 * objects in the same directory */
+		/* Determine section color */
 
-		double hue = 0.8 - 0.8 * size_nrel;
-		double brightness = 0.8 * r1 / g->cx;
+		double H, S, V;
+
+		switch(g->palette) {
+
+			case DUC_GRAPH_PALETTE_SIZE:
+				H = 0.8 - 0.8 * size_nrel;
+				S = 1.0 - 0.5 *(double)level / g->max_level;
+				V = 1;
+				break;
+
+			case DUC_GRAPH_PALETTE_RAINBOW:
+				H = (a1 + a2) / 2;
+				S = 1.0 - 0.5 *(double)level / g->max_level;
+				V = 1;
+				break;
+			
+			case DUC_GRAPH_PALETTE_GREYSCALE:
+				H = 0;
+				S = 0;
+				V = 1.0 - 0.5 * size_nrel;
+				break;
+
+			case DUC_GRAPH_PALETTE_MONOCHROME:
+				H = 0;
+				S = 0;
+				V = 1;
+				break;
+		}
+	
 
 		/* Check if the requested spot lies in this section */
 
@@ -276,18 +309,18 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 		/* Draw section for this object */
 
-		draw_section(g, cr, a1, a2, r1, r_to, hue, brightness);
+		draw_section(g, cr, a1, a2, r1, r_to, H, S, V);
 
 		/* Recurse into subdirectories */
 
 		if(e->mode == DUC_MODE_DIR) {
-			if(level+1 <= g->max_level) {
+			if(level+1 < g->max_level) {
 				duc_dir *dir_child = duc_opendirent(dir, e);
 				if(!dir_child) continue;
 				do_dir(g, cr, dir_child, level + 1, r_to, a1, a2);
 				duc_closedir(dir_child);
 			} else {
-				draw_section(g, cr, a1, a2, r_to, r_to+5, hue, 0.5);
+				draw_section(g, cr, a1, a2, r_to, r_to+5, H, S, V);
 			}
 		}
 
@@ -343,7 +376,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	
 	duc_rewinddir(dir);
 
-	do_dir(g, cr, dir, 1, g->r_start, 0, 1);
+	do_dir(g, cr, dir, 0, g->r_start, 0, 1);
 
 	/* Draw collected labels */
 
@@ -383,7 +416,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 		g->spot_dir = NULL;
 
 		duc_rewinddir(dir);
-		do_dir(g, NULL, dir, 1, g->r_start, 0, 1);
+		do_dir(g, NULL, dir, 0, g->r_start, 0, 1);
 
 		g->spot_a = 0;
 		g->spot_r = 0;

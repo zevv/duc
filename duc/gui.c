@@ -31,10 +31,8 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 	int scr;
 	cairo_surface_t *cs;
 	cairo_t *cr;
-	static int size = 400;
-	char path[PATH_MAX];
-
-	strncpy(path, root, sizeof path);
+	int size = 400;
+	int palette = 0;
 
 	duc_dir *dir = duc_opendir(duc, root);
 	if(dir == NULL) {
@@ -77,9 +75,12 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 		if(r == 0) {
 
 			if(redraw) {
+				char *path = duc_dirpath(dir);
 				XClearWindow(dpy, win);
 				cairo_move_to(cr, 20, 20);
 				cairo_show_text(cr, path);
+				free(path);
+
 				duc_graph_set_size(graph, size);
 				duc_graph_set_max_level(graph, depth);
 				duc_graph_draw_cairo(graph, dir, cr);
@@ -115,6 +116,17 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 					if(k == XK_0) depth = 4;
 					if(k == XK_Escape) exit(0);
 					if(k == XK_q) exit(0);
+					if(k == XK_p) {
+						palette = (palette + 1) % 4;
+						duc_graph_set_palette(graph, palette);
+					}
+					if(k == XK_BackSpace) {
+						duc_dir *dir2 = duc_opendirat(dir, "..");
+						if(dir2) {
+							duc_closedir(dir);
+							dir = dir2;
+						}
+					}
 					if(depth < 2) depth = 2;
 					if(depth > 20) depth = 20;
 					redraw = 1;
@@ -130,9 +142,6 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 					if(dir2) {
 						duc_closedir(dir);
 						dir = dir2;
-						char *p = duc_dirpath(dir);
-						snprintf(path, sizeof path, "%s", p);
-						free(p);
 						redraw = 1;
 					}
 
