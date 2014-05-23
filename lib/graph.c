@@ -16,6 +16,8 @@
 #include <libgen.h>
 
 #include <cairo.h>
+#include <cairo-svg.h>
+#include <cairo-pdf.h>
 #include <pango/pangocairo.h>
 
 #include "list.h"
@@ -370,18 +372,33 @@ static cairo_status_t cairo_writer(void *closure, const unsigned char *data, uns
 }
 
 
-int duc_graph_draw_file(duc_graph *g, duc_dir *dir, FILE *fout)
+int duc_graph_draw_file(duc_graph *g, duc_dir *dir, enum duc_graph_file_format fmt, FILE *fout)
 {
-	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, g->size, g->size);
-	assert(surface);
-	cairo_t *cr = cairo_create(surface);
-	assert(cr);
+	cairo_t *cr;
+	cairo_surface_t *cs;
 
-	duc_graph_draw_cairo(g, dir, cr);
+	switch(fmt) {
+
+		case DUC_GRAPH_FORMAT_PNG:
+			cs = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, g->size, g->size);
+			cr = cairo_create(cs);
+			duc_graph_draw_cairo(g, dir, cr);
+			cairo_surface_write_to_png_stream(cs, cairo_writer, fout);
+			break;
+		case DUC_GRAPH_FORMAT_SVG:
+			cs = cairo_svg_surface_create_for_stream(cairo_writer, fout, g->size, g->size);
+			cr = cairo_create(cs);
+			duc_graph_draw_cairo(g, dir, cr);
+			break;
+		case DUC_GRAPH_FORMAT_PDF:
+			cs = cairo_pdf_surface_create_for_stream(cairo_writer, fout, g->size, g->size);
+			cr = cairo_create(cs);
+			duc_graph_draw_cairo(g, dir, cr);
+			break;
+	}
 
 	cairo_destroy(cr);
-	cairo_surface_write_to_png_stream(surface, cairo_writer, fout);
-	cairo_surface_destroy(surface);
+	cairo_surface_destroy(cs);
 
 	return 0;
 }

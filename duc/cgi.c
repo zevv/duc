@@ -182,7 +182,7 @@ void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 	printf("\n");
 
 	if(dir) {
-		duc_graph_draw_file(graph, dir, stdout);
+		duc_graph_draw_file(graph, dir, DUC_GRAPH_FORMAT_PNG, stdout);
 	}
 }
 

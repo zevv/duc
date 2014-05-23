@@ -22,8 +22,10 @@ static int graph_main(int argc, char **argv)
 	int c;
 	char *path_db = NULL;
 	int size = 800;
-	char *path_out = "duc.png";
+	char *path_out = NULL;
+	char *path_out_default = "duc.png";
 	int max_level = 4;
+	enum duc_graph_file_format format = DUC_GRAPH_FORMAT_PNG;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
@@ -39,6 +41,16 @@ static int graph_main(int argc, char **argv)
 			case 'd':
 				path_db = optarg;
 				break;
+			case 'f':
+				if(strcasecmp(optarg, "svg") == 0) {
+					format = DUC_GRAPH_FORMAT_SVG;
+					path_out_default = "duc.svg";
+				}
+				if(strcasecmp(optarg, "pdf") == 0) {
+					format = DUC_GRAPH_FORMAT_PDF;
+					path_out_default = "duc.pdf";
+				}
+				break;
 			case 'l':
 				max_level = atoi(optarg);
 				break;
@@ -52,6 +64,8 @@ static int graph_main(int argc, char **argv)
 				return -2;
 		}
 	}
+
+	if(path_out == NULL) path_out = path_out_default;
 
 	argc -= optind;
 	argv += optind;
@@ -89,7 +103,7 @@ static int graph_main(int argc, char **argv)
 		return -1;
 	}
 
-	duc_graph_draw_file(graph, dir, f);
+	duc_graph_draw_file(graph, dir, format, f);
 
 	duc_graph_free(graph);
 	duc_closedir(dir);
@@ -106,6 +120,7 @@ struct cmd cmd_graph = {
 	.usage = "[options] [PATH]",
 	.help = 
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -f, --format=ARG        select output format <png|svg|pdf> [png]\n"
 	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
 		"  -o, --output=ARG        output file name [duc.png]\n"
 	        "  -s, --size=ARG          image size [800]\n",
