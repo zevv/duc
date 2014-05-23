@@ -5,8 +5,6 @@
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
-#include <sys/poll.h>
-#include <libgen.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,92 +14,90 @@
 #include "duc-graph.h"
 #include "cmd.h"
 
-#define SIZEX 600
-#define SIZEY 600
-
 static int depth = 4;
 
 
-int do_gui(duc *duc, duc_graph *graph, char *root)
+int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-	Display *dpy;
-	Window rootwin;
-	Window win;
-	XEvent e;
-	int scr;
-	cairo_surface_t *cs;
-	cairo_t *cr;
 	int palette = 0;
-	int win_w = 400;
-	int win_h = 400;
+	int win_w = 100;
+	int win_h = 100;
 	double fuzz = 0;
 
-	duc_dir *dir = duc_opendir(duc, root);
-	if(dir == NULL) {
-		fprintf(stderr, "%s\n", duc_strerror(duc));
-		return -1;
-	}
-
-	if(!(dpy = XOpenDisplay(NULL))) {
+	Display *dpy = XOpenDisplay(NULL);
+	if(dpy == NULL) {
 		fprintf(stderr, "ERROR: Could not open display\n");
 		exit(1);
 	}
 
-	scr = DefaultScreen(dpy);
-	rootwin = RootWindow(dpy, scr);
+	int scr = DefaultScreen(dpy);
+	Window rootwin = RootWindow(dpy, scr);
 
-	win = XCreateSimpleWindow(
+	Window win = XCreateSimpleWindow(
 			dpy, 
 			rootwin, 
 			1, 1, 
-			SIZEX, SIZEY, 0, 
+			win_w, win_h, 0, 
 			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
 
 	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask);
 	XMapWindow(dpy, win);
+	
+	cairo_surface_t *cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
 
-	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), SIZEX, SIZEY);
-	cr = cairo_create(cs);
-
-	int redraw = 0;
-
-	struct pollfd pfd = {
-		.fd = ConnectionNumber(dpy),
-		.events = POLLIN,
-	};
+	int redraw = 1;
 
 	while(1) {
 	
-		int r = poll(&pfd, 1, 10);
+		if(redraw && cs) {
+			cairo_t *cr;
 
-		if(r == 0) {
+			char *path = duc_dirpath(dir);
 
-			if(redraw) {
-				char *path = duc_dirpath(dir);
-				XClearWindow(dpy, win);
-				cairo_move_to(cr, 20, 20);
-				cairo_show_text(cr, path);
-				free(path);
+			cairo_surface_t *cs2 = cairo_surface_create_similar(
+					cs, 
+					CAIRO_CONTENT_COLOR,
+					cairo_xlib_surface_get_width(cs),
+					cairo_xlib_surface_get_height(cs));
 
-				int size = win_w < win_h ? win_w : win_h;
-				int pos_x = (win_w - size) / 2;
-				int pos_y = (win_h - size) / 2;
-					
-				if(depth < 2) depth = 2;
-				if(depth > 10) depth = 10;
+			cr = cairo_create(cs2);
 
-				duc_graph_set_size(graph, size);
-				duc_graph_set_position(graph, pos_x, pos_y);
-				duc_graph_set_max_level(graph, depth);
-				duc_graph_set_fuzz(graph, fuzz);
-				duc_graph_draw_cairo(graph, dir, cr);
-				XFlush(dpy);
-				redraw = 0;
-			}
+			cairo_set_source_rgb(cr, 1, 1, 1);
+			cairo_paint(cr);
+
+			cairo_set_source_rgb(cr, 0, 0, 0);
+			cairo_move_to(cr, 20, 20);
+			cairo_show_text(cr, path);
+			free(path);
+
+			int size = win_w < win_h ? win_w : win_h;
+			int pos_x = (win_w - size) / 2;
+			int pos_y = (win_h - size) / 2;
+
+			if(depth < 2) depth = 2;
+			if(depth > 10) depth = 10;
+
+			duc_graph_set_size(graph, size);
+			duc_graph_set_position(graph, pos_x, pos_y);
+			duc_graph_set_max_level(graph, depth);
+			duc_graph_set_fuzz(graph, fuzz);
+			duc_graph_draw_cairo(graph, dir, cr);
+			cairo_destroy(cr);
+
+			cr = cairo_create(cs);
+			cairo_set_source_surface(cr, cs2, 0, 0);
+			cairo_paint(cr);
+			cairo_destroy(cr);
+
+			cairo_surface_destroy(cs2);
+
+			XFlush(dpy);
+			redraw = 0;
 		}
 
-		if(r == 1) {
+		if(1) {
 
+			XEvent e;
 			XNextEvent(dpy, &e);
 
 			switch(e.type) {
@@ -119,9 +115,11 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 					break;
 				
 				case KeyPress: {
+
 					KeySym k = XLookupKeysym(&e.xkey, 0);
-					if(k == XK_minus) depth++;
-					if(k == XK_equal) depth--;
+
+					if(k == XK_minus) depth--;
+					if(k == XK_equal) depth++;
 					if(k == XK_0) depth = 4;
 					if(k == XK_Escape) exit(0);
 					if(k == XK_q) exit(0);
@@ -137,6 +135,7 @@ int do_gui(duc *duc, duc_graph *graph, char *root)
 							dir = dir2;
 						}
 					}
+
 					redraw = 1;
 					break;
 				}
@@ -218,10 +217,16 @@ int gui_main(int argc, char *argv[])
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
+	
+	duc_dir *dir = duc_opendir(duc, path);
+	if(dir == NULL) {
+		fprintf(stderr, "%s\n", duc_strerror(duc));
+		return -1;
+	}
 
 	duc_graph *graph = duc_graph_new(duc);
 
-	do_gui(duc, graph, path);
+	do_gui(duc, graph, dir);
 
 	return 0;
 }
