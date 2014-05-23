@@ -12,6 +12,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <fnmatch.h>
+#include <unistd.h>
 
 #include "db.h"
 #include "duc.h"
@@ -100,19 +101,18 @@ static int match_list(const char *name, struct list *l)
 }
 
 
-static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, int fd_dir, struct stat *stat_dir)
+static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *stat_dir)
 {
 	struct duc *duc = req->duc;
 	off_t size_dir = 0;
 
-	int fd = openat(fd_dir, path, OPEN_FLAGS);
-
-	if(fd == -1) {
+	int r = chdir(path);
+	if(r == -1) {
 		duc_log(duc, LG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
-	DIR *d = fdopendir(fd);
+	DIR *d = opendir(".");
 	if(d == NULL) {
 		duc_log(duc, LG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
@@ -140,7 +140,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		/* Get file info */
 
 		struct stat stat;
-		int r = fstatat(fd, e->d_name, &stat, AT_SYMLINK_NOFOLLOW);
+		int r = lstat(e->d_name, &stat);
 		if(r == -1) {
 			duc_log(duc, LG_WRN, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			continue;
@@ -160,7 +160,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t size = 0;
 		
 		if(S_ISDIR(stat.st_mode)) {
-			size += index_dir(req, report, e->d_name, fd, &stat);
+			size += index_dir(req, report, e->d_name, &stat);
 			report->dir_count ++;
 		} else {
 			size = stat.st_size;
@@ -179,6 +179,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	duc_closedir(dir);
 
 	closedir(d);
+	chdir("..");
 
 	return size_dir;
 }	
@@ -215,11 +216,12 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Create report */
 	
 	struct duc_index_report *report = duc_malloc(sizeof(struct duc_index_report));
+	memset(report, 0, sizeof *report);
 
 	/* Recursively index subdirectories */
 
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(req, report, path_canon, 0, &stat);
+	report->size_total = index_dir(req, report, path_canon, &stat);
 	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */
