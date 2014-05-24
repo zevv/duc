@@ -55,8 +55,6 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 		if(redraw && cs) {
 			cairo_t *cr;
 
-			char *path = duc_dirpath(dir);
-
 			cairo_surface_t *cs2 = cairo_surface_create_similar(
 					cs, 
 					CAIRO_CONTENT_COLOR,
@@ -67,11 +65,6 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			cairo_set_source_rgb(cr, 1, 1, 1);
 			cairo_paint(cr);
-
-			cairo_set_source_rgb(cr, 0, 0, 0);
-			cairo_move_to(cr, 20, 20);
-			cairo_show_text(cr, path);
-			free(path);
 
 			int size = win_w < win_h ? win_w : win_h;
 			int pos_x = (win_w - size) / 2;

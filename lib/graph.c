@@ -25,7 +25,6 @@
 #include "duc-graph.h"
 
 #define FONT_SIZE_LABEL 8
-#define FONT_SIZE_BACK 12
 
 #define MAX_DEPTH 32
 
@@ -246,7 +245,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	double a1 = a1_dir;
 	double a2 = a1_dir;
 			
-	double ring_width = (g->size/2 - g->r_start - 10) / g->max_level;
+	double ring_width = (g->size/2 - g->r_start - 30) / g->max_level;
 
 	/* Calculate max and total size */
 	
@@ -424,8 +423,14 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 		free(label->text);
 		free(label);
 	}
+	
+	char *p = duc_dirpath(dir);
+	draw_text(cr, g->cx, 10, FONT_SIZE_LABEL, p);
+	free(p);
 
-	draw_text(cr, g->cx, g->cy, 16, "cd ../");
+	char siz[32];
+	duc_humanize(duc_dirsize(dir), siz, sizeof siz);
+	draw_text(cr, g->cx, g->cy, 14, siz);
 
 	g->label_list = NULL;
 	cairo_restore(cr);
