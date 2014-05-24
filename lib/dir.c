@@ -82,13 +82,13 @@ static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 }
 
 
-off_t duc_dirsize(duc_dir *dir)
+off_t duc_dir_get_size(duc_dir *dir)
 {
 	return dir->size_total;
 }
 
 
-char *duc_dirpath(duc_dir *dir)
+char *duc_dir_get_path(duc_dir *dir)
 {
 	return strdup(dir->path);
 }
@@ -98,7 +98,7 @@ char *duc_dirpath(duc_dir *dir)
  * Serialize duc_dir into a database record
  */
 
-int duc_dir_write(struct duc_dir *dir, dev_t dev, ino_t ino)
+int duc_db_write_dir(struct duc_dir *dir, dev_t dev, ino_t ino)
 {
 	struct buffer *b = buffer_new(NULL, 0);
 	if(b == NULL) {
@@ -136,7 +136,7 @@ int duc_dir_write(struct duc_dir *dir, dev_t dev, ino_t ino)
  * Read database record and deserialize into duc_dir
  */
 
-struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
+struct duc_dir *duc_db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 {
 	struct duc_dir *dir = duc_dir_new(duc, 8);
 	if(dir == NULL) {
@@ -186,9 +186,9 @@ struct duc_dir *duc_dir_read(struct duc *duc, dev_t dev, ino_t ino)
 }
 
 
-duc_dir *duc_opendirent(duc_dir *dir, struct duc_dirent *e)
+duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
 {
-	duc_dir *dir2 = duc_dir_read(dir->duc, e->dev, e->ino);
+	duc_dir *dir2 = duc_db_read_dir(dir->duc, e->dev, e->ino);
 	if(dir2) {
 		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
 	}
@@ -196,15 +196,15 @@ duc_dir *duc_opendirent(duc_dir *dir, struct duc_dirent *e)
 }
 
 
-duc_dir *duc_opendirat(duc_dir *dir, const char *name)
+duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 {
 	if(strcmp(name, "..") == 0) {
 
 		/* Special case: go up one directory */
 
-		char *p = duc_dirpath(dir);
+		char *p = duc_dir_get_path(dir);
 		dirname(p);
-		duc_dir *dir2 = duc_opendir(dir->duc, p);
+		duc_dir *dir2 = duc_dir_open(dir->duc, p);
 		free(p);
 		return dir2;
 
@@ -216,7 +216,7 @@ duc_dir *duc_opendirat(duc_dir *dir, const char *name)
 		struct duc_dirent *e = dir->ent_list;
 		for(i=0; i<dir->ent_count; i++) {
 			if(strcmp(e->name, name) == 0) {
-				return duc_opendirent(dir, e);
+				return duc_dir_openent(dir, e);
 			}
 			e++;
 		}
@@ -226,7 +226,7 @@ duc_dir *duc_opendirat(duc_dir *dir, const char *name)
 }
 
 
-int duc_limitdir(duc_dir *dir, size_t count)
+int duc_dir_limit(duc_dir *dir, size_t count)
 {
 	if(dir->ent_count <= count) return 0;
 
@@ -257,7 +257,7 @@ int duc_limitdir(duc_dir *dir, size_t count)
 }
 
 
-struct duc_dirent *duc_finddir(duc_dir *dir, const char *name)
+struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name)
 {
 	size_t i;
 	struct duc_dirent *ent = dir->ent_list;
@@ -275,7 +275,7 @@ struct duc_dirent *duc_finddir(duc_dir *dir, const char *name)
 
 
 
-duc_dir *duc_opendir(struct duc *duc, const char *path)
+duc_dir *duc_dir_open(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
 
@@ -313,7 +313,7 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
-	dir = duc_dir_read(duc, dev, ino);
+	dir = duc_db_read_dir(duc, dev, ino);
 
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
@@ -328,15 +328,15 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 
 	while(dir && name) {
 
-		struct duc_dirent *ent = duc_finddir(dir, name);
+		struct duc_dirent *ent = duc_dir_find_child(dir, name);
 
 		struct duc_dir *dir_next = NULL;
 
 		if(ent) {
-			dir_next = duc_opendirent(dir, ent);
+			dir_next = duc_dir_openent(dir, ent);
 		}
 
-		duc_closedir(dir);
+		duc_dir_close(dir);
 		dir = dir_next;
 		name = strtok(NULL, "/");
 	}
@@ -349,7 +349,7 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 }
 
 
-struct duc_dirent *duc_readdir(duc_dir *dir)
+struct duc_dirent *duc_dir_read(duc_dir *dir)
 {
 	dir->duc->err = 0;
 	if(dir->ent_cur < dir->ent_count) {
@@ -362,14 +362,14 @@ struct duc_dirent *duc_readdir(duc_dir *dir)
 }
 
 
-int duc_rewinddir(duc_dir *dir)
+int duc_dir_rewind(duc_dir *dir)
 {
 	dir->ent_cur = 0;
 	return 0;
 }
 
 
-int duc_closedir(duc_dir *dir)
+int duc_dir_close(duc_dir *dir)
 {
 	if(dir->path) free(dir->path);
 	free(dir->ent_list);

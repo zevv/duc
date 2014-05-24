@@ -125,9 +125,9 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 						duc_graph_set_palette(graph, palette);
 					}
 					if(k == XK_BackSpace) {
-						duc_dir *dir2 = duc_opendirat(dir, "..");
+						duc_dir *dir2 = duc_dir_openat(dir, "..");
 						if(dir2) {
-							duc_closedir(dir);
+							duc_dir_close(dir);
 							dir = dir2;
 						}
 					}
@@ -145,14 +145,14 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 					if(b == 1) {
 						duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
 						if(dir2) {
-							duc_closedir(dir);
+							duc_dir_close(dir);
 							dir = dir2;
 						}
 					}
 					if(b == 3) {
-						duc_dir *dir2 = duc_opendirat(dir, "..");
+						duc_dir *dir2 = duc_dir_openat(dir, "..");
 						if(dir2) {
-							duc_closedir(dir);
+							duc_dir_close(dir);
 							dir = dir2;
 						}
 					}
@@ -214,7 +214,7 @@ int gui_main(int argc, char *argv[])
 		return -1;
 	}
 	
-	duc_dir *dir = duc_opendir(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;

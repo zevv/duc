@@ -249,22 +249,22 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 	/* Calculate max and total size */
 	
-	off_t size_total = duc_dirsize(dir);
+	off_t size_total = duc_dir_get_size(dir);
 
 	struct duc_dirent *e;
 
 	size_t size_min = size_total;
 	size_t size_max = 0;
 
-	while( (e = duc_readdir(dir)) != NULL) {
+	while( (e = duc_dir_read(dir)) != NULL) {
 		if(e->size < size_min) size_min = e->size;
 		if(e->size > size_max) size_max = e->size;
 	}
 
 	/* Rewind and iterate the objects to graph */
 
-	duc_rewinddir(dir);
-	while( (e = duc_readdir(dir)) != NULL) {
+	duc_dir_rewind(dir);
+	while( (e = duc_dir_read(dir)) != NULL) {
 		
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
@@ -322,7 +322,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			double r = g->spot_r;
 
 			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-				g->spot_dir = duc_opendirent(dir, e);
+				g->spot_dir = duc_dir_openent(dir, e);
 			}
 		}
 
@@ -334,10 +334,10 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 		if(e->mode == DUC_MODE_DIR) {
 			if(level+1 < g->max_level) {
-				duc_dir *dir_child = duc_opendirent(dir, e);
+				duc_dir *dir_child = duc_dir_openent(dir, e);
 				if(!dir_child) continue;
 				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
-				duc_closedir(dir_child);
+				duc_dir_close(dir_child);
 			} else {
 				draw_section(g, cr, a1, a2, r2, r2+5, H, S, V/2, L);
 			}
@@ -410,7 +410,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 
 	/* Recursively draw graph */
 	
-	duc_rewinddir(dir);
+	duc_dir_rewind(dir);
 
 	do_dir(g, cr, dir, 0, g->r_start, 0, 1);
 
@@ -424,12 +424,12 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 		free(label);
 	}
 	
-	char *p = duc_dirpath(dir);
+	char *p = duc_dir_get_path(dir);
 	draw_text(cr, g->cx, 10, FONT_SIZE_LABEL, p);
 	free(p);
 
 	char siz[32];
-	duc_humanize(duc_dirsize(dir), siz, sizeof siz);
+	duc_humanize(duc_dir_get_size(dir), siz, sizeof siz);
 	draw_text(cr, g->cx, g->cy, 14, siz);
 
 	g->label_list = NULL;
@@ -453,7 +453,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 	
 		/* If clicked in the center, go up one directory */
 
-		dir2 = duc_opendirat(dir, "..");
+		dir2 = duc_dir_openat(dir, "..");
 
 	} else {
 
@@ -461,7 +461,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 
 		g->spot_dir = NULL;
 
-		duc_rewinddir(dir);
+		duc_dir_rewind(dir);
 		do_dir(g, NULL, dir, 0, g->r_start, 0, 1);
 
 		g->spot_a = 0;

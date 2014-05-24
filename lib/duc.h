@@ -45,7 +45,7 @@ typedef enum {
 	DUC_MODE_FIFO,              /* Fifo */
 	DUC_MODE_LNK,               /* Soft link */
 	DUC_MODE_SOCK,              /* Unix socket */
-	DUC_MODE_REST               /* Grouped 'rest', added by duc_limitdir() */
+	DUC_MODE_REST               /* Grouped 'rest', added by duc_dir_limit() */
 } duc_dirent_mode;
 
 
@@ -111,17 +111,17 @@ int duc_index_report_free(struct duc_index_report *rep);
 
 struct duc_index_report *duc_get_report(duc *duc, size_t id);
 
-duc_dir *duc_opendir(duc *duc, const char *path);
-duc_dir *duc_parentdir(duc_dir *dir);
-duc_dir *duc_opendirat(duc_dir *dir, const char *name);
-duc_dir *duc_opendirent(duc_dir *dir, struct duc_dirent *e);
-int duc_limitdir(duc_dir *dir, size_t count);
-struct duc_dirent *duc_readdir(duc_dir *dir);
-char *duc_dirpath(duc_dir *dir);
-off_t duc_dirsize(duc_dir *dir);
-struct duc_dirent *duc_finddir(duc_dir *dir, const char *name);
-int duc_rewinddir(duc_dir *dir);
-int duc_closedir(duc_dir *dir);
+duc_dir *duc_dir_open(duc *duc, const char *path);
+duc_dir *duc_dir_get_parent(duc_dir *dir);
+duc_dir *duc_dir_openat(duc_dir *dir, const char *name);
+duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e);
+int duc_dir_limit(duc_dir *dir, size_t count);
+struct duc_dirent *duc_dir_read(duc_dir *dir);
+char *duc_dir_get_path(duc_dir *dir);
+off_t duc_dir_get_size(duc_dir *dir);
+struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name);
+int duc_dir_rewind(duc_dir *dir);
+int duc_dir_close(duc_dir *dir);
 
 /* 
  * Helper functions

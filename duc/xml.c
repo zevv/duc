@@ -25,12 +25,12 @@ static void dump(duc *duc, duc_dir *dir, int depth)
 {
 	struct duc_dirent *e;
 
-	while( (e = duc_readdir(dir)) != NULL) {
+	while( (e = duc_dir_read(dir)) != NULL) {
 
 		if(e->mode == DUC_MODE_DIR) {
 			indent(depth);
 			printf("<ent name='%s' size='%ld'>\n", e->name, (long)e->size);
-			duc_dir *dir_child = duc_opendirent(dir, e);
+			duc_dir *dir_child = duc_dir_openent(dir, e);
 			if(dir_child) {
 				dump(duc, dir_child, depth + 1);
 				indent(depth);
@@ -88,18 +88,18 @@ static int xml_main(int argc, char **argv)
 
 	fprintf(stderr,"Reading %s\n",path_db);
 
-	duc_dir *dir = duc_opendir(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
 
 	printf("<?xml version='1.0' encoding='UTF-8'?>\n");
-	printf("<duc root='%s' size='%ld'>\n", path, (long)duc_dirsize(dir));
+	printf("<duc root='%s' size='%ld'>\n", path, (long)duc_dir_get_size(dir));
 	dump(duc, dir, 1);
 	printf("</duc>\n");
 
-	duc_closedir(dir);
+	duc_dir_close(dir);
 	duc_close(duc);
 	duc_del(duc);
 

@@ -89,7 +89,7 @@ static int ls_main(int argc, char **argv)
 	}
 	printf("Reading %s\n",path_db);
 
-	duc_dir *dir = duc_opendir(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
 	  fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
@@ -101,15 +101,15 @@ static int ls_main(int argc, char **argv)
 	off_t size_max = 0;
 
 	struct duc_dirent *e;
-	while( (e = duc_readdir(dir)) != NULL) {
+	while( (e = duc_dir_read(dir)) != NULL) {
 		if(e->size > size_max) size_max = e->size;
 		size_total += e->size;
 	}
 
-	if(limit) duc_limitdir(dir, limit);
+	if(limit) duc_dir_limit(dir, limit);
 	
-	duc_rewinddir(dir);
-	while( (e = duc_readdir(dir)) != NULL) {
+	duc_dir_rewind(dir);
+	while( (e = duc_dir_read(dir)) != NULL) {
 
 		if(classify) {
 			if(e->mode == DUC_MODE_DIR) strcat(e->name, "/");
@@ -133,13 +133,13 @@ static int ls_main(int argc, char **argv)
 
 	char siz[32];
 	if(bytes) {
-		snprintf(siz, sizeof siz, "%jd", duc_dirsize(dir));
+		snprintf(siz, sizeof siz, "%jd", duc_dir_get_size(dir));
 	} else {
-		duc_humanize(duc_dirsize(dir), siz, sizeof siz);
+		duc_humanize(duc_dir_get_size(dir), siz, sizeof siz);
 	}
 	printf("%-20.20s %11.11s\n", "Total size", siz);
 
-	duc_closedir(dir);
+	duc_dir_close(dir);
 	duc_close(duc);
 	duc_del(duc);
 

@@ -242,7 +242,7 @@ static int cgi_main(int argc, char **argv)
 	duc_dir *dir = NULL;
 	char *path = cgi_get("path");
 	if(path) {
-		dir = duc_opendir(duc, path);
+		dir = duc_dir_open(duc, path);
 		if(dir == NULL) {
 			fprintf(stderr, "%s\n", duc_strerror(duc));
 			return 0;
@@ -256,7 +256,7 @@ static int cgi_main(int argc, char **argv)
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
 
-	if(dir) duc_closedir(dir);
+	if(dir) duc_dir_close(dir);
 	duc_close(duc);
 	duc_del(duc);
 

@@ -88,7 +88,7 @@ static int graph_main(int argc, char **argv)
                 return -1;
         }
 
-        duc_dir *dir = duc_opendir(duc, path);
+        duc_dir *dir = duc_dir_open(duc, path);
         if(dir == NULL) {
                 fprintf(stderr, "%s\n", duc_strerror(duc));
                 return -1;
@@ -106,7 +106,7 @@ static int graph_main(int argc, char **argv)
 	duc_graph_draw_file(graph, dir, format, f);
 
 	duc_graph_free(graph);
-	duc_closedir(dir);
+	duc_dir_close(dir);
 	duc_close(duc);
 
 	return 0;
