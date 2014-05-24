@@ -119,8 +119,12 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 
 	if(x || y) {
-		//char newpath[PATH_MAX];
-		//duc_graph_xy_to_path(graph, dir, x, y, newpath, sizeof newpath);
+		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+			path = duc_dir_get_path(dir);
+		}
 	}
 
 	struct duc_index_report *report;
