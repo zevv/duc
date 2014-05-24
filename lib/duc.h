@@ -3,6 +3,8 @@
 #define duc_h
 
 #include <limits.h>
+#include <sys/types.h>
+#include <sys/time.h>
 
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;

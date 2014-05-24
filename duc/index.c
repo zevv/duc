@@ -97,9 +97,9 @@ static int index_main(int argc, char **argv)
 		if(r == DUC_OK) {
 		  char human[120];
 		  duc_fmttime(human, report->time_start, report->time_stop);
-			fprintf(stderr, "Indexed %zu files and %zu directories, (%sB total) in %s\n", 
-					report->file_count, 
-					report->dir_count,
+			fprintf(stderr, "Indexed %lu files and %lu directories, (%sB total) in %s\n", 
+					(unsigned long)report->file_count, 
+					(unsigned long)report->dir_count,
 					siz,
 					human);
 		} else {

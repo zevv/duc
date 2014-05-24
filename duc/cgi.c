@@ -155,8 +155,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("<tr>");
 		printf("<td><a href='%s'>%s</a></td>", url, report->path);
 		printf("<td>%s</td>", siz);
-		printf("<td>%zu</td>", report->file_count);
-		printf("<td>%zu</td>", report->dir_count);
+		printf("<td>%lu</td>", (unsigned long)report->file_count);
+		printf("<td>%lu</td>", (unsigned long)report->dir_count);
 		printf("<td>%s</td>", ts_date);
 		printf("<td>%s</td>", ts_time);
 		printf("</tr>\n");

@@ -9,8 +9,8 @@
 #include <stdarg.h>
 #include <time.h>
 
-#include "duc.h"
 #include "private.h"
+#include "duc.h"
 #include "db.h"
 
 

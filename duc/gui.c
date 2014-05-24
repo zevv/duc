@@ -1,4 +1,4 @@
- 
+
 #include <getopt.h>
 #include <cairo.h>
 #include <string.h>

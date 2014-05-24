@@ -10,7 +10,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
 
 #include "cmd.h"
 #include "duc.h"

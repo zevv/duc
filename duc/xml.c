@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
 
 #include "cmd.h"
 #include "duc.h"
@@ -30,7 +29,7 @@ static void dump(duc *duc, duc_dir *dir, int depth)
 
 		if(e->mode == DUC_MODE_DIR) {
 			indent(depth);
-			printf("<ent name='%s' size='%jd'>\n", e->name, e->size);
+			printf("<ent name='%s' size='%ld'>\n", e->name, (long)e->size);
 			duc_dir *dir_child = duc_opendirent(dir, e);
 			if(dir_child) {
 				dump(duc, dir_child, depth + 1);
@@ -39,7 +38,7 @@ static void dump(duc *duc, duc_dir *dir, int depth)
 			}
 		} else {
 			indent(depth);
-			printf("<ent name='%s' size='%jd' />\n", e->name, e->size);
+			printf("<ent name='%s' size='%ld' />\n", e->name, (long)e->size);
 		}
 	}
 }
@@ -96,7 +95,7 @@ static int xml_main(int argc, char **argv)
 	}
 
 	printf("<?xml version='1.0' encoding='UTF-8'?>\n");
-	printf("<duc root='%s' size='%jd'>\n", path, duc_dirsize(dir));
+	printf("<duc root='%s' size='%ld'>\n", path, (long)duc_dirsize(dir));
 	dump(duc, dir, 1);
 	printf("</duc>\n");
 

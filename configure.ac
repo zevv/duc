@@ -73,7 +73,7 @@ PKG_CHECK_MODULES([PANGO],[pango])
 PKG_CHECK_MODULES([PANGOCAIRO],[pangocairo])
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_MODE_T
@@ -82,12 +82,16 @@ AC_TYPE_SIZE_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+AC_CHECK_TYPES([dev_t, ino_t])
 
 # Checks for library functions.
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([floor memset realpath strchr strdup strerror gettimeofday])
+AC_CHECK_FUNCS([floor memset realpath strchr strdup strerror gettimeofday lstat])
 
 AC_CONFIG_FILES([Makefile lib/Makefile duc/Makefile])
 AC_OUTPUT
+
+echo ""
+echo "Done"

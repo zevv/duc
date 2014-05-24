@@ -11,8 +11,10 @@
 #include <dirent.h>
 #include <time.h>
 #include <sys/time.h>
-#include <fnmatch.h>
 #include <unistd.h>
+#ifdef HAVE_FNMATCH_H
+#include <fnmatch.h>
+#endif
 
 #include "db.h"
 #include "duc.h"
@@ -21,6 +23,9 @@
 
 #define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
 
+#ifndef HAVE_LSTAT
+#define lstat stat
+#endif
 
 
 struct duc_index_req {
@@ -39,8 +44,12 @@ static duc_dirent_mode mode_t_to_duc_mode(mode_t m)
 	if(S_ISCHR(m))  return DUC_MODE_CHR;
 	if(S_ISBLK(m))  return DUC_MODE_BLK;
 	if(S_ISFIFO(m)) return DUC_MODE_FIFO;
+#ifdef S_ISLNK
 	if(S_ISLNK(m))  return DUC_MODE_LNK;
+#endif
+#ifdef S_ISSOCK
 	if(S_ISSOCK(m)) return DUC_MODE_SOCK;
+#endif
 	return DUC_MODE_REST;
 }
 
@@ -94,14 +103,18 @@ int duc_index_req_add_exclude(duc_index_req *req, const char *patt)
 static int match_list(const char *name, struct list *l)
 {
 	while(l) {
+#ifdef HAVE_FNMATCH_H
 		if(fnmatch(l->data, name, 0) == 0) return 1;
+#else
+		if(strstr(name, l->data) == 0) return 1;
+#endif
 		l = l->next;
 	}
 	return 0;
 }
 
 
-static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *stat_dir)
+static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *st_dir)
 {
 	struct duc *duc = req->duc;
 	off_t size_dir = 0;
@@ -121,7 +134,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	struct duc_dir *dir = duc_dir_new(duc, 8);
 			
 	if(req->dev == 0) {
-		req->dev = stat_dir->st_dev;
+		req->dev = st_dir->st_dev;
 	}
 
 	struct dirent *e;
@@ -139,8 +152,8 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 		/* Get file info */
 
-		struct stat stat;
-		int r = lstat(e->d_name, &stat);
+		struct stat st;
+		int r = lstat(e->d_name, &st);
 		if(r == -1) {
 			duc_log(duc, LG_WRN, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			continue;
@@ -149,7 +162,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		/* Check for file system boundaries */
 
 		if(req->flags & DUC_INDEX_XDEV) {
-			if(stat.st_dev != req->dev) {
+			if(st.st_dev != req->dev) {
 				duc_log(duc, LG_WRN, "Skipping %s: different file system\n", e->d_name);
 				continue;
 			}
@@ -159,11 +172,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 		off_t size = 0;
 		
-		if(S_ISDIR(stat.st_mode)) {
-			size += index_dir(req, report, e->d_name, &stat);
+		if(S_ISDIR(st.st_mode)) {
+			size += index_dir(req, report, e->d_name, &st);
 			report->dir_count ++;
 		} else {
-			size = stat.st_size;
+			size = st.st_size;
 			report->file_count ++;
 		}
 
@@ -171,11 +184,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 		/* Store record */
 
-		duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(stat.st_mode), stat.st_dev, stat.st_ino);
+		duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
 		size_dir += size;
 	}
 		
-	duc_dir_write(dir, stat_dir->st_dev, stat_dir->st_ino);
+	duc_dir_write(dir, st_dir->st_dev, st_dir->st_ino);
 	duc_closedir(dir);
 
 	closedir(d);
@@ -204,8 +217,8 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	/* Open path */
 	
-	struct stat stat;
-	int r = lstat(path_canon, &stat);
+	struct stat st;
+	int r = lstat(path_canon, &st);
 	if(r == -1) {
 		duc_log(duc, LG_WRN, "Error statting %s: %s\n", path_canon, strerror(errno));
 		duc->err = DUC_E_UNKNOWN;
@@ -221,14 +234,14 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Recursively index subdirectories */
 
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(req, report, path_canon, &stat);
+	report->size_total = index_dir(req, report, path_canon, &st);
 	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */
 
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
-	report->dev = stat.st_dev;
-	report->ino = stat.st_ino;
+	report->dev = st.st_dev;
+	report->ino = st.st_ino;
 
 	/* Store report. Add the report index to the 'duc_index_reports' key if
 	 * not previously indexed */

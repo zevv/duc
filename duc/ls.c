@@ -9,7 +9,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 
 #include "cmd.h"
 #include "duc.h"
@@ -62,11 +64,13 @@ static int ls_main(int argc, char **argv)
 	/* Get terminal width */
 
 	int width = 80;
+#ifdef TIOCGWINSZ
 	if(isatty(0)) {
 		struct winsize w;
 		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
 	}
+#endif
 	width = width - 36;
 
 	/* Open duc context */

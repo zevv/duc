@@ -324,8 +324,7 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 	char rest[256];
 	strncpy(rest, path_canon+l, sizeof rest);
 
-	char *save;
-	char *name = strtok_r(rest, "/", &save);
+	char *name = strtok(rest, "/");
 
 	while(dir && name) {
 
@@ -339,7 +338,7 @@ duc_dir *duc_opendir(struct duc *duc, const char *path)
 
 		duc_closedir(dir);
 		dir = dir_next;
-		name = strtok_r(NULL, "/", &save);
+		name = strtok(NULL, "/");
 	}
 
 	if(dir) {
