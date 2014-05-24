@@ -149,8 +149,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		char url[PATH_MAX];
 		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report->path);
 
-		char siz[32];
-		duc_humanize(report->size_total, siz, sizeof siz);
+		char *siz = duc_human_size(report->size_total);
 
 		printf("<tr>");
 		printf("<td><a href='%s'>%s</a></td>", url, report->path);
@@ -160,6 +159,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("<td>%s</td>", ts_date);
 		printf("<td>%s</td>", ts_time);
 		printf("</tr>\n");
+
+		free(siz);
 
 		duc_index_report_free(report);
 		i++;

@@ -127,7 +127,7 @@ int duc_dir_close(duc_dir *dir);
  * Helper functions
  */
 
-void duc_humanize(off_t size, char *buf, size_t buflen);
-void duc_fmttime(char *human, struct timeval start, struct timeval end);
+char *duc_human_size(off_t size);
+char *duc_human_duration(struct timeval start, struct timeval end);
 
 #endif

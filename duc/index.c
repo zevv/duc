@@ -92,19 +92,19 @@ static int index_main(int argc, char **argv)
 		struct duc_index_report *report;
 		report = duc_index(req, argv[i], index_flags);
 
-		char siz[16];
-		duc_humanize(report->size_total, siz, sizeof siz);
+		char *siz = duc_human_size(report->size_total);
 		if(r == DUC_OK) {
-		  char human[120];
-		  duc_fmttime(human, report->time_start, report->time_stop);
+			char *s = duc_human_duration(report->time_start, report->time_stop);
 			fprintf(stderr, "Indexed %lu files and %lu directories, (%sB total) in %s\n", 
 					(unsigned long)report->file_count, 
 					(unsigned long)report->dir_count,
 					siz,
-					human);
+					s);
+			free(s);
 		} else {
 			fprintf(stderr, "An error occured while indexing: %s", duc_strerror(duc));
 		}
+		free(siz);
 
 		duc_index_report_free(report);
 	}

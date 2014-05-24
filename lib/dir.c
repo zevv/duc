@@ -245,9 +245,7 @@ int duc_dir_limit(duc_dir *dir, size_t count)
 	dir->ent_cur = 0;
 	ent = &dir->ent_list[count-1];
 
-	char s[16];
-	duc_humanize(rest_count, s, sizeof s);
-	snprintf(ent->name, sizeof(ent->name), "(%s files)", s);
+	snprintf(ent->name, sizeof(ent->name), "(%ld files)", rest_count);
 	ent->mode = DUC_MODE_REST;
 	ent->size = rest_size;
 	ent->dev = 0;

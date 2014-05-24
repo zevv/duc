@@ -115,14 +115,15 @@ static int ls_main(int argc, char **argv)
 			if(e->mode == DUC_MODE_DIR) strcat(e->name, "/");
 		}
 
-		char siz[32];
+		char *siz;
 		if(bytes) {
-			snprintf(siz, sizeof siz, "%jd", e->size);
+			asprintf(&siz, "%jd", e->size);
 		} else {
-			duc_humanize(e->size, siz, sizeof siz);
+			siz = duc_human_size(e->size);
 		}
 
 		printf("%-20.20s %11.11s [", e->name, siz);
+		free(siz);
 
 		int n = size_max ? (width * e->size / size_max) : 0;
 		int j;
@@ -131,13 +132,14 @@ static int ls_main(int argc, char **argv)
 		printf("]\n");
 	}
 
-	char siz[32];
+	char *siz;
 	if(bytes) {
-		snprintf(siz, sizeof siz, "%jd", duc_dir_get_size(dir));
+		asprintf(&siz, "%jd", duc_dir_get_size(dir));
 	} else {
-		duc_humanize(duc_dir_get_size(dir), siz, sizeof siz);
+		siz = duc_human_size(duc_dir_get_size(dir));
 	}
 	printf("%-20.20s %11.11s\n", "Total size", siz);
+	free(siz);
 
 	duc_dir_close(dir);
 	duc_close(duc);

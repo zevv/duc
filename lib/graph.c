@@ -349,9 +349,9 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			if(r1 * (a2 - a1) > 5) {
 				struct label *label = malloc(sizeof *label);
 				pol2car(g, ang((a1+a2)/2), (r1+r2)/2, &label->x, &label->y);
-				char siz[32];
-				duc_humanize(e->size, siz, sizeof siz);
+				char *siz = duc_human_size(e->size);
 				asprintf(&label->text, "%s\n%s", e->name, siz);
+				free(siz);
 				list_push(&g->label_list, label);
 			}
 		}
@@ -428,9 +428,9 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	draw_text(cr, g->cx, 10, FONT_SIZE_LABEL, p);
 	free(p);
 
-	char siz[32];
-	duc_humanize(duc_dir_get_size(dir), siz, sizeof siz);
+	char *siz = duc_human_size(duc_dir_get_size(dir));
 	draw_text(cr, g->cx, g->cy, 14, siz);
+	free(siz);
 
 	g->label_list = NULL;
 	cairo_restore(cr);
