@@ -175,7 +175,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("<a href='%s?cmd=index&path=%s&'>", script, path);
 		printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
 		printf("</a><br>");
-		printf("<b>%s</b><br>", path);
 	}
 	fflush(stdout);
 }
