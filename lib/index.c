@@ -21,12 +21,6 @@
 #include "list.h"
 #include "private.h"
 
-#define OPEN_FLAGS (O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW)
-
-#ifndef HAVE_LSTAT
-#define lstat stat
-#endif
-
 
 struct duc_index_req {
 	duc *duc;

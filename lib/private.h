@@ -5,8 +5,8 @@
 
 #define DUC_DB_VERSION "8"
 
-#ifndef AT_NO_AUTOMOUNT
-  #define AT_NO_AUTOMOUNT 0
+#ifndef HAVE_LSTAT
+#define lstat stat
 #endif
 
 #ifndef HAVE_REALPATH
