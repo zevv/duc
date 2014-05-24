@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "cmd.h"
 #include "duc.h"
@@ -21,6 +22,22 @@ static void indent(int n)
 	}
 }
 
+static void print_escaped(const char *s)
+{
+	while(*s) {
+		if(isprint(*s)) {
+			if(*s == '&') {
+				fwrite("&amp;", 1, 5, stdout);
+			} else if(*s == '\'') {
+				fwrite("&apos;", 1, 6, stdout);
+			} else {
+				putchar(*s);
+			}
+		}
+		s++;
+	}
+}
+
 static void dump(duc *duc, duc_dir *dir, int depth)
 {
 	struct duc_dirent *e;
@@ -29,7 +46,9 @@ static void dump(duc *duc, duc_dir *dir, int depth)
 
 		if(e->mode == DUC_MODE_DIR) {
 			indent(depth);
-			printf("<ent name='%s' size='%ld'>\n", e->name, (long)e->size);
+			printf("<ent type='dir' name='");
+			print_escaped(e->name);
+			printf("' size='%ld'>\n", (long)e->size);
 			duc_dir *dir_child = duc_dir_openent(dir, e);
 			if(dir_child) {
 				dump(duc, dir_child, depth + 1);
@@ -38,7 +57,9 @@ static void dump(duc *duc, duc_dir *dir, int depth)
 			}
 		} else {
 			indent(depth);
-			printf("<ent name='%s' size='%ld' />\n", e->name, (long)e->size);
+			printf("<ent name='");
+			print_escaped(e->name);
+			printf("' size='%ld' />\n", (long)e->size);
 		}
 	}
 }
