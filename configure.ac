@@ -86,8 +86,6 @@ AC_CHECK_TYPES([dev_t, ino_t])
 
 # Checks for library functions.
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([floor memset realpath strchr strdup strerror gettimeofday lstat])
 
 AC_CONFIG_FILES([Makefile lib/Makefile duc/Makefile])

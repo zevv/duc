@@ -1,4 +1,5 @@
 
+#include "config.h"
 #ifndef HAVE_REALPATH
 
 /*

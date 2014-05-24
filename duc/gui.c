@@ -1,18 +1,21 @@
 
+#include "config.h"
+#include "duc.h"
+#include "duc-graph.h"
+#include "cmd.h"
+
+#ifdef HAVE_LIBX11
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
+
 #include <cairo.h>
 #include <string.h>
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "duc.h"
-#include "duc-graph.h"
-#include "cmd.h"
 
 static int depth = 4;
 
@@ -231,6 +234,15 @@ int gui_main(int argc, char *argv[])
 	return 0;
 }
 
+#else
+
+int gui_main(int argc, char *argv[])
+{
+	printf("Not supported on this platform\n");
+	return -1;
+}
+
+#endif
 
 struct cmd cmd_gui = {
 	.name = "gui",
@@ -240,6 +252,7 @@ struct cmd cmd_gui = {
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
 	.main = gui_main
 };
+
 
 
 /*
