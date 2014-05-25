@@ -108,7 +108,7 @@ static int match_list(const char *name, struct list *l)
 }
 
 
-static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *st_dir)
+static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *st_dir, struct stat *st_parent)
 {
 	struct duc *duc = req->duc;
 	off_t size_dir = 0;
@@ -125,7 +125,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		return 0;
 	}
 
-	struct duc_dir *dir = duc_dir_new(duc, 8);
+	struct duc_dir *dir = duc_dir_new(duc, st_dir->st_dev, st_dir->st_ino);
+	if(st_parent) {
+		dir->dev_parent = st_parent->st_dev;
+		dir->ino_parent = st_parent->st_ino;
+	}
 			
 	if(req->dev == 0) {
 		req->dev = st_dir->st_dev;
@@ -167,10 +171,12 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t size = 0;
 		
 		if(S_ISDIR(st.st_mode)) {
-			size += index_dir(req, report, e->d_name, &st);
+			size += index_dir(req, report, e->d_name, &st, st_dir);
+			dir->dir_count ++;
 			report->dir_count ++;
 		} else {
 			size = st.st_size;
+			dir->file_count ++;
 			report->file_count ++;
 		}
 
@@ -179,10 +185,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		/* Store record */
 
 		duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+		dir->size_total += size;
 		size_dir += size;
 	}
 		
-	duc_db_write_dir(dir, st_dir->st_dev, st_dir->st_ino);
+	duc_db_write_dir(dir);
 	duc_dir_close(dir);
 
 	closedir(d);
@@ -228,7 +235,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Recursively index subdirectories */
 
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(req, report, path_canon, &st);
+	report->size_total = index_dir(req, report, path_canon, &st, NULL);
 	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */

@@ -16,21 +16,19 @@
 #include "varint.h"
 
 
-struct duc_dir *duc_dir_new(struct duc *duc, size_t ent_max)
+struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino)
 {
-	struct duc_dir *dir = malloc(sizeof(struct duc_dir));
+	struct duc_dir *dir = duc_malloc(sizeof(struct duc_dir));
+	memset(dir, 0, sizeof *dir);
 
-	if(dir == NULL) {
-		duc->err = DUC_E_OUT_OF_MEMORY;
-		return NULL;
-	}
-
-	dir->path = NULL;
 	dir->duc = duc;
+	dir->dev = dev;
+	dir->ino = ino;
+	dir->path = NULL;
 	dir->ent_cur = 0;
 	dir->ent_count = 0;
 	dir->size_total = 0;
-	dir->ent_pool = 16384;
+	dir->ent_pool = 32768;
 	dir->ent_list = duc_malloc(dir->ent_pool);
 
 	return dir;
@@ -45,7 +43,6 @@ int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, mode_t mo
 	}
 
 	struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
-	dir->size_total += size;
 	dir->ent_count ++;
 
 	ent->name = duc_strdup(name);
@@ -88,13 +85,16 @@ char *duc_dir_get_path(duc_dir *dir)
  * Serialize duc_dir into a database record
  */
 
-int duc_db_write_dir(struct duc_dir *dir, dev_t dev, ino_t ino)
+int duc_db_write_dir(struct duc_dir *dir)
 {
 	struct buffer *b = buffer_new(NULL, 0);
-	if(b == NULL) {
-		dir->duc->err = DUC_E_OUT_OF_MEMORY;
-		return -1;
-	}
+		
+	buffer_put_varint(b, dir->dev_parent);
+	buffer_put_varint(b, dir->ino_parent);
+	buffer_put_varint(b, dir->size_total);
+	buffer_put_varint(b, dir->file_count);
+	buffer_put_varint(b, dir->dir_count);
+
 
 	int i;
 	struct duc_dirent *ent = dir->ent_list;
@@ -109,7 +109,7 @@ int duc_db_write_dir(struct duc_dir *dir, dev_t dev, ino_t ino)
 	}
 
 	char key[32];
-	size_t keyl = mkkey(dev, ino, key, sizeof key);
+	size_t keyl = mkkey(dir->dev, dir->ino, key, sizeof key);
 	int r = db_put(dir->duc->db, key, keyl, b->data, b->len);
 	if(r != 0) {
 		dir->duc->err = r;
@@ -128,11 +128,7 @@ int duc_db_write_dir(struct duc_dir *dir, dev_t dev, ino_t ino)
 
 struct duc_dir *duc_db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 {
-	struct duc_dir *dir = duc_dir_new(duc, 8);
-	if(dir == NULL) {
-		duc->err = DUC_E_OUT_OF_MEMORY;
-		return NULL;
-	}
+	struct duc_dir *dir = duc_dir_new(duc, dev, ino);
 
 	char key[32];
 	size_t keyl;
@@ -148,6 +144,13 @@ struct duc_dir *duc_db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 
 	struct buffer *b = buffer_new(val, vall);
 
+	uint64_t v;
+	buffer_get_varint(b, &v); dir->dev_parent = v;
+	buffer_get_varint(b, &v); dir->ino_parent = v;
+	buffer_get_varint(b, &v); dir->size_total = v;
+	buffer_get_varint(b, &v); dir->file_count = v;
+	buffer_get_varint(b, &v); dir->dir_count = v;
+	
 	while(b->ptr < b->len) {
 
 		uint64_t size;
@@ -189,14 +192,16 @@ duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
 duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 {
 	if(strcmp(name, "..") == 0) {
-
+		
 		/* Special case: go up one directory */
 
-		char *p = duc_dir_get_path(dir);
-		dirname(p);
-		duc_dir *dir2 = duc_dir_open(dir->duc, p);
-		free(p);
-		return dir2;
+		if(dir->dev_parent && dir->ino_parent) {
+			duc_dir *pdir = duc_db_read_dir(dir->duc, dir->dev_parent, dir->ino_parent);
+			if(pdir == NULL) return NULL;
+			pdir->path = duc_strdup(dir->path);
+			dirname(pdir->path);
+			return pdir;
+		}
 
 	} else {
 
