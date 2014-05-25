@@ -36,7 +36,7 @@ struct duc_dir {
 	off_t size_total;
 	size_t ent_cur;
 	size_t ent_count;
-	size_t ent_max;
+	size_t ent_pool;
 };
 
 void *duc_malloc(size_t s);

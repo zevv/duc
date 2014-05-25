@@ -30,14 +30,8 @@ struct duc_dir *duc_dir_new(struct duc *duc, size_t ent_max)
 	dir->ent_cur = 0;
 	dir->ent_count = 0;
 	dir->size_total = 0;
-	dir->ent_max = ent_max;
-	dir->ent_list = malloc(sizeof(struct duc_dirent) * ent_max);
-
-	if(dir->ent_list == NULL) {
-		duc->err = DUC_E_OUT_OF_MEMORY;
-		free(dir);
-		return NULL;
-	}
+	dir->ent_pool = 16384;
+	dir->ent_list = duc_malloc(dir->ent_pool);
 
 	return dir;
 }
@@ -45,20 +39,16 @@ struct duc_dir *duc_dir_new(struct duc *duc, size_t ent_max)
 
 int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino)
 {
-	if(dir->ent_count >= dir->ent_max) {
-		dir->ent_max *= 2;
-		dir->ent_list = realloc(dir->ent_list, sizeof(struct duc_dirent) * dir->ent_max);
-		if(dir->ent_list == NULL) {
-			dir->duc->err = DUC_E_OUT_OF_MEMORY;
-			return -1;
-		}
+	if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
+		dir->ent_pool *= 2;
+		dir->ent_list = duc_realloc(dir->ent_list, dir->ent_pool);
 	}
 
 	struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
 	dir->size_total += size;
 	dir->ent_count ++;
 
-	strncpy(ent->name, name, sizeof(ent->name));
+	ent->name = duc_strdup(name);
 	ent->size = size;
 	ent->mode = mode;
 	ent->dev = dev;
@@ -245,7 +235,7 @@ int duc_dir_limit(duc_dir *dir, size_t count)
 	dir->ent_cur = 0;
 	ent = &dir->ent_list[count-1];
 
-	snprintf(ent->name, sizeof(ent->name), "(%ld files)", rest_count);
+	asprintf(&ent->name, "(%ld files)", rest_count);
 	ent->mode = DUC_MODE_REST;
 	ent->size = rest_size;
 	ent->dev = 0;
@@ -319,7 +309,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 		return NULL;
 	}
 	
-	char rest[256];
+	char rest[PATH_MAX];
 	strncpy(rest, path_canon+l, sizeof rest);
 
 	char *name = strtok(rest, "/");
@@ -370,6 +360,10 @@ int duc_dir_rewind(duc_dir *dir)
 int duc_dir_close(duc_dir *dir)
 {
 	if(dir->path) free(dir->path);
+	int i;
+	for(i=0; i<dir->ent_count; i++) {
+		free(dir->ent_list[i].name);
+	}
 	free(dir->ent_list);
 	free(dir);
 	return 0;

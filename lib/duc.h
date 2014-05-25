@@ -61,7 +61,7 @@ struct duc_index_report {
 };
 
 struct duc_dirent {
-	char name[256];             /* File name */
+	char *name;                 /* File name */
 	off_t size;                 /* File size */
 	duc_dirent_mode mode;       /* File mode */
 	dev_t dev;                  /* ID of device containing file */
