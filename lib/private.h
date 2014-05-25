@@ -13,6 +13,14 @@
 char *realpath(const char *path, char resolved_path[PATH_MAX]);
 #endif
 
+#ifndef S_ISLNK
+#define S_ISLNK(v) 0
+#endif
+
+#ifndef S_ISSOCK
+#define S_ISSOCK(v) 0
+#endif
+
 typedef enum {
 	LG_FTL,
 	LG_WRN,

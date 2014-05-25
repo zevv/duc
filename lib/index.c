@@ -38,12 +38,8 @@ static duc_dirent_mode mode_t_to_duc_mode(mode_t m)
 	if(S_ISCHR(m))  return DUC_MODE_CHR;
 	if(S_ISBLK(m))  return DUC_MODE_BLK;
 	if(S_ISFIFO(m)) return DUC_MODE_FIFO;
-#ifdef S_ISLNK
 	if(S_ISLNK(m))  return DUC_MODE_LNK;
-#endif
-#ifdef S_ISSOCK
 	if(S_ISSOCK(m)) return DUC_MODE_SOCK;
-#endif
 	return DUC_MODE_REST;
 }
 
