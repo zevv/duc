@@ -32,7 +32,6 @@ typedef enum {
 	DUC_E_DB_VERSION_MISMATCH,  /* Database version mismatch */
 	DUC_E_PATH_NOT_FOUND,       /* Requested path not found */
 	DUC_E_PERMISSION_DENIED,    /* Permission denied */
-	DUC_E_OUT_OF_MEMORY,        /* Out of memory */
 	DUC_E_UNKNOWN,              /* Unknown error, contact the author */
 } duc_errno;
 
@@ -61,7 +60,7 @@ struct duc_index_report {
 };
 
 struct duc_dirent {
-	char name[256];             /* File name */
+	char *name;                 /* File name */
 	off_t size;                 /* File size */
 	duc_dirent_mode mode;       /* File mode */
 	dev_t dev;                  /* ID of device containing file */

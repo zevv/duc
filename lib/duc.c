@@ -28,30 +28,34 @@ void duc_del(duc *duc)
 	free(duc);
 }
 
-/* Helper to pick a database */
+
+/* 
+ * Helper to pick a database 
+ */
 char *duc_pick_db_path(const char *path_db) 
 {
-  char *tmp = NULL;
+	char *tmp = NULL;
 
-  if (path_db) {
-	tmp = strdup(path_db);
-  }
-
-  if(tmp == NULL) {
-	tmp = getenv("DUC_DATABASE");
-  }
-  
-  if(tmp == NULL) {
-	char *home = getenv("HOME");
-	if(home) {
-	  /* PATH_MAX is overkill, but memory is cheap... */
-	  tmp = malloc(PATH_MAX);
-	  tmp = memset(tmp, 0, PATH_MAX);
-	  snprintf(tmp, PATH_MAX, "%s/.duc.db", home);
+	if (path_db) {
+		tmp = strdup(path_db);
 	}
-  }
-  return(tmp);
+
+	if(tmp == NULL) {
+		tmp = getenv("DUC_DATABASE");
+	}
+
+	if(tmp == NULL) {
+		char *home = getenv("HOME");
+		if(home) {
+			/* PATH_MAX is overkill, but memory is cheap... */
+			tmp = malloc(PATH_MAX);
+			tmp = memset(tmp, 0, PATH_MAX);
+			snprintf(tmp, PATH_MAX, "%s/.duc.db", home);
+		}
+	}
+	return(tmp);
 }
+
 
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
@@ -111,7 +115,6 @@ const char *duc_strerror(duc *duc)
 		case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch"; break;
 		case DUC_E_PATH_NOT_FOUND:       return "Requested path not found"; break;
 		case DUC_E_PERMISSION_DENIED:    return "Permission denied"; break;
-		case DUC_E_OUT_OF_MEMORY:        return "Out of memory"; break;
 		case DUC_E_UNKNOWN:              break;
 	}
 
@@ -206,6 +209,7 @@ char *duc_strdup(const char *s)
 	}
 	return s2;
 }
+
 
 
 /*

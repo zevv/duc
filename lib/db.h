@@ -13,5 +13,9 @@ duc_errno db_putcat(struct db *db, const void *key, size_t key_len, const void *
 void db_free(void *ptr);
 void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len);
 
+
+int db_write_dir(struct duc_dir *dir);
+struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino);
+
 #endif
 
