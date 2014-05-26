@@ -32,7 +32,6 @@ void duc_del(duc *duc)
 /* 
  * Helper to pick a database 
  */
-
 char *duc_pick_db_path(const char *path_db) 
 {
 	char *tmp = NULL;

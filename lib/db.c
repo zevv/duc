@@ -7,6 +7,8 @@
 #include "buffer.h"
 #include "private.h"
 
+
+
 static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 {
 	return snprintf(key, keylen, "%jx/%jx", dev, ino);
@@ -27,7 +29,7 @@ static int fn_comp_ent(const void *a, const void *b)
  * Serialize duc_dir into a database record
  */
 
-int duc_db_write_dir(struct duc_dir *dir)
+int db_write_dir(struct duc_dir *dir)
 {
 	struct buffer *b = buffer_new(NULL, 0);
 		
@@ -68,7 +70,7 @@ int duc_db_write_dir(struct duc_dir *dir)
  * Read database record and deserialize into duc_dir
  */
 
-struct duc_dir *duc_db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
+struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 {
 	struct duc_dir *dir = duc_dir_new(duc, dev, ino);
 

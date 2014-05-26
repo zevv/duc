@@ -185,7 +185,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		size_dir += size;
 	}
 		
-	duc_db_write_dir(dir);
+	db_write_dir(dir);
 	duc_dir_close(dir);
 
 	closedir(d);

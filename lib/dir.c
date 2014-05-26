@@ -68,7 +68,7 @@ char *duc_dir_get_path(duc_dir *dir)
 
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
 {
-	duc_dir *dir2 = duc_db_read_dir(dir->duc, e->dev, e->ino);
+	duc_dir *dir2 = db_read_dir(dir->duc, e->dev, e->ino);
 	if(dir2) {
 		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
 	}
@@ -83,7 +83,7 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 		/* Special case: go up one directory */
 
 		if(dir->dev_parent && dir->ino_parent) {
-			duc_dir *pdir = duc_db_read_dir(dir->duc, dir->dev_parent, dir->ino_parent);
+			duc_dir *pdir = db_read_dir(dir->duc, dir->dev_parent, dir->ino_parent);
 			if(pdir == NULL) return NULL;
 			pdir->path = duc_strdup(dir->path);
 			dirname(pdir->path);
@@ -193,7 +193,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
-	dir = duc_db_read_dir(duc, dev, ino);
+	dir = db_read_dir(duc, dev, ino);
 
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
