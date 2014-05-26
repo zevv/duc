@@ -28,30 +28,35 @@ void duc_del(duc *duc)
 	free(duc);
 }
 
-/* Helper to pick a database */
+
+/* 
+ * Helper to pick a database 
+ */
+
 char *duc_pick_db_path(const char *path_db) 
 {
-  char *tmp = NULL;
+	char *tmp = NULL;
 
-  if (path_db) {
-	tmp = strdup(path_db);
-  }
-
-  if(tmp == NULL) {
-	tmp = getenv("DUC_DATABASE");
-  }
-  
-  if(tmp == NULL) {
-	char *home = getenv("HOME");
-	if(home) {
-	  /* PATH_MAX is overkill, but memory is cheap... */
-	  tmp = malloc(PATH_MAX);
-	  tmp = memset(tmp, 0, PATH_MAX);
-	  snprintf(tmp, PATH_MAX, "%s/.duc.db", home);
+	if (path_db) {
+		tmp = strdup(path_db);
 	}
-  }
-  return(tmp);
+
+	if(tmp == NULL) {
+		tmp = getenv("DUC_DATABASE");
+	}
+
+	if(tmp == NULL) {
+		char *home = getenv("HOME");
+		if(home) {
+			/* PATH_MAX is overkill, but memory is cheap... */
+			tmp = malloc(PATH_MAX);
+			tmp = memset(tmp, 0, PATH_MAX);
+			snprintf(tmp, PATH_MAX, "%s/.duc.db", home);
+		}
+	}
+	return(tmp);
 }
+
 
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
