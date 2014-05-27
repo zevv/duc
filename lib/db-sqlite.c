@@ -49,7 +49,7 @@ duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val
 	char *q = "insert into blobs(key, value) values(?, ?)";
 
 	sqlite3_prepare(db->s, q, -1, &pStmt, 0);
-	sqlite3_bind_blob(pStmt, 1, key, key_len, SQLITE_STATIC);
+	sqlite3_bind_text(pStmt, 1, key, key_len, SQLITE_STATIC);
 	sqlite3_bind_blob(pStmt, 2, val, val_len, SQLITE_STATIC);
 	sqlite3_step(pStmt);
 	sqlite3_finalize(pStmt);
@@ -60,7 +60,7 @@ duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val
 void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len)
 {
 	sqlite3_stmt *pStmt;
-	char *q = "select value from blobs where key like ?";
+	char *q = "select value from blobs where key = ?";
 	char *val = NULL;
 
 	sqlite3_prepare(db->s, q, -1, &pStmt, 0);
