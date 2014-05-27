@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "duc.h"
 #include "db.h"
@@ -29,7 +30,7 @@ static int fn_comp_ent(const void *a, const void *b)
  * Serialize duc_dir into a database record
  */
 
-int db_write_dir(struct duc_dir *dir)
+duc_errno db_write_dir(struct duc_dir *dir)
 {
 	struct buffer *b = buffer_new(NULL, 0);
 		
@@ -122,4 +123,38 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 	return dir;
 }
 
+
+
+/* 
+ * Store report. Add the report index to the 'duc_index_reports' key if not
+ * previously indexed 
+ */
+
+duc_errno db_write_report(duc *duc, struct duc_index_report *report)
+{
+
+	size_t tmpl;
+	char *tmp = db_get(duc->db, report->path, strlen(report->path), &tmpl);
+
+	if(tmp == NULL) {
+		char *tmp = db_get(duc->db, "duc_index_reports", 17, &tmpl);
+		if(tmp) {
+			tmp = realloc(tmp, tmpl + sizeof(report->path));
+			memcpy(tmp + tmpl, report->path, sizeof(report->path));
+			db_put(duc->db, "duc_index_reports", 17, tmp, tmpl + sizeof(report->path));
+		} else {
+			db_put(duc->db, "duc_index_reports", 17, report->path, sizeof(report->path));
+		}
+	} else {
+		free(tmp);
+	}
+
+	db_put(duc->db, report->path, strlen(report->path), report, sizeof *report);
+
+	return 0;
+}
+
+/*
+ * End
+ */
 

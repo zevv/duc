@@ -240,18 +240,9 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	report->dev = st.st_dev;
 	report->ino = st.st_ino;
 
-	/* Store report. Add the report index to the 'duc_index_reports' key if
-	 * not previously indexed */
+	/* Store report */
 
-	size_t tmpl;
-	char *tmp = db_get(duc->db, path_canon, strlen(path_canon), &tmpl);
-	if(tmp == NULL) {
-		db_putcat(duc->db, "duc_index_reports", 17, report->path, sizeof report->path);
-	} else {
-		free(tmp);
-	}
-
-	db_put(duc->db, path_canon, strlen(path_canon), report, sizeof *report);
+	db_write_report(duc, report);
 
 	free(path_canon);
 

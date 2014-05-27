@@ -85,13 +85,6 @@ duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val
 }
 
 
-duc_errno db_putcat(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
-{
-	int r = tcbdbputcat(db->hdb, key, key_len, val, val_len);
-	return (r==1) ? DUC_OK : DUC_E_UNKNOWN;
-}
-
-
 void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len)
 {
 	int vall;
