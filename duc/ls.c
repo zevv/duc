@@ -26,20 +26,25 @@ static int ls_main(int argc, char **argv)
 	int c;
 	char *path_db = NULL;
 	int classify = 0;
+	int color = 0;
 
 	struct option longopts[] = {
 		{ "bytes",          no_argument,       NULL, 'b' },
+		{ "color",          no_argument,       NULL, 'c' },
 		{ "classify",       no_argument,       NULL, 'F' },
 		{ "database",       required_argument, NULL, 'd' },
 		{ "limit",          required_argument, NULL, 'n' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "bd:Fn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "bcd:Fn:", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'b':
 				bytes = 1;
+				break;
+			case 'c':
+				color = 1;
 				break;
 			case 'd':
 				path_db = optarg;
@@ -64,13 +69,15 @@ static int ls_main(int argc, char **argv)
 	/* Get terminal width */
 
 	int width = 80;
-#ifdef TIOCGWINSZ
 	if(isatty(0)) {
+#ifdef TIOCGWINSZ
 		struct winsize w;
 		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
-	}
 #endif
+	} else {
+		color = 0;
+	}
 	width = width - 36;
 
 	/* Open duc context */
@@ -125,10 +132,23 @@ static int ls_main(int argc, char **argv)
 		printf("%-20.20s %11.11s [", e->name, siz);
 		free(siz);
 
+		if(color) {
+			if(e->size >= size_max / 2) {
+				printf("\e[31m");
+			} else if(e->size >= size_max / 8) {
+				printf("\e[33m");
+			}
+		}
+
 		int n = size_max ? (width * e->size / size_max) : 0;
 		int j;
 		for(j=0; j<n; j++) putchar('=');
 		for(; j<width; j++) putchar(' ');
+
+		if(color) {
+			printf("\e[0m");
+		}
+
 		printf("]\n");
 	}
 
@@ -156,6 +176,7 @@ struct cmd cmd_ls = {
 	.usage = "[options] [PATH]",
 	.help = 
 		"  -b, --bytes             show file size in exact number of bytes\n"
+		"  -c, --color             colorize the output.\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
 		"  -F, --classify          append indicator (one of */) to entries\n"
