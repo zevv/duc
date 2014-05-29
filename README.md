@@ -53,18 +53,18 @@ $ sudo make install
 to install duc into /usr/local/bin
 
 If you need to edit the source, you will need to have the GNU autoconf
-tools installed first, which you can do with:
+and libtool installed first, which you can do with:
 
 Ubuntu/Debian:  
 
 ```
-$ sudo apt-get install autoconf
+$ sudo apt-get install autoconf libtool
 ```
 
 RHEL/CentOS:
 
 ```
-$ sudo yum install autoconf
+$ sudo yum install autoconf libtool
 ```
 
 Then you will need to do:
