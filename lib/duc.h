@@ -3,6 +3,7 @@
 #define duc_h
 
 #include <limits.h>
+#include <glob.h>
 
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;
@@ -126,5 +127,6 @@ int duc_closedir(duc_dir *dir);
 
 void duc_humanize(off_t size, char *buf, size_t buflen);
 void duc_fmttime(char *human, struct timeval start, struct timeval end);
+size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list);
 
 #endif
