@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <glob.h>
 
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;
@@ -29,9 +30,12 @@ typedef enum {
 typedef enum {
 	DUC_OK,                     /* No error, success */
 	DUC_E_DB_NOT_FOUND,         /* Database not found */
+	DUC_E_DB_CORRUPT,           /* Database corrupt and unusable */
 	DUC_E_DB_VERSION_MISMATCH,  /* Database version mismatch */
 	DUC_E_PATH_NOT_FOUND,       /* Requested path not found */
 	DUC_E_PERMISSION_DENIED,    /* Permission denied */
+	DUC_E_OUT_OF_MEMORY,        /* Out of memory */
+	DUC_E_DB_TCBDBNEW,          /* Unable to initialize TokyoCabinet DB */
 	DUC_E_UNKNOWN,              /* Unknown error, contact the author */
 } duc_errno;
 
@@ -128,5 +132,6 @@ int duc_dir_close(duc_dir *dir);
 
 char *duc_human_size(off_t size);
 char *duc_human_duration(struct timeval start, struct timeval end);
+size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list);
 
 #endif

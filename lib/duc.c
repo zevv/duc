@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <time.h>
+#include <glob.h>
 
 #include "private.h"
 #include "duc.h"
@@ -16,9 +17,9 @@
 
 duc *duc_new(void)
 {
-	duc *duc = duc_malloc(sizeof *duc);
-	memset(duc, 0, sizeof *duc);
-	return duc;
+    duc *duc = duc_malloc(sizeof *duc);
+    memset(duc, 0, sizeof *duc);
+    return duc;
 }
 
 
@@ -88,6 +89,22 @@ int duc_close(struct duc *duc)
 	return 0;
 }
 
+/* Scan db_dir_path and return the number of DBs found, or -1 for error, putting an array
+   db filenames into *dbs */
+size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list) 
+{
+    size_t count;
+
+    char tmp[256];
+    sprintf(tmp,"%s/*.db", db_dir_path);
+    glob(tmp, GLOB_TILDE_CHECK, NULL, db_list);
+
+    count = db_list->gl_pathc;
+    if (count < 1) {
+        fprintf(stderr,"failed to find DBs in %s\n", tmp);
+    }
+    return count;
+}
 
 void duc_log(struct duc *duc, duc_loglevel level, const char *fmt, ...)
 {
@@ -110,12 +127,15 @@ const char *duc_strerror(duc *duc)
 {
 	switch(duc->err) {
 
-		case DUC_OK:                     return "No error: success"; break;
-		case DUC_E_DB_NOT_FOUND:         return "Database not found"; break;
-		case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch"; break;
-		case DUC_E_PATH_NOT_FOUND:       return "Requested path not found"; break;
-		case DUC_E_PERMISSION_DENIED:    return "Permission denied"; break;
-		case DUC_E_UNKNOWN:              break;
+	case DUC_OK:                     return "No error: success"; break;
+	case DUC_E_DB_NOT_FOUND:         return "Database not found"; break;
+	case DUC_E_DB_CORRUPT:           return "Database corrupt and not usable"; break;
+	case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch"; break;
+	case DUC_E_PATH_NOT_FOUND:       return "Requested path not found"; break;
+	case DUC_E_PERMISSION_DENIED:    return "Permission denied"; break;
+	case DUC_E_OUT_OF_MEMORY:        return "Out of memory"; break;
+	case DUC_E_DB_TCBDBNEW:          return "Unable to create DB using tcbdbnew()"; break;
+	case DUC_E_UNKNOWN:              break;
 	}
 
 	return "Unknown error, contact the author";

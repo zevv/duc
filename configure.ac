@@ -73,7 +73,7 @@ PKG_CHECK_MODULES([PANGO],[pango])
 PKG_CHECK_MODULES([PANGOCAIRO],[pangocairo])
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h])
+AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h glob.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_MODE_T
