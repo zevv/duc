@@ -39,10 +39,9 @@ static int info_db(char *file) {
 	struct tm *tm = localtime(&report->time_start.tv_sec);
 	strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 	
-	char siz[32];
-	duc_humanize(report->size_total, siz, sizeof siz);
-
+	char *siz = duc_human_size(report->size_total);
 	printf("  %s %7.7s %s\n", ts, siz, report->path);
+	free(siz);
 	
 	duc_index_report_free(report);
 	i++;
