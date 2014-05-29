@@ -90,7 +90,6 @@ int duc_close(struct duc *duc)
 size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list) 
 {
     size_t count;
-    char **p;
 
     char tmp[256];
     sprintf(tmp,"%s/*.db", db_dir_path);
