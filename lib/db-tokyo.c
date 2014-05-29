@@ -32,7 +32,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 
 	db->hdb = tcbdbnew();
 	if(!db->hdb) {
-		*e = DUC_E_UNKNOWN;
+		*e = DUC_E_DB_TCBDBNEW;
 		goto err1;
 	}
 
@@ -42,7 +42,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 
 	int r = tcbdbopen(db->hdb, path_db, mode);
 	if(r == 0) {
-		*e = DUC_E_DB_NOT_FOUND;
+	    *e = DUC_E_DB_CORRUPT;
 		goto err2;
 	}
 

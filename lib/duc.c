@@ -123,13 +123,15 @@ const char *duc_strerror(duc *duc)
 {
 	switch(duc->err) {
 
-		case DUC_OK:                     return "No error: success"; break;
-		case DUC_E_DB_NOT_FOUND:         return "Database not found"; break;
-		case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch"; break;
-		case DUC_E_PATH_NOT_FOUND:       return "Requested path not found"; break;
-		case DUC_E_PERMISSION_DENIED:    return "Permission denied"; break;
-		case DUC_E_OUT_OF_MEMORY:        return "Out of memory"; break;
-		case DUC_E_UNKNOWN:              break;
+	case DUC_OK:                     return "No error: success"; break;
+	case DUC_E_DB_NOT_FOUND:         return "Database not found"; break;
+	case DUC_E_DB_CORRUPT:           return "Database corrupt and not usable"; break;
+	case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch"; break;
+	case DUC_E_PATH_NOT_FOUND:       return "Requested path not found"; break;
+	case DUC_E_PERMISSION_DENIED:    return "Permission denied"; break;
+	case DUC_E_OUT_OF_MEMORY:        return "Out of memory"; break;
+	case DUC_E_DB_TCBDBNEW:          return "Unable to create DB using tcbdbnew()"; break;
+	case DUC_E_UNKNOWN:              break;
 	}
 
 	return "Unknown error, contact the author";
