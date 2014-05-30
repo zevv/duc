@@ -91,6 +91,10 @@ static int index_main(int argc, char **argv)
 
 		struct duc_index_report *report;
 		report = duc_index(req, argv[i], index_flags);
+		if(report == NULL) {
+			fprintf(stderr, "%s\n", duc_strerror(duc));
+			continue;
+		}
 
 		char *siz = duc_human_size(report->size_total);
 		if(r == DUC_OK) {
