@@ -31,7 +31,7 @@ static int index_main(int argc, char **argv)
 	int c;
 	char *path_db = NULL;
 	duc_index_flags index_flags = 0;
-	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_INF | DUC_OPEN_COMPRESS;
+	int open_flags = DUC_OPEN_RW | DUC_OPEN_COMPRESS;
 	
 	struct duc *duc = duc_new();
 	if(duc == NULL) {
@@ -51,13 +51,13 @@ static int index_main(int argc, char **argv)
 				duc_index_req_add_exclude(req, optarg);
 				break;
 			case 'q':
-				open_flags &= ~DUC_OPEN_LOG_INF;
+				duc_set_log_level(duc, DUC_LOG_FTL);
 				break;
 			case 'u':
 				open_flags &= ~DUC_OPEN_COMPRESS;
 				break;
 			case 'v':
-				open_flags |= DUC_OPEN_LOG_DBG;
+				duc_set_log_level(duc, DUC_LOG_DBG);
 				break;
 			case 'x':
 				index_flags |= DUC_INDEX_XDEV;
@@ -66,7 +66,7 @@ static int index_main(int argc, char **argv)
 				return -2;
 		}
 	}
-	
+
 	argc -= optind;
 	argv += optind;
 

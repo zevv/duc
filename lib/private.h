@@ -21,19 +21,11 @@ char *realpath(const char *path, char resolved_path[PATH_MAX]);
 #define S_ISSOCK(v) 0
 #endif
 
-typedef enum {
-	LG_FTL,
-	LG_WRN,
-	LG_INF,
-	LG_DBG,
-	LG_DMP
-} duc_loglevel;
-
-
 struct duc {
 	struct db *db;
 	duc_errno err;
-	duc_loglevel loglevel;
+	duc_log_level log_level;
+	duc_log_callback log_callback;
 };
 
 
@@ -57,7 +49,7 @@ void *duc_malloc(size_t s);
 void *duc_realloc(void *p, size_t s);
 char *duc_strdup(const char *s);
 
-void duc_log(struct duc *duc, duc_loglevel lvl, const char *fmt, ...);
+void duc_log(struct duc *duc, duc_log_level lvl, const char *fmt, ...);
 
 struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino);
 int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino);

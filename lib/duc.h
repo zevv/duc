@@ -4,6 +4,7 @@
 
 #include <limits.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <glob.h>
@@ -16,9 +17,6 @@ typedef enum {
 	DUC_OPEN_RO = 1<<0,        /* Open read-only (for querying)*/
 	DUC_OPEN_RW = 1<<1,        /* Open read-write (for indexing) */
 	DUC_OPEN_COMPRESS = 1<<2,  /* Create compressed database */
-	DUC_OPEN_LOG_WRN = 1<<3,   /* Log warning messages */
-	DUC_OPEN_LOG_INF = 1<<4,   /* Log informational messages */
-	DUC_OPEN_LOG_DBG = 1<<5,   /* Log debug messages */
 } duc_open_flags;
 
 
@@ -52,6 +50,16 @@ typedef enum {
 } duc_dirent_mode;
 
 
+typedef enum {
+	DUC_LOG_FTL,
+	DUC_LOG_WRN,
+	DUC_LOG_INF,
+	DUC_LOG_DBG,
+	DUC_LOG_DMP
+} duc_log_level;
+
+
+
 struct duc_index_report {
 	char path[PATH_MAX];        /* Indexed path */
 	dev_t dev;                  /* Index top device id */
@@ -73,16 +81,16 @@ struct duc_dirent {
 
 
 /*
- * Create and destroy duc context
+ * Duc context, logging and error reporting
  */
+
+typedef void (*duc_log_callback)(duc_log_level level, const char *fmt, va_list va);
 
 duc *duc_new(void);
 void duc_del(duc *duc);
 
-
-/*
- * Error reporting
- */
+void duc_set_log_level(duc *duc, duc_log_level level);
+void duc_set_log_callback(duc *duc, duc_log_callback cb);
 
 duc_errno duc_error(duc *duc);
 const char *duc_strerror(duc *duc);

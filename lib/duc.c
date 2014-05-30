@@ -15,10 +15,21 @@
 #include "db.h"
 
 
+
+
+static void default_log_callback(duc_log_level level, const char *fmt, va_list va)
+{
+	vfprintf(stderr, fmt, va);
+}
+
+
+
 duc *duc_new(void)
 {
     duc *duc = duc_malloc(sizeof *duc);
     memset(duc, 0, sizeof *duc);
+    duc->log_level = DUC_LOG_WRN;
+    duc->log_callback = default_log_callback;
     return duc;
 }
 
@@ -27,6 +38,18 @@ void duc_del(duc *duc)
 {
 	if(duc->db) duc_close(duc);
 	free(duc);
+}
+
+
+void duc_set_log_level(duc *duc, duc_log_level level)
+{
+	duc->log_level = level;
+}
+
+
+void duc_set_log_callback(duc *duc, duc_log_callback cb)
+{
+	duc->log_callback = cb;
 }
 
 
@@ -65,13 +88,9 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		return -1;
 	}
 
-	if(flags & DUC_OPEN_LOG_WRN) duc->loglevel = LG_WRN;
-	if(flags & DUC_OPEN_LOG_INF) duc->loglevel = LG_INF;
-	if(flags & DUC_OPEN_LOG_DBG) duc->loglevel = LG_DBG;
-
 	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-	  duc_log(duc, LG_WRN, "Error opening: %s - %s\n", path_db, duc_strerror(duc));
+	  duc_log(duc, DUC_LOG_WRN, "Error opening: %s - %s\n", path_db, duc_strerror(duc));
 		free(duc);
 		return -1;
 	}
@@ -106,12 +125,12 @@ size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list)
     return count;
 }
 
-void duc_log(struct duc *duc, duc_loglevel level, const char *fmt, ...)
+void duc_log(struct duc *duc, duc_log_level level, const char *fmt, ...)
 {
-	if(level <= duc->loglevel) {
+	if(duc->log_callback && level <= duc->log_level) {
 		va_list va;
 		va_start(va, fmt);
-		vfprintf(stderr, fmt, va);
+		duc->log_callback(level, fmt, va);
 		va_end(va);
 	}
 }

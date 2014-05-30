@@ -82,7 +82,7 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 	keyl = mkkey(dev, ino, key, sizeof key);
 	char *val = db_get(duc->db, key, keyl, &vall);
 	if(val == NULL) {
-		duc_log(duc, LG_WRN, "Key %s not found in database\n", key);
+		duc_log(duc, DUC_LOG_WRN, "Key %s not found in database\n", key);
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		return NULL;
 	}

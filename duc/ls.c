@@ -105,10 +105,19 @@ static int ls_main(int argc, char **argv)
 		{ "classify",       no_argument,       NULL, 'F' },
 		{ "database",       required_argument, NULL, 'd' },
 		{ "graph",          no_argument,       NULL, 'g' },
+		{ "verbose",        no_argument,       NULL, 'v' },
 		{ NULL }
 	};
+	
+	/* Open duc context */
+	
+	duc *duc = duc_new();
+	if(duc == NULL) {
+                fprintf(stderr, "Error creating duc context\n");
+                return -1;
+        }
 
-	while( ( c = getopt_long(argc, argv, "bcd:Fgn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "bcd:Fgv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'b':
@@ -125,6 +134,9 @@ static int ls_main(int argc, char **argv)
 				break;
 			case 'F':
 				classify = 1;
+				break;
+			case 'v':
+				duc_set_log_level(duc, DUC_LOG_DBG);
 				break;
 			default:
 				return -2;
@@ -149,13 +161,6 @@ static int ls_main(int argc, char **argv)
 		color = 0;
 	}
 
-	/* Open duc context */
-	
-	duc *duc = duc_new();
-	if(duc == NULL) {
-                fprintf(stderr, "Error creating duc context\n");
-                return -1;
-        }
 
 	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
