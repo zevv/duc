@@ -2,6 +2,7 @@
 #include "config.h"
 
 #include <limits.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,28 +17,98 @@
 #include "cmd.h"
 #include "duc.h"
 
+char *color_reset = "\e[0m";
+char *color_red = "\e[31m";
+char *color_yellow = "\e[33m";
 
 static int bytes = 0;
-static int limit = 20;
+static int classify = 0;
+static int color = 0;
+static int width = 80;
+static int graph = 0;
+
+
+static void ls_one(duc_dir *dir, int level)
+{
+
+	off_t size_total = 0;
+	off_t max_size = 0;
+	int max_name_len = 0;
+	int max_size_len = 6;
+
+	/* Iterate the directory once to get maximum file size and name length */
+	
+	struct duc_dirent *e;
+	while( (e = duc_dir_read(dir)) != NULL) {
+		if(e->size > max_size) max_size = e->size;
+		size_t l = strlen(e->name);
+		if(l > max_name_len) max_name_len = l;
+		size_total += e->size;
+	}
+
+	if(bytes && max_size_len > 0) max_size_len = log(max_size) / log(10) + 1;
+	if(classify) max_name_len ++;
+
+	/* Iterate a second time to print results */
+
+	duc_dir_rewind(dir);
+	while( (e = duc_dir_read(dir)) != NULL) {
+			
+		char *color_on = "";
+		char *color_off = "";
+
+		if(color) {
+			color_off = color_reset;
+			if(e->size >= max_size / 8) color_on = color_yellow;
+			if(e->size >= max_size / 2) color_on = color_red;
+		}
+
+		if(classify) {
+			if(e->mode == DUC_MODE_DIR) strcat(e->name, "/");
+		}
+
+		printf("%s", color_on);
+		if(bytes) {
+			printf("%*jd", max_size_len, e->size);
+		} else {
+			char *siz = duc_human_size(e->size);
+			printf("%*s", max_size_len, siz);
+			free(siz);
+		}
+		printf("%s", color_off);
+		
+		printf(" %-*s ", max_name_len, e->name);
+
+		if(graph) {
+			int w = width - max_name_len - max_size_len - 5;
+			int n = max_size ? (w * e->size / max_size) : 0;
+			int j;
+			printf(" [%s", color_on);
+			for(j=0; j<n; j++) putchar('+');
+			for(; j<w; j++) putchar(' ');
+			printf("%s]", color_off);
+		}
+
+		printf("\n");
+	}
+}
 
 
 static int ls_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-	int classify = 0;
-	int color = 0;
 
 	struct option longopts[] = {
 		{ "bytes",          no_argument,       NULL, 'b' },
 		{ "color",          no_argument,       NULL, 'c' },
 		{ "classify",       no_argument,       NULL, 'F' },
 		{ "database",       required_argument, NULL, 'd' },
-		{ "limit",          required_argument, NULL, 'n' },
+		{ "graph",          no_argument,       NULL, 'g' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "bcd:Fn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "bcd:Fgn:", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'b':
@@ -49,11 +120,11 @@ static int ls_main(int argc, char **argv)
 			case 'd':
 				path_db = optarg;
 				break;
+			case 'g':
+				graph = 1;
+				break;
 			case 'F':
 				classify = 1;
-				break;
-			case 'n':
-				limit = atoi(optarg);
 				break;
 			default:
 				return -2;
@@ -68,7 +139,6 @@ static int ls_main(int argc, char **argv)
 	
 	/* Get terminal width */
 
-	int width = 80;
 	if(isatty(0)) {
 #ifdef TIOCGWINSZ
 		struct winsize w;
@@ -78,7 +148,6 @@ static int ls_main(int argc, char **argv)
 	} else {
 		color = 0;
 	}
-	width = width - 36;
 
 	/* Open duc context */
 	
@@ -101,65 +170,8 @@ static int ls_main(int argc, char **argv)
 	  fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
-	
-	/* Calculate max and total size */
-	
-	off_t size_total = 0;
-	off_t size_max = 0;
 
-	struct duc_dirent *e;
-	while( (e = duc_dir_read(dir)) != NULL) {
-		if(e->size > size_max) size_max = e->size;
-		size_total += e->size;
-	}
-
-	if(limit) duc_dir_limit(dir, limit);
-	
-	duc_dir_rewind(dir);
-	while( (e = duc_dir_read(dir)) != NULL) {
-
-		if(classify) {
-			if(e->mode == DUC_MODE_DIR) strcat(e->name, "/");
-		}
-
-		char *siz;
-		if(bytes) {
-			asprintf(&siz, "%jd", e->size);
-		} else {
-			siz = duc_human_size(e->size);
-		}
-
-		printf("%-20.20s %11.11s [", e->name, siz);
-		free(siz);
-
-		if(color) {
-			if(e->size >= size_max / 2) {
-				printf("\e[31m");
-			} else if(e->size >= size_max / 8) {
-				printf("\e[33m");
-			}
-		}
-
-		int n = size_max ? (width * e->size / size_max) : 0;
-		int j;
-		for(j=0; j<n; j++) putchar('=');
-		for(; j<width; j++) putchar(' ');
-
-		if(color) {
-			printf("\e[0m");
-		}
-
-		printf("]\n");
-	}
-
-	char *siz;
-	if(bytes) {
-		asprintf(&siz, "%jd", duc_dir_get_size(dir));
-	} else {
-		siz = duc_human_size(duc_dir_get_size(dir));
-	}
-	printf("%-20.20s %11.11s\n", "Total size", siz);
-	free(siz);
+	ls_one(dir, 0);
 
 	duc_dir_close(dir);
 	duc_close(duc);
@@ -178,9 +190,9 @@ struct cmd cmd_ls = {
 		"  -b, --bytes             show file size in exact number of bytes\n"
 		"  -c, --color             colorize the output.\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -g, --graph             draw graph with relative size for each entry\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
-		"  -F, --classify          append indicator (one of */) to entries\n"
-		"  -n, --limit=ARG         limit number of results. 0 for unlimited [20]\n",
+		"  -F, --classify          append indicator (one of */) to entries\n",
 	.main = ls_main
 };
 
