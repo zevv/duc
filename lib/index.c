@@ -176,7 +176,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			report->file_count ++;
 		}
 
-		duc_log(duc, DUC_LOG_DBG, "%s %jd\n", e->d_name, size);
+		duc_log(duc, DUC_LOG_DMP, "%s %jd\n", e->d_name, size);
 
 		/* Store record */
 
