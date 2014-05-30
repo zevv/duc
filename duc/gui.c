@@ -77,6 +77,7 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 			duc_graph_set_position(graph, pos_x, pos_y);
 			duc_graph_set_max_level(graph, depth);
 			duc_graph_set_fuzz(graph, fuzz);
+			duc_graph_set_max_name_len(graph, 30);
 			duc_graph_draw_cairo(graph, dir, cr);
 			cairo_destroy(cr);
 

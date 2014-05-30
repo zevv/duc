@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <limits.h>
 #include <math.h>
 #include <assert.h>
@@ -21,6 +22,7 @@
 #include <pango/pangocairo.h>
 
 #include "list.h"
+#include "private.h"
 #include "duc.h"
 #include "duc-graph.h"
 
@@ -46,6 +48,7 @@ struct duc_graph {
 	double fuzz;
 	int max_level;
 	enum duc_graph_palette palette;
+	size_t max_name_len;
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
@@ -82,6 +85,12 @@ void duc_graph_free(duc_graph *g)
 void duc_graph_set_max_level(duc_graph *g, int max_level)
 {
 	g->max_level = max_level;
+}
+
+
+void duc_graph_set_max_name_len(duc_graph *g, size_t len)
+{
+	g->max_name_len = len;
 }
 
 
@@ -126,6 +135,31 @@ static void car2pol(duc_graph *g, int x, int y, double *a, double *r)
 	*r = hypot(y, x);
 	*a = atan2(x, -y) / (M_PI*2);
 	if(*a < 0) *a += 1;
+}
+
+
+void shorten_name(char *label, int maxlen)
+{
+	if(maxlen == 0) return;
+
+	size_t n = strlen(label);
+	if(n < maxlen) return;
+
+	size_t cut1 = maxlen/2;
+	size_t cut2 = n - maxlen/2;
+
+	for(; cut1>5; cut1--) if(!isalnum(label[cut1])) break;
+	for(; cut2<n-5; cut2++) if(!isalnum(label[cut2])) break;
+
+	if(cut1 == 5) cut1 = maxlen/3;
+	if(cut2 == n-5) cut2 = n - maxlen/3;
+
+	if(cut2 > cut1 && cut1 + n - cut2 + 3 <= n) {
+		label[cut1++] = '.';
+		label[cut1++] = '.';
+		label[cut1++] = '.';
+		memmove(label+cut1, label+cut2+1, n-cut2);
+	}
 }
 
 
@@ -348,11 +382,17 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		if(cr) {
 			if(r1 * (a2 - a1) > 5) {
 				struct label *label = malloc(sizeof *label);
-				pol2car(g, ang((a1+a2)/2), (r1+r2)/2, &label->x, &label->y);
+
 				char *siz = duc_human_size(e->size);
-				asprintf(&label->text, "%s\n%s", e->name, siz);
-				free(siz);
+				char *name = duc_strdup(e->name);
+				shorten_name(name, g->max_name_len);
+
+				pol2car(g, ang((a1+a2)/2), (r1+r2)/2, &label->x, &label->y);
+				asprintf(&label->text, "%s\n%s", name, siz);
 				list_push(&g->label_list, label);
+
+				free(name);
+				free(siz);
 			}
 		}
 		
