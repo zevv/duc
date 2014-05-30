@@ -32,7 +32,7 @@ static char mode_char[] = {
 };
 
 static char *tree_ascii[5] = {
-	"`-+-",
+	" `+-",
 	"  |-",
 	"  `-",
 	"  | ",
