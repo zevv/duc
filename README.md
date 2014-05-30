@@ -48,9 +48,10 @@ pre-built package.  So you can normally just do:
 $ ./configure
 $ make
 $ sudo make install
+$ sudo ldconfig
 ```
 
-to install duc into /usr/local/bin
+to install duc into /usr/local/bin. 
 
 If you need to edit the source, you will need to have the GNU autoconf
 and libtool installed first, which you can do with:
