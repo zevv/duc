@@ -110,11 +110,9 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 			if(e->mode <= DUC_MODE_REST) putchar(mode_char[e->mode]);
 			l++;
 		}
-		for(;l<=max_name_len; l++) putchar(' ');
-
-
 
 		if(graph) {
+			for(;l<=max_name_len; l++) putchar(' ');
 			int w = width - max_name_len - max_size_len - 5 - strlen(prefix);
 			int l = max_size ? (w * e->size / max_size) : 0;
 			int j;
