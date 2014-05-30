@@ -130,6 +130,7 @@ int duc_dir_limit(duc_dir *dir, size_t count);
 struct duc_dirent *duc_dir_read(duc_dir *dir);
 char *duc_dir_get_path(duc_dir *dir);
 off_t duc_dir_get_size(duc_dir *dir);
+size_t duc_dir_get_count(duc_dir *dir);
 struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name);
 int duc_dir_rewind(duc_dir *dir);
 int duc_dir_close(duc_dir *dir);

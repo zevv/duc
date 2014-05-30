@@ -2,7 +2,6 @@
 #include "config.h"
 
 #include <limits.h>
-#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,14 +20,36 @@ char *color_reset = "\e[0m";
 char *color_red = "\e[31m";
 char *color_yellow = "\e[33m";
 
+static char mode_char[] = {
+        [DUC_MODE_REG]  = ' ',
+        [DUC_MODE_DIR]  = '/',
+        [DUC_MODE_CHR]  = ' ',
+        [DUC_MODE_BLK]  = ' ',
+        [DUC_MODE_FIFO] = '|',
+        [DUC_MODE_LNK]  = '>',
+        [DUC_MODE_SOCK] = '@',
+        [DUC_MODE_REST] = ' ',
+};
+
+static char *tree_ascii[5] = {
+	"`-+-",
+	"  |-",
+	"  `-",
+	"  | ",
+	"    ",
+};
+
+
 static int bytes = 0;
 static int classify = 0;
 static int color = 0;
 static int width = 80;
 static int graph = 0;
+static int recursive = 0;
+static int max_depth = 32;
+static char **tree = tree_ascii;
 
-
-static void ls_one(duc_dir *dir, int level)
+static void ls_one(duc_dir *dir, int level, char *prefix)
 {
 
 	off_t size_total = 0;
@@ -46,13 +67,23 @@ static void ls_one(duc_dir *dir, int level)
 		size_total += e->size;
 	}
 
-	if(bytes && max_size_len > 0) max_size_len = log(max_size) / log(10) + 1;
+	if(bytes) max_size_len = 12;
 	if(classify) max_name_len ++;
 
 	/* Iterate a second time to print results */
 
 	duc_dir_rewind(dir);
+
+	size_t count = duc_dir_get_count(dir);
+	size_t n = 0;
+
 	while( (e = duc_dir_read(dir)) != NULL) {
+
+		if(recursive) {
+			if(n == 0)       strcpy(prefix + level*4, tree[0]);
+			if(n >= 1)       strcpy(prefix + level*4, tree[1]);
+			if(n == count-1) strcpy(prefix + level*4, tree[2]);
+		}
 			
 		char *color_on = "";
 		char *color_off = "";
@@ -61,10 +92,6 @@ static void ls_one(duc_dir *dir, int level)
 			color_off = color_reset;
 			if(e->size >= max_size / 8) color_on = color_yellow;
 			if(e->size >= max_size / 2) color_on = color_red;
-		}
-
-		if(classify) {
-			if(e->mode == DUC_MODE_DIR) strcat(e->name, "/");
 		}
 
 		printf("%s", color_on);
@@ -76,20 +103,43 @@ static void ls_one(duc_dir *dir, int level)
 			free(siz);
 		}
 		printf("%s", color_off);
-		
-		printf(" %-*s ", max_name_len, e->name);
+		printf("%s", prefix);
+
+		int l = printf(" %s", e->name);
+		if(classify) {
+			if(e->mode <= DUC_MODE_REST) putchar(mode_char[e->mode]);
+			l++;
+		}
+		for(;l<=max_name_len; l++) putchar(' ');
+
+
 
 		if(graph) {
-			int w = width - max_name_len - max_size_len - 5;
-			int n = max_size ? (w * e->size / max_size) : 0;
+			int w = width - max_name_len - max_size_len - 5 - strlen(prefix);
+			int l = max_size ? (w * e->size / max_size) : 0;
 			int j;
 			printf(" [%s", color_on);
-			for(j=0; j<n; j++) putchar('+');
+			for(j=0; j<l; j++) putchar('+');
 			for(; j<w; j++) putchar(' ');
 			printf("%s]", color_off);
 		}
 
 		printf("\n");
+			
+		if(recursive && level < max_depth && e->mode == DUC_MODE_DIR) {
+			if(n == count-1) {
+				strcpy(prefix + level*4, tree[4]);
+			} else {
+				strcpy(prefix + level*4, tree[3]);
+			}
+			duc_dir *dir2 = duc_dir_openent(dir, e);
+			if(dir2) {
+				ls_one(dir2, level+1, prefix);
+				duc_dir_close(dir2);
+			}
+		}
+		
+		n++;
 	}
 }
 
@@ -105,6 +155,7 @@ static int ls_main(int argc, char **argv)
 		{ "classify",       no_argument,       NULL, 'F' },
 		{ "database",       required_argument, NULL, 'd' },
 		{ "graph",          no_argument,       NULL, 'g' },
+		{ "recursive",      no_argument,       NULL, 'R' },
 		{ "verbose",        no_argument,       NULL, 'v' },
 		{ NULL }
 	};
@@ -117,7 +168,7 @@ static int ls_main(int argc, char **argv)
                 return -1;
         }
 
-	while( ( c = getopt_long(argc, argv, "bcd:Fgv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "bcd:FgvR", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'b':
@@ -134,6 +185,9 @@ static int ls_main(int argc, char **argv)
 				break;
 			case 'F':
 				classify = 1;
+				break;
+			case 'R':
+				recursive = 1;
 				break;
 			case 'v':
 				duc_set_log_level(duc, DUC_LOG_DBG);
@@ -176,7 +230,9 @@ static int ls_main(int argc, char **argv)
 		return -1;
 	}
 
-	ls_one(dir, 0);
+	char prefix[16*4 + 1] = "";
+
+	ls_one(dir, 0, prefix);
 
 	duc_dir_close(dir);
 	duc_close(duc);
@@ -197,7 +253,8 @@ struct cmd cmd_ls = {
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -g, --graph             draw graph with relative size for each entry\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
-		"  -F, --classify          append indicator (one of */) to entries\n",
+		"  -F, --classify          append indicator (one of */) to entries\n"
+		"  -R, --recursive         list subdirectories in a recursive tree view\n",
 	.main = ls_main
 };
 
