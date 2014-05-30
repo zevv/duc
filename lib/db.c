@@ -12,7 +12,7 @@
 
 static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 {
-	return snprintf(key, keylen, "%jx/%jx", dev, ino);
+	return snprintf(key, keylen, "%jx/%jx", (uintmax_t)dev, (uintmax_t)ino);
 }
 
 

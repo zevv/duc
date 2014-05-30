@@ -126,7 +126,6 @@ duc_dir *duc_dir_open(duc *duc, const char *path);
 duc_dir *duc_dir_get_parent(duc_dir *dir);
 duc_dir *duc_dir_openat(duc_dir *dir, const char *name);
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e);
-int duc_dir_limit(duc_dir *dir, size_t count);
 struct duc_dirent *duc_dir_read(duc_dir *dir);
 char *duc_dir_get_path(duc_dir *dir);
 off_t duc_dir_get_size(duc_dir *dir);

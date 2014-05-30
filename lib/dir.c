@@ -114,35 +114,6 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 }
 
 
-int duc_dir_limit(duc_dir *dir, size_t count)
-{
-	if(dir->ent_count <= count) return 0;
-
-	off_t rest_size = 0;
-	off_t rest_count = dir->ent_count - count;
-
-	size_t i;
-	struct duc_dirent *ent = dir->ent_list;
-	for(i=0; i<dir->ent_count; i++) {
-		if(i>=count-1) rest_size += ent->size;
-		ent++;
-	}
-
-	dir->ent_list = realloc(dir->ent_list, sizeof(struct duc_dirent) * count);
-	dir->ent_count = count;
-	dir->ent_cur = 0;
-	ent = &dir->ent_list[count-1];
-
-	asprintf(&ent->name, "(%ld files)", rest_count);
-	ent->mode = DUC_MODE_REST;
-	ent->size = rest_size;
-	ent->dev = 0;
-	ent->ino = 0;
-
-	return 0;
-}
-
-
 struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name)
 {
 	size_t i;
