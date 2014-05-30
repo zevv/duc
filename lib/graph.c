@@ -347,26 +347,26 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				L = 0;
 				break;
 		}
-	
-
-		/* Check if the requested spot lies in this section */
-
-		if(g->spot_r > 0) {
-			double a = g->spot_a;
-			double r = g->spot_r;
-
-			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-				g->spot_dir = duc_dir_openent(dir, e);
-			}
-		}
 
 		/* Draw section for this object */
 
 		draw_section(g, cr, a1, a2, r1, r2, H, S, V, L);
 
-		/* Recurse into subdirectories */
-
 		if(e->mode == DUC_MODE_DIR) {
+
+			/* Check if the requested spot lies in this section */
+
+			if(g->spot_r > 0) {
+				double a = g->spot_a;
+				double r = g->spot_r;
+
+				if(a >= a1 && a < a2 && r >= r1 && r < r2) {
+					g->spot_dir = duc_dir_openent(dir, e);
+				}
+			}
+
+			/* Recurse into subdirectories */
+
 			if(level+1 < g->max_level) {
 				duc_dir *dir_child = duc_dir_openent(dir, e);
 				if(!dir_child) continue;
