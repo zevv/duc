@@ -9,10 +9,6 @@
 #define lstat stat
 #endif
 
-#ifndef HAVE_REALPATH
-char *realpath(const char *path, char resolved_path[PATH_MAX]);
-#endif
-
 #ifndef S_ISLNK
 #define S_ISLNK(v) 0
 #endif
@@ -53,6 +49,8 @@ void duc_log(struct duc *duc, duc_log_level lvl, const char *fmt, ...);
 
 struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino);
 int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino);
+
+char *stripdir(const char *dir);
 
 #endif
 
