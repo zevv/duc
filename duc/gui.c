@@ -219,7 +219,6 @@ int gui_main(int argc, char *argv[])
 	
 	duc_set_log_level(duc, loglevel);
 
-	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));

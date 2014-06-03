@@ -31,7 +31,6 @@ static int info_db(char *file)
 
 	duc_set_log_level(duc, loglevel);
 
-	printf("Reading %s, available indices:\n", file);
 	int r = duc_open(duc, file, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		fprintf(stderr, "Error!  %s\n", duc_strerror(duc));
@@ -105,7 +104,6 @@ static int info_main(int argc, char **argv)
 	    return 0;
 	}
 
-	path_db = duc_pick_db_path(path_db);
 	info_db(path_db);
 	return 0;
 }
