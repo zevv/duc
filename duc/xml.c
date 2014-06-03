@@ -69,17 +69,24 @@ static int xml_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
+	duc_log_level loglevel = DUC_LOG_WRN;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
 		{ NULL }
 	};
 
-	while( ( c = getopt_long(argc, argv, "d:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:qv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
+				break;
+			case 'q':
+				loglevel = DUC_LOG_FTL;
+				break;
+			case 'v':
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
 				break;
 			default:
 				return -2;
@@ -99,6 +106,7 @@ static int xml_main(int argc, char **argv)
                 fprintf(stderr, "Error creating duc context\n");
                 return -1;
         }
+	duc_set_log_level(duc, loglevel);
 
 	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
@@ -134,7 +142,8 @@ struct cmd cmd_xml = {
 	.description = "Dump XML output",
 	.usage = "[options] [PATH]",
 	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -q, --quiet             quiet mode, do not print any warnings\n",
 	.main = xml_main
 };
 

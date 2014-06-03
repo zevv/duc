@@ -172,28 +172,37 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 	XCloseDisplay(dpy);
 }
 
+	
+static struct option longopts[] = {
+	{ "database",       required_argument, NULL, 'd' },
+	{ "verbose",        required_argument, NULL, 'v' },
+	{ NULL }
+};
+
 
 int gui_main(int argc, char *argv[])
 {
 	char *path_db = NULL;
 	int c;
+	duc_log_level loglevel = DUC_LOG_WRN;
 
-	struct option longopts[] = {
-		{ "database",       required_argument, NULL, 'd' },
-		{ NULL }
-	};
-
-	while( ( c = getopt_long(argc, argv, "bd:Fn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:qv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
 				break;
+			case 'q':
+				loglevel = DUC_LOG_FTL;
+				break;
+			case 'v':
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
+				break;
 			default:
 				return -2;
 		}
 	}
-
+	
 	argc -= optind;
 	argv += optind;
 
@@ -207,6 +216,8 @@ int gui_main(int argc, char *argv[])
                 fprintf(stderr, "Error creating duc context\n");
                 return -1;
         }
+	
+	duc_set_log_level(duc, loglevel);
 
 	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
@@ -243,7 +254,9 @@ struct cmd cmd_gui = {
 	.description = "Graphical interface",
 	.usage = "[options] [PATH]",
 	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -q, --quiet             quiet mode, do not print any warnings\n"
+		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
 	.main = gui_main
 };
 

@@ -213,7 +213,7 @@ static int cgi_main(int argc, char **argv)
 	};
 
 	int c;
-	while( ( c = getopt_long(argc, argv, "d:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:q", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
