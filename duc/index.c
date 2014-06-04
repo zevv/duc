@@ -32,6 +32,7 @@ static int index_main(int argc, char **argv)
 	char *path_db = NULL;
 	duc_index_flags index_flags = 0;
 	int open_flags = DUC_OPEN_RW | DUC_OPEN_COMPRESS;
+	duc_log_level loglevel = DUC_LOG_WRN;
 	
 	struct duc *duc = duc_new();
 	if(duc == NULL) {
@@ -51,13 +52,13 @@ static int index_main(int argc, char **argv)
 				duc_index_req_add_exclude(req, optarg);
 				break;
 			case 'q':
-				duc_set_log_level(duc, DUC_LOG_FTL);
+				loglevel = DUC_LOG_FTL;
 				break;
 			case 'u':
 				open_flags &= ~DUC_OPEN_COMPRESS;
 				break;
 			case 'v':
-				duc_set_log_level(duc, DUC_LOG_DBG);
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
 				break;
 			case 'x':
 				index_flags |= DUC_INDEX_XDEV;
@@ -66,6 +67,8 @@ static int index_main(int argc, char **argv)
 				return -2;
 		}
 	}
+				
+	duc_set_log_level(duc, loglevel);
 
 	argc -= optind;
 	argv += optind;
@@ -75,14 +78,11 @@ static int index_main(int argc, char **argv)
 		return -2;
 	}
 	
-	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, open_flags);
 	if(r != DUC_OK) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
-
-	fprintf(stderr,"Writing to %s\n",path_db);
 
 	/* Index all paths passed on the cmdline */
 
@@ -130,7 +130,7 @@ struct cmd cmd_index = {
 		"  -e, --exclude=PATTERN   exclude files matching PATTERN\n"
 		"  -q, --quiet             do not report errors\n"
 		"  -u, --uncompressed      do not use compression for database\n"
-		"  -v, --verbose           show what is happening\n"
+		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"
 		,
 	.main = index_main

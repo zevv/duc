@@ -16,6 +16,15 @@
 #include "duc-graph.h"
 #include "cmd.h"
 
+static struct option longopts[] = {
+	{ "database",       required_argument, NULL, 'd' },
+	{ "levels",         required_argument, NULL, 'l' },
+	{ "output",         required_argument, NULL, 'o' },
+	{ "size",           required_argument, NULL, 's' },
+	{ "verbose",        required_argument, NULL, 'v' },
+	{ NULL }
+};
+
 
 static int graph_main(int argc, char **argv)
 {
@@ -24,18 +33,11 @@ static int graph_main(int argc, char **argv)
 	int size = 800;
 	char *path_out = NULL;
 	char *path_out_default = "duc.png";
+	duc_log_level loglevel = DUC_LOG_WRN;
 	int max_level = 4;
 	enum duc_graph_file_format format = DUC_GRAPH_FORMAT_PNG;
 
-	struct option longopts[] = {
-		{ "database",       required_argument, NULL, 'd' },
-		{ "levels",         required_argument, NULL, 'l' },
-		{ "output",         required_argument, NULL, 'o' },
-		{ "size",           required_argument, NULL, 's' },
-		{ NULL }
-	};
-
-	while( ( c = getopt_long(argc, argv, "d:f:l:o:s:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:f:l:o:s:qv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -57,8 +59,14 @@ static int graph_main(int argc, char **argv)
 			case 'o':
 				path_out = optarg;
 				break;
+			case 'q':
+				loglevel = DUC_LOG_FTL;
+				break;
 			case 's':
 				size = atoi(optarg);
+				break;
+			case 'v':
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
 				break;
 			default:
 				return -2;
@@ -80,8 +88,9 @@ static int graph_main(int argc, char **argv)
                 fprintf(stderr, "Error creating duc context\n");
                 return -1;
         }
+	
+	duc_set_log_level(duc, loglevel);
 
-        path_db = duc_pick_db_path(path_db);
         int r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
                 fprintf(stderr, "%s\n", duc_strerror(duc));
@@ -123,7 +132,9 @@ struct cmd cmd_graph = {
 		"  -f, --format=ARG        select output format <png|svg|pdf> [png]\n"
 	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
 		"  -o, --output=ARG        output file name [duc.png]\n"
-	        "  -s, --size=ARG          image size [800]\n",
+	        "  -s, --size=ARG          image size [800]\n"
+		"  -q, --quiet             quiet mode, do not print any warnings\n"
+		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
 	.main = graph_main
 };
 

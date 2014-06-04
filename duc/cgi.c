@@ -213,7 +213,7 @@ static int cgi_main(int argc, char **argv)
 	};
 
 	int c;
-	while( ( c = getopt_long(argc, argv, "d:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:q", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -235,7 +235,6 @@ static int cgi_main(int argc, char **argv)
 		return -1;
         }
 
-	    path_db = duc_pick_db_path(path_db);
         r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
 		printf("Content-Type: text/plain\n\n");

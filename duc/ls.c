@@ -142,21 +142,23 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 }
 
 
+static struct option longopts[] = {
+	{ "bytes",          no_argument,       NULL, 'b' },
+	{ "color",          no_argument,       NULL, 'c' },
+	{ "classify",       no_argument,       NULL, 'F' },
+	{ "database",       required_argument, NULL, 'd' },
+	{ "graph",          no_argument,       NULL, 'g' },
+	{ "recursive",      no_argument,       NULL, 'R' },
+	{ "verbose",        no_argument,       NULL, 'v' },
+	{ NULL }
+};
+
+
 static int ls_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-
-	struct option longopts[] = {
-		{ "bytes",          no_argument,       NULL, 'b' },
-		{ "color",          no_argument,       NULL, 'c' },
-		{ "classify",       no_argument,       NULL, 'F' },
-		{ "database",       required_argument, NULL, 'd' },
-		{ "graph",          no_argument,       NULL, 'g' },
-		{ "recursive",      no_argument,       NULL, 'R' },
-		{ "verbose",        no_argument,       NULL, 'v' },
-		{ NULL }
-	};
+	duc_log_level loglevel = DUC_LOG_WRN;
 	
 	/* Open duc context */
 	
@@ -166,7 +168,7 @@ static int ls_main(int argc, char **argv)
                 return -1;
         }
 
-	while( ( c = getopt_long(argc, argv, "bcd:FgvR", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "bcd:FgqvR", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'b':
@@ -184,16 +186,21 @@ static int ls_main(int argc, char **argv)
 			case 'F':
 				classify = 1;
 				break;
+			case 'q':
+				loglevel = DUC_LOG_FTL;
+				break;
 			case 'R':
 				recursive = 1;
 				break;
 			case 'v':
-				duc_set_log_level(duc, DUC_LOG_DBG);
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
 				break;
 			default:
 				return -2;
 		}
 	}
+	
+	duc_set_log_level(duc, loglevel);
 
 	argc -= optind;
 	argv += optind;
@@ -214,13 +221,11 @@ static int ls_main(int argc, char **argv)
 	}
 
 
-	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 	  fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
-	printf("Reading %s\n",path_db);
 
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
@@ -252,7 +257,9 @@ struct cmd cmd_ls = {
 		"  -g, --graph             draw graph with relative size for each entry\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
 		"  -F, --classify          append indicator (one of */) to entries\n"
-		"  -R, --recursive         list subdirectories in a recursive tree view\n",
+		"  -q, --quiet             quiet mode, do not print any warnings\n"
+		"  -R, --recursive         list subdirectories in a recursive tree view\n"
+		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
 	.main = ls_main
 };
 
