@@ -132,6 +132,7 @@ struct cmd cmd_index = {
 	.help = 
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -e, --exclude=PATTERN   exclude files matching PATTERN\n"
+		"  -f, --force             force writing in case of corrupted db\n"
 		"  -q, --quiet             do not report errors\n"
 		"  -u, --uncompressed      do not use compression for database\n"
 		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
