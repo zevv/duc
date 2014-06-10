@@ -27,6 +27,8 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	if(flags & DUC_OPEN_RW) mode |= HDBOWRITER | HDBOCREAT;
 	if(flags & DUC_OPEN_COMPRESS) compress = 1;
 
+	/* If we pass in the -f switch, force opening the DB no matter what */
+	if(flags & DUC_OPEN_FORCE) { mode |= BDBOTRUNC; }
 
 	db = duc_malloc(sizeof *db);
 

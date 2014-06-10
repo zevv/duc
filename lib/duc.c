@@ -57,10 +57,12 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[PATH_MAX];
 
+	/* An empty path means check the ENV path instead */
 	if(path_db == NULL) {
 		path_db = getenv("DUC_DATABASE");
 	}
 
+	/* If the path is still empty, default to ~/.duc.db */
 	if(path_db == NULL) {
 		char *home = getenv("HOME");
 		if(home) {
