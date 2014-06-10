@@ -17,6 +17,7 @@ typedef enum {
 	DUC_OPEN_RO = 1<<0,        /* Open read-only (for querying)*/
 	DUC_OPEN_RW = 1<<1,        /* Open read-write (for indexing) */
 	DUC_OPEN_COMPRESS = 1<<2,  /* Create compressed database */
+	DUC_OPEN_FORCE = 1<<3,     /* Force over-write of database for indexing */
 } duc_open_flags;
 
 
