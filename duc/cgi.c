@@ -236,7 +236,23 @@ static int cgi_main(int argc, char **argv)
 		return -1;
         }
 
-	    path_db = duc_pick_db_path(path_db);
+	if (db_dir) {
+	    glob_t bunch_of_dbs;
+	    char **db_file;
+	    size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
+	    printf("Found %zu (%zu) DBs to look at.\n", n, bunch_of_dbs.gl_pathc);
+	    int i = 0;
+	    printf("Content-Type: text/plain\n\n");
+	    printf("<HTML><HEAD><TITLE>DUC db_dir list</HEAD><BODY>\n");
+	    printf("<H1>DUC db_dir list</H1>\n<UL>\n");
+	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
+                printf("  <LI> %s\n", *db_file);
+	    }
+	    printf("</UL>\n</BODY>\n</HTML>\n");
+	    exit(1);
+	}
+
+	path_db = duc_pick_db_path(path_db);
         r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
 		printf("Content-Type: text/plain\n\n");
@@ -273,8 +289,9 @@ struct cmd cmd_cgi = {
 	.name = "cgi",
 	.description = "CGI interface",
 	.usage = "[options] [PATH]",
-	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
+	.help = "\
+  -d, --database=ARG      use database file ARG [~/.duc.db]\n\
+  -D, --datadir=ARG       use directory of database file(s) ARG\n",
 	.main = cgi_main,
 		
 };
