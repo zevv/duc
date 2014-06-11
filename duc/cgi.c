@@ -202,18 +202,23 @@ static int cgi_main(int argc, char **argv)
 	}
 
 	char *path_db = NULL;
+	char *db_dir = NULL;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
+		{ "dbdir",          required_argument, NULL, 'D' },
 		{ NULL }
 	};
 
 	int c;
-	while( ( c = getopt_long(argc, argv, "d:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:D:", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
+				break;
+			case 'D':
+				db_dir = optarg;
 				break;
 			default:
 				return -2;
