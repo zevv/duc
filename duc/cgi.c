@@ -1,4 +1,3 @@
-
 #include "config.h"
 
 #include <limits.h>
@@ -16,7 +15,7 @@
 
 
 /*
- * Simple parser for CGI parameter line. Does not excape CGI strings.
+ * Simple parser for CGI parameter line. Does not escape CGI strings.
  */
 
 struct param {
@@ -231,6 +230,7 @@ static int cgi_main(int argc, char **argv)
 
 
 	char *cmd = cgi_get("cmd");
+	char *path = cgi_get("path");
 	if(cmd == NULL) cmd = "index";
 	
 	duc *duc = duc_new();
@@ -249,10 +249,10 @@ static int cgi_main(int argc, char **argv)
 
 	    print_html_header("DUC db_dir list");
 	    
-	    printf("<BODY>\n<H1>DUC db_dir list</H1>\n<UL>\n");
+	    printf("<BODY>\n<H1>DUC db_dir list: %s</H1>\n<UL>\n",path);
 	    printf("<br>Found %zu (%zu) DBs to look at.<br>\n", n, bunch_of_dbs.gl_pathc);
 	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
-                printf("  <LI> %s\n", *db_file);
+                printf("  <LI> <A HREF= %s\n", *db_file);
 	    }
 	    printf("</UL>\n</BODY>\n</HTML>\n");
 	    exit(1);
@@ -267,7 +267,7 @@ static int cgi_main(int argc, char **argv)
         }
 
 	duc_dir *dir = NULL;
-	char *path = cgi_get("path");
+
 	if(path) {
 		dir = duc_opendir(duc, path);
 		if(dir == NULL) {
