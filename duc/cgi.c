@@ -27,6 +27,24 @@ struct param {
 
 struct param *param_list = NULL;
 
+/* silly little helper */
+static void print_html_header(const char *title) {
+	printf(
+		"Content-Type: text/html\n"
+		"\n"
+		"<!DOCTYPE html>\n"
+		"<HEAD>\n"
+		"<STYLE>\n"
+		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
+		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
+		"#list { 100%%; }\n"
+		"#list td { padding-left: 5px; }\n"
+		"</STYLE>\n"
+		"<TITLE>%s</TITLE>\n"
+		"</HEAD>\n",
+		title
+	);
+}	
 
 static int cgi_parse(void)
 {
@@ -83,24 +101,10 @@ static char *cgi_get(const char *key)
 	return NULL;
 }
 
-
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
+    print_html_header("Index");
 
-	printf(
-		"Content-Type: text/html\n"
-		"\n"
-		"<!DOCTYPE html>\n"
-		"<head>\n"
-		"<style>\n"
-		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
-		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
-		"#list { 100%%; }\n"
-		"#list td { padding-left: 5px; }\n"
-		"</style>\n"
-		"</head>\n"
-	);
-	
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
@@ -231,9 +235,10 @@ static int cgi_main(int argc, char **argv)
 	
 	duc *duc = duc_new();
 	if(duc == NULL) {
-		printf("Content-Type: text/plain\n\n");
-                printf("Error creating duc context\n");
-		return -1;
+	    
+	    print_html_header("Error creating duc context\n");
+	    printf("<BODY>Sorry, we had a problem with the CGI script.\n</BODY></HTML>\n");
+	    return -1;
         }
 
 	if (db_dir) {
@@ -241,9 +246,10 @@ static int cgi_main(int argc, char **argv)
 	    char **db_file;
 	    size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
 	    int i = 0;
-	    printf("Content-Type: text/plain\n\n");
-	    printf("<HTML><HEAD><TITLE>DUC db_dir list</HEAD><BODY>\n");
-	    printf("<H1>DUC db_dir list</H1>\n<UL>\n");
+
+	    print_html_header("DUC db_dir list");
+	    
+	    printf("<BODY>\n<H1>DUC db_dir list</H1>\n<UL>\n");
 	    printf("<br>Found %zu (%zu) DBs to look at.<br>\n", n, bunch_of_dbs.gl_pathc);
 	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
                 printf("  <LI> %s\n", *db_file);
@@ -255,8 +261,8 @@ static int cgi_main(int argc, char **argv)
 	path_db = duc_pick_db_path(path_db);
         r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
-		printf("Content-Type: text/plain\n\n");
-                printf("%s\n", duc_strerror(duc));
+	    print_html_header("Content-Type: text/plain\n\n");
+	    printf("<BODY>%s\n</BODY></HTML>", duc_strerror(duc));
 		return -1;
         }
 
