@@ -240,11 +240,11 @@ static int cgi_main(int argc, char **argv)
 	    glob_t bunch_of_dbs;
 	    char **db_file;
 	    size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
-	    printf("Found %zu (%zu) DBs to look at.\n", n, bunch_of_dbs.gl_pathc);
 	    int i = 0;
 	    printf("Content-Type: text/plain\n\n");
 	    printf("<HTML><HEAD><TITLE>DUC db_dir list</HEAD><BODY>\n");
 	    printf("<H1>DUC db_dir list</H1>\n<UL>\n");
+	    printf("<br>Found %zu (%zu) DBs to look at.<br>\n", n, bunch_of_dbs.gl_pathc);
 	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
                 printf("  <LI> %s\n", *db_file);
 	    }
