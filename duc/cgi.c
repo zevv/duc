@@ -15,6 +15,7 @@
 #include "duc.h"
 #include "duc-graph.h"
 
+/* John */
 
 /*
  * Simple parser for CGI parameter line. Does not escape CGI strings.
