@@ -45,6 +45,10 @@ static void print_html_header(const char *title) {
 	);
 }	
 
+/* 
+   Parses the CGI input parameters, does NO sanity checking.  Needs
+   work to make safer.  
+*/
 static int cgi_parse(void)
 {
 	char *qs = getenv("QUERY_STRING");
@@ -67,9 +71,14 @@ static int cgi_parse(void)
 		struct param *param = malloc(sizeof(struct param));
 		assert(param);
 
+		/* Do we filter out bogus commands here?  I think so... FIXME */
+
 		param->key = malloc(keylen+1);
 		assert(param->key);
 		strncpy(param->key, key, keylen);
+
+		/* Now to filter parameters, to make sure we don't have an XSS
+		   vulns either.  FIXME */
 
 		param->val = malloc(vallen+1);
 		assert(param->val);
@@ -228,10 +237,12 @@ static int cgi_main(int argc, char **argv)
 		}
 	}
 
-
 	char *cmd = cgi_get("cmd");
 	char *path = cgi_get("path");
-	if(cmd == NULL) cmd = "index";
+	char *db = cgi_get("db");
+	char *script = getenv("SCRIPT_NAME");
+
+	if(cmd == NULL) { cmd = "index"; }
 	
 	duc *duc = duc_new();
 	if(duc == NULL) {
@@ -242,26 +253,41 @@ static int cgi_main(int argc, char **argv)
         }
 
 	if (db_dir) {
+	  if (db == NULL) {
 	    glob_t bunch_of_dbs;
 	    char **db_file;
+		
+		char url[PATH_MAX];
+		char *db_name;
+
 	    size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
 	    int i = 0;
 
 	    print_html_header("DUC db_dir list");
 	    
-	    printf("<BODY>\n<H1>DUC db_dir list: %s</H1>\n<UL>\n",path);
+	    printf("<BODY>\n<H1>DUC db_dir list: %s</H1>\n<UL>\n",script);
 	    printf("<br>Found %zu (%zu) DBs to look at.<br>\n", n, bunch_of_dbs.gl_pathc);
 	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
-                printf("  <LI> <A HREF= %s\n", *db_file);
+		  db_name = basename(*db_file);
+		  snprintf(url, sizeof url, "%s?db=%s&cmd=index", script, db_name);
+		  printf("  <LI> <A HREF=\"%s\">%s</A>\n", url, db_name);
 	    }
 	    printf("</UL>\n</BODY>\n</HTML>\n");
 	    exit(1);
+	  } else {
+		r = duc_open(duc, db, DUC_OPEN_RO);
+		if (r != DUC_OK) {
+		  print_html_header("Error Opening DB");
+		  printf("<BODY>%s\n</BODY></HTML>", duc_strerror(duc));
+		  return -1;
+        }
+	  }
 	}
 
 	path_db = duc_pick_db_path(path_db);
         r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
-	    print_html_header("Content-Type: text/plain\n\n");
+	    print_html_header("Error Opening DB");
 	    printf("<BODY>%s\n</BODY></HTML>", duc_strerror(duc));
 		return -1;
         }
