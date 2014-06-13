@@ -1,18 +1,21 @@
- 
+
+#include "config.h"
+#include "duc.h"
+#include "duc-graph.h"
+#include "cmd.h"
+
+#ifdef HAVE_LIBX11
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
+
 #include <cairo.h>
 #include <string.h>
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "duc.h"
-#include "duc-graph.h"
-#include "cmd.h"
 
 static int depth = 4;
 
@@ -52,8 +55,6 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 		if(redraw && cs) {
 			cairo_t *cr;
 
-			char *path = duc_dirpath(dir);
-
 			cairo_surface_t *cs2 = cairo_surface_create_similar(
 					cs, 
 					CAIRO_CONTENT_COLOR,
@@ -64,11 +65,6 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			cairo_set_source_rgb(cr, 1, 1, 1);
 			cairo_paint(cr);
-
-			cairo_set_source_rgb(cr, 0, 0, 0);
-			cairo_move_to(cr, 20, 20);
-			cairo_show_text(cr, path);
-			free(path);
 
 			int size = win_w < win_h ? win_w : win_h;
 			int pos_x = (win_w - size) / 2;
@@ -81,6 +77,7 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 			duc_graph_set_position(graph, pos_x, pos_y);
 			duc_graph_set_max_level(graph, depth);
 			duc_graph_set_fuzz(graph, fuzz);
+			duc_graph_set_max_name_len(graph, 30);
 			duc_graph_draw_cairo(graph, dir, cr);
 			cairo_destroy(cr);
 
@@ -129,9 +126,9 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 						duc_graph_set_palette(graph, palette);
 					}
 					if(k == XK_BackSpace) {
-						duc_dir *dir2 = duc_opendirat(dir, "..");
+						duc_dir *dir2 = duc_dir_openat(dir, "..");
 						if(dir2) {
-							duc_closedir(dir);
+							duc_dir_close(dir);
 							dir = dir2;
 						}
 					}
@@ -149,14 +146,14 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 					if(b == 1) {
 						duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
 						if(dir2) {
-							duc_closedir(dir);
+							duc_dir_close(dir);
 							dir = dir2;
 						}
 					}
 					if(b == 3) {
-						duc_dir *dir2 = duc_opendirat(dir, "..");
+						duc_dir *dir2 = duc_dir_openat(dir, "..");
 						if(dir2) {
-							duc_closedir(dir);
+							duc_dir_close(dir);
 							dir = dir2;
 						}
 					}
@@ -175,28 +172,37 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 	XCloseDisplay(dpy);
 }
 
+	
+static struct option longopts[] = {
+	{ "database",       required_argument, NULL, 'd' },
+	{ "verbose",        required_argument, NULL, 'v' },
+	{ NULL }
+};
+
 
 int gui_main(int argc, char *argv[])
 {
 	char *path_db = NULL;
 	int c;
+	duc_log_level loglevel = DUC_LOG_WRN;
 
-	struct option longopts[] = {
-		{ "database",       required_argument, NULL, 'd' },
-		{ NULL }
-	};
-
-	while( ( c = getopt_long(argc, argv, "bd:Fn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:qv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
 				break;
+			case 'q':
+				loglevel = DUC_LOG_FTL;
+				break;
+			case 'v':
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
+				break;
 			default:
 				return -2;
 		}
 	}
-
+	
 	argc -= optind;
 	argv += optind;
 
@@ -210,15 +216,16 @@ int gui_main(int argc, char *argv[])
                 fprintf(stderr, "Error creating duc context\n");
                 return -1;
         }
+	
+	duc_set_log_level(duc, loglevel);
 
-	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
 	
-	duc_dir *dir = duc_opendir(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
@@ -231,15 +238,27 @@ int gui_main(int argc, char *argv[])
 	return 0;
 }
 
+#else
+
+int gui_main(int argc, char *argv[])
+{
+	printf("Not supported on this platform\n");
+	return -1;
+}
+
+#endif
 
 struct cmd cmd_gui = {
 	.name = "gui",
 	.description = "Graphical interface",
 	.usage = "[options] [PATH]",
 	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -q, --quiet             quiet mode, do not print any warnings\n"
+		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
 	.main = gui_main
 };
+
 
 
 /*

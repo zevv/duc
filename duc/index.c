@@ -19,6 +19,7 @@
 static struct option longopts[] = {
 	{ "compress",        no_argument,       NULL, 'c' },
 	{ "database",        required_argument, NULL, 'd' },
+	{ "force",           no_argument,       NULL, 'f' },
 	{ "one-file-system", required_argument, NULL, 'x' },
 	{ "quiet",           no_argument,       NULL, 'q' },
 	{ "verbose",         required_argument, NULL, 'v' },
@@ -31,7 +32,8 @@ static int index_main(int argc, char **argv)
 	int c;
 	char *path_db = NULL;
 	duc_index_flags index_flags = 0;
-	int open_flags = DUC_OPEN_RW | DUC_OPEN_LOG_INF | DUC_OPEN_COMPRESS;
+	int open_flags = DUC_OPEN_RW | DUC_OPEN_COMPRESS;
+	duc_log_level loglevel = DUC_LOG_WRN;
 	
 	struct duc *duc = duc_new();
 	if(duc == NULL) {
@@ -41,7 +43,7 @@ static int index_main(int argc, char **argv)
 		
 	duc_index_req *req = duc_index_req_new(duc);
 
-	while( ( c = getopt_long(argc, argv, "d:e:qxuv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:e:fqxuv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -50,14 +52,17 @@ static int index_main(int argc, char **argv)
 			case 'e':
 				duc_index_req_add_exclude(req, optarg);
 				break;
+			case 'f':
+			        open_flags |= DUC_OPEN_FORCE;
+				break;
 			case 'q':
-				open_flags &= ~DUC_OPEN_LOG_INF;
+				loglevel = DUC_LOG_FTL;
 				break;
 			case 'u':
 				open_flags &= ~DUC_OPEN_COMPRESS;
 				break;
 			case 'v':
-				open_flags |= DUC_OPEN_LOG_DBG;
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
 				break;
 			case 'x':
 				index_flags |= DUC_INDEX_XDEV;
@@ -66,7 +71,9 @@ static int index_main(int argc, char **argv)
 				return -2;
 		}
 	}
-	
+				
+	duc_set_log_level(duc, loglevel);
+
 	argc -= optind;
 	argv += optind;
 
@@ -75,14 +82,11 @@ static int index_main(int argc, char **argv)
 		return -2;
 	}
 	
-	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, open_flags);
 	if(r != DUC_OK) {
 		fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
-
-	fprintf(stderr,"Writing to %s\n",path_db);
 
 	/* Index all paths passed on the cmdline */
 
@@ -91,20 +95,24 @@ static int index_main(int argc, char **argv)
 
 		struct duc_index_report *report;
 		report = duc_index(req, argv[i], index_flags);
+		if(report == NULL) {
+			fprintf(stderr, "%s\n", duc_strerror(duc));
+			continue;
+		}
 
-		char siz[16];
-		duc_humanize(report->size_total, siz, sizeof siz);
+		char *siz = duc_human_size(report->size_total);
 		if(r == DUC_OK) {
-		  char human[120];
-		  duc_fmttime(human, report->time_start, report->time_stop);
-			fprintf(stderr, "Indexed %zu files and %zu directories, (%sB total) in %s\n", 
-					report->file_count, 
-					report->dir_count,
+			char *s = duc_human_duration(report->time_start, report->time_stop);
+			fprintf(stderr, "Indexed %lu files and %lu directories, (%sB total) in %s\n", 
+					(unsigned long)report->file_count, 
+					(unsigned long)report->dir_count,
 					siz,
-					human);
+					s);
+			free(s);
 		} else {
 			fprintf(stderr, "An error occured while indexing: %s", duc_strerror(duc));
 		}
+		free(siz);
 
 		duc_index_report_free(report);
 	}
@@ -124,9 +132,10 @@ struct cmd cmd_index = {
 	.help = 
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -e, --exclude=PATTERN   exclude files matching PATTERN\n"
+		"  -f, --force             force writing in case of corrupted db\n"
 		"  -q, --quiet             do not report errors\n"
 		"  -u, --uncompressed      do not use compression for database\n"
-		"  -v, --verbose           show what is happening\n"
+		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"
 		,
 	.main = index_main

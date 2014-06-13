@@ -3,6 +3,10 @@
 #define duc_h
 
 #include <limits.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <glob.h>
 
 typedef struct duc duc;
@@ -13,9 +17,7 @@ typedef enum {
 	DUC_OPEN_RO = 1<<0,        /* Open read-only (for querying)*/
 	DUC_OPEN_RW = 1<<1,        /* Open read-write (for indexing) */
 	DUC_OPEN_COMPRESS = 1<<2,  /* Create compressed database */
-	DUC_OPEN_LOG_WRN = 1<<3,   /* Log warning messages */
-	DUC_OPEN_LOG_INF = 1<<4,   /* Log informational messages */
-	DUC_OPEN_LOG_DBG = 1<<5,   /* Log debug messages */
+	DUC_OPEN_FORCE = 1<<3,     /* Force over-write of database for indexing */
 } duc_open_flags;
 
 
@@ -45,8 +47,18 @@ typedef enum {
 	DUC_MODE_FIFO,              /* Fifo */
 	DUC_MODE_LNK,               /* Soft link */
 	DUC_MODE_SOCK,              /* Unix socket */
-	DUC_MODE_REST               /* Grouped 'rest', added by duc_limitdir() */
+	DUC_MODE_REST               /* Grouped 'rest', added by duc_dir_limit() */
 } duc_dirent_mode;
+
+
+typedef enum {
+	DUC_LOG_FTL,
+	DUC_LOG_WRN,
+	DUC_LOG_INF,
+	DUC_LOG_DBG,
+	DUC_LOG_DMP
+} duc_log_level;
+
 
 
 struct duc_index_report {
@@ -61,7 +73,7 @@ struct duc_index_report {
 };
 
 struct duc_dirent {
-	char name[256];             /* File name */
+	char *name;                 /* File name */
 	off_t size;                 /* File size */
 	duc_dirent_mode mode;       /* File mode */
 	dev_t dev;                  /* ID of device containing file */
@@ -70,16 +82,16 @@ struct duc_dirent {
 
 
 /*
- * Create and destroy duc context
+ * Duc context, logging and error reporting
  */
+
+typedef void (*duc_log_callback)(duc_log_level level, const char *fmt, va_list va);
 
 duc *duc_new(void);
 void duc_del(duc *duc);
 
-
-/*
- * Error reporting
- */
+void duc_set_log_level(duc *duc, duc_log_level level);
+void duc_set_log_callback(duc *duc, duc_log_callback cb);
 
 duc_errno duc_error(duc *duc);
 const char *duc_strerror(duc *duc);
@@ -89,7 +101,6 @@ const char *duc_strerror(duc *duc);
  * Open and close database
  */
 
-char *duc_pick_db_path(const char * path_db);
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags);
 int duc_close(duc *duc);
 
@@ -111,24 +122,24 @@ int duc_index_report_free(struct duc_index_report *rep);
 
 struct duc_index_report *duc_get_report(duc *duc, size_t id);
 
-duc_dir *duc_opendir(duc *duc, const char *path);
-duc_dir *duc_parentdir(duc_dir *dir);
-duc_dir *duc_opendirat(duc_dir *dir, const char *name);
-duc_dir *duc_opendirent(duc_dir *dir, struct duc_dirent *e);
-int duc_limitdir(duc_dir *dir, size_t count);
-struct duc_dirent *duc_readdir(duc_dir *dir);
-char *duc_dirpath(duc_dir *dir);
-off_t duc_dirsize(duc_dir *dir);
-struct duc_dirent *duc_finddir(duc_dir *dir, const char *name);
-int duc_rewinddir(duc_dir *dir);
-int duc_closedir(duc_dir *dir);
+duc_dir *duc_dir_open(duc *duc, const char *path);
+duc_dir *duc_dir_get_parent(duc_dir *dir);
+duc_dir *duc_dir_openat(duc_dir *dir, const char *name);
+duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e);
+struct duc_dirent *duc_dir_read(duc_dir *dir);
+char *duc_dir_get_path(duc_dir *dir);
+off_t duc_dir_get_size(duc_dir *dir);
+size_t duc_dir_get_count(duc_dir *dir);
+struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name);
+int duc_dir_rewind(duc_dir *dir);
+int duc_dir_close(duc_dir *dir);
 
 /* 
  * Helper functions
  */
 
-void duc_humanize(off_t size, char *buf, size_t buflen);
-void duc_fmttime(char *human, struct timeval start, struct timeval end);
+char *duc_human_size(off_t size);
+char *duc_human_duration(struct timeval start, struct timeval end);
 size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list);
 
 #endif

@@ -9,49 +9,198 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 
 #include "cmd.h"
 #include "duc.h"
 
+char *color_reset = "\e[0m";
+char *color_red = "\e[31m";
+char *color_yellow = "\e[33m";
+
+static char mode_char[] = {
+        [DUC_MODE_REG]  = ' ',
+        [DUC_MODE_DIR]  = '/',
+        [DUC_MODE_CHR]  = ' ',
+        [DUC_MODE_BLK]  = ' ',
+        [DUC_MODE_FIFO] = '|',
+        [DUC_MODE_LNK]  = '>',
+        [DUC_MODE_SOCK] = '@',
+        [DUC_MODE_REST] = ' ',
+};
+
+static char *tree_ascii[5] = {
+	" `+-",
+	"  |-",
+	"  `-",
+	"  | ",
+	"    ",
+};
+
 
 static int bytes = 0;
-static int limit = 20;
+static int classify = 0;
+static int color = 0;
+static int width = 80;
+static int graph = 0;
+static int recursive = 0;
+static int max_depth = 32;
+static char **tree = tree_ascii;
+
+static void ls_one(duc_dir *dir, int level, char *prefix)
+{
+
+	off_t size_total = 0;
+	off_t max_size = 0;
+	int max_name_len = 0;
+	int max_size_len = 6;
+
+	/* Iterate the directory once to get maximum file size and name length */
+	
+	struct duc_dirent *e;
+	while( (e = duc_dir_read(dir)) != NULL) {
+		if(e->size > max_size) max_size = e->size;
+		size_t l = strlen(e->name);
+		if(l > max_name_len) max_name_len = l;
+		size_total += e->size;
+	}
+
+	if(bytes) max_size_len = 12;
+	if(classify) max_name_len ++;
+
+	/* Iterate a second time to print results */
+
+	duc_dir_rewind(dir);
+
+	size_t count = duc_dir_get_count(dir);
+	size_t n = 0;
+
+	while( (e = duc_dir_read(dir)) != NULL) {
+
+		if(recursive) {
+			if(n == 0)       strcpy(prefix + level*4, tree[0]);
+			if(n >= 1)       strcpy(prefix + level*4, tree[1]);
+			if(n == count-1) strcpy(prefix + level*4, tree[2]);
+		}
+			
+		char *color_on = "";
+		char *color_off = "";
+
+		if(color) {
+			color_off = color_reset;
+			if(e->size >= max_size / 8) color_on = color_yellow;
+			if(e->size >= max_size / 2) color_on = color_red;
+		}
+
+		printf("%s", color_on);
+		if(bytes) {
+			printf("%*jd", max_size_len, e->size);
+		} else {
+			char *siz = duc_human_size(e->size);
+			printf("%*s", max_size_len, siz);
+			free(siz);
+		}
+		printf("%s", color_off);
+		printf("%s", prefix);
+
+		int l = printf(" %s", e->name);
+		if(classify) {
+			if(e->mode <= DUC_MODE_REST) putchar(mode_char[e->mode]);
+			l++;
+		}
+
+		if(graph) {
+			for(;l<=max_name_len; l++) putchar(' ');
+			int w = width - max_name_len - max_size_len - 5 - strlen(prefix);
+			int l = max_size ? (w * e->size / max_size) : 0;
+			int j;
+			printf(" [%s", color_on);
+			for(j=0; j<l; j++) putchar('+');
+			for(; j<w; j++) putchar(' ');
+			printf("%s]", color_off);
+		}
+
+		printf("\n");
+			
+		if(recursive && level < max_depth && e->mode == DUC_MODE_DIR) {
+			if(n == count-1) {
+				strcpy(prefix + level*4, tree[4]);
+			} else {
+				strcpy(prefix + level*4, tree[3]);
+			}
+			duc_dir *dir2 = duc_dir_openent(dir, e);
+			if(dir2) {
+				ls_one(dir2, level+1, prefix);
+				duc_dir_close(dir2);
+			}
+		}
+		
+		n++;
+	}
+}
+
+
+static struct option longopts[] = {
+	{ "bytes",          no_argument,       NULL, 'b' },
+	{ "color",          no_argument,       NULL, 'c' },
+	{ "classify",       no_argument,       NULL, 'F' },
+	{ "database",       required_argument, NULL, 'd' },
+	{ "graph",          no_argument,       NULL, 'g' },
+	{ "recursive",      no_argument,       NULL, 'R' },
+	{ "verbose",        no_argument,       NULL, 'v' },
+	{ NULL }
+};
 
 
 static int ls_main(int argc, char **argv)
 {
 	int c;
 	char *path_db = NULL;
-	int classify = 0;
+	duc_log_level loglevel = DUC_LOG_WRN;
+	
+	/* Open duc context */
+	
+	duc *duc = duc_new();
+	if(duc == NULL) {
+                fprintf(stderr, "Error creating duc context\n");
+                return -1;
+        }
 
-	struct option longopts[] = {
-		{ "bytes",          no_argument,       NULL, 'b' },
-		{ "classify",       no_argument,       NULL, 'F' },
-		{ "database",       required_argument, NULL, 'd' },
-		{ "limit",          required_argument, NULL, 'n' },
-		{ NULL }
-	};
-
-	while( ( c = getopt_long(argc, argv, "bd:Fn:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "bcd:FgqvR", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'b':
 				bytes = 1;
 				break;
+			case 'c':
+				color = 1;
+				break;
 			case 'd':
 				path_db = optarg;
+				break;
+			case 'g':
+				graph = 1;
 				break;
 			case 'F':
 				classify = 1;
 				break;
-			case 'n':
-				limit = atoi(optarg);
+			case 'q':
+				loglevel = DUC_LOG_FTL;
+				break;
+			case 'R':
+				recursive = 1;
+				break;
+			case 'v':
+				if(loglevel < DUC_LOG_DMP) loglevel ++;
 				break;
 			default:
 				return -2;
 		}
 	}
+	
+	duc_set_log_level(duc, loglevel);
 
 	argc -= optind;
 	argv += optind;
@@ -61,81 +210,34 @@ static int ls_main(int argc, char **argv)
 	
 	/* Get terminal width */
 
-	int width = 80;
 	if(isatty(0)) {
+#ifdef TIOCGWINSZ
 		struct winsize w;
 		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
+#endif
+	} else {
+		color = 0;
 	}
-	width = width - 36;
 
-	/* Open duc context */
-	
-	duc *duc = duc_new();
-	if(duc == NULL) {
-                fprintf(stderr, "Error creating duc context\n");
-                return -1;
-        }
 
-	path_db = duc_pick_db_path(path_db);
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 	  fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
-	printf("Reading %s\n",path_db);
 
-	duc_dir *dir = duc_opendir(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
 	  fprintf(stderr, "%s\n", duc_strerror(duc));
 		return -1;
 	}
-	
-	/* Calculate max and total size */
-	
-	off_t size_total = 0;
-	off_t size_max = 0;
 
-	struct duc_dirent *e;
-	while( (e = duc_readdir(dir)) != NULL) {
-		if(e->size > size_max) size_max = e->size;
-		size_total += e->size;
-	}
+	char prefix[16*4 + 1] = "";
 
-	if(limit) duc_limitdir(dir, limit);
-	
-	duc_rewinddir(dir);
-	while( (e = duc_readdir(dir)) != NULL) {
+	ls_one(dir, 0, prefix);
 
-		if(classify) {
-			if(e->mode == DUC_MODE_DIR) strcat(e->name, "/");
-		}
-
-		char siz[32];
-		if(bytes) {
-			snprintf(siz, sizeof siz, "%jd", e->size);
-		} else {
-			duc_humanize(e->size, siz, sizeof siz);
-		}
-
-		printf("%-20.20s %11.11s [", e->name, siz);
-
-		int n = size_max ? (width * e->size / size_max) : 0;
-		int j;
-		for(j=0; j<n; j++) putchar('=');
-		for(; j<width; j++) putchar(' ');
-		printf("]\n");
-	}
-
-	char siz[32];
-	if(bytes) {
-		snprintf(siz, sizeof siz, "%jd", duc_dirsize(dir));
-	} else {
-		duc_humanize(duc_dirsize(dir), siz, sizeof siz);
-	}
-	printf("%-20.20s %11.11s\n", "Total size", siz);
-
-	duc_closedir(dir);
+	duc_dir_close(dir);
 	duc_close(duc);
 	duc_del(duc);
 
@@ -150,10 +252,14 @@ struct cmd cmd_ls = {
 	.usage = "[options] [PATH]",
 	.help = 
 		"  -b, --bytes             show file size in exact number of bytes\n"
+		"  -c, --color             colorize the output.\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
+		"  -g, --graph             draw graph with relative size for each entry\n"
 		"  -h, --human-readable    print sizes in human readable format\n"
 		"  -F, --classify          append indicator (one of */) to entries\n"
-		"  -n, --limit=ARG         limit number of results. 0 for unlimited [20]\n",
+		"  -q, --quiet             quiet mode, do not print any warnings\n"
+		"  -R, --recursive         list subdirectories in a recursive tree view\n"
+		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
 	.main = ls_main
 };
 

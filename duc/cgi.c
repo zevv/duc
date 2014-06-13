@@ -133,8 +133,12 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 
 	if(x || y) {
-		//char newpath[PATH_MAX];
-		//duc_graph_xy_to_path(graph, dir, x, y, newpath, sizeof newpath);
+		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+			path = duc_dir_get_path(dir);
+		}
 	}
 
 	struct duc_index_report *report;
@@ -163,17 +167,18 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		char url[PATH_MAX];
 		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report->path);
 
-		char siz[32];
-		duc_humanize(report->size_total, siz, sizeof siz);
+		char *siz = duc_human_size(report->size_total);
 
 		printf("<tr>");
 		printf("<td><a href='%s'>%s</a></td>", url, report->path);
 		printf("<td>%s</td>", siz);
-		printf("<td>%zu</td>", report->file_count);
-		printf("<td>%zu</td>", report->dir_count);
+		printf("<td>%lu</td>", (unsigned long)report->file_count);
+		printf("<td>%lu</td>", (unsigned long)report->dir_count);
 		printf("<td>%s</td>", ts_date);
 		printf("<td>%s</td>", ts_time);
 		printf("</tr>\n");
+
+		free(siz);
 
 		duc_index_report_free(report);
 		i++;
@@ -184,7 +189,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("<a href='%s?cmd=index&path=%s&'>", script, path);
 		printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
 		printf("</a><br>");
-		printf("<b>%s</b><br>", path);
 	}
 	fflush(stdout);
 }
@@ -241,7 +245,7 @@ static int cgi_main(int argc, char **argv)
 	};
 
 	int c;
-	while( ( c = getopt_long(argc, argv, "d:D:", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:D:q", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -314,7 +318,7 @@ static int cgi_main(int argc, char **argv)
 	duc_dir *dir = NULL;
 
 	if(path) {
-		dir = duc_opendir(duc, path);
+		dir = duc_dir_open(duc, path);
 		if(dir == NULL) {
 			fprintf(stderr, "%s\n", duc_strerror(duc));
 			return 0;
@@ -328,7 +332,7 @@ static int cgi_main(int argc, char **argv)
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
 
-	if(dir) duc_closedir(dir);
+	if(dir) duc_dir_close(dir);
 	duc_close(duc);
 	duc_del(duc);
 

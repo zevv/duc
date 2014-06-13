@@ -14,6 +14,8 @@ DUC_DATABASE	X
 --display							X
 -e name			X
  --exclude		X
+-f                      X
+ --force
 -F
  --classify				X
 --geometry							X

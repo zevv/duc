@@ -10,15 +10,26 @@
 #include <time.h>
 #include <glob.h>
 
-#include "duc.h"
 #include "private.h"
+#include "duc.h"
 #include "db.h"
+
+
+
+
+static void default_log_callback(duc_log_level level, const char *fmt, va_list va)
+{
+	vfprintf(stderr, fmt, va);
+}
+
 
 
 duc *duc_new(void)
 {
     duc *duc = duc_malloc(sizeof *duc);
     memset(duc, 0, sizeof *duc);
+    duc->log_level = DUC_LOG_WRN;
+    duc->log_callback = default_log_callback;
     return duc;
 }
 
@@ -29,45 +40,49 @@ void duc_del(duc *duc)
 	free(duc);
 }
 
-/* Helper to pick a database */
-char *duc_pick_db_path(const char *path_db) 
+
+void duc_set_log_level(duc *duc, duc_log_level level)
 {
-  char *tmp = NULL;
-
-  if (path_db) {
-	tmp = strdup(path_db);
-  }
-
-  if(tmp == NULL) {
-	tmp = getenv("DUC_DATABASE");
-  }
-  
-  if(tmp == NULL) {
-	char *home = getenv("HOME");
-	if(home) {
-	  /* PATH_MAX is overkill, but memory is cheap... */
-	  tmp = malloc(PATH_MAX);
-	  tmp = memset(tmp, 0, PATH_MAX);
-	  snprintf(tmp, PATH_MAX, "%s/.duc.db", home);
-	}
-  }
-  return(tmp);
+	duc->log_level = level;
 }
+
+
+void duc_set_log_callback(duc *duc, duc_log_callback cb)
+{
+	duc->log_callback = cb;
+}
+
 
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
+	char tmp[PATH_MAX];
+
+	/* An empty path means check the ENV path instead */
+	if(path_db == NULL) {
+		path_db = getenv("DUC_DATABASE");
+	}
+
+	/* If the path is still empty, default to ~/.duc.db */
+	if(path_db == NULL) {
+		char *home = getenv("HOME");
+		if(home) {
+			snprintf(tmp, sizeof tmp, "%s/.duc.db", home);
+			path_db = tmp;
+		}
+	}
+
 	if(path_db == NULL) {
 		duc->err = DUC_E_DB_NOT_FOUND;
 		return -1;
 	}
 
-	if(flags & DUC_OPEN_LOG_WRN) duc->loglevel = LG_WRN;
-	if(flags & DUC_OPEN_LOG_INF) duc->loglevel = LG_INF;
-	if(flags & DUC_OPEN_LOG_DBG) duc->loglevel = LG_DBG;
+	duc_log(duc, DUC_LOG_INF, "%s database \"%s\"\n", 
+			(flags & DUC_OPEN_RO) ? "Reading from" : "Writing to",
+			path_db);
 
 	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-	  duc_log(duc, LG_WRN, "Error opening: %s - %s\n", path_db, duc_strerror(duc));
+	  duc_log(duc, DUC_LOG_WRN, "Error opening: %s - %s\n", path_db, duc_strerror(duc));
 		free(duc);
 		return -1;
 	}
@@ -102,12 +117,12 @@ size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list)
     return count;
 }
 
-void duc_log(struct duc *duc, duc_loglevel level, const char *fmt, ...)
+void duc_log(struct duc *duc, duc_log_level level, const char *fmt, ...)
 {
-	if(level <= duc->loglevel) {
+	if(duc->log_callback && level <= duc->log_level) {
 		va_list va;
 		va_start(va, fmt);
-		vfprintf(stderr, fmt, va);
+		duc->log_callback(level, fmt, va);
 		va_end(va);
 	}
 }
@@ -138,53 +153,59 @@ const char *duc_strerror(duc *duc)
 }
 
 
-void duc_humanize(off_t size, char *buf, size_t buflen)
+char *duc_human_size(off_t size)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	double v = size;
 	char *p = prefix;
 
+	char *s;
 	if(size < 1024) {
-		snprintf(buf, buflen, "%jd", size);
+		asprintf(&s, "%jd", size);
 	} else {
 		while(v >= 1024.0) {
 			v /= 1024.0;
 			p ++;
 		}
-		snprintf(buf, buflen, "%.1f%c", v, *p);
+		asprintf(&s, "%.1f%c", v, *p);
 	}
-
+	return s;
 }
 
-void duc_fmttime(char *human, struct timeval start, struct timeval stop) {
 
-  double start_secs, stop_secs, secs;
-  unsigned int days, hours, mins; 
-  // char human_time[80];
+char *duc_human_duration(struct timeval start, struct timeval stop) 
+{
+	double start_secs, stop_secs, secs;
+	unsigned int days, hours, mins; 
+	// char human_time[80];
 
-  start_secs=start.tv_sec + (start.tv_usec / 1000000.0);  
-  stop_secs=stop.tv_sec + (stop.tv_usec / 1000000.0);  
-  secs = stop_secs - start_secs;
+	start_secs=start.tv_sec + (start.tv_usec / 1000000.0);  
+	stop_secs=stop.tv_sec + (stop.tv_usec / 1000000.0);  
+	secs = stop_secs - start_secs;
 
-  days = secs / 86400;
-  secs = secs - (days * 86400);
-  hours = secs / 3600;
-  secs = secs - (hours * 3600);
-  mins = secs / 60;
-  secs = secs - (mins * 60);
-  
-  if (days) {
-	sprintf(human,"%d days, %02d hours, %02d minutes, and %.2f seconds.", days, hours, mins, secs); 
-  }
-  else if (hours) {
-	sprintf(human,"%02d hours, %02d minutes, and %.2f seconds.", hours, mins, secs);
-  }
-  else if (mins) {
-	sprintf(human,"%02d minutes, and %.2f seconds.", mins, secs);
-  }
-  else {
-	sprintf(human,"%.2f secs.", secs);
-  }
+	days = secs / 86400;
+	secs = secs - (days * 86400);
+	hours = secs / 3600;
+	secs = secs - (hours * 3600);
+	mins = secs / 60;
+	secs = secs - (mins * 60);
+
+	char *s;
+
+	if (days) {
+		asprintf(&s, "%d days, %02d hours, %02d minutes, and %.2f seconds.", days, hours, mins, secs); 
+	}
+	else if (hours) {
+		asprintf(&s, "%02d hours, %02d minutes, and %.2f seconds.", hours, mins, secs);
+	}
+	else if (mins) {
+		asprintf(&s, "%02d minutes, and %.2f seconds.", mins, secs);
+	}
+	else {
+		asprintf(&s, "%.2f secs.", secs);
+	}
+
+	return s;
 }
 
 						 
@@ -219,6 +240,7 @@ char *duc_strdup(const char *s)
 	}
 	return s2;
 }
+
 
 
 /*

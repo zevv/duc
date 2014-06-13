@@ -27,6 +27,8 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	if(flags & DUC_OPEN_RW) mode |= HDBOWRITER | HDBOCREAT;
 	if(flags & DUC_OPEN_COMPRESS) compress = 1;
 
+	/* If we pass in the -f switch, force opening the DB no matter what */
+	if(flags & DUC_OPEN_FORCE) { mode |= BDBOTRUNC; }
 
 	db = duc_malloc(sizeof *db);
 
@@ -81,13 +83,6 @@ void db_close(struct db *db)
 duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
 {
 	int r = tcbdbput(db->hdb, key, key_len, val, val_len);
-	return (r==1) ? DUC_OK : DUC_E_UNKNOWN;
-}
-
-
-duc_errno db_putcat(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
-{
-	int r = tcbdbputcat(db->hdb, key, key_len, val, val_len);
 	return (r==1) ? DUC_OK : DUC_E_UNKNOWN;
 }
 

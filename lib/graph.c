@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <limits.h>
 #include <math.h>
 #include <assert.h>
@@ -21,11 +22,11 @@
 #include <pango/pangocairo.h>
 
 #include "list.h"
+#include "private.h"
 #include "duc.h"
 #include "duc-graph.h"
 
 #define FONT_SIZE_LABEL 8
-#define FONT_SIZE_BACK 12
 
 #define MAX_DEPTH 32
 
@@ -47,6 +48,7 @@ struct duc_graph {
 	double fuzz;
 	int max_level;
 	enum duc_graph_palette palette;
+	size_t max_name_len;
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
@@ -83,6 +85,12 @@ void duc_graph_free(duc_graph *g)
 void duc_graph_set_max_level(duc_graph *g, int max_level)
 {
 	g->max_level = max_level;
+}
+
+
+void duc_graph_set_max_name_len(duc_graph *g, size_t len)
+{
+	g->max_name_len = len;
 }
 
 
@@ -127,6 +135,31 @@ static void car2pol(duc_graph *g, int x, int y, double *a, double *r)
 	*r = hypot(y, x);
 	*a = atan2(x, -y) / (M_PI*2);
 	if(*a < 0) *a += 1;
+}
+
+
+void shorten_name(char *label, int maxlen)
+{
+	if(maxlen == 0) return;
+
+	size_t n = strlen(label);
+	if(n < maxlen) return;
+
+	size_t cut1 = maxlen/2;
+	size_t cut2 = n - maxlen/2;
+
+	for(; cut1>5; cut1--) if(!isalnum(label[cut1])) break;
+	for(; cut2<n-5; cut2++) if(!isalnum(label[cut2])) break;
+
+	if(cut1 == 5) cut1 = maxlen/3;
+	if(cut2 == n-5) cut2 = n - maxlen/3;
+
+	if(cut2 > cut1 && cut1 + n - cut2 + 3 <= n) {
+		label[cut1++] = '.';
+		label[cut1++] = '.';
+		label[cut1++] = '.';
+		memmove(label+cut1, label+cut2+1, n-cut2);
+	}
 }
 
 
@@ -246,26 +279,26 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	double a1 = a1_dir;
 	double a2 = a1_dir;
 			
-	double ring_width = (g->size/2 - g->r_start - 10) / g->max_level;
+	double ring_width = (g->size/2 - g->r_start - 30) / g->max_level;
 
 	/* Calculate max and total size */
 	
-	off_t size_total = duc_dirsize(dir);
+	off_t size_total = duc_dir_get_size(dir);
 
 	struct duc_dirent *e;
 
 	size_t size_min = size_total;
 	size_t size_max = 0;
 
-	while( (e = duc_readdir(dir)) != NULL) {
+	while( (e = duc_dir_read(dir)) != NULL) {
 		if(e->size < size_min) size_min = e->size;
 		if(e->size > size_max) size_max = e->size;
 	}
 
 	/* Rewind and iterate the objects to graph */
 
-	duc_rewinddir(dir);
-	while( (e = duc_readdir(dir)) != NULL) {
+	duc_dir_rewind(dir);
+	while( (e = duc_dir_read(dir)) != NULL) {
 		
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
@@ -314,31 +347,31 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				L = 0;
 				break;
 		}
-	
-
-		/* Check if the requested spot lies in this section */
-
-		if(g->spot_r > 0) {
-			double a = g->spot_a;
-			double r = g->spot_r;
-
-			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-				g->spot_dir = duc_opendirent(dir, e);
-			}
-		}
 
 		/* Draw section for this object */
 
 		draw_section(g, cr, a1, a2, r1, r2, H, S, V, L);
 
-		/* Recurse into subdirectories */
-
 		if(e->mode == DUC_MODE_DIR) {
+
+			/* Check if the requested spot lies in this section */
+
+			if(g->spot_r > 0) {
+				double a = g->spot_a;
+				double r = g->spot_r;
+
+				if(a >= a1 && a < a2 && r >= r1 && r < r2) {
+					g->spot_dir = duc_dir_openent(dir, e);
+				}
+			}
+
+			/* Recurse into subdirectories */
+
 			if(level+1 < g->max_level) {
-				duc_dir *dir_child = duc_opendirent(dir, e);
+				duc_dir *dir_child = duc_dir_openent(dir, e);
 				if(!dir_child) continue;
 				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
-				duc_closedir(dir_child);
+				duc_dir_close(dir_child);
 			} else {
 				draw_section(g, cr, a1, a2, r2, r2+5, H, S, V/2, L);
 			}
@@ -349,11 +382,17 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		if(cr) {
 			if(r1 * (a2 - a1) > 5) {
 				struct label *label = malloc(sizeof *label);
+
+				char *siz = duc_human_size(e->size);
+				char *name = duc_strdup(e->name);
+				shorten_name(name, g->max_name_len);
+
 				pol2car(g, ang((a1+a2)/2), (r1+r2)/2, &label->x, &label->y);
-				char siz[32];
-				duc_humanize(e->size, siz, sizeof siz);
-				asprintf(&label->text, "%s\n%s", e->name, siz);
+				asprintf(&label->text, "%s\n%s", name, siz);
 				list_push(&g->label_list, label);
+
+				free(name);
+				free(siz);
 			}
 		}
 		
@@ -411,7 +450,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 
 	/* Recursively draw graph */
 	
-	duc_rewinddir(dir);
+	duc_dir_rewind(dir);
 
 	do_dir(g, cr, dir, 0, g->r_start, 0, 1);
 
@@ -424,8 +463,14 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 		free(label->text);
 		free(label);
 	}
+	
+	char *p = duc_dir_get_path(dir);
+	draw_text(cr, g->cx, 10, FONT_SIZE_LABEL, p);
+	free(p);
 
-	draw_text(cr, g->cx, g->cy, 16, "cd ../");
+	char *siz = duc_human_size(duc_dir_get_size(dir));
+	draw_text(cr, g->cx, g->cy, 14, siz);
+	free(siz);
 
 	g->label_list = NULL;
 	cairo_restore(cr);
@@ -448,7 +493,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 	
 		/* If clicked in the center, go up one directory */
 
-		dir2 = duc_opendirat(dir, "..");
+		dir2 = duc_dir_openat(dir, "..");
 
 	} else {
 
@@ -456,7 +501,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 
 		g->spot_dir = NULL;
 
-		duc_rewinddir(dir);
+		duc_dir_rewind(dir);
 		do_dir(g, NULL, dir, 0, g->r_start, 0, 1);
 
 		g->spot_a = 0;

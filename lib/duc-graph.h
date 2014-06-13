@@ -32,6 +32,7 @@ void duc_graph_set_size(duc_graph *g, int size);
 void duc_graph_set_position(duc_graph *g, int x, int y);
 void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p);
 void duc_graph_set_fuzz(duc_graph *g, double fuzz);
+void duc_graph_set_max_name_len(duc_graph *g, size_t len);
 
 int duc_graph_draw_file(duc_graph *g, duc_dir *dir, enum duc_graph_file_format fmt, FILE *fout);
 int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr);
