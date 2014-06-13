@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <assert.h>
 #include <unistd.h>
@@ -187,7 +189,23 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	fflush(stdout);
 }
 
+/* return a string of the time the file was last modified.  I hate C
+   programming... */
 
+char *last_updated(char * path) {
+
+  struct stat stbuf;
+  int r = stat(path, &stbuf);
+
+  if (r == -1) {
+	return NULL;
+  }
+  else {
+	return(ctime(&stbuf.st_mtime));
+  }
+}
+
+/* Output the PNG image to stdout (i.e. the web browser...) */
 void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 	printf("Content-Type: image/png\n");
@@ -260,6 +278,7 @@ static int cgi_main(int argc, char **argv)
 		char url[PATH_MAX];
 		char *db_name;
 
+
 	    size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
 	    int i = 0;
 
@@ -270,7 +289,7 @@ static int cgi_main(int argc, char **argv)
 	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
 		  db_name = basename(*db_file);
 		  snprintf(url, sizeof url, "%s?db=%s&cmd=index", script, db_name);
-		  printf("  <LI> <A HREF=\"%s\">%s</A>\n", url, db_name);
+		  printf("  <LI> <A HREF=\"%s\">%s</A> updated %s\n", url, db_name, last_updated(*db_file));
 	    }
 	    printf("</UL>\n</BODY>\n</HTML>\n");
 	    exit(1);
