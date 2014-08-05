@@ -270,7 +270,7 @@ static int cgi_main(int argc, char **argv)
 	}
 
 	duc_graph *graph = duc_graph_new(duc);
-	duc_graph_set_size(graph, 600);
+	duc_graph_set_size(graph, 800);
 	duc_graph_set_max_level(graph, 4);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
