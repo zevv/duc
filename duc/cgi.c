@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <ctype.h>
 
 #include "cmd.h"
 #include "duc.h"
@@ -27,11 +28,27 @@ struct param {
 
 struct param *param_list = NULL;
 
+int decodeURIComponent (char *sSource, char *sDest) {
+	int nLength;
+	for (nLength = 0; *sSource; nLength++) {
+		if (*sSource == '%' && sSource[1] && sSource[2] && isxdigit(sSource[1]) && isxdigit(sSource[2])) {
+			sSource[1] -= sSource[1] <= '9' ? '0' : (sSource[1] <= 'F' ? 'A' : 'a')-10;
+			sSource[2] -= sSource[2] <= '9' ? '0' : (sSource[2] <= 'F' ? 'A' : 'a')-10;
+			sDest[nLength] = 16 * sSource[1] + sSource[2];
+			sSource += 3;
+			continue;
+		}
+		sDest[nLength] = *sSource++;
+	}
+	sDest[nLength] = '\0';
+	return nLength;
+}
 
 static int cgi_parse(void)
 {
 	char *qs = getenv("QUERY_STRING");
 	if(qs == NULL) return -1;
+	decodeURIComponent(qs,qs);
 
 	char *p = qs;
 
@@ -253,7 +270,7 @@ static int cgi_main(int argc, char **argv)
 	}
 
 	duc_graph *graph = duc_graph_new(duc);
-	duc_graph_set_size(graph, 600);
+	duc_graph_set_size(graph, 800);
 	duc_graph_set_max_level(graph, 4);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
