@@ -20,3 +20,6 @@ script:
   - identify duc.png
   - convert duc.png duc.jpg
   - jp2a duc.jpg
+  - ls -l /dev/stdin /dev/stdout /dev/stderr
+  - ls -l /proc/self/fd/0 /proc/self/fd/1 /proc/self/fd/2
+  
