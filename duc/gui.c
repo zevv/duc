@@ -23,8 +23,8 @@ static int depth = 4;
 int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 	int palette = 0;
-	int win_w = 100;
-	int win_h = 100;
+	int win_w = 600;
+	int win_h = 600;
 	double fuzz = 0;
 
 	Display *dpy = XOpenDisplay(NULL);
