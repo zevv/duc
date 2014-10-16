@@ -53,12 +53,7 @@ static void print_html_header(const char *title) {
 		"\n"
 		"<!DOCTYPE html>\n"
 		"<HEAD>\n"
-		"<STYLE>\n"
-		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
-		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
-		"#list { 100%%; }\n"
-		"#list td { padding-left: 5px; }\n"
-		"</STYLE>\n"
+		"<link rel=\"stylesheet\" href=\"/css/duc.css\">\n"
 		"<TITLE>%s</TITLE>\n"
 		"</HEAD>\n",
 		title
@@ -163,9 +158,9 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	struct duc_index_report *report;
 	int i = 0;
 
-	printf("<center>");
+	printf("<div id=\"content\">");
 
-	printf("<table id=list>");
+	printf("<table id=\"list\">");
 	printf("<tr>");
 	printf("<th>Path</th>");
 	printf("<th>Size</th>");
@@ -205,10 +200,13 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	printf("</table>");
 
 	if(path) {
-		printf("<a href='%s?cmd=index&path=%s&'>", script, path);
+		printf("<div id=\"chart\">\n");
+		printf("<a href='%s?cmd=index&path=%s&'>\n", script, path);
 		printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
-		printf("</a><br>");
+		printf("</a>\n");
+		printf("</div>\n");
 	}
+	printf("</div>");
 	fflush(stdout);
 }
 
@@ -326,7 +324,6 @@ static int cgi_main(int argc, char **argv)
 	  }
 	}
 
-	path_db = duc_pick_db_path(path_db);
         r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
 	    print_html_header("Error Opening DB");
