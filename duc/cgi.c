@@ -109,7 +109,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		"\n"
 		"<!DOCTYPE html>\n"
 		"<head>\n"
-		"<link rel=\"stylesheet\" href=\"css/duc.css\">\n"
+		"<link rel=\"stylesheet\" href=\"/css/duc.css\">\n"
 		"</head>\n"
 	);
 	
