@@ -326,7 +326,6 @@ static int cgi_main(int argc, char **argv)
 	  }
 	}
 
-	path_db = duc_pick_db_path(path_db);
         r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
 	    print_html_header("Error Opening DB");
