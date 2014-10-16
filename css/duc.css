@@ -1,0 +1,14 @@
+body {
+    font-family: 'arial', 'sans-serif';
+    font-size: 11px;
+}
+table, thead, tbody, tr, td, th {
+    font-size: inherit;
+    font-family: inherit;
+}
+#list { 
+    100%;
+}
+#list td {
+    padding-left: 5px;
+}
