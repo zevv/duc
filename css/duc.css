@@ -30,4 +30,6 @@ table, thead, tbody, tr, td, th {
     padding-left: 5px;
 }
 #chart {
+    height: 800px;
+    width: 800px;
 }
