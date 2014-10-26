@@ -1,11 +1,10 @@
+
 #include "config.h"
 
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <time.h>
 #include <assert.h>
 #include <unistd.h>
@@ -16,10 +15,9 @@
 #include "duc.h"
 #include "duc-graph.h"
 
-/* John */
 
 /*
- * Simple parser for CGI parameter line. Does not escape CGI strings.
+ * Simple parser for CGI parameter line. Does not excape CGI strings.
  */
 
 struct param {
@@ -46,29 +44,6 @@ int decodeURIComponent (char *sSource, char *sDest) {
 	return nLength;
 }
 
-/* silly little helper */
-static void print_html_header(const char *title) {
-	printf(
-		"Content-Type: text/html\n"
-		"\n"
-		"<!DOCTYPE html>\n"
-		"<HEAD>\n"
-		"<STYLE>\n"
-		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
-		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
-		"#list { 100%%; }\n"
-		"#list td { padding-left: 5px; }\n"
-		"</STYLE>\n"
-		"<TITLE>%s</TITLE>\n"
-		"</HEAD>\n",
-		title
-	);
-}	
-
-/* 
-   Parses the CGI input parameters, does NO sanity checking.  Needs
-   work to make safer.  
-*/
 static int cgi_parse(void)
 {
 	char *qs = getenv("QUERY_STRING");
@@ -92,14 +67,9 @@ static int cgi_parse(void)
 		struct param *param = malloc(sizeof(struct param));
 		assert(param);
 
-		/* Do we filter out bogus commands here?  I think so... FIXME */
-
 		param->key = malloc(keylen+1);
 		assert(param->key);
 		strncpy(param->key, key, keylen);
-
-		/* Now to filter parameters, to make sure we don't have an XSS
-		   vulns either.  FIXME */
 
 		param->val = malloc(vallen+1);
 		assert(param->val);
@@ -130,10 +100,24 @@ static char *cgi_get(const char *key)
 	return NULL;
 }
 
+
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-    print_html_header("Index");
 
+	printf(
+		"Content-Type: text/html\n"
+		"\n"
+		"<!DOCTYPE html>\n"
+		"<head>\n"
+		"<style>\n"
+		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
+		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
+		"#list { 100%%; }\n"
+		"#list td { padding-left: 5px; }\n"
+		"</style>\n"
+		"</head>\n"
+	);
+	
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
@@ -212,23 +196,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	fflush(stdout);
 }
 
-/* return a string of the time the file was last modified.  I hate C
-   programming... */
 
-char *last_updated(char * path) {
-
-  struct stat stbuf;
-  int r = stat(path, &stbuf);
-
-  if (r == -1) {
-	return NULL;
-  }
-  else {
-	return(ctime(&stbuf.st_mtime));
-  }
-}
-
-/* Output the PNG image to stdout (i.e. the web browser...) */
 void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 	printf("Content-Type: image/png\n");
@@ -255,87 +223,44 @@ static int cgi_main(int argc, char **argv)
 	}
 
 	char *path_db = NULL;
-	char *db_dir = NULL;
 
 	struct option longopts[] = {
 		{ "database",       required_argument, NULL, 'd' },
-		{ "dbdir",          required_argument, NULL, 'D' },
 		{ NULL }
 	};
 
 	int c;
-	while( ( c = getopt_long(argc, argv, "d:D:q", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:q", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
 				path_db = optarg;
-				break;
-			case 'D':
-				db_dir = optarg;
 				break;
 			default:
 				return -2;
 		}
 	}
 
-	char *cmd = cgi_get("cmd");
-	char *path = cgi_get("path");
-	char *db = cgi_get("db");
-	char *script = getenv("SCRIPT_NAME");
 
-	if(cmd == NULL) { cmd = "index"; }
+	char *cmd = cgi_get("cmd");
+	if(cmd == NULL) cmd = "index";
 	
 	duc *duc = duc_new();
 	if(duc == NULL) {
-	    
-	    print_html_header("Error creating duc context\n");
-	    printf("<BODY>Sorry, we had a problem with the CGI script.\n</BODY></HTML>\n");
-	    return -1;
+		printf("Content-Type: text/plain\n\n");
+                printf("Error creating duc context\n");
+		return -1;
         }
 
-	if (db_dir) {
-	  if (db == NULL) {
-	    glob_t bunch_of_dbs;
-	    char **db_file;
-		
-		char url[PATH_MAX];
-		char *db_name;
-
-
-	    size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
-	    int i = 0;
-
-	    print_html_header("DUC db_dir list");
-	    
-	    printf("<BODY>\n<H1>DUC db_dir list: %s</H1>\n<UL>\n",script);
-	    printf("<br>Found %zu (%zu) DBs to look at.<br>\n", n, bunch_of_dbs.gl_pathc);
-	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
-		  db_name = basename(*db_file);
-		  snprintf(url, sizeof url, "%s?db=%s&cmd=index", script, db_name);
-		  printf("  <LI> <A HREF=\"%s\">%s</A> updated %s\n", url, db_name, last_updated(*db_file));
-	    }
-	    printf("</UL>\n</BODY>\n</HTML>\n");
-	    exit(1);
-	  } else {
-		r = duc_open(duc, db, DUC_OPEN_RO);
-		if (r != DUC_OK) {
-		  print_html_header("Error Opening DB");
-		  printf("<BODY>%s\n</BODY></HTML>", duc_strerror(duc));
-		  return -1;
-        }
-	  }
-	}
-
-	path_db = duc_pick_db_path(path_db);
         r = duc_open(duc, path_db, DUC_OPEN_RO);
         if(r != DUC_OK) {
-	    print_html_header("Error Opening DB");
-	    printf("<BODY>%s\n</BODY></HTML>", duc_strerror(duc));
+		printf("Content-Type: text/plain\n\n");
+                printf("%s\n", duc_strerror(duc));
 		return -1;
         }
 
 	duc_dir *dir = NULL;
-
+	char *path = cgi_get("path");
 	if(path) {
 		dir = duc_dir_open(duc, path);
 		if(dir == NULL) {
@@ -363,9 +288,8 @@ struct cmd cmd_cgi = {
 	.name = "cgi",
 	.description = "CGI interface",
 	.usage = "[options] [PATH]",
-	.help = "\
-  -d, --database=ARG      use database file ARG [~/.duc.db]\n\
-  -D, --datadir=ARG       use directory of database file(s) ARG\n",
+	.help = 
+		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
 	.main = cgi_main,
 		
 };
