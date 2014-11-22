@@ -28,7 +28,7 @@ Pango [3] for writing graphs.
 Duc use the GNU Autoconf system for compiling if you do not have a
 pre-built package. 
 
-On Ubuntu or Debian, the following will install all dependencies:
+Building and installing on Debian or Ubuntu:
 
 ```
 $ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev
