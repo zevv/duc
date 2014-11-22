@@ -25,57 +25,30 @@ Pango [3] for writing graphs.
 2. http://cairographics.org/
 3. http://www.pango.org/
 
+Duc use the GNU Autoconf system for compiling if you do not have a
+pre-built package. 
 
 On Ubuntu or Debian, the following will install all dependencies:
 
 ```
 $ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev
-```
-
-On RHEL or CentOS systems, you need to do:
-
-```
-$ sudo yum install pango-devel cairo-devel tokyocabinet-devel
-```
-
-
-### Compiling
-
-Duc use the GNU Autoconf system for compiling if you do not have a
-pre-built package.  So you can normally just do:
-
-```
+$ autoreconf --install
 $ ./configure
 $ make
 $ sudo make install
 $ sudo ldconfig
 ```
 
-to install duc into /usr/local/bin. 
-
-If you need to edit the source, you will need to have the GNU autoconf
-and libtool installed first, which you can do with:
-
-Ubuntu/Debian:  
+On RHEL or CentOS systems, you need to do:
 
 ```
-$ sudo apt-get install autoconf libtool
-```
-
-RHEL/CentOS:
-
-```
-$ sudo yum install autoconf libtool
-```
-
-Then you will need to do:
-
-```
+$ sudo yum install pango-devel cairo-devel tokyocabinet-devel
 $ autoreconf --install
+$ ./configure
+$ make
+$ sudo make install
+$ sudo ldconfig
 ```
-
-to generate the correct files.  Once that is done, you can do the
-above configure, make and make install steps.
 
 
 ### Usage
