@@ -27,6 +27,7 @@ struct duc_index_req {
 	struct list *exclude_list;
 	dev_t dev;
 	duc_index_flags flags;
+	int maxdepth;
 };
 
 
@@ -85,6 +86,13 @@ int duc_index_req_add_exclude(duc_index_req *req, const char *patt)
 {
 	char *pcopy = duc_strdup(patt);
 	list_push(&req->exclude_list, pcopy);
+	return 0;
+}
+
+
+int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth)
+{
+	req->maxdepth = maxdepth;
 	return 0;
 }
 
@@ -166,7 +174,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t size = 0;
 		
 		if(S_ISDIR(st.st_mode)) {
-			size += index_dir(req, report, e->d_name, &st, st_dir, depth-1);
+			size += index_dir(req, report, e->d_name, &st, st_dir, depth+1);
 			dir->dir_count ++;
 			report->dir_count ++;
 		} else {
@@ -179,12 +187,17 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 		/* Store record */
 
-		if (depth > 0) {		/* cut entries at given depth */
-			if ((req->flags & DUC_INDEX_HIDE) && !S_ISDIR(st.st_mode)) {	/* hide file names if necessary */
-				duc_dir_add_ent(dir, "<FILES>", size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
-			} else {
-				duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+		if(req->maxdepth == 0 || depth < req->maxdepth) {
+
+			char *name = e->d_name;
+		
+			/* Hide file names? */
+
+			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && !S_ISDIR(st.st_mode)) {
+				name = "<FILE>";
 			}
+
+			duc_dir_add_ent(dir, name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
 		}
 		dir->size_total += size;
 		size_dir += size;
@@ -200,7 +213,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 }	
 
 
-struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags, int maxdepth)
+struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags)
 {
 	duc *duc = req->duc;
 
@@ -236,7 +249,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Recursively index subdirectories */
 
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(req, report, path_canon, &st, NULL, maxdepth);
+	report->size_total = index_dir(req, report, path_canon, &st, NULL, 0);
 	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */

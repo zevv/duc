@@ -20,7 +20,7 @@ static struct option longopts[] = {
 	{ "compress",        no_argument,       NULL, 'c' },
 	{ "database",        required_argument, NULL, 'd' },
 	{ "maxdepth",        required_argument, NULL, 'm' },
-	{ "hidefiles",       no_argument,       NULL, 'h' },
+	{ "hidefiles",       no_argument,       NULL, 'H' },
 	{ "force",           no_argument,       NULL, 'f' },
 	{ "one-file-system", required_argument, NULL, 'x' },
 	{ "quiet",           no_argument,       NULL, 'q' },
@@ -32,7 +32,6 @@ static struct option longopts[] = {
 static int index_main(int argc, char **argv)
 {
 	int c;
-	int maxdepth = 999999;
 	char *path_db = NULL;
 	duc_index_flags index_flags = 0;
 	int open_flags = DUC_OPEN_RW | DUC_OPEN_COMPRESS;
@@ -46,7 +45,7 @@ static int index_main(int argc, char **argv)
 		
 	duc_index_req *req = duc_index_req_new(duc);
 
-	while( ( c = getopt_long(argc, argv, "d:e:m:hfqxuv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:e:m:Hfqxuv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -71,10 +70,10 @@ static int index_main(int argc, char **argv)
 				index_flags |= DUC_INDEX_XDEV;
 				break;
 			case 'm':
-				maxdepth = atoi(optarg)+1;
+				duc_index_req_set_maxdepth(req, atoi(optarg));
 				break;
-			case 'h':
-				index_flags |= DUC_INDEX_HIDE;
+			case 'H':
+				index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
 				break;
 			default:
 				return -2;
@@ -103,7 +102,7 @@ static int index_main(int argc, char **argv)
 	for(i=0; i<argc; i++) {
 
 		struct duc_index_report *report;
-		report = duc_index(req, argv[i], index_flags, maxdepth);
+		report = duc_index(req, argv[i], index_flags);
 		if(report == NULL) {
 			fprintf(stderr, "%s\n", duc_strerror(duc));
 			continue;
@@ -147,7 +146,7 @@ struct cmd cmd_index = {
 		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"
 		"  -m, --maxdepth=ARG      limit directory names to given depth\n"
-		"  -h, --hidefiles         hide file names\n"
+		"  -H, --hidefiles         hide file names\n"
 		,
 	.main = index_main
 };

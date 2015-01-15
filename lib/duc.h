@@ -22,8 +22,8 @@ typedef enum {
 
 
 typedef enum {
-	DUC_INDEX_XDEV	= 1<<0,    /* Do not cross device boundaries while indexing */
-	DUC_INDEX_HIDE	= 1<<1,    /* Hide file names */
+	DUC_INDEX_XDEV            = 1<<0, /* Do not cross device boundaries while indexing */
+	DUC_INDEX_HIDE_FILE_NAMES = 1<<1, /* Hide file names */
 } duc_index_flags;
 
 
@@ -112,7 +112,8 @@ int duc_close(duc *duc);
 
 duc_index_req *duc_index_req_new(duc *duc);
 int duc_index_req_add_exclude(duc_index_req *req, const char *pattern);
-struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags, int maxdepth);
+int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
+struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
 int duc_index_report_free(struct duc_index_report *rep);
 
