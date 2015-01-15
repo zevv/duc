@@ -16,14 +16,22 @@
 #include "cmd.h"
 #include "duc.h"
 
+/* Keys for options without short-options. */
+
+enum {
+	OPT_UNCOMPRESSED,
+	OPT_HIDE_FILES,
+};
+
 static struct option longopts[] = {
-	{ "compress",        no_argument,       NULL, 'c' },
 	{ "database",        required_argument, NULL, 'd' },
-	{ "maxdepth",        required_argument, NULL, 'm' },
-	{ "hidefiles",       no_argument,       NULL, 'H' },
+	{ "exclude",         required_argument, NULL, 'e' },
 	{ "force",           no_argument,       NULL, 'f' },
+	{ "hide-files",      no_argument,       NULL, OPT_HIDE_FILES },
+	{ "maxdepth",        required_argument, NULL, 'm' },
 	{ "one-file-system", required_argument, NULL, 'x' },
 	{ "quiet",           no_argument,       NULL, 'q' },
+	{ "uncompressed",    no_argument,       NULL, OPT_UNCOMPRESSED },
 	{ "verbose",         required_argument, NULL, 'v' },
 	{ NULL }
 };
@@ -45,7 +53,7 @@ static int index_main(int argc, char **argv)
 		
 	duc_index_req *req = duc_index_req_new(duc);
 
-	while( ( c = getopt_long(argc, argv, "d:e:m:Hfqxuv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:e:fm:qvx", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -57,11 +65,11 @@ static int index_main(int argc, char **argv)
 			case 'f':
 			        open_flags |= DUC_OPEN_FORCE;
 				break;
+			case 'm':
+				duc_index_req_set_maxdepth(req, atoi(optarg));
+				break;
 			case 'q':
 				loglevel = DUC_LOG_FTL;
-				break;
-			case 'u':
-				open_flags &= ~DUC_OPEN_COMPRESS;
 				break;
 			case 'v':
 				if(loglevel < DUC_LOG_DMP) loglevel ++;
@@ -69,11 +77,11 @@ static int index_main(int argc, char **argv)
 			case 'x':
 				index_flags |= DUC_INDEX_XDEV;
 				break;
-			case 'm':
-				duc_index_req_set_maxdepth(req, atoi(optarg));
-				break;
-			case 'H':
+			case OPT_HIDE_FILES:
 				index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
+				break;
+			case OPT_UNCOMPRESSED:
+				open_flags &= ~DUC_OPEN_COMPRESS;
 				break;
 			default:
 				return -2;
@@ -141,12 +149,12 @@ struct cmd cmd_index = {
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
 		"  -e, --exclude=PATTERN   exclude files matching PATTERN\n"
 		"  -f, --force             force writing in case of corrupted db\n"
+		"      --hide-files        hide file names\n"
+		"  -m, --maxdepth=ARG      limit directory names to given depth\n"
 		"  -q, --quiet             do not report errors\n"
-		"  -u, --uncompressed      do not use compression for database\n"
+		"      --uncompressed      do not use compression for database\n"
 		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"
-		"  -m, --maxdepth=ARG      limit directory names to given depth\n"
-		"  -H, --hidefiles         hide file names\n"
 		,
 	.main = index_main
 };
