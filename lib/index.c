@@ -180,7 +180,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		/* Store record */
 
 		if (depth > 0) {		/* cut entries at given depth */
-			duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+			if ((req->flags & DUC_INDEX_HIDE) && !S_ISDIR(st.st_mode)) {	/* hide file names if necessary */
+				duc_dir_add_ent(dir, "<FILES>", size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+			} else {
+				duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+			}
 		}
 		dir->size_total += size;
 		size_dir += size;

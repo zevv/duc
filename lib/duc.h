@@ -23,6 +23,7 @@ typedef enum {
 
 typedef enum {
 	DUC_INDEX_XDEV	= 1<<0,    /* Do not cross device boundaries while indexing */
+	DUC_INDEX_HIDE	= 1<<1,    /* Hide file names */
 } duc_index_flags;
 
 

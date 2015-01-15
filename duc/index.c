@@ -20,6 +20,7 @@ static struct option longopts[] = {
 	{ "compress",        no_argument,       NULL, 'c' },
 	{ "database",        required_argument, NULL, 'd' },
 	{ "maxdepth",        required_argument, NULL, 'm' },
+	{ "hidefiles",       no_argument,       NULL, 'h' },
 	{ "force",           no_argument,       NULL, 'f' },
 	{ "one-file-system", required_argument, NULL, 'x' },
 	{ "quiet",           no_argument,       NULL, 'q' },
@@ -45,7 +46,7 @@ static int index_main(int argc, char **argv)
 		
 	duc_index_req *req = duc_index_req_new(duc);
 
-	while( ( c = getopt_long(argc, argv, "d:e:m:fqxuv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:e:m:hfqxuv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -71,6 +72,9 @@ static int index_main(int argc, char **argv)
 				break;
 			case 'm':
 				maxdepth = atoi(optarg)+1;
+				break;
+			case 'h':
+				index_flags |= DUC_INDEX_HIDE;
 				break;
 			default:
 				return -2;
@@ -143,6 +147,7 @@ struct cmd cmd_index = {
 		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"
 		"  -m, --maxdepth=ARG      limit directory names to given depth\n"
+		"  -h, --hidefiles         hide file names\n"
 		,
 	.main = index_main
 };
