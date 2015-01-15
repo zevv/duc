@@ -19,6 +19,7 @@
 static struct option longopts[] = {
 	{ "compress",        no_argument,       NULL, 'c' },
 	{ "database",        required_argument, NULL, 'd' },
+	{ "maxdepth",        required_argument, NULL, 'm' },
 	{ "force",           no_argument,       NULL, 'f' },
 	{ "one-file-system", required_argument, NULL, 'x' },
 	{ "quiet",           no_argument,       NULL, 'q' },
@@ -30,6 +31,7 @@ static struct option longopts[] = {
 static int index_main(int argc, char **argv)
 {
 	int c;
+	int maxdepth = 999999;
 	char *path_db = NULL;
 	duc_index_flags index_flags = 0;
 	int open_flags = DUC_OPEN_RW | DUC_OPEN_COMPRESS;
@@ -43,7 +45,7 @@ static int index_main(int argc, char **argv)
 		
 	duc_index_req *req = duc_index_req_new(duc);
 
-	while( ( c = getopt_long(argc, argv, "d:e:fqxuv", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "d:e:m:fqxuv", longopts, NULL)) != EOF) {
 
 		switch(c) {
 			case 'd':
@@ -66,6 +68,9 @@ static int index_main(int argc, char **argv)
 				break;
 			case 'x':
 				index_flags |= DUC_INDEX_XDEV;
+				break;
+			case 'm':
+				maxdepth = atoi(optarg)+1;
 				break;
 			default:
 				return -2;
@@ -94,7 +99,7 @@ static int index_main(int argc, char **argv)
 	for(i=0; i<argc; i++) {
 
 		struct duc_index_report *report;
-		report = duc_index(req, argv[i], index_flags);
+		report = duc_index(req, argv[i], index_flags, maxdepth);
 		if(report == NULL) {
 			fprintf(stderr, "%s\n", duc_strerror(duc));
 			continue;
@@ -137,6 +142,7 @@ struct cmd cmd_index = {
 		"  -u, --uncompressed      do not use compression for database\n"
 		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
 		"  -x, --one-file-system   don't cross filesystem boundaries\n"
+		"  -m, --maxdepth=ARG      limit directory names to given depth\n"
 		,
 	.main = index_main
 };

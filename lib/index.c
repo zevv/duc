@@ -21,7 +21,6 @@
 #include "list.h"
 #include "private.h"
 
-
 struct duc_index_req {
 	duc *duc;
 	struct list *path_list;
@@ -104,7 +103,7 @@ static int match_list(const char *name, struct list *l)
 }
 
 
-static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *st_dir, struct stat *st_parent)
+static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *st_dir, struct stat *st_parent, int depth)
 {
 	struct duc *duc = req->duc;
 	off_t size_dir = 0;
@@ -167,7 +166,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t size = 0;
 		
 		if(S_ISDIR(st.st_mode)) {
-			size += index_dir(req, report, e->d_name, &st, st_dir);
+			size += index_dir(req, report, e->d_name, &st, st_dir, depth-1);
 			dir->dir_count ++;
 			report->dir_count ++;
 		} else {
@@ -180,7 +179,9 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 		/* Store record */
 
-		duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+		if (depth > 0) {		/* cut entries at given depth */
+			duc_dir_add_ent(dir, e->d_name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+		}
 		dir->size_total += size;
 		size_dir += size;
 	}
@@ -195,7 +196,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 }	
 
 
-struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags)
+struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags, int maxdepth)
 {
 	duc *duc = req->duc;
 
@@ -231,7 +232,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Recursively index subdirectories */
 
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(req, report, path_canon, &st, NULL);
+	report->size_total = index_dir(req, report, path_canon, &st, NULL, maxdepth);
 	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */
