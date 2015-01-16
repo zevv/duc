@@ -111,18 +111,18 @@ static int match_list(const char *name, struct list *l)
 }
 
 
-static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *st_dir, struct stat *st_parent, int depth)
+static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, int fd_dir, struct stat *st_dir, struct stat *st_parent, int depth)
 {
 	struct duc *duc = req->duc;
 	off_t size_dir = 0;
 
-	int r = chdir(path);
-	if(r == -1) {
+	int fd = openat(fd_dir, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
+	if(fd == -1) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
-	DIR *d = opendir(".");
+	DIR *d = fdopendir(fd);
 	if(d == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
@@ -154,7 +154,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		/* Get file info */
 
 		struct stat st;
-		int r = lstat(e->d_name, &st);
+		int r = fstatat(fd, e->d_name, &st, AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			continue;
@@ -174,7 +174,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t size = 0;
 		
 		if(S_ISDIR(st.st_mode)) {
-			size += index_dir(req, report, e->d_name, &st, st_dir, depth+1);
+			size += index_dir(req, report, e->d_name, fd, &st, st_dir, depth+1);
 			dir->dir_count ++;
 			report->dir_count ++;
 		} else {
@@ -207,7 +207,6 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	duc_dir_close(dir);
 
 	closedir(d);
-	chdir("..");
 
 	return size_dir;
 }	
@@ -249,7 +248,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Recursively index subdirectories */
 
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(req, report, path_canon, &st, NULL, 0);
+	report->size_total = index_dir(req, report, path_canon, 0, &st, NULL, 0);
 	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */
