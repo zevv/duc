@@ -119,6 +119,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	);
 	
 	char *path = cgi_get("path");
+	char *db = cgi_get("db");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
 
@@ -168,7 +169,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 
 		char url[PATH_MAX];
-		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report->path);
+		snprintf(url, sizeof url, "%s?cmd=index&path=%s&db=%s", script, report->path, db);
 
 		char *siz = duc_human_size(report->size_total);
 
@@ -189,8 +190,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	printf("</table>");
 
 	if(path) {
-		printf("<a href='%s?cmd=index&path=%s&'>", script, path);
-		printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
+		printf("<a href='%s?cmd=index&path=%s&db=%s&'>", script, path, db);
+		printf("<img src='%s?cmd=image&path=%s&db=%s' ismap='ismap'>\n", script, path, db);
 		printf("</a><br>");
 	}
 	fflush(stdout);
