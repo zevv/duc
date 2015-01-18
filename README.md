@@ -25,7 +25,7 @@ Pango [3] for writing graphs.
 2. http://cairographics.org/
 3. http://www.pango.org/
 
-Duc use the GNU Autoconf system for compiling if you do not have a
+Duc uses the GNU Autoconf system for compiling if you do not have a
 pre-built package. 
 
 Building and installing on Debian or Ubuntu:
