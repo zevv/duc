@@ -352,7 +352,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 		draw_section(g, cr, a1, a2, r1, r2, H, S, V, L);
 
-		if(e->mode == DUC_MODE_DIR) {
+		if(e->type == DT_DIR) {
 
 			/* Check if the requested spot lies in this section */
 

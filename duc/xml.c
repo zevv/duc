@@ -44,7 +44,7 @@ static void dump(duc *duc, duc_dir *dir, int depth)
 
 	while( (e = duc_dir_read(dir)) != NULL) {
 
-		if(e->mode == DUC_MODE_DIR) {
+		if(e->type == DT_DIR) {
 			indent(depth);
 			printf("<ent type='dir' name='");
 			print_escaped(e->name);
