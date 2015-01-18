@@ -50,8 +50,10 @@ duc_errno db_write_dir(struct duc_dir *dir)
 		buffer_put_string(b, ent->name);
 		buffer_put_varint(b, ent->size);
 		buffer_put_varint(b, ent->type);
-		buffer_put_varint(b, ent->dev);
-		buffer_put_varint(b, ent->ino);
+		if(ent->type == DT_DIR) {
+			buffer_put_varint(b, ent->dev);
+			buffer_put_varint(b, ent->ino);
+		}
 		ent++;
 	}
 
@@ -109,8 +111,10 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 		buffer_get_string(b, &name);
 		buffer_get_varint(b, &size);
 		buffer_get_varint(b, &type);
-		buffer_get_varint(b, &dev);
-		buffer_get_varint(b, &ino);
+		if(type == DT_DIR) {
+			buffer_get_varint(b, &dev);
+			buffer_get_varint(b, &ino);
+		}
 	
 		if(name) {
 			duc_dir_add_ent(dir, name, size, type, dev, ino);
