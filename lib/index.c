@@ -31,20 +31,6 @@ struct duc_index_req {
 };
 
 
-static duc_dirent_mode mode_t_to_duc_mode(mode_t m)
-{
-	if(S_ISREG(m))  return DUC_MODE_REG;
-	if(S_ISDIR(m))  return DUC_MODE_DIR;
-	if(S_ISCHR(m))  return DUC_MODE_CHR;
-	if(S_ISBLK(m))  return DUC_MODE_BLK;
-	if(S_ISFIFO(m)) return DUC_MODE_FIFO;
-	if(S_ISLNK(m))  return DUC_MODE_LNK;
-	if(S_ISSOCK(m)) return DUC_MODE_SOCK;
-	return DUC_MODE_REST;
-}
-
-
-
 duc_index_req *duc_index_req_new(duc *duc)
 {
 	struct duc_index_req *req = duc_malloc(sizeof(struct duc_index_req));
@@ -197,7 +183,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 				name = "<FILE>";
 			}
 
-			duc_dir_add_ent(dir, name, size, mode_t_to_duc_mode(st.st_mode), st.st_dev, st.st_ino);
+			duc_dir_add_ent(dir, name, size, e->d_type, st.st_dev, st.st_ino);
 		}
 		dir->size_total += size;
 		size_dir += size;

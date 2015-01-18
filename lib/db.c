@@ -49,7 +49,7 @@ duc_errno db_write_dir(struct duc_dir *dir)
 	for(i=0; i<dir->ent_count; i++) {
 		buffer_put_string(b, ent->name);
 		buffer_put_varint(b, ent->size);
-		buffer_put_varint(b, ent->mode);
+		buffer_put_varint(b, ent->type);
 		buffer_put_varint(b, ent->dev);
 		buffer_put_varint(b, ent->ino);
 		ent++;
@@ -103,17 +103,17 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 		uint64_t size;
 		uint64_t dev;
 		uint64_t ino;
-		uint64_t mode;
+		uint64_t type;
 		char *name;
 
 		buffer_get_string(b, &name);
 		buffer_get_varint(b, &size);
-		buffer_get_varint(b, &mode);
+		buffer_get_varint(b, &type);
 		buffer_get_varint(b, &dev);
 		buffer_get_varint(b, &ino);
 	
 		if(name) {
-			duc_dir_add_ent(dir, name, size, mode, dev, ino);
+			duc_dir_add_ent(dir, name, size, type, dev, ino);
 			free(name);
 		}
 	}

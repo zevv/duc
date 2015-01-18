@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -20,15 +21,15 @@ char *color_reset = "\e[0m";
 char *color_red = "\e[31m";
 char *color_yellow = "\e[33m";
 
-static char mode_char[] = {
-        [DUC_MODE_REG]  = ' ',
-        [DUC_MODE_DIR]  = '/',
-        [DUC_MODE_CHR]  = ' ',
-        [DUC_MODE_BLK]  = ' ',
-        [DUC_MODE_FIFO] = '|',
-        [DUC_MODE_LNK]  = '>',
-        [DUC_MODE_SOCK] = '@',
-        [DUC_MODE_REST] = ' ',
+static char type_char[] = {
+        [DT_BLK]     = ' ',
+        [DT_CHR]     = ' ',
+        [DT_DIR]     = '/',
+        [DT_FIFO]    = '|',
+        [DT_LNK]     = '>',
+        [DT_REG]     = ' ',
+        [DT_SOCK]    = '@',
+        [DT_UNKNOWN] = ' ',
 };
 
 static char *tree_ascii[5] = {
@@ -107,7 +108,7 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 
 		int l = printf(" %s", e->name);
 		if(classify) {
-			if(e->mode <= DUC_MODE_REST) putchar(mode_char[e->mode]);
+			if(e->type <= DT_UNKNOWN) putchar(type_char[e->type]);
 			l++;
 		}
 
@@ -124,7 +125,7 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 
 		printf("\n");
 			
-		if(recursive && level < max_depth && e->mode == DUC_MODE_DIR) {
+		if(recursive && level < max_depth && e->type == DT_DIR) {
 			if(n == count-1) {
 				strcpy(prefix + level*4, tree[4]);
 			} else {

@@ -33,7 +33,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino)
 }
 
 
-int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, mode_t mode, dev_t dev, ino_t ino)
+int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, uint8_t type, dev_t dev, ino_t ino)
 {
 	if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
 		dir->ent_pool *= 2;
@@ -45,7 +45,7 @@ int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, mode_t mo
 
 	ent->name = duc_strdup(name);
 	ent->size = size;
-	ent->mode = mode;
+	ent->type = type;
 	ent->dev = dev;
 	ent->ino = ino;
 

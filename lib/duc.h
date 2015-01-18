@@ -5,6 +5,8 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <dirent.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <glob.h>
@@ -41,18 +43,6 @@ typedef enum {
 
 
 typedef enum {
-	DUC_MODE_REG,               /* Regular file */
-	DUC_MODE_DIR,               /* Directory */
-	DUC_MODE_CHR,               /* Character device */
-	DUC_MODE_BLK,               /* Block device */
-	DUC_MODE_FIFO,              /* Fifo */
-	DUC_MODE_LNK,               /* Soft link */
-	DUC_MODE_SOCK,              /* Unix socket */
-	DUC_MODE_REST               /* Grouped 'rest', added by duc_dir_limit() */
-} duc_dirent_mode;
-
-
-typedef enum {
 	DUC_LOG_FTL,
 	DUC_LOG_WRN,
 	DUC_LOG_INF,
@@ -76,7 +66,7 @@ struct duc_index_report {
 struct duc_dirent {
 	char *name;                 /* File name */
 	off_t size;                 /* File size */
-	duc_dirent_mode mode;       /* File mode */
+	uint8_t type;               /* File type, one of POSIX's DT_* */
 	dev_t dev;                  /* ID of device containing file */
 	ino_t ino;                  /* inode number */
 };
