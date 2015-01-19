@@ -97,32 +97,64 @@ static int match_list(const char *name, struct list *l)
 }
 
 
-static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, struct stat *st_dir, struct stat *st_parent, int depth)
+
+static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, int fd_parent, struct stat *st_parent, int depth)
 {
 	struct duc *duc = req->duc;
 	off_t size_dir = 0;
 
-	int r = chdir(path);
-	if(r == -1) {
+
+	/* Open dir and read file status */
+
+	int fd_dir = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
+	if(fd_dir == -1) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s\n", path, strerror(errno));
 		return 0;
 	}
 
-	DIR *d = opendir(".");
+	struct stat st_dir;
+	int r = fstat(fd_dir, &st_dir);
+	if(r == -1) {
+		duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s\n", path, strerror(errno));
+		close(fd_dir);
+		return 0;
+	}
+	
+	if(req->dev == 0) {
+		req->dev = st_dir.st_dev;
+	}
+
+	if(report->dev == 0) {
+		report->dev = st_dir.st_dev;
+		report->ino = st_dir.st_ino;
+	}
+
+
+	/* Check if we are allowed to cross file system boundaries */
+
+	if(req->flags & DUC_INDEX_XDEV) {
+		if(st_dir.st_dev != req->dev) {
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries\n", path);
+			return 0;
+		}
+	}
+
+	DIR *d = fdopendir(fd_dir);
 	if(d == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s\n", path, strerror(errno));
+		close(fd_dir);
 		return 0;
 	}
 
-	struct duc_dir *dir = duc_dir_new(duc, st_dir->st_dev, st_dir->st_ino);
+	struct duc_dir *dir = duc_dir_new(duc, st_dir.st_dev, st_dir.st_ino);
+
 	if(st_parent) {
 		dir->dev_parent = st_parent->st_dev;
 		dir->ino_parent = st_parent->st_ino;
 	}
-			
-	if(req->dev == 0) {
-		req->dev = st_dir->st_dev;
-	}
+
+
+	/* Iterate directory entries */
 
 	struct dirent *e;
 	while( (e = readdir(d)) != NULL) {
@@ -140,19 +172,10 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		/* Get file info */
 
 		struct stat st;
-		int r = lstat(e->d_name, &st);
+		int r = fstatat(fd_dir, e->d_name, &st, AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s\n", e->d_name, strerror(errno));
 			continue;
-		}
-
-		/* Check for file system boundaries */
-
-		if(req->flags & DUC_INDEX_XDEV) {
-			if(st.st_dev != req->dev) {
-				duc_log(duc, DUC_LOG_WRN, "Skipping %s: different file system\n", e->d_name);
-				continue;
-			}
 		}
 
 		/* Calculate size, recursing when needed */
@@ -160,7 +183,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t size = 0;
 		
 		if(S_ISDIR(st.st_mode)) {
-			size += index_dir(req, report, e->d_name, &st, st_dir, depth+1);
+			size += index_dir(req, report, e->d_name, fd_dir, &st_dir, depth+1);
 			dir->dir_count ++;
 			report->dir_count ++;
 		} else {
@@ -193,7 +216,6 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	duc_dir_close(dir);
 
 	closedir(d);
-	chdir("..");
 
 	return size_dir;
 }	
@@ -216,17 +238,6 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 		return NULL;
 	}
 
-	/* Open path */
-	
-	struct stat st;
-	int r = lstat(path_canon, &st);
-	if(r == -1) {
-		duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s\n", path_canon, strerror(errno));
-		duc->err = DUC_E_UNKNOWN;
-		if(errno == EACCES) duc->err = DUC_E_PERMISSION_DENIED;
-		return NULL;
-	}
-
 	/* Create report */
 	
 	struct duc_index_report *report = duc_malloc(sizeof(struct duc_index_report));
@@ -235,14 +246,14 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Recursively index subdirectories */
 
 	gettimeofday(&report->time_start, NULL);
-	report->size_total = index_dir(req, report, path_canon, &st, NULL, 0);
+	report->size_total = index_dir(req, report, path_canon, 0, NULL, 0);
 	gettimeofday(&report->time_stop, NULL);
 	
 	/* Fill in report */
 
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
-	report->dev = st.st_dev;
-	report->ino = st.st_ino;
+	//report->dev = st.st_dev;
+	//report->ino = st.st_ino;
 
 	/* Store report */
 
