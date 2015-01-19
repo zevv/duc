@@ -1,4 +1,8 @@
 
+/*
+ * To whom it may concern: http://womble.decadent.org.uk/readdir_r-advisory.html
+ */
+
 #include "config.h"
 
 #include <stdio.h>
