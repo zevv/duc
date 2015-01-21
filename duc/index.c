@@ -29,7 +29,7 @@ static struct option longopts[] = {
 	{ "force",           no_argument,       NULL, 'f' },
 	{ "hide-files",      no_argument,       NULL, OPT_HIDE_FILES },
 	{ "maxdepth",        required_argument, NULL, 'm' },
-	{ "one-file-system", required_argument, NULL, 'x' },
+	{ "one-file-system", no_argument,       NULL, 'x' },
 	{ "quiet",           no_argument,       NULL, 'q' },
 	{ "uncompressed",    no_argument,       NULL, OPT_UNCOMPRESSED },
 	{ "verbose",         required_argument, NULL, 'v' },
