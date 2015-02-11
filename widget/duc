@@ -1,0 +1,46 @@
+###
+###    File name: duc
+###    Author: Edoardo Spadoni
+###    Mail: edoardo.spadoni@nethesis.it
+###    Date created: 02/11/2015
+###    Date last modified: 02/11/2015
+###    Version: 1.0
+###
+
+INDEX_DIR='/'
+DB_DIR='.'
+JSON_DIR='.'
+
+# directory indexing
+duc index -f $INDEX_DIR --database=$DB_DIR/.duc.db
+
+# parse db into xml
+duc xml --database=$DB_DIR/.duc.db $INDEX_DIR > tree.xml
+
+# delete not dir nodes and fake folder
+sed -i -e '/<ent name=/d' tree.xml
+utils/xml-remove.py
+
+# xml to json conversion
+utils/xml2json.py -t xml2json -o data.json tree.xml
+rm -rf tree.xml
+
+# prettify json
+utils/pretty-JSON.py > pretty.json
+rm -rf data.json
+
+# delete useless data
+sed -i -e '2d' pretty.json
+head -n -1 pretty.json > tmp1; mv tmp1 pretty.json
+sed -i -e '/#tail/d' pretty.json
+sed -i -e '/#text/d' pretty.json
+
+# replace values
+sed -i -e 's/ent/children/g' pretty.json
+sed -i -e 's/@root/name/g' pretty.json
+sed -i -e 's/@name/name/g' pretty.json
+sed -i -e 's/@size/size/g' pretty.json
+
+# compress JSON
+utils/compression.py
+mv pretty.json $JSON_DIR/duc.json
