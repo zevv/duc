@@ -22,6 +22,16 @@ Duc maintains a database of accumulated sizes of directories of your file system
 and allows you to query this database with some tools,
 or create fancy graphs showing you where your bytes are.
 
+%package          devel
+Summary:          Development tools for %{name}
+Group:            Development/Libraries
+Requires:         %{name} = %{version}-%{release}
+
+%description devel
+Duc is a small library and a collection of tools for inspecting and visualizing
+disk usage.
+This is devel version.
+
 %prep
 %setup -n %{name}-master
 
@@ -41,8 +51,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%{_libdir}/*
-%{_bindir}/*
+%{_libdir}/*.so*
+%{_bindir}/%{name}
+
+%files devel
+%defattr(-,root,root)
+%{_libdir}/*.*a
+%{_bindir}/%{name}.debug
 
 %changelog
 * Wed Feb 11 2015 Edoardo Spadoni <edoardo.spadoni@nethesis.it> - 1.0
