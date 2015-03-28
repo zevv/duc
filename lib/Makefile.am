@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Werror
+AM_CFLAGS = -Wall -Werror
 
 lib_LTLIBRARIES := libduc.la libduc-graph.la
 
