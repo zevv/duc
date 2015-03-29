@@ -69,7 +69,7 @@ static void dump(duc *duc, duc_dir *dir, int depth, int min_size, int ex_files)
 static int xml_main(int argc, char **argv)
 {
 	int c;
-	int min_size;
+	int min_size = 0;
 	int ex_files = 0;
 	char *path_db = NULL;
 	duc_log_level loglevel = DUC_LOG_WRN;
