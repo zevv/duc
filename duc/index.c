@@ -119,7 +119,7 @@ static int index_main(int argc, char **argv)
 		char *siz = duc_human_size(report->size_total);
 		if(r == DUC_OK) {
 			char *s = duc_human_duration(report->time_start, report->time_stop);
-			fprintf(stderr, "Indexed %lu files and %lu directories, (%sB total) in %s\n", 
+			fprintf(stdout, "Indexed %lu files and %lu directories, (%sB total) in %s\n", 
 					(unsigned long)report->file_count, 
 					(unsigned long)report->dir_count,
 					siz,
