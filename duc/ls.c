@@ -224,7 +224,6 @@ static int ls_main(int argc, char **argv)
 
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
 	if(r != DUC_OK) {
-		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
 	}
 

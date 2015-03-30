@@ -23,8 +23,6 @@ duc_errno tcdb_to_errno(TCBDB *hdb)
 {
 	int ec = tcbdbecode(hdb);
 
-	printf("%d\n", ec);
-
 	switch(ec) {
 		case TCESUCCESS: return DUC_OK;
 		case TCENOFILE:  return DUC_E_DB_NOT_FOUND;
