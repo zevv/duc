@@ -25,7 +25,7 @@ static int info_db(char *file)
 
 	duc *duc = duc_new();
 	if(duc == NULL) {
-		fprintf(stderr, "Error creating duc context\n");
+		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
 		return -1;
 	}
 
@@ -33,7 +33,7 @@ static int info_db(char *file)
 
 	int r = duc_open(duc, file, DUC_OPEN_RO);
 	if(r != DUC_OK) {
-		fprintf(stderr, "Error!  %s\n", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_WRN, "Error!  %s", duc_strerror(duc));
 		return -1;
 	}
 
@@ -91,14 +91,14 @@ static int info_main(int argc, char **argv)
 		}
 	}
 
-	
+
 	if (db_dir) {
-	    glob_t bunch_of_dbs;
-	    char **db_file;
-	    size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
-	    printf("Found %zu (%zu) DBs to look at.\n", n, bunch_of_dbs.gl_pathc);
-	    int i = 0;
-	    for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
+		glob_t bunch_of_dbs;
+		char **db_file;
+		size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
+		printf("Found %zu (%zu) DBs to look at.\n", n, bunch_of_dbs.gl_pathc);
+		int i = 0;
+		for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
 		info_db(*db_file);
 	    }
 	    return 0;

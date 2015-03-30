@@ -47,10 +47,10 @@ static int index_main(int argc, char **argv)
 	
 	struct duc *duc = duc_new();
 	if(duc == NULL) {
-                fprintf(stderr, "Error creating duc context\n");
-                return -1;
-        }
-		
+		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
+		return -1;
+	}
+
 	duc_index_req *req = duc_index_req_new(duc);
 
 	while( ( c = getopt_long(argc, argv, "d:e:fm:qvx", longopts, NULL)) != EOF) {
@@ -94,13 +94,13 @@ static int index_main(int argc, char **argv)
 	argv += optind;
 
 	if(argc < 1) {
-		fprintf(stderr, "Required index PATH missing.\n");
+		duc_log(duc, DUC_LOG_WRN, "Required index PATH missing.");
 		return -2;
 	}
 	
 	int r = duc_open(duc, path_db, open_flags);
 	if(r != DUC_OK) {
-		fprintf(stderr, "%s\n", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
 	}
 
@@ -112,21 +112,22 @@ static int index_main(int argc, char **argv)
 		struct duc_index_report *report;
 		report = duc_index(req, argv[i], index_flags);
 		if(report == NULL) {
-			fprintf(stderr, "%s\n", duc_strerror(duc));
+			duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 			continue;
 		}
 
 		char *siz = duc_human_size(report->size_total);
 		if(r == DUC_OK) {
 			char *s = duc_human_duration(report->time_start, report->time_stop);
-			fprintf(stdout, "Indexed %lu files and %lu directories, (%sB total) in %s\n", 
+			duc_log(duc, DUC_LOG_INF, 
+					"Indexed %lu files and %lu directories, (%sB total) in %s", 
 					(unsigned long)report->file_count, 
 					(unsigned long)report->dir_count,
 					siz,
 					s);
 			free(s);
 		} else {
-			fprintf(stderr, "An error occured while indexing: %s", duc_strerror(duc));
+			duc_log(duc, DUC_LOG_WRN, "An error occured while indexing: %s", duc_strerror(duc));
 		}
 		free(siz);
 

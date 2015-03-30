@@ -44,7 +44,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 
 	int r = tcbdbopen(db->hdb, path_db, mode);
 	if(r == 0) {
-	    *e = DUC_E_DB_CORRUPT;
+		*e = DUC_E_DB_CORRUPT;
 		goto err2;
 	}
 

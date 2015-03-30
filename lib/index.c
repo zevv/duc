@@ -60,7 +60,7 @@ int duc_index_req_add_path(duc_index_req *req, const char *path)
 	duc *duc = req->duc;
 	char *path_canon = stripdir(path);
 	if(path_canon == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s\n", path, strerror(errno));
+		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s", path, strerror(errno));
 		duc->err = DUC_E_UNKNOWN;
 		if(errno == EACCES) duc->err = DUC_E_PERMISSION_DENIED;
 		if(errno == ENOENT) duc->err = DUC_E_PATH_NOT_FOUND;
@@ -112,14 +112,14 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 	int fd_dir = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
 	if(fd_dir == -1) {
-		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s\n", path, strerror(errno));
+		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
 		return 0;
 	}
 
 	struct stat st_dir;
 	int r = fstat(fd_dir, &st_dir);
 	if(r == -1) {
-		duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s\n", path, strerror(errno));
+		duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
 		close(fd_dir);
 		return 0;
 	}
@@ -138,14 +138,14 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 	if(req->flags & DUC_INDEX_XDEV) {
 		if(st_dir.st_dev != req->dev) {
-			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries\n", path);
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", path);
 			return 0;
 		}
 	}
 
 	DIR *d = fdopendir(fd_dir);
 	if(d == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s\n", path, strerror(errno));
+		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
 		close(fd_dir);
 		return 0;
 	}
@@ -178,7 +178,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		struct stat st;
 		int r = fstatat(fd_dir, e->d_name, &st, AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
-			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s\n", e->d_name, strerror(errno));
+			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", e->d_name, strerror(errno));
 			continue;
 		}
 
@@ -196,7 +196,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			report->file_count ++;
 		}
 
-		duc_log(duc, DUC_LOG_DMP, "%s %jd\n", e->d_name, size);
+		duc_log(duc, DUC_LOG_DMP, "%s %jd", e->d_name, size);
 
 		/* Store record */
 
@@ -235,7 +235,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	char *path_canon = stripdir(path);
 	if(path_canon == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s\n", path, strerror(errno));
+		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s", path, strerror(errno));
 		duc->err = DUC_E_UNKNOWN;
 		if(errno == EACCES) duc->err = DUC_E_PERMISSION_DENIED;
 		if(errno == ENOENT) duc->err = DUC_E_PATH_NOT_FOUND;

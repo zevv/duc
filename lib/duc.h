@@ -133,5 +133,6 @@ int duc_dir_close(duc_dir *dir);
 char *duc_human_size(off_t size);
 char *duc_human_duration(struct timeval start, struct timeval end);
 size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list);
+void duc_log(struct duc *duc, duc_log_level lvl, const char *fmt, ...);
 
 #endif

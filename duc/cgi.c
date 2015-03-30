@@ -264,7 +264,7 @@ static int cgi_main(int argc, char **argv)
 	if(path) {
 		dir = duc_dir_open(duc, path);
 		if(dir == NULL) {
-			fprintf(stderr, "%s\n", duc_strerror(duc));
+			duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 			return 0;
 		}
 	}

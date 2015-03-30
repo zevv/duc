@@ -115,20 +115,20 @@ static int xml_main(int argc, char **argv)
 
 	duc *duc = duc_new();
 	if(duc == NULL) {
-		 fprintf(stderr, "Error creating duc context\n");
-		 return -1;
+		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
+		return -1;
 	 }
 	duc_set_log_level(duc, loglevel);
 
 	int r = duc_open(duc, path_db, DUC_OPEN_RO);
 	if(r != DUC_OK) {
-		fprintf(stderr, "%s\n", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
 	}
 
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
-		fprintf(stderr, "%s\n", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
 	}
 

@@ -20,6 +20,7 @@
 static void default_log_callback(duc_log_level level, const char *fmt, va_list va)
 {
 	vfprintf(stderr, fmt, va);
+	fprintf(stderr, "\n");
 }
 
 
@@ -76,13 +77,13 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		return -1;
 	}
 
-	duc_log(duc, DUC_LOG_INF, "%s database \"%s\"\n", 
+	duc_log(duc, DUC_LOG_INF, "%s database \"%s\"", 
 			(flags & DUC_OPEN_RO) ? "Reading from" : "Writing to",
 			path_db);
 
 	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-	  duc_log(duc, DUC_LOG_WRN, "Error opening: %s - %s\n", path_db, duc_strerror(duc));
+		duc_log(duc, DUC_LOG_WRN, "Error opening: %s - %s", path_db, duc_strerror(duc));
 		free(duc);
 		return -1;
 	}
@@ -100,31 +101,42 @@ int duc_close(struct duc *duc)
 	return 0;
 }
 
-/* Scan db_dir_path and return the number of DBs found, or -1 for error, putting an array
-   db filenames into *dbs */
+
+/* 
+ * Scan db_dir_path and return the number of DBs found, or -1 for error, putting an array
+ * db filenames into *dbs 
+ */
+
 size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list) 
 {
-    size_t count;
+	size_t count;
 
-    char tmp[256];
-    sprintf(tmp,"%s/*.db", db_dir_path);
-    glob(tmp, GLOB_TILDE_CHECK, NULL, db_list);
+	char tmp[256];
+	sprintf(tmp,"%s/*.db", db_dir_path);
+	glob(tmp, GLOB_TILDE_CHECK, NULL, db_list);
 
-    count = db_list->gl_pathc;
-    if (count < 1) {
-        fprintf(stderr,"failed to find DBs in %s\n", tmp);
-    }
-    return count;
+	count = db_list->gl_pathc;
+	if (count < 1) {
+		duc_log(NULL, DUC_LOG_WRN,"failed to find DBs in %s", tmp);
+	}
+	return count;
 }
+
 
 void duc_log(struct duc *duc, duc_log_level level, const char *fmt, ...)
 {
-	if(duc->log_callback && level <= duc->log_level) {
-		va_list va;
-		va_start(va, fmt);
-		duc->log_callback(level, fmt, va);
-		va_end(va);
+	va_list va;
+	va_start(va, fmt);
+
+	if(duc) {
+		if(duc->log_callback && level <= duc->log_level) {
+			duc->log_callback(level, fmt, va);
+		}
+	} else {
+		default_log_callback(level, fmt, va);
 	}
+
+	va_end(va);
 }
 
 
@@ -213,7 +225,7 @@ void *duc_malloc(size_t s)
 {
 	void *p = malloc(s);
 	if(p == NULL) {
-		fprintf(stderr, "out of memory");
+		duc_log(NULL, DUC_LOG_FTL, "out of memory");
 		exit(1);
 	}
 	return p;
@@ -224,7 +236,7 @@ void *duc_realloc(void *p, size_t s)
 {
 	void *p2 = realloc(p, s);
 	if(p2 == NULL) {
-		fprintf(stderr, "out of memory\n");
+		duc_log(NULL, DUC_LOG_FTL, "out of memory");
 		exit(1);
 	}
 	return p2;
@@ -235,7 +247,7 @@ char *duc_strdup(const char *s)
 {
 	char *s2 = strdup(s);
 	if(s2 == NULL) {
-		fprintf(stderr, "out of memory");
+		duc_log(NULL, DUC_LOG_FTL, "out of memory");
 		exit(1);
 	}
 	return s2;

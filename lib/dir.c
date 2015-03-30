@@ -162,7 +162,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 	}
 
 	if(l == 0) {
-		duc_log(duc, DUC_LOG_WRN, "Path %s not found in database\n", path_canon);
+		duc_log(duc, DUC_LOG_WRN, "Path %s not found in database", path_canon);
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		free(path_canon);
 		return NULL;
