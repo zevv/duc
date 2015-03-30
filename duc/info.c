@@ -33,7 +33,6 @@ static int info_db(char *file)
 
 	int r = duc_open(duc, file, DUC_OPEN_RO);
 	if(r != DUC_OK) {
-		duc_log(duc, DUC_LOG_WRN, "Error!  %s", duc_strerror(duc));
 		return -1;
 	}
 

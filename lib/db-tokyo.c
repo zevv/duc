@@ -18,6 +18,27 @@ struct db {
 	TCBDB* hdb;
 };
 
+
+duc_errno tcdb_to_errno(TCBDB *hdb)
+{
+	int ec = tcbdbecode(hdb);
+
+	printf("%d\n", ec);
+
+	switch(ec) {
+		case TCESUCCESS: return DUC_OK;
+		case TCENOFILE:  return DUC_E_DB_NOT_FOUND;
+		case TCENOPERM:  return DUC_E_PERMISSION_DENIED;
+		case TCEMETA:    return DUC_E_DB_CORRUPT;
+		case TCERHEAD:   return DUC_E_DB_CORRUPT;
+		case TCEREAD:    return DUC_E_DB_CORRUPT;
+		case TCESEEK:    return DUC_E_DB_CORRUPT;
+	}
+
+	return DUC_E_UNKNOWN;
+}
+
+
 struct db *db_open(const char *path_db, int flags, duc_errno *e)
 {
 	struct db *db;
@@ -44,7 +65,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 
 	int r = tcbdbopen(db->hdb, path_db, mode);
 	if(r == 0) {
-		*e = DUC_E_DB_CORRUPT;
+		*e = tcdb_to_errno(db->hdb);
 		goto err2;
 	}
 
