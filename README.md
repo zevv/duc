@@ -31,7 +31,7 @@ pre-built package.
 Building and installing on Debian or Ubuntu:
 
 ```
-$ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev
+$ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev libtool
 $ autoreconf --install
 $ ./configure
 $ make
@@ -42,7 +42,7 @@ $ sudo ldconfig
 On RHEL or CentOS systems, you need to do:
 
 ```
-$ sudo yum install pango-devel cairo-devel tokyocabinet-devel
+$ sudo yum install pango-devel cairo-devel tokyocabinet-devel libtool
 $ autoreconf --install
 $ ./configure
 $ make
