@@ -43,12 +43,14 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 			win_w, win_h, 0, 
 			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
 
-	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask);
+	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
 	XMapWindow(dpy, win);
 	
 	cairo_surface_t *cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
 
 	int redraw = 1;
+	int tooltip_x = 0;
+	int tooltip_y = 0;
 
 	while(1) {
 	
@@ -75,6 +77,7 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			duc_graph_set_size(graph, size);
 			duc_graph_set_position(graph, pos_x, pos_y);
+			duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 			duc_graph_set_max_level(graph, depth);
 			duc_graph_set_fuzz(graph, fuzz);
 			duc_graph_set_max_name_len(graph, 30);
@@ -162,6 +165,14 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 				redraw = 1;
 				break;
+			}
+
+			case MotionNotify: {
+
+				tooltip_x = e.xmotion.x;
+				tooltip_y = e.xmotion.y;
+
+				redraw = 1;
 			}
 		}
 	}
