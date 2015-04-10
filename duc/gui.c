@@ -92,78 +92,76 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 			redraw = 0;
 		}
 
-		if(1) {
 
-			XEvent e;
-			XNextEvent(dpy, &e);
+		XEvent e;
+		XNextEvent(dpy, &e);
 
-			switch(e.type) {
+		switch(e.type) {
 
-				case ConfigureNotify: {
-					win_w = e.xconfigure.width;
-					win_h = e.xconfigure.height;
-					cairo_xlib_surface_set_size(cs, win_w, win_h);
-					redraw = 1;
-					break;
+			case ConfigureNotify: {
+				win_w = e.xconfigure.width;
+				win_h = e.xconfigure.height;
+				cairo_xlib_surface_set_size(cs, win_w, win_h);
+				redraw = 1;
+				break;
+			}
+
+			case Expose:
+				if(e.xexpose.count < 1) redraw = 1;
+				break;
+			
+			case KeyPress: {
+
+				KeySym k = XLookupKeysym(&e.xkey, 0);
+
+				if(k == XK_minus) depth--;
+				if(k == XK_equal) depth++;
+				if(k == XK_0) depth = 4;
+				if(k == XK_Escape) exit(0);
+				if(k == XK_q) exit(0);
+				if(k == XK_f) fuzz = 0.7 - fuzz;
+				if(k == XK_p) {
+					palette = (palette + 1) % 4;
+					duc_graph_set_palette(graph, palette);
+				}
+				if(k == XK_BackSpace) {
+					duc_dir *dir2 = duc_dir_openat(dir, "..");
+					if(dir2) {
+						duc_dir_close(dir);
+						dir = dir2;
+					}
 				}
 
-				case Expose:
-					if(e.xexpose.count < 1) redraw = 1;
-					break;
-				
-				case KeyPress: {
+				redraw = 1;
+				break;
+			}
 
-					KeySym k = XLookupKeysym(&e.xkey, 0);
+			case ButtonPress: {
 
-					if(k == XK_minus) depth--;
-					if(k == XK_equal) depth++;
-					if(k == XK_0) depth = 4;
-					if(k == XK_Escape) exit(0);
-					if(k == XK_q) exit(0);
-					if(k == XK_f) fuzz = 0.7 - fuzz;
-					if(k == XK_p) {
-						palette = (palette + 1) % 4;
-						duc_graph_set_palette(graph, palette);
+				int x = e.xbutton.x;
+				int y = e.xbutton.y;
+				int b = e.xbutton.button;
+
+				if(b == 1) {
+					duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+					if(dir2) {
+						duc_dir_close(dir);
+						dir = dir2;
 					}
-					if(k == XK_BackSpace) {
-						duc_dir *dir2 = duc_dir_openat(dir, "..");
-						if(dir2) {
-							duc_dir_close(dir);
-							dir = dir2;
-						}
+				}
+				if(b == 3) {
+					duc_dir *dir2 = duc_dir_openat(dir, "..");
+					if(dir2) {
+						duc_dir_close(dir);
+						dir = dir2;
 					}
-
-					redraw = 1;
-					break;
 				}
 
-				case ButtonPress: {
+				if(b == 4) depth --;
+				if(b == 5) depth ++;
 
-					int x = e.xbutton.x;
-					int y = e.xbutton.y;
-					int b = e.xbutton.button;
-
-					if(b == 1) {
-						duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
-						if(dir2) {
-							duc_dir_close(dir);
-							dir = dir2;
-						}
-					}
-					if(b == 3) {
-						duc_dir *dir2 = duc_dir_openat(dir, "..");
-						if(dir2) {
-							duc_dir_close(dir);
-							dir = dir2;
-						}
-					}
-
-					if(b == 4) depth --;
-					if(b == 5) depth ++;
-
-					redraw = 1;
-					break;
-				}
+				redraw = 1;
+				break;
 			}
 		}
 	}
