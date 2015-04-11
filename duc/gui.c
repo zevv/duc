@@ -7,6 +7,7 @@
 #ifdef HAVE_LIBX11
 
 #include <stdio.h>
+#include <sys/poll.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
@@ -51,6 +52,10 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 	int redraw = 1;
 	int tooltip_x = 0;
 	int tooltip_y = 0;
+	struct pollfd pfd;
+
+	pfd.fd = ConnectionNumber(dpy);
+	pfd.events = POLLIN | POLLERR;
 
 	while(1) {
 	
@@ -77,7 +82,6 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			duc_graph_set_size(graph, size);
 			duc_graph_set_position(graph, pos_x, pos_y);
-			duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 			duc_graph_set_max_level(graph, depth);
 			duc_graph_set_fuzz(graph, fuzz);
 			duc_graph_set_max_name_len(graph, 30);
@@ -93,6 +97,13 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			XFlush(dpy);
 			redraw = 0;
+		}
+
+		int r = poll(&pfd, 1, 10);
+
+		if(r == 0) {
+			duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
+			redraw = 1;
 		}
 
 
@@ -171,8 +182,6 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 				tooltip_x = e.xmotion.x;
 				tooltip_y = e.xmotion.y;
-
-				redraw = 1;
 			}
 		}
 	}
