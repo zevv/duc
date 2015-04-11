@@ -7,6 +7,7 @@
 #ifdef HAVE_LIBX11
 
 #include <stdio.h>
+#include <sys/poll.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
@@ -43,12 +44,18 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 			win_w, win_h, 0, 
 			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
 
-	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask);
+	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
 	XMapWindow(dpy, win);
 	
 	cairo_surface_t *cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
 
 	int redraw = 1;
+	int tooltip_x = 0;
+	int tooltip_y = 0;
+	struct pollfd pfd;
+
+	pfd.fd = ConnectionNumber(dpy);
+	pfd.events = POLLIN | POLLERR;
 
 	while(1) {
 	
@@ -92,9 +99,17 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 			redraw = 0;
 		}
 
-		if(1) {
+		int r = poll(&pfd, 1, 10);
 
-			XEvent e;
+		if(r == 0) {
+			duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
+			redraw = 1;
+		}
+
+
+		XEvent e;
+
+		while (XEventsQueued(dpy, QueuedAfterReading) > 0) {
 			XNextEvent(dpy, &e);
 
 			switch(e.type) {
@@ -163,6 +178,12 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 					redraw = 1;
 					break;
+				}
+
+				case MotionNotify: {
+
+					tooltip_x = e.xmotion.x;
+					tooltip_y = e.xmotion.y;
 				}
 			}
 		}

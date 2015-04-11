@@ -27,6 +27,7 @@
 #include "duc-graph.h"
 
 #define FONT_SIZE_LABEL 8
+#define FONT_SIZE_TOOLTIP 8
 
 #define MAX_DEPTH 32
 
@@ -44,6 +45,9 @@ struct duc_graph {
 	double size;
 	double cx, cy;
 	double pos_x, pos_y;
+	double tooltip_a, tooltip_r;
+	double tooltip_x, tooltip_y;
+	char tooltip_msg[256];
 	double r_start;
 	double fuzz;
 	int max_level;
@@ -108,6 +112,14 @@ void duc_graph_set_position(duc_graph *g, int pos_x, int pos_y)
 	g->pos_x = pos_x;
 	g->pos_y = pos_y;
 }
+
+
+void duc_graph_set_tooltip(duc_graph *g, int x, int y)
+{
+	g->tooltip_x = x;
+	g->tooltip_y = y;
+}
+
 
 void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p)
 {
@@ -220,6 +232,43 @@ static void draw_text(cairo_t *cr, int x, int y, int size, char *text)
 	cairo_set_line_width(cr, 3);
 	cairo_stroke_preserve(cr);
 
+	/* black text */
+
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_set_line_width(cr, 1);
+	cairo_fill(cr);
+}
+
+
+static void draw_tooltip(cairo_t *cr, int x, int y, char *text)
+{
+	char font[32];
+	snprintf(font, sizeof font, "Arial, Sans, %d", FONT_SIZE_TOOLTIP);
+	PangoLayout *layout = pango_cairo_create_layout(cr);
+	PangoFontDescription *desc = pango_font_description_from_string(font);
+
+	pango_layout_set_text(layout, text, -1);
+	pango_layout_set_font_description(layout, desc);
+	pango_font_description_free(desc);
+
+	pango_cairo_update_layout(cr, layout);
+
+	int w,h;
+	pango_layout_get_size(layout, &w, &h);
+
+	w /= PANGO_SCALE;
+	h /= PANGO_SCALE;
+
+	cairo_rectangle(cr, x - w - 10 + 0.5, y - h - 10 + 0.5, w + 10, h + 10);
+	cairo_set_source_rgba(cr, 1, 1, 1, 1);
+	cairo_fill_preserve(cr);
+	cairo_set_source_rgba(cr, 0, 0, 0, 1);
+	cairo_stroke(cr);
+
+	cairo_move_to(cr, x - w - 5, y - h - 5);
+	pango_cairo_layout_path(cr, layout);
+	g_object_unref(layout);
+	
 	/* black text */
 
 	cairo_set_source_rgb(cr, 0, 0, 0);
@@ -377,6 +426,19 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			}
 		}
 
+		/* Check if the tooltip lies within this section */
+
+		{
+			double a = g->tooltip_a;
+			double r = g->tooltip_r;
+
+			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
+				char *siz = duc_human_size(e->size);
+				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
+					"%s\n%s", e->name, siz);
+			}
+		}
+
 		/* Place labels if there is enough room to display */
 
 		if(cr) {
@@ -448,6 +510,14 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	cairo_save(cr);
 	cairo_translate(cr, g->pos_x, g->pos_y);
 
+	/* Convert tooltip xy to polar coords */
+
+	int tooltip_x = g->tooltip_x - g->pos_x;
+	int tooltip_y = g->tooltip_y - g->pos_y;
+	g->tooltip_msg[0] = '\0';
+
+	car2pol(g, tooltip_x, tooltip_y, &g->tooltip_a, &g->tooltip_r);
+
 	/* Recursively draw graph */
 	
 	duc_dir_rewind(dir);
@@ -471,6 +541,12 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	char *siz = duc_human_size(duc_dir_get_size(dir));
 	draw_text(cr, g->cx, g->cy, 14, siz);
 	free(siz);
+
+	/* Draw tooltip */
+
+	if(g->tooltip_msg[0]) {
+		draw_tooltip(cr, tooltip_x, tooltip_y, g->tooltip_msg);
+	}
 
 	g->label_list = NULL;
 	cairo_restore(cr);
