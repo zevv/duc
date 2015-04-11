@@ -27,6 +27,7 @@
 #include "duc-graph.h"
 
 #define FONT_SIZE_LABEL 8
+#define FONT_SIZE_TOOLTIP 8
 
 #define MAX_DEPTH 32
 
@@ -231,6 +232,43 @@ static void draw_text(cairo_t *cr, int x, int y, int size, char *text)
 	cairo_set_line_width(cr, 3);
 	cairo_stroke_preserve(cr);
 
+	/* black text */
+
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_set_line_width(cr, 1);
+	cairo_fill(cr);
+}
+
+
+static void draw_tooltip(cairo_t *cr, int x, int y, char *text)
+{
+	char font[32];
+	snprintf(font, sizeof font, "Arial, Sans, %d", FONT_SIZE_TOOLTIP);
+	PangoLayout *layout = pango_cairo_create_layout(cr);
+	PangoFontDescription *desc = pango_font_description_from_string(font);
+
+	pango_layout_set_text(layout, text, -1);
+	pango_layout_set_font_description(layout, desc);
+	pango_font_description_free(desc);
+
+	pango_cairo_update_layout(cr, layout);
+
+	int w,h;
+	pango_layout_get_size(layout, &w, &h);
+
+	w /= PANGO_SCALE;
+	h /= PANGO_SCALE;
+
+	cairo_rectangle(cr, x - w - 10 + 0.5, y - h - 10 + 0.5, w + 10, h + 10);
+	cairo_set_source_rgba(cr, 1, 1, 1, 1);
+	cairo_fill_preserve(cr);
+	cairo_set_source_rgba(cr, 0, 0, 0, 1);
+	cairo_stroke(cr);
+
+	cairo_move_to(cr, x - w - 5, y - h - 5);
+	pango_cairo_layout_path(cr, layout);
+	g_object_unref(layout);
+	
 	/* black text */
 
 	cairo_set_source_rgb(cr, 0, 0, 0);
@@ -507,7 +545,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	/* Draw tooltip */
 
 	if(g->tooltip_msg[0]) {
-		draw_text(cr, tooltip_x, tooltip_y, FONT_SIZE_LABEL, g->tooltip_msg);
+		draw_tooltip(cr, tooltip_x, tooltip_y, g->tooltip_msg);
 	}
 
 	g->label_list = NULL;
