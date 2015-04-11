@@ -105,6 +105,7 @@ static int graph_main(int argc, char **argv)
 
 	duc_graph *graph = duc_graph_new(duc);
 	duc_graph_set_size(graph, size);
+	duc_graph_set_fuzz(graph, 0.7);
 	duc_graph_set_max_level(graph, max_level);
 
 	FILE *f = fopen(path_out, "w");
