@@ -26,7 +26,7 @@ static struct pollfd pfd;
 static int palette = 0;
 static int win_w = 600;
 static int win_h = 600;
-static double fuzz = 0.3;
+static double fuzz = 0.7;
 static cairo_surface_t *cs;
 static duc_dir *dir;
 static duc_graph *graph;
