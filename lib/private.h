@@ -19,6 +19,7 @@
 
 struct duc {
 	struct db *db;
+	struct conf *conf;
 	duc_errno err;
 	duc_log_level log_level;
 	duc_log_callback log_callback;
@@ -44,6 +45,7 @@ struct duc_dir {
 void *duc_malloc(size_t s);
 void *duc_realloc(void *p, size_t s);
 char *duc_strdup(const char *s);
+void duc_free(void *p);
 
 struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino);
 int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, uint8_t type, dev_t dev, ino_t ino);

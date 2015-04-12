@@ -13,7 +13,7 @@
 #include "private.h"
 #include "duc.h"
 #include "db.h"
-
+#include "conf.h"
 
 
 
@@ -31,6 +31,29 @@ duc *duc_new(void)
     memset(duc, 0, sizeof *duc);
     duc->log_level = DUC_LOG_WRN;
     duc->log_callback = default_log_callback;
+    duc->conf = conf_new();
+   
+    /*
+     * Try to read configuration files from the following locations:
+     *
+     * - /etc/ducrc
+     * - ~/.ducrc
+     * - ./.ducrc
+     *
+     */
+     
+    conf_read(duc->conf, "/etc/ducrc");
+
+    char *home = getenv("HOME");
+    if(home) {
+	    char tmp[PATH_MAX];
+	    snprintf(tmp, sizeof(tmp), "%s/.ducrc", home);
+	    conf_read(duc->conf, tmp);
+    }
+
+    conf_read(duc->conf, "./.ducrc");
+    //conf_dump(duc->conf);
+
     return duc;
 }
 
@@ -253,6 +276,11 @@ char *duc_strdup(const char *s)
 	return s2;
 }
 
+
+void duc_free(void *p)
+{
+	free(p);
+}
 
 
 /*
