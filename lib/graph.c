@@ -372,7 +372,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				H = 0.8 - 0.7 * size_nrel - 0.1 * size_rel;
 				S = 1.0 - 0.8 *(double)level / g->max_level;
 				V = 1;
-				L = 1;
+				L = 0;
 				break;
 
 			case DUC_GRAPH_PALETTE_RAINBOW:
