@@ -359,7 +359,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 		/* Skip any segments that would be smaller then one pixel */
 
-		if(r2 * (a2 - a1) * M_PI * 2 < 2) break;
+		if(r2 * (a2 - a1) * M_PI * 2 < 1) break;
 		if(a2 <= a1) break;
 
 		/* Determine section color */
