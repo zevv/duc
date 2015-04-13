@@ -2,23 +2,25 @@
 [global]
 
 
+
 [ls]
 
-recursive
-classify
-foobar
+  recursive
+  classify
+  color
 
 [index]
 
-exclude .cache
-exclude Cache
-exclude ccache
-
+  exclude proc
+  exclude sys
+  exclude mnt
+  exclude Cache
+  exclude .ccache
 
 [gui]
 
-fuzz 0.3
-palette rainbow
+  fuzz 0.7
+  palette rainbow
+  levels 4
 
-[cgi]
 
