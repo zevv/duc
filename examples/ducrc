@@ -1,0 +1,24 @@
+
+[global]
+
+
+[ls]
+
+recursive
+classify
+foobar
+
+[index]
+
+exclude .cache
+exclude Cache
+exclude ccache
+
+
+[gui]
+
+fuzz 0.3
+palette rainbow
+
+[cgi]
+

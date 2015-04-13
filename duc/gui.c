@@ -2,34 +2,39 @@
 #include "config.h"
 #include "duc.h"
 #include "duc-graph.h"
+#include "ducrc.h"
 #include "cmd.h"
 
 #ifdef HAVE_LIBX11
 
 #include <stdio.h>
+#include <ctype.h>
 #include <sys/poll.h>
 #include <stdlib.h>
 #include <string.h>
-#include <getopt.h>
 
 #include <cairo.h>
 #include <string.h>
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+	
+static char *opt_database = NULL;
+static char *opt_palette = NULL;
+static double opt_fuzz = 0.5;
+static int opt_levels = 4;
 
-static int depth = 4;
 static int redraw = 1;
 static int tooltip_x = 0;
 static int tooltip_y = 0;
 static struct pollfd pfd;
-static int palette = 0;
+static enum duc_graph_palette palette = 0;
 static int win_w = 600;
 static int win_h = 600;
-static double fuzz = 0.7;
 static cairo_surface_t *cs;
 static duc_dir *dir;
 static duc_graph *graph;
+static double fuzz;
 
 static void draw(void)
 {
@@ -50,13 +55,14 @@ static void draw(void)
 	int pos_x = (win_w - size) / 2;
 	int pos_y = (win_h - size) / 2;
 
-	if(depth < 2) depth = 2;
-	if(depth > 10) depth = 10;
+	if(opt_levels < 1) opt_levels = 1;
+	if(opt_levels > 10) opt_levels = 10;
 
 	duc_graph_set_size(graph, size);
 	duc_graph_set_position(graph, pos_x, pos_y);
-	duc_graph_set_max_level(graph, depth);
+	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, fuzz);
+	duc_graph_set_palette(graph, palette);
 	duc_graph_set_max_name_len(graph, 30);
 	duc_graph_draw_cairo(graph, dir, cr);
 	cairo_destroy(cr);
@@ -93,15 +99,14 @@ static void handle_event(XEvent e)
 
 			k = XLookupKeysym(&e.xkey, 0);
 
-			if(k == XK_minus) depth--;
-			if(k == XK_equal) depth++;
-			if(k == XK_0) depth = 4;
+			if(k == XK_minus) opt_levels--;
+			if(k == XK_equal) opt_levels++;
+			if(k == XK_0) opt_levels = 4;
 			if(k == XK_Escape) exit(0);
 			if(k == XK_q) exit(0);
-			if(k == XK_f) fuzz = 0.7 - fuzz;
+			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
 			if(k == XK_p) {
 				palette = (palette + 1) % 4;
-				duc_graph_set_palette(graph, palette);
 			}
 			if(k == XK_BackSpace) {
 				duc_dir *dir2 = duc_dir_openat(dir, "..");
@@ -135,8 +140,8 @@ static void handle_event(XEvent e)
 				}
 			}
 
-			if(b == 4) depth --;
-			if(b == 5) depth ++;
+			if(b == 4) opt_levels --;
+			if(b == 5) opt_levels ++;
 
 			redraw = 1;
 			break;
@@ -206,53 +211,22 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 }
 
 	
-static struct option longopts[] = {
-	{ "database",       required_argument, NULL, 'd' },
-	{ "verbose",        required_argument, NULL, 'v' },
-	{ NULL }
-};
-
-
-int gui_main(int argc, char *argv[])
+int gui_main(duc *duc, int argc, char *argv[])
 {
-	char *path_db = NULL;
-	int c;
-	duc_log_level loglevel = DUC_LOG_WRN;
-
-	while( ( c = getopt_long(argc, argv, "d:qv", longopts, NULL)) != EOF) {
-
-		switch(c) {
-			case 'd':
-				path_db = optarg;
-				break;
-			case 'q':
-				loglevel = DUC_LOG_FTL;
-				break;
-			case 'v':
-				if(loglevel < DUC_LOG_DMP) loglevel ++;
-				break;
-			default:
-				return -2;
-		}
-	}
-	
-	argc -= optind;
-	argv += optind;
-
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
-	/* Open duc context */
-	
-	duc *duc = duc_new();
-	if(duc == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
-		return -1;
+	fuzz = opt_fuzz;
+
+	if(opt_palette) {
+		char c = tolower(opt_palette[0]);
+		if(c == 's') palette = DUC_GRAPH_PALETTE_SIZE;
+		if(c == 'r') palette = DUC_GRAPH_PALETTE_RAINBOW;
+		if(c == 'g') palette = DUC_GRAPH_PALETTE_GREYSCALE;
+		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
 	}
 
-	duc_set_log_level(duc, loglevel);
-
-	int r = duc_open(duc, path_db, DUC_OPEN_RO);
+	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		return -1;
 	}
@@ -280,15 +254,20 @@ int gui_main(int argc, char *argv[])
 
 #endif
 
+static struct ducrc_option options[] = {
+	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
+	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
+	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ NULL }
+};
+
 struct cmd cmd_gui = {
 	.name = "gui",
 	.description = "Graphical interface",
 	.usage = "[options] [PATH]",
-	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
-		"  -q, --quiet             quiet mode, do not print any warnings\n"
-		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
-	.main = gui_main
+	.main = gui_main,
+	.options = options,
 };
 
 

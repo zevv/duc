@@ -16,19 +16,25 @@
 #include "duc-graph.h"
 
 
-/*
- * Simple parser for CGI parameter line. Does not excape CGI strings.
- */
-
 struct param {
 	char *key;
 	char *val;
 	struct param *next;
 };
 
-struct param *param_list = NULL;
 
-int decodeURIComponent (char *sSource, char *sDest) {
+static char *opt_database = NULL;
+static int opt_size = 800;
+static int opt_fuzz = 0.7;
+static int opt_levels = 4;
+static char *opt_output = NULL;
+static char *opt_palette = NULL;
+
+static struct param *param_list = NULL;
+
+
+int decodeURIComponent (char *sSource, char *sDest) 
+{
 	int nLength;
 	for (nLength = 0; *sSource; nLength++) {
 		if (*sSource == '%' && sSource[1] && sSource[2] && isxdigit(sSource[1]) && isxdigit(sSource[2])) {
@@ -43,6 +49,7 @@ int decodeURIComponent (char *sSource, char *sDest) {
 	sDest[nLength] = '\0';
 	return nLength;
 }
+
 
 static int cgi_parse(void)
 {
@@ -209,7 +216,7 @@ void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 
 
 
-static int cgi_main(int argc, char **argv)
+static int cgi_main(duc *duc, int argc, char **argv)
 {
 	int r;
 	
@@ -222,37 +229,11 @@ static int cgi_main(int argc, char **argv)
 		return(-1);
 	}
 
-	char *path_db = NULL;
-
-	struct option longopts[] = {
-		{ "database",       required_argument, NULL, 'd' },
-		{ NULL }
-	};
-
-	int c;
-	while( ( c = getopt_long(argc, argv, "d:q", longopts, NULL)) != EOF) {
-
-		switch(c) {
-			case 'd':
-				path_db = optarg;
-				break;
-			default:
-				return -2;
-		}
-	}
-
 
 	char *cmd = cgi_get("cmd");
 	if(cmd == NULL) cmd = "index";
-	
-	duc *duc = duc_new();
-	if(duc == NULL) {
-		printf("Content-Type: text/plain\n\n");
-                printf("Error creating duc context\n");
-		return -1;
-        }
 
-        r = duc_open(duc, path_db, DUC_OPEN_RO);
+        r = duc_open(duc, opt_database, DUC_OPEN_RO);
         if(r != DUC_OK) {
 		printf("Content-Type: text/plain\n\n");
                 printf("%s\n", duc_strerror(duc));
@@ -269,29 +250,48 @@ static int cgi_main(int argc, char **argv)
 		}
 	}
 
+	static enum duc_graph_palette palette = 0;
+	
+	if(opt_palette) {
+		char c = tolower(opt_palette[0]);
+		if(c == 's') palette = DUC_GRAPH_PALETTE_SIZE;
+		if(c == 'r') palette = DUC_GRAPH_PALETTE_RAINBOW;
+		if(c == 'g') palette = DUC_GRAPH_PALETTE_GREYSCALE;
+		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
+	}
+
 	duc_graph *graph = duc_graph_new(duc);
-	duc_graph_set_size(graph, 800);
-	duc_graph_set_max_level(graph, 4);
-	duc_graph_set_fuzz(graph, 0.7);
+	duc_graph_set_size(graph, opt_size);
+	duc_graph_set_max_level(graph, opt_levels);
+	duc_graph_set_fuzz(graph, opt_fuzz);
+	duc_graph_set_palette(graph, palette);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
 
 	if(dir) duc_dir_close(dir);
 	duc_close(duc);
-	duc_del(duc);
 
 	return 0;
 }
 
 
+static struct ducrc_option options[] = {
+	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
+	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
+	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
+	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
+	{ NULL }
+};
+
 struct cmd cmd_cgi = {
 	.name = "cgi",
 	.description = "CGI interface",
 	.usage = "[options] [PATH]",
-	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n",
 	.main = cgi_main,
+	.options = options,
 		
 };
 

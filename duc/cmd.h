@@ -4,11 +4,13 @@
 #include <getopt.h>
 #include <unistd.h>
 
+#include "duc.h"
 #include "ducrc.h"
 
 struct cmd {
 	char *name;
-	int (*main)(int argc, char **argv);
+	int (*init)(duc *duc, int argc, char **argv);
+	int (*main)(duc *duc, int argc, char **argv);
 	char *description;
 	char *usage;
 	char *help;

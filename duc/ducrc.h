@@ -4,31 +4,28 @@
 enum ducrc_type {
 	DUCRC_TYPE_BOOL,
 	DUCRC_TYPE_INT,
-	DUCRC_TYPE_FLOAT,
+	DUCRC_TYPE_DOUBLE,
 	DUCRC_TYPE_STRING,
+	DUCRC_TYPE_FUNC,
 };
 
 struct ducrc_option {
+	void *ptr;
 	const char *longopt;
 	char shortopt;
 	enum ducrc_type type;
-	const char *defval;
 	const char *description;
 };
 
 
 struct ducrc;
 
-struct ducrc *ducrc_new(void);
+struct ducrc *ducrc_new(const char *section);
 void ducrc_free(struct ducrc *ducrc);
-void ducrc_dump(struct ducrc *ducrc);
+
+void ducrc_add_options(struct ducrc *ducrc, struct ducrc_option *option_list);
 
 int ducrc_read(struct ducrc *ducrc, const char *path);
-
-void ducrc_set_str(struct ducrc *ducrc, const char *section, const char *key, const char *val);
-void ducrc_set_int(struct ducrc *ducrc, const char *section, const char *key, int val);
-
-const char *ducrc_get_str(struct ducrc *ducrc, const char *section, const char *key);
-int ducrc_get_int(struct ducrc *ducrc, const char *section, const char *key);
+int ducrc_getopt(struct ducrc *ducrc, int *argc, char **argv[]);
 
 #endif

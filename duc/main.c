@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "duc.h"
 #include "db.h"
 #include "cmd.h"
 #include "ducrc.h"
@@ -39,18 +40,33 @@ static struct cmd *find_cmd_by_name(const char *name);
 static void help_cmd(struct cmd *cmd);
 
 
+static int opt_debug = 0;
+static int opt_verbose = 0;
+static int opt_quiet = 0;
+static int opt_help = 0;
 
 
-static struct ducrc_option option_list[] = {
-	{ "database", 'd', DUCRC_TYPE_STRING, "~/.duc.db", "select database file to use" },
-	{ "verbose",  'v', DUCRC_TYPE_BOOL,   "false",     "increase verbosity. can be passwd more then once for debugging" },
-	{ "quiet",    'q', DUCRC_TYPE_BOOL,   "false",     "quiet mode, do not print any warning" },
+static struct ducrc_option global_options[] = {
+	{ &opt_help,     "help",     'h', DUCRC_TYPE_BOOL,   "show help" },
+	{ &opt_debug,    "debug",      0, DUCRC_TYPE_BOOL,   "increase verbosity to debug level" },
+	{ &opt_verbose,  "verbose",  'v', DUCRC_TYPE_BOOL,   "increase verbosity" },
+	{ &opt_quiet,    "quiet",    'q', DUCRC_TYPE_BOOL,   "quiet mode, do not print any warning" },
 	{ NULL }
 };
 
 
 int main(int argc, char **argv)
 {
+	/* Open duc context */
+	
+	duc *duc = duc_new();
+	if(duc == NULL) {
+		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
+		return -1;
+	}
+
+	/* Find subcommand */
+
 	struct cmd *cmd = NULL;
 
 	if(argc >= 2) {
@@ -64,34 +80,63 @@ int main(int argc, char **argv)
 			cmd = &cmd_help;
 		}
 	}
-	/*
-	 * Try to read configuration files from the following locations:
-	 *
-	 * - /etc/ducrc
-	 * - ~/.ducrc
-	 * - ./.ducrc
-	 *
-	 */
 
-	struct ducrc *ducrc = ducrc_new();
+
+	/* Register options */
+
+	struct ducrc *ducrc = ducrc_new(cmd->name);
+	ducrc_add_options(ducrc, global_options);
+	ducrc_add_options(ducrc, cmd->options);
+
+	/* Call init function */
+
+	if(cmd->init) {
+		int r = cmd->init(duc, argc, argv);
+		if(r != 0) exit(r);
+	}
+
+	/* Read configuration files from /etc/ducrc, ~/.ducrc and .ducrc and
+	 * finally from the command line. Newer options will override older
+	 * options */
 
 	ducrc_read(ducrc, "/etc/ducrc");
-
 	char *home = getenv("HOME");
 	if(home) {
 		char tmp[PATH_MAX];
 		snprintf(tmp, sizeof(tmp), "%s/.ducrc", home);
 		ducrc_read(ducrc, tmp);
 	}
-
 	ducrc_read(ducrc, "./.ducrc");
-	ducrc_dump(ducrc);
+	ducrc_getopt(ducrc, &argc, &argv);
 
 
+	/* Help requested ? */
 
-	int r = cmd->main(argc-1, argv+1);
+	if(opt_help) {
+		help_cmd(cmd);
+		return(EXIT_SUCCESS);
+	}
+
+
+	/* Set log level */
+
+	duc_log_level log_level = DUC_LOG_WRN;
+	if(opt_quiet) log_level = DUC_LOG_FTL;
+	if(opt_verbose) log_level = DUC_LOG_INF;
+	if(opt_debug) log_level = DUC_LOG_DMP;
+	duc_set_log_level(duc, log_level);
+
+
+	/* Handle command */
+
+	int r = cmd->main(duc, argc, argv);
 	if(r == -2) help_cmd(cmd);
 
+	
+	/* Cleanup */
+
+	duc_del(duc);
+	ducrc_free(ducrc);
 	return (r == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -124,9 +169,8 @@ static void show_options(struct ducrc_option *o)
 			snprintf(l, sizeof(l), "%s", o->longopt);
 		}
 
-		printf(" %-4.4s --%-16.16s", s, l);
+		printf("  %-4.4s --%-16.16s", s, l);
 		if(o->description) printf("%s", o->description); 
-		if(o->defval) printf(" [%s]", o->defval);
 		printf("\n");
 
 		o++;
@@ -146,19 +190,11 @@ static void help_cmd(struct cmd *cmd)
 
 	printf("\n");
 	printf("Global options:\n");
-	show_options(option_list);
-
-#if NEE
-	if(cmd->help) {
-		fprintf(stderr, "%s", cmd->help);
-	} else {
-		fprintf(stderr, "No help for command\n");
-	}
-#endif
+	show_options(global_options);
 }
 
 
-static int help_main(int argc, char **argv)
+static int help_main(duc *duc, int argc, char **argv)
 {
 	struct cmd *cmd = NULL;
 
@@ -179,6 +215,10 @@ static int help_main(int argc, char **argv)
 			fprintf(stderr, "  %-10.10s: %s\n", c->name, c->description);
 		}
 	}
+	
+	printf("\n");
+	printf("Global options:\n");
+	show_options(global_options);
 
 	return 0;
 }
@@ -187,9 +227,7 @@ static int help_main(int argc, char **argv)
 struct cmd cmd_help = {
 	.name = "help",
 	.description = "Show help",
-	.help = "",
 	.main = help_main,
-	.options = option_list,
 };
 
 /*

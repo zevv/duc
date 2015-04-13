@@ -4,30 +4,29 @@
 #include <ctype.h>
 #include <assert.h>
 #include <errno.h>
+#include <getopt.h>
 
 #include "private.h"
 #include "duc.h"
 #include "ducrc.h"
 
+#define MAX_OPTIONS 64
 
-struct item {
-	char *section;
-	char *key;
-	char *val;
-	struct item *next;
-};
 
 struct ducrc {
-	struct item *item_list;
+	char *section;
+	int noptions;
+	struct ducrc_option *option_list[MAX_OPTIONS];
 };
 
 
-struct ducrc *ducrc_new(void)
+struct ducrc *ducrc_new(const char *section)
 {
 	struct ducrc *ducrc;
 
-	ducrc = duc_malloc(sizeof ducrc);
-	ducrc->item_list = NULL;
+	ducrc = duc_malloc(sizeof *ducrc);
+	ducrc->noptions = 0;
+	ducrc->section = duc_strdup(section);
 
 	return ducrc;
 }
@@ -35,30 +34,21 @@ struct ducrc *ducrc_new(void)
 
 void ducrc_free(struct ducrc *ducrc)
 {
-	struct item *i, *in;
-
-	i = ducrc->item_list;
-	while(i) {
-		in = i->next;
-		duc_free(i->section);
-		duc_free(i->key);
-		duc_free(i->val);
-		duc_free(i);
-		i = in;
-	}
+	duc_free(ducrc->section);
 	duc_free(ducrc);
 }
 
 
-void ducrc_dump(struct ducrc *ducrc)
+void ducrc_add_options(struct ducrc *ducrc, struct ducrc_option *o)
 {
-	struct item *i = ducrc->item_list;
-
-	while(i) {
-		duc_log(NULL, DUC_LOG_DMP, "%s.%s = %s\n", i->section, i->key, i->val);
-		i = i->next;
+	while(o && o->longopt) {
+		if(ducrc->noptions < MAX_OPTIONS) {
+			ducrc->option_list[ducrc->noptions++] = o;
+		}
+		o++;
 	}
 }
+
 
 
 /* 
@@ -78,12 +68,75 @@ static char *trim(char *s)
 }
 
 
+static void handle_opt(struct ducrc *ducrc, char shortopt, const char *longopt, const char *val)
+{
+	struct ducrc_option **os = ducrc->option_list;
+	struct ducrc_option *o = NULL;
+	int *v_bool;
+	int *v_int;
+	double *v_double;
+	const char **v_string;
+	int i;
+	void (*fn)(const char *val);
+
+	/* Find option */
+
+	for(i=0; i<ducrc->noptions; i++) {
+		o = *os;
+		if(shortopt && shortopt == o->shortopt) goto found;
+		if(longopt && strcmp(longopt, o->longopt) == 0) goto found;
+		os++;
+	}
+
+	if(shortopt) {
+		fprintf(stderr, "Unknown option '%c'\n", shortopt);
+	} else {
+		fprintf(stderr, "Unknown option '%s'\n", longopt);
+	}
+
+	return;
+
+found:
+
+	/* Handle option */
+
+	switch(o->type) {
+
+		case DUCRC_TYPE_BOOL:
+			v_bool = o->ptr;
+			*v_bool = 1;
+			break;
+
+		case DUCRC_TYPE_INT:
+			v_int = o->ptr;
+			*v_int = atoi(val);
+			break;
+
+		case DUCRC_TYPE_DOUBLE:
+			v_double = o->ptr;
+			*v_double = atof(val);
+			break;
+
+		case DUCRC_TYPE_STRING:
+			v_string = o->ptr;
+			*v_string = strdup(val);
+			break;
+
+		case DUCRC_TYPE_FUNC:
+			fn = o->ptr;
+			fn(val);
+			break;
+	}
+
+}
+
+
 int ducrc_read(struct ducrc *ducrc, const char *path)
 {
 
 	FILE *f = fopen(path, "r");
 	if(f == NULL) {
-		duc_log(NULL, DUC_LOG_DBG, "Not reading ducrciguration from '%s': %s", path, strerror(errno));
+		duc_log(NULL, DUC_LOG_DBG, "Not reading configuration from '%s': %s", path, strerror(errno));
 		return -1;
 	}
 
@@ -92,38 +145,48 @@ int ducrc_read(struct ducrc *ducrc, const char *path)
 
 	while(fgets(buf, sizeof buf, f) != NULL) {
 
+		char *l = trim(buf);
 		char *p;
 
-		p = strchr(buf, '\n'); if(p) *p = '\0';
-		p = strchr(buf, '\r'); if(p) *p = '\0';
+		/* Strip newlines and comments */
+
+		p = strchr(l, '#'); if(p) *p = '\0';
+		p = strchr(l, '\n'); if(p) *p = '\0';
+		p = strchr(l, '\r'); if(p) *p = '\0';
 
 		/* section? */
 
-		if(buf[0] == '[') {
-			p = strchr(buf, ']');
+		if(l[0] == '[') {
+			p = strchr(l, ']');
 			if(p) {
 				*p = 0;
-				strncpy(section, buf+1, sizeof(section));
+				strncpy(section, l+1, sizeof(section));
 			}
+			continue;
 		}
 
-		/* key + value ? */
+		if(strlen(section) == 0 || 
+				strcmp(section, "global") == 0 || 
+				strcmp(section, ducrc->section) == 0) {
 
-		p = strchr(buf, '=');
+			/* key + value ? */
 
-		if(p) {
-			*p = '\0';
-			char *key = trim(buf);
-			char *val = trim(p + 1);
+			p = strchr(l, ' ');
 
-			struct item *i;
-			i = duc_malloc(sizeof *i);
-			i->section = strdup(section);
-			i->key = strdup(key);
-			i->val = strdup(val);
+			if(p) {
+				*p = '\0';
+				char *longopt = trim(l);
+				char *val = trim(p + 1);
+				handle_opt(ducrc, 0, longopt,  val);
+				continue;
+			}
 
-			i->next = ducrc->item_list;
-			ducrc->item_list = i;
+			/* longopt only */
+
+			char *longopt = trim(l);
+			if(strlen(longopt) > 0) {
+				handle_opt(ducrc, 0, longopt, NULL);
+			}
 		}
 	}
 		
@@ -134,65 +197,60 @@ int ducrc_read(struct ducrc *ducrc, const char *path)
 }
 
 
-static struct item *item_find(struct ducrc *ducrc, const char *section, const char *key)
-{
-	struct item *item = ducrc->item_list;
-
-	while(item) {
-		if(strcmp(section, item->section) == 0 && strcmp(key, item->key) == 0) {
-			return item;
-		}
-		item = item->next;
-	}
-	return NULL;
-}
-
-
 /*
- * Set string, overwrite existing item if already exists
+ * I tried to implement a standard-style getopt_long function for parsing the
+ * command line into duc options. This is hard work, and it has been a long
+ * day. Instead of parsing myself, this function creates a 'struct option' list
+ * from the duc options and relies on POSIX getopt_long() to do the hard work.
  */
 
-void ducrc_set_str(struct ducrc *ducrc, const char *section, const char *key, const char *val)
+int ducrc_getopt(struct ducrc *ducrc, int *argc, char **argv[])
 {
-	struct item *item;
+	struct option longopts[MAX_OPTIONS + 1] = { { NULL } };
+	char optstr[MAX_OPTIONS*2] = "";
+	int n = 0;
+	int l = 0;
 
-	item = item_find(ducrc, section, key);
+	/* Prepare a list of options for getopt_long() */
 
-	if(item == NULL) {
-		item = duc_malloc(sizeof *item);
-		item->key = duc_strdup(key);
-		item->section = duc_strdup(section);
-	} else {
-		duc_free(item->val);
+	struct ducrc_option **os = ducrc->option_list;
+
+	int i;
+	for(i=0; i<ducrc->noptions; i++) {
+		struct ducrc_option *o = *os;
+		
+		longopts[n].name = o->longopt;
+		if(o->shortopt) {
+			l += sprintf(optstr+l, "%c", o->shortopt);
+			longopts[n].val = o->shortopt;
+		}
+
+		if(o->type == DUCRC_TYPE_BOOL) {
+			longopts[n].has_arg = no_argument;
+		} else {
+			longopts[n].has_arg = required_argument;
+			if(o->shortopt) l += sprintf(optstr+l, ":");
+		}
+
+		n++;
+		os++;
 	}
 
-	item->val = duc_strdup(val);
+	/* Rely on libc to do the hard work */
 
-	item->next = ducrc->item_list;
-	ducrc->item_list = item;
-}
+	int c;
+	int idx;
 
+	optind = 2;
 
-void ducrc_set_int(struct ducrc *ducrc, const char *section, const char *key, int val)
-{
-	char s[32];
-	snprintf(s, sizeof(s), "%d", val);
-	ducrc_set_str(ducrc, section, key, s);
-}
+	while( ( c = getopt_long(*argc, *argv, optstr, longopts, &idx)) != EOF) {
+		handle_opt(ducrc, c, c ? 0 : longopts[idx].name, optarg);
+	}
+	
+	*argc -= optind;
+	*argv += optind;
 
-
-const char *ducrc_get_str(struct ducrc *ducrc, const char *section, const char *key)
-{
-	struct item *item = item_find(ducrc, section, key);
-	assert(item);
-	return item->val;
-}
-
-
-int ducrc_get_int(struct ducrc *ducrc, const char *section, const char *key)
-{
-	const char *val = ducrc_get_str(ducrc, section, key);
-	return atoi(val);
+	return 0;
 }
 
 

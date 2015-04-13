@@ -15,90 +15,43 @@
 
 #include "cmd.h"
 #include "duc.h"
-
-/* Keys for options without short-options. */
-
-enum {
-	OPT_UNCOMPRESSED,
-	OPT_HIDE_FILES,
-};
-
-static struct option longopts[] = {
-	{ "database",        required_argument, NULL, 'd' },
-	{ "exclude",         required_argument, NULL, 'e' },
-	{ "force",           no_argument,       NULL, 'f' },
-	{ "hide-files",      no_argument,       NULL, OPT_HIDE_FILES },
-	{ "maxdepth",        required_argument, NULL, 'm' },
-	{ "one-file-system", no_argument,       NULL, 'x' },
-	{ "quiet",           no_argument,       NULL, 'q' },
-	{ "uncompressed",    no_argument,       NULL, OPT_UNCOMPRESSED },
-	{ "verbose",         required_argument, NULL, 'v' },
-	{ NULL }
-};
+#include "ducrc.h"
 
 
-static int index_main(int argc, char **argv)
+static char *opt_database = NULL;
+static int opt_force = 0;          
+static int opt_hide_files = 0;     
+static int opt_maxdepth = 0;       
+static int opt_one_file_system = 0;
+static int opt_uncompressed = 0;   
+static duc_index_req *req;
+
+
+static int index_init(duc *duc, int argc, char **argv)
 {
-	int c;
-	char *path_db = NULL;
+	req = duc_index_req_new(duc);
+
+	return 0;
+}
+
+
+static int index_main(duc *duc, int argc, char **argv)
+{
 	duc_index_flags index_flags = 0;
 	int open_flags = DUC_OPEN_RW | DUC_OPEN_COMPRESS;
-	duc_log_level loglevel = DUC_LOG_WRN;
 	
-	struct duc *duc = duc_new();
-	if(duc == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
-		return -1;
-	}
-
-	duc_index_req *req = duc_index_req_new(duc);
-
-	while( ( c = getopt_long(argc, argv, "d:e:fm:qvx", longopts, NULL)) != EOF) {
-
-		switch(c) {
-			case 'd':
-				path_db = optarg;
-				break;
-			case 'e':
-				duc_index_req_add_exclude(req, optarg);
-				break;
-			case 'f':
-			        open_flags |= DUC_OPEN_FORCE;
-				break;
-			case 'm':
-				duc_index_req_set_maxdepth(req, atoi(optarg));
-				break;
-			case 'q':
-				loglevel = DUC_LOG_FTL;
-				break;
-			case 'v':
-				if(loglevel < DUC_LOG_DMP) loglevel ++;
-				break;
-			case 'x':
-				index_flags |= DUC_INDEX_XDEV;
-				break;
-			case OPT_HIDE_FILES:
-				index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
-				break;
-			case OPT_UNCOMPRESSED:
-				open_flags &= ~DUC_OPEN_COMPRESS;
-				break;
-			default:
-				return -2;
-		}
-	}
-				
-	duc_set_log_level(duc, loglevel);
-
-	argc -= optind;
-	argv += optind;
+	if(opt_force) open_flags |= DUC_OPEN_FORCE;
+	if(opt_maxdepth) duc_index_req_set_maxdepth(req, opt_maxdepth);
+	if(opt_one_file_system) index_flags |= DUC_INDEX_XDEV;
+	if(opt_hide_files) index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
+	if(opt_uncompressed) open_flags &= ~DUC_OPEN_COMPRESS;
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_WRN, "Required index PATH missing.");
 		return -2;
 	}
 	
-	int r = duc_open(duc, path_db, open_flags);
+	int r = duc_open(duc, opt_database, open_flags);
 	if(r != DUC_OK) {
 		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
@@ -135,30 +88,39 @@ static int index_main(int argc, char **argv)
 	}
 
 	duc_close(duc);
-	duc_del(duc);
 
 	return 0;
 }
 
+
+static void fn_exclude(const char *val)
+{
+	printf("exclude '%s'\n", val);
+	duc_index_req_add_exclude(req, val);
+}
+
+
+static struct ducrc_option options[] = {
+	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file ARG" },
+	{ &fn_exclude,          "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching ARG"  },
+	{ &opt_force,           "force",           'f', DUCRC_TYPE_BOOL,   "force writing in case of corrupted db" },
+	{ &opt_hide_files,      "hide-files",       0 , DUCRC_TYPE_BOOL,   "hide file names, index only directories" },
+	{ &opt_maxdepth,        "maxdepth",        'm', DUCRC_TYPE_INT,    "limit directory names to given depth" },
+	{ &opt_one_file_system, "one-file-system", 'x', DUCRC_TYPE_BOOL,   "don't cross filesystem boundaries" },
+	{ &opt_uncompressed,    "uncompressed",     0 , DUCRC_TYPE_BOOL,   "do not use compression for database" },
+	{ NULL }
+};
 
 
 struct cmd cmd_index = {
 	.name = "index",
 	.description = "Index filesystem",
 	.usage = "[options] PATH ...",
-	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
-		"  -e, --exclude=PATTERN   exclude files matching PATTERN\n"
-		"  -f, --force             force writing in case of corrupted db\n"
-		"      --hide-files        hide file names\n"
-		"  -m, --maxdepth=ARG      limit directory names to given depth\n"
-		"  -q, --quiet             do not report errors\n"
-		"      --uncompressed      do not use compression for database\n"
-		"  -v, --verbose           verbose mode, can be passed two times for debugging\n"
-		"  -x, --one-file-system   don't cross filesystem boundaries\n"
-		,
-	.main = index_main
+	.init = index_init,
+	.main = index_main,
+	.options = options,
 };
+
 /*
  * End
  */

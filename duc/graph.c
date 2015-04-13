@@ -2,6 +2,7 @@
 #include "config.h"
 
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
@@ -16,82 +17,46 @@
 #include "duc-graph.h"
 #include "cmd.h"
 
-static struct option longopts[] = {
-	{ "database",       required_argument, NULL, 'd' },
-	{ "levels",         required_argument, NULL, 'l' },
-	{ "output",         required_argument, NULL, 'o' },
-	{ "size",           required_argument, NULL, 's' },
-	{ "verbose",        required_argument, NULL, 'v' },
-	{ NULL }
-};
+static char *opt_database = NULL;
+static char *opt_format = "png";
+static int opt_size = 800;
+static int opt_fuzz = 0.7;
+static int opt_levels = 4;
+static char *opt_output = NULL;
+static char *opt_palette = NULL;
+static enum duc_graph_palette palette = 0;
 
-
-static int graph_main(int argc, char **argv)
+static int graph_main(duc *duc, int argc, char **argv)
 {
-	int c;
-	char *path_db = NULL;
-	int size = 800;
-	char *path_out = NULL;
+	char *path_out = opt_output;
 	char *path_out_default = "duc.png";
-	duc_log_level loglevel = DUC_LOG_WRN;
-	int max_level = 4;
+
 	enum duc_graph_file_format format = DUC_GRAPH_FORMAT_PNG;
 
-	while( ( c = getopt_long(argc, argv, "d:f:l:o:s:qv", longopts, NULL)) != EOF) {
+	if(strcasecmp(opt_format, "svg") == 0) {
+		format = DUC_GRAPH_FORMAT_SVG;
+		path_out_default = "duc.svg";
+	}
 
-		switch(c) {
-			case 'd':
-				path_db = optarg;
-				break;
-			case 'f':
-				if(strcasecmp(optarg, "svg") == 0) {
-					format = DUC_GRAPH_FORMAT_SVG;
-					path_out_default = "duc.svg";
-				}
-				if(strcasecmp(optarg, "pdf") == 0) {
-					format = DUC_GRAPH_FORMAT_PDF;
-					path_out_default = "duc.pdf";
-				}
-				break;
-			case 'l':
-				max_level = atoi(optarg);
-				break;
-			case 'o':
-				path_out = optarg;
-				break;
-			case 'q':
-				loglevel = DUC_LOG_FTL;
-				break;
-			case 's':
-				size = atoi(optarg);
-				break;
-			case 'v':
-				if(loglevel < DUC_LOG_DMP) loglevel ++;
-				break;
-			default:
-				return -2;
-		}
+	if(strcasecmp(opt_format, "pdf") == 0) {
+		format = DUC_GRAPH_FORMAT_PDF;
+		path_out_default = "duc.pdf";
+	}
+	
+	if(opt_palette) {
+		char c = tolower(opt_palette[0]);
+		if(c == 's') palette = DUC_GRAPH_PALETTE_SIZE;
+		if(c == 'r') palette = DUC_GRAPH_PALETTE_RAINBOW;
+		if(c == 'g') palette = DUC_GRAPH_PALETTE_GREYSCALE;
+		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
 	}
 
 	if(path_out == NULL) path_out = path_out_default;
 
-	argc -= optind;
-	argv += optind;
-	
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
-	/* Open duc context */
-
-	duc *duc = duc_new();
-	if(duc == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
-		return -1;
-	}
-
-	duc_set_log_level(duc, loglevel);
-
-	int r = duc_open(duc, path_db, DUC_OPEN_RO);
+	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
@@ -104,12 +69,20 @@ static int graph_main(int argc, char **argv)
 	}
 
 	duc_graph *graph = duc_graph_new(duc);
-	duc_graph_set_size(graph, size);
-	duc_graph_set_fuzz(graph, 0.7);
-	duc_graph_set_max_level(graph, max_level);
+	duc_graph_set_size(graph, opt_size);
+	duc_graph_set_fuzz(graph, opt_fuzz);
+	duc_graph_set_max_level(graph, opt_levels);
+	duc_graph_set_palette(graph, palette);
 
-	FILE *f = fopen(path_out, "w");
+	FILE *f = NULL;
+	if(strcmp(path_out, "-") == 0) {
+		f = stdout;
+	} else {
+		f = fopen(path_out, "w");
+	}
+
 	if(f == NULL) {
+		duc_log(duc, DUC_LOG_WRN, "Error opening output file: %s", strerror(errno));
 		return -1;
 	}
 
@@ -123,20 +96,23 @@ static int graph_main(int argc, char **argv)
 }
 
 
+static struct ducrc_option options[] = {
+	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, "select output format <png|svg|pdf> [png]" },
+	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
+	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
+	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
+	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
+	{ NULL }
+};
 	
 struct cmd cmd_graph = {
 	.name = "graph",
 	.description = "Draw graph",
 	.usage = "[options] [PATH]",
-	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
-		"  -f, --format=ARG        select output format <png|svg|pdf> [png]\n"
-	        "  -l, --levels=ARG        draw up to ARG levels deep [4]\n"
-		"  -o, --output=ARG        output file name [duc.png]\n"
-	        "  -s, --size=ARG          image size [800]\n"
-		"  -q, --quiet             quiet mode, do not print any warnings\n"
-		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
-	.main = graph_main
+	.main = graph_main,
+	.options = options,
 };
 
 /*

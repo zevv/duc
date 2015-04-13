@@ -12,6 +12,12 @@
 
 #include "cmd.h"
 #include "duc.h"
+	
+
+static char *opt_database = NULL;
+static int opt_min_size = 0;
+static int opt_exclude_files = 0;
+
 
 static void indent(int n)
 {
@@ -20,6 +26,7 @@ static void indent(int n)
 		putchar(' ');
 	}
 }
+
 
 static void print_escaped(const char *s)
 {
@@ -36,6 +43,7 @@ static void print_escaped(const char *s)
 		s++;
 	}
 }
+
 
 static void dump(duc *duc, duc_dir *dir, int depth, int min_size, int ex_files)
 {
@@ -66,61 +74,12 @@ static void dump(duc *duc, duc_dir *dir, int depth, int min_size, int ex_files)
 }
 
 
-static int xml_main(int argc, char **argv)
+static int xml_main(duc *duc, int argc, char **argv)
 {
-	int c;
-	int min_size = 0;
-	int ex_files = 0;
-	char *path_db = NULL;
-	duc_log_level loglevel = DUC_LOG_WRN;
-
-	struct option longopts[] = {
-		{ "database",      required_argument, NULL, 'd' },
-		{ "min-size",      required_argument, NULL, 's' },
-		{ "exclude-files", no_argument,       NULL, 'x' },
-		{ NULL }
-	};
-
-	while( ( c = getopt_long(argc, argv, "ds:xqv", longopts, NULL)) != EOF) {
-
-		switch(c) {
-			case 'd':
-				path_db = optarg;
-				break;
-			case 's':
-				min_size = atoi(optarg);
-				break;
-			case 'x':
-				ex_files = 1;
-				break;
-			case 'q':
-				loglevel = DUC_LOG_FTL;
-				break;
-			case 'v':
-				if(loglevel < DUC_LOG_DMP) loglevel ++;
-				break;
-			default:
-				return -2;
-		}
-	}
-
-
-	argc -= optind;
-	argv += optind;
-
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
-	/* Open duc context */
-
-	duc *duc = duc_new();
-	if(duc == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
-		return -1;
-	 }
-	duc_set_log_level(duc, loglevel);
-
-	int r = duc_open(duc, path_db, DUC_OPEN_RO);
+	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		return -1;
 	}
@@ -134,29 +93,31 @@ static int xml_main(int argc, char **argv)
 	printf("<?xml version='1.0' encoding='UTF-8'?>\n");
 	printf("<duc root='%s' size='%ld'>\n", path, (long)duc_dir_get_size(dir));
 
-	dump(duc, dir, 1, min_size, ex_files);
+	dump(duc, dir, 1, opt_min_size, opt_exclude_files);
 
 	printf("</duc>\n");
 
 	duc_dir_close(dir);
 	duc_close(duc);
-	duc_del(duc);
 
 	return 0;
 }
 
+
+static struct ducrc_option options[] = {
+	{ &opt_database,      "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_min_size,      "min_size",  's', DUCRC_TYPE_INT,    "specify min size for files or directories" },
+	{ &opt_exclude_files, "exclude",   'x', DUCRC_TYPE_BOOL,   "exclude file from xml output, only include directories" },
+	{ NULL }
+};
 
 
 struct cmd cmd_xml = {
 	.name = "xml",
 	.description = "Dump XML output",
 	.usage = "[options] [PATH]",
-	.help =
-		"  -d, --database=ARG      	use database file ARG [~/.duc.db]\n"
-		"  -s, --min-size VAL      	specify min size for files or directories\n"
-		"  -x, --exclude-files		exclude file from xml output\n"
-		"  -q, --quiet             	quiet mode, do not print any warnings\n",
-	.main = xml_main
+	.main = xml_main,
+	.options = options,
 };
 
 

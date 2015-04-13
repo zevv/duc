@@ -13,23 +13,14 @@
 
 #include "cmd.h"
 #include "duc.h"
+	
+static char *opt_database = NULL;
 
-static duc_log_level loglevel = DUC_LOG_WRN;
-
-
-static int info_db(char *file) 
+static int info_db(duc *duc, char *file) 
 {
 
 	struct duc_index_report *report;
 	int i = 0;
-
-	duc *duc = duc_new();
-	if(duc == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
-		return -1;
-	}
-
-	duc_set_log_level(duc, loglevel);
 
 	int r = duc_open(duc, file, DUC_OPEN_RO);
 	if(r != DUC_OK) {
@@ -51,45 +42,14 @@ static int info_db(char *file)
 	}
 
 	duc_close(duc);
-	duc_del(duc);
+
 	return 0;
 }
 
 
-static struct option longopts[] = {
-	{ "database",       required_argument, NULL, 'd' },
-	{ "dbdir",          required_argument, NULL, 'D' },
-	{ "verbose",        required_argument, NULL, 'v' },
-	{ NULL }
-};
-
-
-static int info_main(int argc, char **argv)
+static int info_main(duc *duc, int argc, char **argv)
 {
-	char *path_db = NULL;
 	char *db_dir = NULL;
-	int c;
-	
-	while( ( c = getopt_long(argc, argv, "d:D:qv", longopts, NULL)) != EOF) {
-
-		switch(c) {
-			case 'd':
-				path_db = optarg;
-				break;
-			case 'D':
-				db_dir = optarg;
-				break;
-			case 'q':
-				loglevel = DUC_LOG_FTL;
-				break;
-			case 'v':
-				if(loglevel < DUC_LOG_DMP) loglevel ++;
-				break;
-			default:
-				return -2;
-		}
-	}
-
 
 	if (db_dir) {
 		glob_t bunch_of_dbs;
@@ -98,26 +58,28 @@ static int info_main(int argc, char **argv)
 		printf("Found %zu (%zu) DBs to look at.\n", n, bunch_of_dbs.gl_pathc);
 		int i = 0;
 		for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
-		info_db(*db_file);
+		info_db(duc, *db_file);
 	    }
 	    return 0;
 	}
 
-	info_db(path_db);
+	info_db(duc, opt_database);
 	return 0;
 }
 
+
+static struct ducrc_option options[] = {
+	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ NULL }
+};
 
 
 struct cmd cmd_info = {
 	.name = "info",
 	.description = "Dump database info",
 	.usage = "[options]",
-	.help = 
-		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
-		"  -q, --quiet             quiet mode, do not print any warnings\n"
-		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
-	.main = info_main
+	.main = info_main,
+	.options = options,
 };
 
 
