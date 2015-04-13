@@ -61,14 +61,16 @@ static int width = 80;
 static int opt_graph = 0;
 static int opt_recursive = 0;
 static char *opt_database = NULL;
+static int opt_levels = 4;
 
 static void ls_one(duc_dir *dir, int level, int *prefix)
 {
-
 	off_t size_total = 0;
 	off_t max_size = 0;
 	int max_name_len = 0;
 	int max_size_len = 6;
+
+	if(level > opt_levels) return;
 
 	char **tree = opt_ascii ? tree_ascii : tree_utf8;
 
@@ -210,6 +212,7 @@ static struct ducrc_option options[] = {
 	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_graph,     "graph",     'g', DUCRC_TYPE_BOOL,   "draw graph with relative size for each entry" },
+	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "traverse up to ARG levels deep [4]" },
 	{ &opt_recursive, "recursive", 'R', DUCRC_TYPE_BOOL,   "list subdirectories in a recursive tree view" },
 	{ NULL }
 };
