@@ -194,6 +194,9 @@ static void help_cmd(struct cmd *cmd)
 }
 
 
+int opt_all = 0;
+
+
 static int help_main(duc *duc, int argc, char **argv)
 {
 	struct cmd *cmd = NULL;
@@ -206,25 +209,40 @@ static int help_main(duc *duc, int argc, char **argv)
 		fprintf(stderr, 
 			"usage: duc <cmd> [options] [args]\n"
 			"\n"
-			"Available cmds:\n"
+			"Available subcommands:\n"
+			"\n"
 		);
 
 		int i;
 		for(i=0; i<SUBCOMMAND_COUNT; i++) {
 			struct cmd *c = cmd_list[i];
-			fprintf(stderr, "  %-10.10s: %s\n", c->name, c->description);
+
+			if(opt_all) {
+				fprintf(stderr, "duc %s %s: %s\n", c->name, c->usage, c->description);
+				printf("\n");
+				show_options(c->options);
+				printf("\n");
+			} else {
+				fprintf(stderr, "  %-10.10s: %s\n", c->name, c->description);
+			}
 		}
 	}
-	
 
 	return 0;
 }
 
 
+static struct ducrc_option help_options[] = {
+	{ &opt_all,     "all",     'a', DUCRC_TYPE_BOOL,   "show complete help for all commands" },
+	{ NULL }
+};
+
 struct cmd cmd_help = {
 	.name = "help",
 	.description = "Show help",
+	.usage = "[options]",
 	.main = help_main,
+	.options = help_options,
 };
 
 /*
