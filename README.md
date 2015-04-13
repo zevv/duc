@@ -109,6 +109,18 @@ $ duc ls -Fcg
  20.3M sbin/                [                                           ]
  13.6M lib32/               [                                           ]
  13.3M libx32/              [                                           ]
+
+$ duc ls -RF /etc/logcheck
+  1.1K ╰┬─ ignore.d.server
+   653  │  ╰┬─ rsyslog
+   202  │   ├─ hddtemp
+   115  │   ├─ ntpdate
+    89  │   ├─ lirc
+    79  │   ╰─ libsasl2-modules
+    89  ├─ ignore.d.workstation
+    89  │   ╰─ lirc
+    89  ╰─ ignore.d.paranoid
+    89      ╰─ lirc
 ```
 
 For a graphical representation of the disk usage, use the command `duc graph`. This will create
