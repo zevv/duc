@@ -17,6 +17,8 @@
 #include "cmd.h"
 #include "duc.h"
 
+#define MAX_DEPTH 32
+
 char *color_reset = "\e[0m";
 char *color_red = "\e[31m";
 char *color_yellow = "\e[33m";
@@ -32,7 +34,8 @@ static char type_char[] = {
         [DT_UNKNOWN] = ' ',
 };
 
-static char *tree_ascii[5] = {
+static char *tree_ascii[] = {
+	"####",
 	" `+-",
 	"  |-",
 	"  `-",
@@ -41,16 +44,24 @@ static char *tree_ascii[5] = {
 };
 
 
+static char *tree_utf8[] = {
+	"####",
+	" ╰┬─",
+	"  ├─",
+	"  ╰─",
+	"  │ ",
+	"    ",
+};
+
 static int bytes = 0;
 static int classify = 0;
 static int color = 0;
 static int width = 80;
 static int graph = 0;
 static int recursive = 0;
-static int max_depth = 32;
-static char **tree = tree_ascii;
+static char **tree = tree_utf8;
 
-static void ls_one(duc_dir *dir, int level, char *prefix)
+static void ls_one(duc_dir *dir, int level, int *prefix)
 {
 
 	off_t size_total = 0;
@@ -81,9 +92,9 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 	while( (e = duc_dir_read(dir)) != NULL) {
 
 		if(recursive) {
-			if(n == 0)       strcpy(prefix + level*4, tree[0]);
-			if(n >= 1)       strcpy(prefix + level*4, tree[1]);
-			if(n == count-1) strcpy(prefix + level*4, tree[2]);
+			if(n == 0)       prefix[level] = 1;
+			if(n >= 1)       prefix[level] = 2;
+			if(n == count-1) prefix[level] = 3;
 		}
 			
 		char *color_on = "";
@@ -104,17 +115,22 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 			free(siz);
 		}
 		printf("%s", color_off);
-		printf("%s", prefix);
+
+		int *p = prefix;
+		while(*p) printf("%s", tree[*p++]);
 
 		int l = printf(" %s", e->name);
-		if(classify) {
-			if(e->type <= DT_UNKNOWN) putchar(type_char[e->type]);
-			l++;
+		if(classify && e->type < sizeof(type_char)) {
+			char c = type_char[e->type];
+			if(c) {
+				putchar(c);
+				l++;
+			}
 		}
 
 		if(graph) {
 			for(;l<=max_name_len; l++) putchar(' ');
-			int w = width - max_name_len - max_size_len - 5 - strlen(prefix);
+			int w = width - max_name_len - max_size_len - 5 - level * 4;
 			int l = max_size ? (w * e->size / max_size) : 0;
 			int j;
 			printf(" [%s", color_on);
@@ -125,11 +141,11 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 
 		printf("\n");
 			
-		if(recursive && level < max_depth && e->type == DT_DIR) {
+		if(recursive && level < MAX_DEPTH && e->type == DT_DIR) {
 			if(n == count-1) {
-				strcpy(prefix + level*4, tree[4]);
+				prefix[level] = 5;
 			} else {
-				strcpy(prefix + level*4, tree[3]);
+				prefix[level] = 4;
 			}
 			duc_dir *dir2 = duc_dir_openent(dir, e);
 			if(dir2) {
@@ -140,6 +156,8 @@ static void ls_one(duc_dir *dir, int level, char *prefix)
 		
 		n++;
 	}
+
+	prefix[level] = 0;
 }
 
 
@@ -169,9 +187,12 @@ static int ls_main(int argc, char **argv)
 		return -1;
 	}
 
-	while( ( c = getopt_long(argc, argv, "bcd:FgqvR", longopts, NULL)) != EOF) {
+	while( ( c = getopt_long(argc, argv, "abcd:FgqvR", longopts, NULL)) != EOF) {
 
 		switch(c) {
+			case 'a':
+				tree = tree_ascii;
+				break;
 			case 'b':
 				bytes = 1;
 				break;
@@ -229,11 +250,10 @@ static int ls_main(int argc, char **argv)
 
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
 	}
 
-	char prefix[16*4 + 1] = "";
+	int prefix[MAX_DEPTH + 1] = { 0 };
 
 	ls_one(dir, 0, prefix);
 
@@ -260,6 +280,7 @@ struct cmd cmd_ls = {
 	.description = "List directory",
 	.usage = "[options] [PATH]",
 	.help = 
+		"  -a, --ascii             use ASCII characters instead of UTF-8 to draw tree\n"
 		"  -b, --bytes             show file size in exact number of bytes\n"
 		"  -c, --color             colorize the output.\n"
 		"  -d, --database=ARG      use database file ARG [~/.duc.db]\n"
