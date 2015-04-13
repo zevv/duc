@@ -120,9 +120,12 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		while(*p) printf("%s", tree[*p++]);
 
 		int l = printf(" %s", e->name);
-		if(classify) {
-			if(e->type <= DT_UNKNOWN) putchar(type_char[e->type]);
-			l++;
+		if(classify && e->type < sizeof(type_char)) {
+			char c = type_char[e->type];
+			if(c) {
+				putchar(c);
+				l++;
+			}
 		}
 
 		if(graph) {
@@ -247,7 +250,6 @@ static int ls_main(int argc, char **argv)
 
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
 	}
 
