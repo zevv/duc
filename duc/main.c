@@ -198,16 +198,16 @@ static int help_main(duc *duc, int argc, char **argv)
 {
 	struct cmd *cmd = NULL;
 
-	if(argc > 1) cmd = find_cmd_by_name(argv[1]);
+	if(argc > 0) cmd = find_cmd_by_name(argv[0]);
 
 	if(cmd) {
 		help_cmd(cmd);
 	} else {
 		fprintf(stderr, 
-				"usage: duc <cmd> [options] [args]\n"
-				"\n"
-				"Available cmds:\n"
-		       );
+			"usage: duc <cmd> [options] [args]\n"
+			"\n"
+			"Available cmds:\n"
+		);
 
 		int i;
 		for(i=0; i<SUBCOMMAND_COUNT; i++) {
@@ -216,9 +216,6 @@ static int help_main(duc *duc, int argc, char **argv)
 		}
 	}
 	
-	printf("\n");
-	printf("Global options:\n");
-	show_options(global_options);
 
 	return 0;
 }

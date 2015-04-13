@@ -13,7 +13,6 @@ struct cmd {
 	int (*main)(duc *duc, int argc, char **argv);
 	char *description;
 	char *usage;
-	char *help;
 	struct ducrc_option *options;
 };
 
