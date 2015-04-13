@@ -47,10 +47,10 @@ static int opt_help = 0;
 
 
 static struct ducrc_option global_options[] = {
-	{ &opt_help,     "help",     'h', DUCRC_TYPE_BOOL,   "show help" },
 	{ &opt_debug,    "debug",      0, DUCRC_TYPE_BOOL,   "increase verbosity to debug level" },
-	{ &opt_verbose,  "verbose",  'v', DUCRC_TYPE_BOOL,   "increase verbosity" },
+	{ &opt_help,     "help",     'h', DUCRC_TYPE_BOOL,   "show help" },
 	{ &opt_quiet,    "quiet",    'q', DUCRC_TYPE_BOOL,   "quiet mode, do not print any warning" },
+	{ &opt_verbose,  "verbose",  'v', DUCRC_TYPE_BOOL,   "increase verbosity" },
 	{ NULL }
 };
 

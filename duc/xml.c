@@ -106,8 +106,8 @@ static int xml_main(duc *duc, int argc, char **argv)
 
 static struct ducrc_option options[] = {
 	{ &opt_database,      "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
-	{ &opt_min_size,      "min_size",  's', DUCRC_TYPE_INT,    "specify min size for files or directories" },
 	{ &opt_exclude_files, "exclude",   'x', DUCRC_TYPE_BOOL,   "exclude file from xml output, only include directories" },
+	{ &opt_min_size,      "min_size",  's', DUCRC_TYPE_INT,    "specify min size for files or directories" },
 	{ NULL }
 };
 
