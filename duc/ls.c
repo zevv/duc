@@ -244,6 +244,15 @@ static int ls_main(int argc, char **argv)
 	return 0;
 }
 
+static struct ducrc_option option_list[] = {
+	{ "bytes",     'b', DUCRC_TYPE_BOOL,   NULL,  "show file size in exact number of bytes" },
+	{ "color",     'c', DUCRC_TYPE_BOOL,   NULL,  "colorize output" },
+	{ "graph",     'g', DUCRC_TYPE_BOOL,   NULL,  "draw graph with relative size for each entry" },
+	{ "classify",  'F', DUCRC_TYPE_BOOL,   NULL,  "append file type indicator (one of */) to entries" },
+	{ "recursive", 'R', DUCRC_TYPE_BOOL,   NULL,  "list subdirectories in a recursive tree view" },
+	{ "foobar",      0, DUCRC_TYPE_STRING, "nal", "Foobar option" },
+	{ NULL }
+};
 
 
 struct cmd cmd_ls = {
@@ -260,7 +269,8 @@ struct cmd cmd_ls = {
 		"  -q, --quiet             quiet mode, do not print any warnings\n"
 		"  -R, --recursive         list subdirectories in a recursive tree view\n"
 		"  -v, --verbose           verbose mode, can be passed two times for debugging\n",
-	.main = ls_main
+	.main = ls_main,
+	.options = option_list,
 };
 
 

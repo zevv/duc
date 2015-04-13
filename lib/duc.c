@@ -13,8 +13,6 @@
 #include "private.h"
 #include "duc.h"
 #include "db.h"
-#include "conf.h"
-
 
 
 static void default_log_callback(duc_log_level level, const char *fmt, va_list va)
@@ -27,34 +25,12 @@ static void default_log_callback(duc_log_level level, const char *fmt, va_list v
 
 duc *duc_new(void)
 {
-    duc *duc = duc_malloc(sizeof *duc);
-    memset(duc, 0, sizeof *duc);
-    duc->log_level = DUC_LOG_WRN;
-    duc->log_callback = default_log_callback;
-    duc->conf = conf_new();
-   
-    /*
-     * Try to read configuration files from the following locations:
-     *
-     * - /etc/ducrc
-     * - ~/.ducrc
-     * - ./.ducrc
-     *
-     */
-     
-    conf_read(duc->conf, "/etc/ducrc");
+	duc *duc = duc_malloc(sizeof *duc);
+	memset(duc, 0, sizeof *duc);
+	duc->log_level = DUC_LOG_WRN;
+	duc->log_callback = default_log_callback;
 
-    char *home = getenv("HOME");
-    if(home) {
-	    char tmp[PATH_MAX];
-	    snprintf(tmp, sizeof(tmp), "%s/.ducrc", home);
-	    conf_read(duc->conf, tmp);
-    }
-
-    conf_read(duc->conf, "./.ducrc");
-    //conf_dump(duc->conf);
-
-    return duc;
+	return duc;
 }
 
 

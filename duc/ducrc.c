@@ -7,7 +7,7 @@
 
 #include "private.h"
 #include "duc.h"
-#include "conf.h"
+#include "ducrc.h"
 
 
 struct item {
@@ -17,27 +17,27 @@ struct item {
 	struct item *next;
 };
 
-struct conf {
+struct ducrc {
 	struct item *item_list;
 };
 
 
-struct conf *conf_new(void)
+struct ducrc *ducrc_new(void)
 {
-	struct conf *conf;
+	struct ducrc *ducrc;
 
-	conf = duc_malloc(sizeof conf);
-	conf->item_list = NULL;
+	ducrc = duc_malloc(sizeof ducrc);
+	ducrc->item_list = NULL;
 
-	return conf;
+	return ducrc;
 }
 
 
-void conf_free(struct conf *conf)
+void ducrc_free(struct ducrc *ducrc)
 {
 	struct item *i, *in;
 
-	i = conf->item_list;
+	i = ducrc->item_list;
 	while(i) {
 		in = i->next;
 		duc_free(i->section);
@@ -46,13 +46,13 @@ void conf_free(struct conf *conf)
 		duc_free(i);
 		i = in;
 	}
-	duc_free(conf);
+	duc_free(ducrc);
 }
 
 
-void conf_dump(struct conf *conf)
+void ducrc_dump(struct ducrc *ducrc)
 {
-	struct item *i = conf->item_list;
+	struct item *i = ducrc->item_list;
 
 	while(i) {
 		duc_log(NULL, DUC_LOG_DMP, "%s.%s = %s\n", i->section, i->key, i->val);
@@ -78,12 +78,12 @@ static char *trim(char *s)
 }
 
 
-int conf_read(struct conf *conf, const char *path)
+int ducrc_read(struct ducrc *ducrc, const char *path)
 {
 
 	FILE *f = fopen(path, "r");
 	if(f == NULL) {
-		duc_log(NULL, DUC_LOG_DBG, "Not reading configuration from '%s': %s", path, strerror(errno));
+		duc_log(NULL, DUC_LOG_DBG, "Not reading ducrciguration from '%s': %s", path, strerror(errno));
 		return -1;
 	}
 
@@ -122,8 +122,8 @@ int conf_read(struct conf *conf, const char *path)
 			i->key = strdup(key);
 			i->val = strdup(val);
 
-			i->next = conf->item_list;
-			conf->item_list = i;
+			i->next = ducrc->item_list;
+			ducrc->item_list = i;
 		}
 	}
 		
@@ -134,9 +134,9 @@ int conf_read(struct conf *conf, const char *path)
 }
 
 
-static struct item *item_find(struct conf *conf, const char *section, const char *key)
+static struct item *item_find(struct ducrc *ducrc, const char *section, const char *key)
 {
-	struct item *item = conf->item_list;
+	struct item *item = ducrc->item_list;
 
 	while(item) {
 		if(strcmp(section, item->section) == 0 && strcmp(key, item->key) == 0) {
@@ -152,11 +152,11 @@ static struct item *item_find(struct conf *conf, const char *section, const char
  * Set string, overwrite existing item if already exists
  */
 
-void conf_set_str(struct conf *conf, const char *section, const char *key, const char *val)
+void ducrc_set_str(struct ducrc *ducrc, const char *section, const char *key, const char *val)
 {
 	struct item *item;
 
-	item = item_find(conf, section, key);
+	item = item_find(ducrc, section, key);
 
 	if(item == NULL) {
 		item = duc_malloc(sizeof *item);
@@ -168,30 +168,30 @@ void conf_set_str(struct conf *conf, const char *section, const char *key, const
 
 	item->val = duc_strdup(val);
 
-	item->next = conf->item_list;
-	conf->item_list = item;
+	item->next = ducrc->item_list;
+	ducrc->item_list = item;
 }
 
 
-void conf_set_int(struct conf *conf, const char *section, const char *key, int val)
+void ducrc_set_int(struct ducrc *ducrc, const char *section, const char *key, int val)
 {
 	char s[32];
 	snprintf(s, sizeof(s), "%d", val);
-	conf_set_str(conf, section, key, s);
+	ducrc_set_str(ducrc, section, key, s);
 }
 
 
-const char *conf_get_str(struct conf *conf, const char *section, const char *key)
+const char *ducrc_get_str(struct ducrc *ducrc, const char *section, const char *key)
 {
-	struct item *item = item_find(conf, section, key);
+	struct item *item = item_find(ducrc, section, key);
 	assert(item);
 	return item->val;
 }
 
 
-int conf_get_int(struct conf *conf, const char *section, const char *key)
+int ducrc_get_int(struct ducrc *ducrc, const char *section, const char *key)
 {
-	const char *val = conf_get_str(conf, section, key);
+	const char *val = ducrc_get_str(ducrc, section, key);
 	return atoi(val);
 }
 

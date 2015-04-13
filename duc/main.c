@@ -9,6 +9,7 @@
 
 #include "db.h"
 #include "cmd.h"
+#include "ducrc.h"
 
 
 struct cmd cmd_help;
@@ -38,6 +39,16 @@ static struct cmd *find_cmd_by_name(const char *name);
 static void help_cmd(struct cmd *cmd);
 
 
+
+
+static struct ducrc_option option_list[] = {
+	{ "database", 'd', DUCRC_TYPE_STRING, "~/.duc.db", "select database file to use" },
+	{ "verbose",  'v', DUCRC_TYPE_BOOL,   "false",     "increase verbosity. can be passwd more then once for debugging" },
+	{ "quiet",    'q', DUCRC_TYPE_BOOL,   "false",     "quiet mode, do not print any warning" },
+	{ NULL }
+};
+
+
 int main(int argc, char **argv)
 {
 	struct cmd *cmd = NULL;
@@ -53,6 +64,30 @@ int main(int argc, char **argv)
 			cmd = &cmd_help;
 		}
 	}
+	/*
+	 * Try to read configuration files from the following locations:
+	 *
+	 * - /etc/ducrc
+	 * - ~/.ducrc
+	 * - ./.ducrc
+	 *
+	 */
+
+	struct ducrc *ducrc = ducrc_new();
+
+	ducrc_read(ducrc, "/etc/ducrc");
+
+	char *home = getenv("HOME");
+	if(home) {
+		char tmp[PATH_MAX];
+		snprintf(tmp, sizeof(tmp), "%s/.ducrc", home);
+		ducrc_read(ducrc, tmp);
+	}
+
+	ducrc_read(ducrc, "./.ducrc");
+	ducrc_dump(ducrc);
+
+
 
 	int r = cmd->main(argc-1, argv+1);
 	if(r == -2) help_cmd(cmd);
@@ -75,6 +110,29 @@ static struct cmd *find_cmd_by_name(const char *name)
 }
 
 
+static void show_options(struct ducrc_option *o)
+{
+	while(o && o->longopt) {
+		char s[4] = "";
+		char l[16] = "";
+
+		if(o->shortopt) snprintf(s, sizeof(s), "-%c,", o->shortopt); 
+
+		if(o->type != DUCRC_TYPE_BOOL) {
+			snprintf(l, sizeof(l), "%s=VAL", o->longopt);
+		} else {
+			snprintf(l, sizeof(l), "%s", o->longopt);
+		}
+
+		printf(" %-4.4s --%-16.16s", s, l);
+		if(o->description) printf("%s", o->description); 
+		if(o->defval) printf(" [%s]", o->defval);
+		printf("\n");
+
+		o++;
+	}
+}
+
 
 static void help_cmd(struct cmd *cmd)
 {
@@ -82,12 +140,21 @@ static void help_cmd(struct cmd *cmd)
 		fprintf(stderr, "usage: duc %s %s\n", cmd->name, cmd->usage);
 		fprintf(stderr, "\n");
 	}
+	
+	printf("Options for the command '%s':\n", cmd->name);
+	show_options(cmd->options);
 
+	printf("\n");
+	printf("Global options:\n");
+	show_options(option_list);
+
+#if NEE
 	if(cmd->help) {
 		fprintf(stderr, "%s", cmd->help);
 	} else {
 		fprintf(stderr, "No help for command\n");
 	}
+#endif
 }
 
 
@@ -116,11 +183,13 @@ static int help_main(int argc, char **argv)
 	return 0;
 }
 
+
 struct cmd cmd_help = {
 	.name = "help",
 	.description = "Show help",
 	.help = "",
-	.main = help_main
+	.main = help_main,
+	.options = option_list,
 };
 
 /*
