@@ -20,7 +20,7 @@
 static char *opt_database = NULL;
 static char *opt_format = "png";
 static int opt_size = 800;
-static int opt_fuzz = 0.7;
+static double opt_fuzz = 0.7;
 static int opt_levels = 4;
 static char *opt_output = NULL;
 static char *opt_palette = NULL;
