@@ -132,11 +132,11 @@ a .png image with the graph of the requested directory.
 For a graphical view, run the `duc gui` tool.
 
 mouse buttons:
-
+```
 left        descent into directory
 right       go up one directory
 wheel       set graph depth
-
+```
 Key bindings:
 
 ```
