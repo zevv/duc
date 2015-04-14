@@ -136,7 +136,7 @@ int ducrc_read(struct ducrc *ducrc, const char *path)
 
 	FILE *f = fopen(path, "r");
 	if(f == NULL) {
-		duc_log(NULL, DUC_LOG_DBG, "Not reading configuration from '%s': %s", path, strerror(errno));
+		//duc_log(NULL, DUC_LOG_DBG, "Not reading configuration from '%s': %s", path, strerror(errno));
 		return -1;
 	}
 
