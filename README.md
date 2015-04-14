@@ -71,7 +71,7 @@ double-leading-dash ("--option"), some options have a corresponding short
 option which can be used as well with a single leading dash. ("-o")
 
 At startup duc tries to read its configuration from three locations in this
-particular order: '/etc/ducrc', '~/.ducrc' and './.ducrc'.
+particular order: `/etc/ducrc`, `~/.ducrc` and `./.ducrc`.
 
 The configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
@@ -79,6 +79,9 @@ apply. A section begins with the name of the section in square brackets and
 continues until the next section begins.Sections contain parameters, one per
 line, which consist of a single option name for boolean flags, or a option name
 and a value for options which take a value.
+
+The following sample configuration defines default parameters for the `duc ls`
+and `duc gui` commands.
 
 ```
 [ls]
