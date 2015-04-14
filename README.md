@@ -59,6 +59,39 @@ available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand.
 
 
+#### Options and configuration
+
+Each duc subcommand can take a number of configuration options to alter its
+behaviour; run `duc help <subcommand>` to find out the available options for
+each subcommand.
+
+Duc allows any option to be placed either on the command line or in a
+configuration file. Options on the command line are preceded by a
+double-leading-dash ("--option"), some options have a corresponding short
+option which can be used as well with a single leading dash. ("-o")
+
+At startup duc tries to read its configuration from three locations in this
+particular order: '/etc/ducrc', '~/.ducrc' and './.ducrc'.
+
+The configuration file consists of sections and parameters. The section names
+correspond to the duc subcommands for which the parameters in that section
+apply. A section begins with the name of the section in square brackets and
+continues until the next section begins.Sections contain parameters, one per
+line, which consist of a single option name for boolean flags, or a option name
+and a value for options which take a value.
+
+```
+[ls]
+recursive
+classify
+color
+
+[gui]
+fuzz 0.7
+palette rainbow
+levels 4
+```
+
 #### Creating the index
 
 Duc needs an index file of the file system before it is able to show any
