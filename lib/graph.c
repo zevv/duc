@@ -63,6 +63,17 @@ struct duc_graph {
 };
 
 
+static char *type_name[] = {
+        [DT_BLK]     = "block device",
+        [DT_CHR]     = "character device",
+        [DT_DIR]     = "directory",
+        [DT_FIFO]    = "fifo",
+        [DT_LNK]     = "soft link",
+        [DT_REG]     = "regular file",
+        [DT_SOCK]    = "socket",
+};
+
+
 duc_graph *duc_graph_new(duc *duc)
 {
 	duc_graph *g;
@@ -434,8 +445,15 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
 				char *siz = duc_human_size(e->size);
+				char *typ = type_name[e->type];
+				if(typ == NULL) typ = "unknown";
 				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
-					"%s\n%s", e->name, siz);
+					"name: %s\n"
+					"type: %s\n"
+					"size: %s",
+					e->name, 
+					typ, 
+					siz);
 			}
 		}
 
