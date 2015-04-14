@@ -109,7 +109,11 @@ $ duc ls -Fcg
  20.3M sbin/                [                                           ]
  13.6M lib32/               [                                           ]
  13.3M libx32/              [                                           ]
+```
 
+or use -RF for the tree view:
+
+```
 $ duc ls -RF /etc/logcheck
   1.1K ╰┬─ ignore.d.server
    653  │  ╰┬─ rsyslog
