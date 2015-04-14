@@ -50,7 +50,5 @@ void duc_free(void *p);
 struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino);
 int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, uint8_t type, dev_t dev, ino_t ino);
 
-char *stripdir(const char *dir);
-
 #endif
 

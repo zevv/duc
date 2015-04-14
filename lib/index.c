@@ -58,7 +58,7 @@ int duc_index_req_free(duc_index_req *req)
 int duc_index_req_add_path(duc_index_req *req, const char *path)
 {
 	duc *duc = req->duc;
-	char *path_canon = stripdir(path);
+	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s", path, strerror(errno));
 		duc->err = DUC_E_UNKNOWN;
@@ -233,7 +233,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	/* Canonalize index path */
 
-	char *path_canon = stripdir(path);
+	char *path_canon = realpath(path, NULL);
 	if(path_canon == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s", path, strerror(errno));
 		duc->err = DUC_E_UNKNOWN;

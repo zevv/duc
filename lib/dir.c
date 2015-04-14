@@ -136,11 +136,13 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
 
-	char *path_canon = stripdir(path);
+	char *path_canon = realpath(path, NULL);
 	if(!path_canon) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		return NULL;
 	}
+
+	duc_log(duc, DUC_LOG_DMP, "canon path %s", path_canon);
 
 	/* Find top path in database */
 
