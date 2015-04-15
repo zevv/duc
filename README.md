@@ -31,7 +31,7 @@ pre-built package.
 Building and installing on Debian or Ubuntu:
 
 ```
-$ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev libtool
+$ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev libtool autoconf automake build-essential
 $ autoreconf --install
 $ ./configure
 $ make
