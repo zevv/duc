@@ -431,14 +431,14 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				double r = g->spot_r;
 
 				if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-					g->spot_dir = duc_dir_openent(dir, e);
+					g->spot_dir = duc_dir_openent(dir, e, g->size_type);
 				}
 			}
 
 			/* Recurse into subdirectories */
 
 			if(level+1 < g->max_level) {
-				duc_dir *dir_child = duc_dir_openent(dir, e);
+				duc_dir *dir_child = duc_dir_openent(dir, e, g->size_type);
 				if(!dir_child) continue;
 				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
 				duc_dir_close(dir_child);
@@ -602,7 +602,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 	
 		/* If clicked in the center, go up one directory */
 
-		dir2 = duc_dir_openat(dir, "..");
+		dir2 = duc_dir_openat(dir, "..", g->size_type);
 
 	} else {
 

@@ -23,6 +23,7 @@ struct param {
 };
 
 
+static int opt_apparent = 0;
 static char *opt_database = NULL;
 static int opt_size = 800;
 static double opt_fuzz = 0.7;
@@ -177,7 +178,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		char url[PATH_MAX];
 		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report->path);
 
-		char *siz = duc_human_size(report->size_apparent);
+		char *siz = duc_human_size(opt_apparent ? report->size_apparent : report->size_actual);
 
 		printf("<tr>");
 		printf("<td><a href='%s'>%s</a></td>", url, report->path);
@@ -243,7 +244,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_dir *dir = NULL;
 	char *path = cgi_get("path");
 	if(path) {
-		dir = duc_dir_open(duc, path);
+		dir = duc_dir_open(duc, path, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 		if(dir == NULL) {
 			duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 			return 0;
@@ -277,6 +278,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
+	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },

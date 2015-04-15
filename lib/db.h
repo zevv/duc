@@ -14,7 +14,7 @@ void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len);
 
 
 duc_errno db_write_dir(struct duc_dir *dir);
-struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino);
+struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino, duc_size_type st);
 duc_errno db_write_report(duc *duc, struct duc_index_report *rep);
 
 #endif

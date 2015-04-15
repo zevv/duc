@@ -19,13 +19,19 @@ static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
 
 
 
-static int fn_comp_ent(const void *a, const void *b)
+static int fn_comp_apparent(const void *a, const void *b)
 {
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
 	return(ea->size_apparent < eb->size_apparent);
 }
 
+static int fn_comp_actual(const void *a, const void *b)
+{
+	const struct duc_dirent *ea = a;
+	const struct duc_dirent *eb = b;
+	return(ea->size_actual < eb->size_actual);
+}
 
 
 /*
@@ -77,7 +83,7 @@ duc_errno db_write_dir(struct duc_dir *dir)
  * Read database record and deserialize into duc_dir
  */
 
-struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
+struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino, duc_size_type st)
 {
 	struct duc_dir *dir = duc_dir_new(duc, dev, ino);
 
@@ -129,7 +135,7 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 
 	buffer_free(b);
 
-	qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp_ent);
+	qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), st == DUC_SIZE_TYPE_APPARENT ? fn_comp_apparent : fn_comp_actual);
 
 	return dir;
 }

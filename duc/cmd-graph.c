@@ -63,7 +63,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_dir *dir = duc_dir_open(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 	if(dir == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;

@@ -159,7 +159,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 			} else {
 				prefix[level] = 4;
 			}
-			duc_dir *dir2 = duc_dir_openent(dir, e);
+			duc_dir *dir2 = duc_dir_openent(dir, e, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 			if(dir2) {
 				ls_one(dir2, level+1, prefix);
 				duc_dir_close(dir2);
@@ -196,7 +196,7 @@ static int ls_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_dir *dir = duc_dir_open(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 	if(dir == NULL) {
 		return -1;
 	}

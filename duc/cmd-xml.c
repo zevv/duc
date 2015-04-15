@@ -56,7 +56,7 @@ static void dump(duc *duc, duc_dir *dir, int depth, int min_size, int ex_files)
 			printf("<ent type='dir' name='");
 			print_escaped(e->name);
 			printf("' size_apparent='%jd' size_actual='%jd'>\n", e->size_apparent, e->size_actual);
-			duc_dir *dir_child = duc_dir_openent(dir, e);
+			duc_dir *dir_child = duc_dir_openent(dir, e, DUC_SIZE_TYPE_APPARENT);
 			if(dir_child) {
 				dump(duc, dir_child, depth + 1, min_size, ex_files);
 				indent(depth);
@@ -84,7 +84,7 @@ static int xml_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_dir *dir = duc_dir_open(duc, path);
+	duc_dir *dir = duc_dir_open(duc, path, DUC_SIZE_TYPE_APPARENT);
 	if(dir == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 		return -1;
