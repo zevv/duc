@@ -59,7 +59,7 @@ available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand.
 
 
-#### A note on disk usage
+#### A note on file size and disk usage
 
 The concepts of 'file size' and 'disk usage' can be a bit confusing. Files on
 disk have an apparent size, which indicates how much bytes are in the file from
