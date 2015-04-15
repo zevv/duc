@@ -53,6 +53,7 @@ static char *tree_utf8[] = {
 	"    ",
 };
 
+static int opt_apparent = 0;
 static int opt_ascii = 0;
 static int opt_bytes = 0;
 static int opt_classify = 0;
@@ -78,10 +79,13 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	
 	struct duc_dirent *e;
 	while( (e = duc_dir_read(dir)) != NULL) {
-		if(e->size > max_size) max_size = e->size;
+
+		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+
+		if(size > max_size) max_size = size;
 		size_t l = strlen(e->name);
 		if(l > max_name_len) max_name_len = l;
-		size_total += e->size;
+		size_total += size;
 	}
 
 	if(opt_bytes) max_size_len = 12;
@@ -96,6 +100,8 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 	while( (e = duc_dir_read(dir)) != NULL) {
 
+		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+
 		if(opt_recursive) {
 			if(n == 0)       prefix[level] = 1;
 			if(n >= 1)       prefix[level] = 2;
@@ -107,15 +113,16 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 		if(opt_color) {
 			color_off = color_reset;
-			if(e->size >= max_size / 8) color_on = color_yellow;
-			if(e->size >= max_size / 2) color_on = color_red;
+			off_t size = size;
+			if(size >= max_size / 8) color_on = color_yellow;
+			if(size >= max_size / 2) color_on = color_red;
 		}
 
 		printf("%s", color_on);
 		if(opt_bytes) {
-			printf("%*jd", max_size_len, e->size);
+			printf("%*jd", max_size_len, size);
 		} else {
-			char *siz = duc_human_size(e->size);
+			char *siz = duc_human_size(size);
 			printf("%*s", max_size_len, siz);
 			free(siz);
 		}
@@ -136,7 +143,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		if(opt_graph) {
 			for(;l<=max_name_len; l++) putchar(' ');
 			int w = width - max_name_len - max_size_len - 5 - level * 4;
-			int l = max_size ? (w * e->size / max_size) : 0;
+			int l = max_size ? (w * size / max_size) : 0;
 			int j;
 			printf(" [%s", color_on);
 			for(j=0; j<l; j++) putchar('+');
@@ -206,6 +213,7 @@ static int ls_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
+	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_ascii,     "ascii",       0, DUCRC_TYPE_BOOL,   "use ASCII characters instead of UTF-8 to draw tree" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_classify,  "classify",  'F', DUCRC_TYPE_BOOL,   "append file type indicator (one of */) to entries" },

@@ -23,6 +23,7 @@ static char *opt_database = NULL;
 static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
 static int opt_levels = 4;
+static int opt_apparent = 0;
 
 static int redraw = 1;
 static int tooltip_x = 0;
@@ -64,6 +65,7 @@ static void draw(void)
 	duc_graph_set_fuzz(graph, fuzz);
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_max_name_len(graph, 30);
+	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 	duc_graph_draw_cairo(graph, dir, cr);
 	cairo_destroy(cr);
 
@@ -104,6 +106,7 @@ static void handle_event(XEvent e)
 			if(k == XK_0) opt_levels = 4;
 			if(k == XK_Escape) exit(0);
 			if(k == XK_q) exit(0);
+			if(k == XK_a) opt_apparent = !opt_apparent;
 			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
 			if(k == XK_p) {
 				palette = (palette + 1) % 4;

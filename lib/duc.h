@@ -28,6 +28,10 @@ typedef enum {
 	DUC_INDEX_HIDE_FILE_NAMES = 1<<1, /* Hide file names */
 } duc_index_flags;
 
+typedef enum {
+	DUC_SIZE_TYPE_APPARENT,
+	DUC_SIZE_TYPE_ACTUAL,
+} duc_size_type;
 
 typedef enum {
 	DUC_OK,                     /* No error, success */
@@ -60,12 +64,14 @@ struct duc_index_report {
 	struct timeval time_stop;   /* Index finished time */
 	size_t file_count;          /* Total number of files indexed */
 	size_t dir_count;           /* Total number of directories indexed */
-	off_t size_total;           /* Total disk size indexed */
+	off_t size_apparent;        /* Total apparent size indexed */
+	off_t size_actual;          /* Total actual size indexed */
 };
 
 struct duc_dirent {
 	char *name;                 /* File name */
-	off_t size;                 /* File size */
+	off_t size_apparent;        /* Apparent file size */
+	off_t size_actual;          /* Actual file size */
 	uint8_t type;               /* File type, one of POSIX's DT_* */
 	dev_t dev;                  /* ID of device containing file */
 	ino_t ino;                  /* inode number */
@@ -120,7 +126,7 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name);
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e);
 struct duc_dirent *duc_dir_read(duc_dir *dir);
 char *duc_dir_get_path(duc_dir *dir);
-off_t duc_dir_get_size(duc_dir *dir);
+off_t duc_dir_get_size(duc_dir *dir, duc_size_type st);
 size_t duc_dir_get_count(duc_dir *dir);
 struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name);
 int duc_dir_rewind(duc_dir *dir);

@@ -25,7 +25,8 @@ struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino)
 	dir->path = NULL;
 	dir->ent_cur = 0;
 	dir->ent_count = 0;
-	dir->size_total = 0;
+	dir->size_apparent_total = 0;
+	dir->size_actual_total = 0;
 	dir->ent_pool = 32768;
 	dir->ent_list = duc_malloc(dir->ent_pool);
 
@@ -33,7 +34,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino)
 }
 
 
-int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, uint8_t type, dev_t dev, ino_t ino)
+int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size_apparent, off_t size_actual, uint8_t type, dev_t dev, ino_t ino)
 {
 	if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
 		dir->ent_pool *= 2;
@@ -44,7 +45,8 @@ int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, uint8_t t
 	dir->ent_count ++;
 
 	ent->name = duc_strdup(name);
-	ent->size = size;
+	ent->size_apparent = size_apparent;
+	ent->size_actual = size_actual;
 	ent->type = type;
 	ent->dev = dev;
 	ent->ino = ino;
@@ -53,9 +55,13 @@ int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, uint8_t t
 }
 
 
-off_t duc_dir_get_size(duc_dir *dir)
+off_t duc_dir_get_size(duc_dir *dir, duc_size_type st)
 {
-	return dir->size_total;
+	if(st == DUC_SIZE_TYPE_APPARENT) {
+		return dir->size_apparent_total;
+	} else {
+		return dir->size_actual_total;
+	}
 }
 
 

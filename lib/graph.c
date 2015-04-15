@@ -53,6 +53,7 @@ struct duc_graph {
 	int max_level;
 	enum duc_graph_palette palette;
 	size_t max_name_len;
+	duc_size_type size_type;
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
@@ -141,6 +142,12 @@ void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p)
 void duc_graph_set_fuzz(duc_graph *g, double fuzz)
 {
 	g->fuzz = fuzz;
+}
+
+
+void duc_graph_set_size_type(duc_graph *g, duc_size_type st)
+{
+	g->size_type = st;
 }
 
 
@@ -343,7 +350,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 	/* Calculate max and total size */
 	
-	off_t size_total = duc_dir_get_size(dir);
+	off_t size_total = duc_dir_get_size(dir, g->size_type);
 
 	struct duc_dirent *e;
 
@@ -351,8 +358,9 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	size_t size_max = 0;
 
 	while( (e = duc_dir_read(dir)) != NULL) {
-		if(e->size < size_min) size_min = e->size;
-		if(e->size > size_max) size_max = e->size;
+		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
+		if(size < size_min) size_min = size;
+		if(size > size_max) size_max = size;
 	}
 
 	/* Rewind and iterate the objects to graph */
@@ -362,8 +370,10 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
-		double size_rel = (double)e->size / size_total;
-		double size_nrel = (size_max == size_min) ? 1 : ((double)e->size - size_min) / (size_max - size_min);
+		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
+
+		double size_rel = (double)size / size_total;
+		double size_nrel = (size_max == size_min) ? 1 : ((double)size - size_min) / (size_max - size_min);
 
 		double r2 = r1 + ring_width * (1 - (1 - size_nrel) * g->fuzz);
 		a2 += a_range * size_rel;
@@ -444,7 +454,10 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			double r = g->tooltip_r;
 
 			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-				char *siz = duc_human_size(e->size);
+
+				off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
+
+				char *siz = duc_human_size(size);
 				char *typ = type_name[e->type];
 				if(typ == NULL) typ = "unknown";
 				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
@@ -462,8 +475,10 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		if(cr) {
 			if(r1 * (a2 - a1) > 5) {
 				struct label *label = malloc(sizeof *label);
+				
+				off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
 
-				char *siz = duc_human_size(e->size);
+				char *siz = duc_human_size(size);
 				char *name = duc_strdup(e->name);
 				shorten_name(name, g->max_name_len);
 
@@ -556,7 +571,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	draw_text(cr, g->cx, 10, FONT_SIZE_LABEL, p);
 	free(p);
 
-	char *siz = duc_human_size(duc_dir_get_size(dir));
+	char *siz = duc_human_size(duc_dir_get_size(dir, g->size_type));
 	draw_text(cr, g->cx, g->cy, 14, siz);
 	free(siz);
 

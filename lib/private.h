@@ -3,7 +3,7 @@
 
 #include "duc.h"
 
-#define DUC_DB_VERSION "10"
+#define DUC_DB_VERSION "11"
 
 #ifndef HAVE_LSTAT
 #define lstat stat
@@ -34,7 +34,8 @@ struct duc_dir {
 	ino_t ino_parent;
 	char *path;
 	struct duc_dirent *ent_list;
-	off_t size_total;
+	off_t size_apparent_total;
+	off_t size_actual_total;
 	size_t file_count;
 	size_t dir_count;
 	size_t ent_cur;
@@ -48,7 +49,7 @@ char *duc_strdup(const char *s);
 void duc_free(void *p);
 
 struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino);
-int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size, uint8_t type, dev_t dev, ino_t ino);
+int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size_apparent, off_t size_actual, uint8_t type, dev_t dev, ino_t ino);
 
 #endif
 

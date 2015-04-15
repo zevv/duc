@@ -69,20 +69,24 @@ static int index_main(duc *duc, int argc, char **argv)
 			continue;
 		}
 
-		char *siz = duc_human_size(report->size_total);
+		char *siz_apperent = duc_human_size(report->size_apparent);
+		char *siz_actual = duc_human_size(report->size_actual);
+
 		if(r == DUC_OK) {
 			char *s = duc_human_duration(report->time_start, report->time_stop);
 			duc_log(duc, DUC_LOG_INF, 
-					"Indexed %lu files and %lu directories, (%sB total) in %s", 
+					"Indexed %lu files and %lu directories, (%sB apparent, %sB actual) in %s", 
 					(unsigned long)report->file_count, 
 					(unsigned long)report->dir_count,
-					siz,
+					siz_apperent,
+					siz_actual,
 					s);
 			free(s);
 		} else {
 			duc_log(duc, DUC_LOG_WRN, "An error occured while indexing: %s", duc_strerror(duc));
 		}
-		free(siz);
+		free(siz_apperent);
+		free(siz_actual);
 
 		duc_index_report_free(report);
 	}

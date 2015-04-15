@@ -58,6 +58,31 @@ maintain and query the disk usage database.  run `duc help` to get a list of
 available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand.
 
+#### A note on disk usage
+
+The concept of 'disk usage' can be a bit confusing. Files on disk have an
+apparent size, which indicates how much bytes are in the file from the users
+point of view. This size can be any number, from 0 up to many terabytes on
+modern systems. The actual number of bytes which are used on the filesystem to
+store the file can differ from this apparent size for a number of reasons:
+disks store data in blocks, which cause files to always take up a multiple of
+the block size, files can have holes ('sparse' files), and other technical
+reasons.
+
+Duc has two modes for counting file sizes, similar to the unix `du` utility.
+
+- 'apparent size': this is the size as reported by `ls`. This number indicates
+  the file length, which can be smaller or larger then the actual disk usage.
+  In this mode, directories themselves do not have a size.
+
+- 'actual size': this is the size as reported by `du` and `df`. The actual file
+  size tells you how much disk is actually used by a file, and is alwasys a
+  multiple of 512 bytes. In this mode, the blocks used to store the directory
+  information are counted as well.
+
+The default mode used by duc is to use the 'actual size'. Most duc commands to
+report disk usage (`ls`, `graph`, `gui`, etc) have an option to change between
+these two modes (usually the `-a`), in the gui tool use the 'a' key to toggle.
 
 #### Options and configuration
 

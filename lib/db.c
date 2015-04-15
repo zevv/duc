@@ -23,7 +23,7 @@ static int fn_comp_ent(const void *a, const void *b)
 {
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
-	return(ea->size < eb->size);
+	return(ea->size_apparent < eb->size_apparent);
 }
 
 
@@ -38,7 +38,8 @@ duc_errno db_write_dir(struct duc_dir *dir)
 		
 	buffer_put_varint(b, dir->dev_parent);
 	buffer_put_varint(b, dir->ino_parent);
-	buffer_put_varint(b, dir->size_total);
+	buffer_put_varint(b, dir->size_apparent_total);
+	buffer_put_varint(b, dir->size_actual_total);
 	buffer_put_varint(b, dir->file_count);
 	buffer_put_varint(b, dir->dir_count);
 
@@ -48,7 +49,8 @@ duc_errno db_write_dir(struct duc_dir *dir)
 
 	for(i=0; i<dir->ent_count; i++) {
 		buffer_put_string(b, ent->name);
-		buffer_put_varint(b, ent->size);
+		buffer_put_varint(b, ent->size_apparent);
+		buffer_put_varint(b, ent->size_actual);
 		buffer_put_varint(b, ent->type);
 		if(ent->type == DT_DIR) {
 			buffer_put_varint(b, ent->dev);
@@ -96,20 +98,23 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 	uint64_t v;
 	buffer_get_varint(b, &v); dir->dev_parent = v;
 	buffer_get_varint(b, &v); dir->ino_parent = v;
-	buffer_get_varint(b, &v); dir->size_total = v;
+	buffer_get_varint(b, &v); dir->size_apparent_total = v;
+	buffer_get_varint(b, &v); dir->size_actual_total = v;
 	buffer_get_varint(b, &v); dir->file_count = v;
 	buffer_get_varint(b, &v); dir->dir_count = v;
 	
 	while(b->ptr < b->len) {
 
-		uint64_t size;
+		uint64_t size_apparent;
+		uint64_t size_actual;
 		uint64_t dev;
 		uint64_t ino;
 		uint64_t type;
 		char *name;
 
 		buffer_get_string(b, &name);
-		buffer_get_varint(b, &size);
+		buffer_get_varint(b, &size_apparent);
+		buffer_get_varint(b, &size_actual);
 		buffer_get_varint(b, &type);
 		if(type == DT_DIR) {
 			buffer_get_varint(b, &dev);
@@ -117,7 +122,7 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 		}
 	
 		if(name) {
-			duc_dir_add_ent(dir, name, size, type, dev, ino);
+			duc_dir_add_ent(dir, name, size_apparent, size_actual, type, dev, ino);
 			free(name);
 		}
 	}

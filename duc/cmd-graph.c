@@ -18,6 +18,7 @@
 #include "cmd.h"
 
 static char *opt_database = NULL;
+static int opt_apparent = 0;
 static char *opt_format = "png";
 static int opt_size = 800;
 static double opt_fuzz = 0.7;
@@ -73,6 +74,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_palette(graph, palette);
+	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 
 	FILE *f = NULL;
 	if(strcmp(path_out, "-") == 0) {
@@ -97,6 +99,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
+	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, "select output format <png|svg|pdf> [png]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },

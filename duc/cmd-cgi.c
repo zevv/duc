@@ -177,7 +177,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		char url[PATH_MAX];
 		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report->path);
 
-		char *siz = duc_human_size(report->size_total);
+		char *siz = duc_human_size(report->size_apparent);
 
 		printf("<tr>");
 		printf("<td><a href='%s'>%s</a></td>", url, report->path);
