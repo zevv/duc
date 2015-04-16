@@ -199,9 +199,10 @@ a .png image with the graph of the requested directory.
 
 #### Graphical user interface
 
-For a graphical view, run the `duc gui` tool.
+Run `duc gui` for an interactive graphical overview of your disk usage. Duc represents files and directories in a sunburst graph, which can be navigated by mouse: clicking on a directory redraws the graph from the perspective of the selected directory. Click in the center of the graph to go up one directory in the tree.
 
-mouse buttons:
+
+Mouse buttons:
 ```
 left        descent into directory
 right       go up one directory
@@ -213,11 +214,16 @@ Key bindings:
 +           increase maximum graph depth
 -           decrease maximum graph depth
 0           Set default graph depth
+a           Toggle between apparent and actual disk usage
 p           toggle palettes
 f           toggle graph fuzz
 backspace   cd ..
 ```
 
+![size](img/palette-size.png)
+![rainbow](img/palette-rainbow.png)
+![greyscale](img/palette-grayscale.png)
+![monochrome](img/palette-monochrome.png)
 
 #### CGI interfacing
 
