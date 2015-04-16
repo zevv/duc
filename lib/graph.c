@@ -277,17 +277,28 @@ static void draw_tooltip(cairo_t *cr, int x, int y, char *text)
 	w /= PANGO_SCALE;
 	h /= PANGO_SCALE;
 
+	/* shadow box */
+
+	int i;
+	for(i=1; i<3; i++) {
+		cairo_rectangle(cr, x - w - 10 + i, y - h - 10 + i, w + 10 + i, h + 10 + i);
+		cairo_set_source_rgba(cr, 0, 0, 0, 0.25);
+		cairo_fill(cr);
+	}
+
+	/* tooltip box */
+
 	cairo_rectangle(cr, x - w - 10 + 0.5, y - h - 10 + 0.5, w + 10, h + 10);
 	cairo_set_source_rgba(cr, 1, 1, 1, 1);
 	cairo_fill_preserve(cr);
 	cairo_set_source_rgba(cr, 0, 0, 0, 1);
 	cairo_stroke(cr);
+	
+	/* black text */
 
 	cairo_move_to(cr, x - w - 5, y - h - 5);
 	pango_cairo_layout_path(cr, layout);
 	g_object_unref(layout);
-	
-	/* black text */
 
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_set_line_width(cr, 1);
