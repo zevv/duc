@@ -222,7 +222,7 @@ backspace   cd ..
 
 ![size](img/palette-size.png)
 ![rainbow](img/palette-rainbow.png)
-![greyscale](img/palette-grayscale.png)
+![greyscale](img/palette-greyscale.png)
 ![monochrome](img/palette-monochrome.png)
 
 #### CGI interfacing
