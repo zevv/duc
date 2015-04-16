@@ -189,6 +189,8 @@ char *duc_human_duration(struct timeval start, struct timeval stop)
 	unsigned int days, hours, mins; 
 	// char human_time[80];
 
+	/* fixme: use timersub here */
+
 	start_secs=start.tv_sec + (start.tv_usec / 1000000.0);  
 	stop_secs=stop.tv_sec + (stop.tv_usec / 1000000.0);  
 	secs = stop_secs - start_secs;

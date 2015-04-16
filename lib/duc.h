@@ -106,9 +106,12 @@ int duc_close(duc *duc);
  * Index file systems
  */
 
+typedef void (*duc_index_progress_cb)(struct duc_index_report *report, void *ptr);
+
 duc_index_req *duc_index_req_new(duc *duc);
 int duc_index_req_add_exclude(duc_index_req *req, const char *pattern);
 int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
+int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr);
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
 int duc_index_report_free(struct duc_index_report *rep);

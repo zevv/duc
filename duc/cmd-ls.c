@@ -113,7 +113,6 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 		if(opt_color) {
 			color_off = color_reset;
-			off_t size = size;
 			if(size >= max_size / 8) color_on = color_yellow;
 			if(size >= max_size / 2) color_on = color_red;
 		}

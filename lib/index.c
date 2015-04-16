@@ -32,6 +32,11 @@ struct duc_index_req {
 	dev_t dev;
 	duc_index_flags flags;
 	int maxdepth;
+	duc_index_progress_cb progress_fn;
+	void *progress_fndata;
+	int progress_n;
+	struct timeval progress_interval;
+	struct timeval progress_time;
 };
 
 struct index_result {
@@ -45,6 +50,8 @@ duc_index_req *duc_index_req_new(duc *duc)
 	memset(req, 0, sizeof *req);
 
 	req->duc = duc;
+	req->progress_interval.tv_sec = 0;
+	req->progress_interval.tv_usec = 100 * 1000;
 
 	return req;
 }
@@ -88,6 +95,14 @@ int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth)
 {
 	req->maxdepth = maxdepth;
 	return 0;
+}
+
+
+int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr)
+{
+	req->progress_fn = fn;
+	req->progress_fndata = ptr;
+	return DUC_OK;
 }
 
 
@@ -176,7 +191,10 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			if(n[1] == '.' && n[2] == '\0') continue;
 		}
 
-		if(match_list(e->d_name, req->exclude_list)) continue;
+		if(match_list(e->d_name, req->exclude_list)) {
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: excluded by user", e->d_name);
+			continue;
+		}
 
 		/* Get file info */
 
@@ -203,8 +221,10 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			size_apparent = st.st_size;
 			dir->file_count ++;
 			report->file_count ++;
+			report->size_apparent += st.st_size;
 		}
 
+		report->size_actual += 512 * st.st_blocks;
 		size_actual += 512 * st.st_blocks;
 
 		duc_log(duc, DUC_LOG_DMP, "%s %jd %jd", e->d_name, size_apparent, size_actual);
@@ -238,6 +258,26 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 	res->size_apparent = dir_size_apparent;
 	res->size_actual = dir_size_actual;
+
+	
+	/* Progress reporting */
+
+	if(req->progress_fn) {
+
+		if(req->progress_n++ == 100) {
+			
+			struct timeval t_now;
+			gettimeofday(&t_now, NULL);
+
+			if(timercmp(&t_now, &req->progress_time, > )) {
+				req->progress_fn(report, req->progress_fndata);
+				timeradd(&t_now, &req->progress_interval, &req->progress_time);
+			}
+			req->progress_n = 0;
+		}
+
+	}
+
 	return 0;
 }	
 
@@ -270,7 +310,8 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	struct index_result res = { 0 };
 	index_dir(req, report, path_canon, 0, NULL, 0, &res);
-
+	gettimeofday(&report->time_stop, NULL);
+	
 	/* Fill in report */
 
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
@@ -283,6 +324,12 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	db_write_report(duc, report);
 
 	free(path_canon);
+
+	/* Final progress callback */
+
+	if(req->progress_fn) {
+		req->progress_fn(report, req->progress_fndata);
+	}
 
 	return report;
 }

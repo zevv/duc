@@ -11,9 +11,6 @@
 
 [index]
 
-  exclude proc
-  exclude sys
-  exclude mnt
   exclude Cache
   exclude .ccache
 
