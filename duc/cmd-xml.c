@@ -91,7 +91,7 @@ static int xml_main(duc *duc, int argc, char **argv)
 	}
 
 	printf("<?xml version='1.0' encoding='UTF-8'?>\n");
-	printf("<duc root='%s' size_apparent='%ld' size_actual='%jd'>\n", 
+	printf("<duc root='%s' size_apparent='%jd' size_actual='%jd'>\n", 
 			path, 
 			duc_dir_get_size(dir, DUC_SIZE_TYPE_APPARENT),
 			duc_dir_get_size(dir, DUC_SIZE_TYPE_ACTUAL));
