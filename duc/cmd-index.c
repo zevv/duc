@@ -43,7 +43,7 @@ void progress_cb(struct duc_index_report *rep, void *ptr)
 	meter[7 - abs(n-7)] = '#';
 	n = (n+1) % 14;
 
-	char *siz = duc_human_size(rep->size_apparent);
+	char *siz = duc_human_size(rep->size_actual);
 	char *fs = duc_human_size(rep->file_count);
 	char *ds = duc_human_size(rep->dir_count);
 
@@ -91,7 +91,7 @@ static int index_main(duc *duc, int argc, char **argv)
 			continue;
 		}
 
-		char *siz_apperent = duc_human_size(report->size_apparent);
+		char *siz_apperent = duc_human_size(report->size_actual);
 		char *siz_actual = duc_human_size(report->size_actual);
 
 		if(r == DUC_OK) {

@@ -33,7 +33,7 @@ static int info_db(duc *duc, char *file)
 		struct tm *tm = localtime(&report->time_start.tv_sec);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
-		char *siz = duc_human_size(report->size_apparent);
+		char *siz = duc_human_size(report->size_actual);
 		printf("  %s %7.7s %s\n", ts, siz, report->path);
 		free(siz);
 
