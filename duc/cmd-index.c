@@ -97,9 +97,9 @@ static int index_main(duc *duc, int argc, char **argv)
 		if(r == DUC_OK) {
 			char *s = duc_human_duration(report->time_start, report->time_stop);
 			duc_log(duc, DUC_LOG_INF, 
-					"Indexed %lu files and %lu directories, (%sB apparent, %sB actual) in %s", 
-					(unsigned long)report->file_count, 
-					(unsigned long)report->dir_count,
+					"Indexed %zu files and %zu directories, (%sB apparent, %sB actual) in %s", 
+					report->file_count, 
+					report->dir_count,
 					siz_apperent,
 					siz_actual,
 					s);
