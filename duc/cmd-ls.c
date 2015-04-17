@@ -119,7 +119,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 		printf("%s", color_on);
 		if(opt_bytes) {
-			printf("%*jd", max_size_len, size);
+			printf("%*jd", max_size_len, (intmax_t)size);
 		} else {
 			char *siz = duc_human_size(size);
 			printf("%*s", max_size_len, siz);
