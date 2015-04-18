@@ -141,7 +141,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 		if(opt_graph) {
 			for(;l<=max_name_len; l++) putchar(' ');
-			int w = width - max_name_len - max_size_len - 5 - level * 4;
+			int w = width - max_name_len - max_size_len - 5 - (level +1 ) * 4;
 			int l = max_size ? (w * size / max_size) : 0;
 			int j;
 			printf(" [%s", color_on);
