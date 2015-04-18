@@ -173,7 +173,7 @@ char *duc_human_size(off_t size)
 	if(size < 1024) {
 		asprintf(&s, "%jd", size);
 	} else {
-		while(v >= 1024.0) {
+		while(v >= 1000.0) {
 			v /= 1024.0;
 			p ++;
 		}
