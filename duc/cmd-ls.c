@@ -62,6 +62,7 @@ static int width = 80;
 static int opt_graph = 0;
 static int opt_recursive = 0;
 static char *opt_database = NULL;
+static int opt_dirs_only = 0;
 static int opt_levels = 4;
 
 static void ls_one(duc_dir *dir, int level, int *prefix)
@@ -99,6 +100,8 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	size_t n = 0;
 
 	while( (e = duc_dir_read(dir)) != NULL) {
+
+		if(opt_dirs_only && e->type != DT_DIR) continue;
 
 		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
 
@@ -182,13 +185,16 @@ static int ls_main(duc *duc, int argc, char **argv)
 	if(isatty(0)) {
 #ifdef TIOCGWINSZ
 		struct winsize w;
-		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+		int r = ioctl(STDIN_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
 #endif
-	} else {
-		opt_color = 0;
 	}
 
+	/* Disable color if output is not a tty */
+
+	if(!isatty(1)) {
+		opt_color = 0;
+	}
 
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
@@ -212,12 +218,13 @@ static int ls_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
-	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
+	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_ascii,     "ascii",       0, DUCRC_TYPE_BOOL,   "use ASCII characters instead of UTF-8 to draw tree" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_classify,  "classify",  'F', DUCRC_TYPE_BOOL,   "append file type indicator (one of */) to entries" },
-	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output" },
+	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output (only on ttys)" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_dirs_only, "dirs-only",   0, DUCRC_TYPE_BOOL,   "list only directories, skip individual files" },
 	{ &opt_graph,     "graph",     'g', DUCRC_TYPE_BOOL,   "draw graph with relative size for each entry" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "traverse up to ARG levels deep [4]" },
 	{ &opt_recursive, "recursive", 'R', DUCRC_TYPE_BOOL,   "list subdirectories in a recursive tree view" },
