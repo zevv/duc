@@ -362,7 +362,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	/* Calculate max and total size */
 	
 	off_t size_total = duc_dir_get_size(dir, g->size_type);
-	if(size_total == 0) return;
+	if(size_total == 0) return 0;
 
 	struct duc_dirent *e;
 
