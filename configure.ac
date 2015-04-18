@@ -43,6 +43,7 @@ AM_PROG_LIBTOOL
 # Checks for libraries.
 AC_CHECK_LIB([m], [main])
 AC_CHECK_LIB([X11], [XOpenDisplay])
+AC_CHECK_LIB([ncurses], [tputs])
 
 # Check for pkg-config, needs fallback for when it doesn't exist...
 PKG_PROG_PKG_CONFIG

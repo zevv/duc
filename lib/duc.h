@@ -126,12 +126,12 @@ struct duc_index_report *duc_get_report(duc *duc, size_t id);
 duc_dir *duc_dir_open(duc *duc, const char *path, duc_size_type st);
 duc_dir *duc_dir_openat(duc_dir *dir, const char *name, duc_size_type st);
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e, duc_size_type st);
-duc_dir *duc_dir_get_parent(duc_dir *dir);
 struct duc_dirent *duc_dir_read(duc_dir *dir);
 char *duc_dir_get_path(duc_dir *dir);
 off_t duc_dir_get_size(duc_dir *dir, duc_size_type st);
 size_t duc_dir_get_count(duc_dir *dir);
 struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name);
+int duc_dir_seek(duc_dir *dir, off_t offset);
 int duc_dir_rewind(duc_dir *dir);
 int duc_dir_close(duc_dir *dir);
 

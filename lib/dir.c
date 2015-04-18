@@ -227,10 +227,20 @@ struct duc_dirent *duc_dir_read(duc_dir *dir)
 }
 
 
+int duc_dir_seek(duc_dir *dir, off_t offset)
+{
+	if(offset >= 0 && offset < dir->ent_count) {
+		dir->ent_cur = offset;
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+
 int duc_dir_rewind(duc_dir *dir)
 {
-	dir->ent_cur = 0;
-	return 0;
+	return duc_dir_seek(dir, 0);
 }
 
 

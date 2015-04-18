@@ -19,9 +19,9 @@
 
 #define MAX_DEPTH 32
 
-char *color_reset = "\e[0m";
-char *color_red = "\e[31m";
-char *color_yellow = "\e[33m";
+#define COLOR_RESET  "\e[0m";
+#define COLOR_RED    "\e[31m";
+#define COLOR_YELLOW "\e[33m";
 
 static char type_char[] = {
         [DT_BLK]     = ' ',
@@ -115,9 +115,9 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		char *color_off = "";
 
 		if(opt_color) {
-			color_off = color_reset;
-			if(size >= max_size / 8) color_on = color_yellow;
-			if(size >= max_size / 2) color_on = color_red;
+			color_off = COLOR_RESET;
+			if(size >= max_size / 8) color_on = COLOR_YELLOW;
+			if(size >= max_size / 2) color_on = COLOR_RED;
 		}
 
 		printf("%s", color_on);
