@@ -25,15 +25,15 @@ struct cmd cmd_ui;
 
 
 struct cmd *cmd_list[] = {
-	&cmd_help,
-	&cmd_info,
-	&cmd_index,
-	&cmd_gui,
-	&cmd_ls,
-	&cmd_graph,
-	&cmd_xml,
 	&cmd_cgi,
+	&cmd_graph,
+	&cmd_gui,
+	&cmd_help,
+	&cmd_index,
+	&cmd_info,
+	&cmd_ls,
 	&cmd_ui,
+	&cmd_xml,
 };
 
 #define SUBCOMMAND_COUNT (sizeof(cmd_list) / sizeof(cmd_list[0]))
