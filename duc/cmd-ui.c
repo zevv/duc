@@ -32,6 +32,7 @@ static char type_char[] = {
 static int opt_classify = 1;
 static int opt_apparent = 0;
 static int opt_bytes = 0;
+static int opt_graph = 1;
 static char *opt_database = NULL;
 
 
@@ -43,17 +44,28 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 {
 	int top = 0;
 	int cur = 0;
+	off_t size_max = 1;
+
+	/* Iterate all dirents to find largest size */
+
+	duc_dir_seek(dir, 0);
+
+	struct duc_dirent *e;
+	while( (e = duc_dir_read(dir)) != NULL) {
+		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+		if(size > size_max) size_max = size;
+	}
 
 	for(;;) {
 		
-		int cnt = duc_dir_get_count(dir);
+		int count = duc_dir_get_count(dir);
 		int pgsize = rows - 2;
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 		
 		/* Check boundaries */
 
 		if(cur < 0) cur = 0;
-		if(cur > cnt - 1) cur = cnt - 1;
+		if(cur > count - 1) cur = count - 1;
 		if(cur < top) top = cur;
 		if(cur > top + pgsize - 1) top = cur - pgsize + 1;
 		if(top < 0) top = 0;
@@ -64,17 +76,22 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		char *path = duc_dir_get_path(dir);
 		attrset(A_REVERSE);
 		mvhline(0, 0, ' ', cols);
-		mvprintw(0, 0, " %s", path);
+		mvprintw(0, 1, " %s ", path);
 		attrset(0);
 		free(path);
 
 
 		/* Draw footer */
-		
+	
+		off_t size = duc_dir_get_size(dir, st);
+		char *siz = duc_human_size(size);
+		char *cnt = duc_human_size(count);
 		attrset(A_REVERSE);
 		mvhline(rows-1, 0, ' ', cols);
-		mvprintw(rows-1, 0, " depth:%d cur:%d top:%d", depth, cur, top);
+		mvprintw(rows-1, 0, " Total %sB in %s files/directories", siz, cnt);
 		attrset(0);
+		free(siz);
+		free(cnt);
 
 
 		/* Draw dirents */
@@ -88,22 +105,20 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			
 			struct duc_dirent *e = duc_dir_read(dir);
 
-			if(cur == i) {
-				attrset(A_REVERSE);
-			} else {
-				attrset(0);
-			}
-				
+			attrset(cur == i ? A_REVERSE : 0);
 			mvhline(y, 0, ' ', cols);
 
 			if(e) {
 
 				off_t size = opt_apparent ? e->size_apparent : e->size_actual;
-
-				mvprintw(y, 1, " ");
 		
 				size_t max_size_len = opt_bytes ? 12 : 7;
 
+				char class = ' ';
+				if(opt_classify && e->type < sizeof(type_char)) {
+					class = type_char[e->type];
+				}
+				
 				if(opt_bytes) {
 					printw("%*jd", max_size_len, (intmax_t)size);
 				} else {
@@ -112,17 +127,24 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 					free(siz);
 				}
 
-				printw(" %s", e->name);
-				if(opt_classify && e->type < sizeof(type_char)) {
-					char c = type_char[e->type];
-					if(c) {
-						printw("%c", c);
-					}
+				if(cur != i) attron(A_BOLD);
+				printw(" %s%c", e->name, class);
+				attroff(A_BOLD);
+
+				int w = cols - 30;
+				if(w > cols / 2) w = cols / 2;
+				if(opt_graph && w > 2) {
+					int j;
+					off_t g = w * size / size_max;
+					mvprintw(y, cols - w - 4, " [");
+					for(j=0; j<w; j++) printw("%s", j < g ? "=" : " ");
+					printw("] ");
 				}
 
 			} else {
 
-				mvprintw(y, 1, "~");
+				attrset(A_DIM);
+				mvprintw(y, 0, "~");
 			}
 
 			y++;
@@ -143,6 +165,11 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case 'a': opt_apparent ^= 1; break;
 			case 'b': opt_bytes ^= 1; break;
 			case 'c': opt_classify ^= 1; break;
+			case 'g': opt_graph ^= 1; break;
+
+			case 27:
+			case 'q': 
+				  exit(0); break;
 
 			case KEY_BACKSPACE:
 			case KEY_LEFT:
