@@ -243,7 +243,8 @@ int ducrc_getopt(struct ducrc *ducrc, int *argc, char **argv[])
 
 	if(*argc > 1) optind = 2;
 
-	while( ( c = getopt_long(*argc, *argv, optstr, longopts, &idx)) != EOF) {
+	while( ( c = getopt_long(*argc, *argv, optstr, longopts, &idx)) != -1) {
+		if(c == '?') return -1;
 		handle_opt(ducrc, c, c ? 0 : longopts[idx].name, optarg);
 	}
 	

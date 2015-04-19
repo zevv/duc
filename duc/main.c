@@ -59,6 +59,8 @@ static struct ducrc_option global_options[] = {
 
 int main(int argc, char **argv)
 {
+	int r;
+
 	/* Open duc context */
 	
 	duc *duc = duc_new();
@@ -109,8 +111,12 @@ int main(int argc, char **argv)
 		ducrc_read(ducrc, tmp);
 	}
 	ducrc_read(ducrc, "./.ducrc");
-	ducrc_getopt(ducrc, &argc, &argv);
+	r = ducrc_getopt(ducrc, &argc, &argv);
 
+	if(r == -1) {
+		fprintf(stderr, "Try 'duc --help' for more information.\n");
+		exit(1);
+	}
 
 	/* Help requested ? */
 
@@ -131,7 +137,7 @@ int main(int argc, char **argv)
 
 	/* Handle command */
 
-	int r = cmd->main(duc, argc, argv);
+	r = cmd->main(duc, argc, argv);
 	if(r == -2) help_cmd(cmd);
 
 	
@@ -183,8 +189,8 @@ static void show_options(struct ducrc_option *o)
 static void help_cmd(struct cmd *cmd)
 {
 	if(cmd->usage) {
-		fprintf(stderr, "usage: duc %s %s\n", cmd->name, cmd->usage);
-		fprintf(stderr, "\n");
+		printf("usage: duc %s %s\n", cmd->name, cmd->usage);
+		printf("\n");
 	}
 	
 	printf("Options for the command '%s':\n", cmd->name);
@@ -208,8 +214,7 @@ static int help_main(duc *duc, int argc, char **argv)
 	if(cmd) {
 		help_cmd(cmd);
 	} else {
-		fprintf(stderr, 
-			"usage: duc <cmd> [options] [args]\n"
+		printf("usage: duc <cmd> [options] [args]\n"
 			"\n"
 			"Available subcommands:\n"
 			"\n"
@@ -220,13 +225,17 @@ static int help_main(duc *duc, int argc, char **argv)
 			struct cmd *c = cmd_list[i];
 
 			if(opt_all) {
-				fprintf(stderr, "duc %s %s: %s\n", c->name, c->usage, c->description);
+				printf("duc %s %s: %s\n", c->name, c->usage, c->description);
 				printf("\n");
 				show_options(c->options);
 				printf("\n");
 			} else {
-				fprintf(stderr, "  %-10.10s: %s\n", c->name, c->description);
+				printf("  %-10.10s: %s\n", c->name, c->description);
 			}
+		}
+
+		if(!opt_all) {
+			printf("\nUse 'duc help --all' for a complete list of all options for all subcommands.\n");
 		}
 	}
 
