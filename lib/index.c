@@ -210,7 +210,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t size_apparent = 0;
 		off_t size_actual = 0;
 		
-		if(S_ISDIR(st.st_mode)) {
+		if(e->d_type == DT_DIR) {
 			struct index_result res2 = { 0 };
 			index_dir(req, report, e->d_name, fd_dir, &st_dir, depth+1, &res2);
 			size_apparent += res2.size_apparent;
@@ -237,7 +237,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		
 			/* Hide file names? */
 
-			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && !S_ISDIR(st.st_mode)) {
+			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && e->d_type != DT_DIR) {
 				name = "<FILE>";
 			}
 
