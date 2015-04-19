@@ -137,9 +137,9 @@ Skipping lost+found: Permission denied
 Indexed 333823 files and 48200 directories, (35.0GB total) in 1 seconds
 ```
 
-The default location of the database is `$HOME/.duc.db`. To use a different database
-location, use the DUC_DATABASE environment variable or specify the database
-location with the --database argument.
+The default location of the database is `$HOME/.duc.db`. To use a different
+database location, use the DUC_DATABASE environment variable or specify the
+database location with the --database argument.
 
 You can run `duc index` at any time later to rebuild the index.
 
@@ -193,13 +193,17 @@ $ duc ls -RF /etc/logcheck
     89      ╰─ lirc
 ```
 
-For a graphical representation of the disk usage, use the command `duc graph`. This will create
-a .png image with the graph of the requested directory.
+For a graphical representation of the disk usage, use the command `duc graph`.
+This will create a .png image with the graph of the requested directory.
 
 
 #### Graphical user interface
 
-Run `duc gui` for an interactive graphical overview of your disk usage. Duc represents files and directories in a sunburst graph, which can be navigated by mouse: clicking on a directory redraws the graph from the perspective of the selected directory. Click in the center of the graph to go up one directory in the tree.
+Run `duc gui` for an interactive graphical overview of your disk usage. Duc
+represents files and directories in a sunburst graph, which can be navigated by
+mouse: clicking on a directory redraws the graph from the perspective of the
+selected directory. Click in the center of the graph to go up one directory in
+the tree.
 
 
 Mouse buttons:
@@ -224,6 +228,27 @@ backspace   cd ..
 ![rainbow](img/palette-rainbow.png)
 ![greyscale](img/palette-greyscale.png)
 ![monochrome](img/palette-monochrome.png)
+
+
+#### Ncurses console user interface
+
+Run 'duc ui' for the interactive console browser.
+
+Key bindings:
+
+```
+k, up, pgup:     move cursor up
+j, down, pgdn:   move cursor down
+h, left:         go up to parent directory (..)
+l, right, enter: descent into selected directory
+a:               toggle between actual and apparent disk usage
+b:               toggle between exact and abbreviated sizes
+g:               toggle graph
+q, escape:       quit
+```
+
+![ui](img/ui.png)
+
 
 #### CGI interfacing
 
