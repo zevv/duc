@@ -216,6 +216,17 @@ static int ui_main(duc *duc, int argc, char **argv)
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
+
+	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
+	if(r != DUC_OK) {
+		return -1;
+	}
+
+	duc_dir *dir = duc_dir_open(duc, path, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	if(dir == NULL) {
+		return -1;
+	}
+
 	initscr();
 	atexit(bye);
 	cbreak();
@@ -227,17 +238,6 @@ static int ui_main(duc *duc, int argc, char **argv)
 	start_color();
 	use_default_colors();
 	getmaxyx(stdscr, rows, cols);
-
-
-	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
-	if(r != DUC_OK) {
-		return -1;
-	}
-
-	duc_dir *dir = duc_dir_open(duc, path, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
-	if(dir == NULL) {
-		return -1;
-	}
 
 	do_dir(dir, 0);
 
