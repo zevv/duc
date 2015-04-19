@@ -44,11 +44,6 @@ duc_errno db_write_dir(struct duc_dir *dir)
 		
 	buffer_put_varint(b, dir->dev_parent);
 	buffer_put_varint(b, dir->ino_parent);
-	buffer_put_varint(b, dir->size_apparent_total);
-	buffer_put_varint(b, dir->size_actual_total);
-	buffer_put_varint(b, dir->file_count);
-	buffer_put_varint(b, dir->dir_count);
-
 
 	int i;
 	struct duc_dirent *ent = dir->ent_list;
@@ -101,13 +96,14 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino, duc_size_type
 
 	struct buffer *b = buffer_new(val, vall);
 
+	off_t size_apparent_total = 0;
+	off_t size_actual_total = 0;
+	size_t file_count = 0;
+	size_t dir_count = 0;
+
 	uint64_t v;
 	buffer_get_varint(b, &v); dir->dev_parent = v;
 	buffer_get_varint(b, &v); dir->ino_parent = v;
-	buffer_get_varint(b, &v); dir->size_apparent_total = v;
-	buffer_get_varint(b, &v); dir->size_actual_total = v;
-	buffer_get_varint(b, &v); dir->file_count = v;
-	buffer_get_varint(b, &v); dir->dir_count = v;
 	
 	while(b->ptr < b->len) {
 
@@ -122,16 +118,29 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino, duc_size_type
 		buffer_get_varint(b, &size_apparent);
 		buffer_get_varint(b, &size_actual);
 		buffer_get_varint(b, &type);
+
 		if(type == DT_DIR) {
 			buffer_get_varint(b, &dev);
 			buffer_get_varint(b, &ino);
+			dir_count ++;
+		} else {
+			file_count ++;
 		}
-	
+
 		if(name) {
 			duc_dir_add_ent(dir, name, size_apparent, size_actual, type, dev, ino);
 			free(name);
 		}
+
+		size_apparent_total += size_apparent;
+		size_actual_total += size_actual;
+	
 	}
+
+	dir->size_apparent_total = size_apparent_total;
+	dir->size_actual_total = size_actual_total;
+	dir->file_count = file_count;
+	dir->dir_count = dir_count;
 
 	buffer_free(b);
 
