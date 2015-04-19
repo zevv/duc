@@ -13,6 +13,9 @@ Duc maintains a database of accumulated sizes of directories of your file
 system, and allows you to query this database with some tools, or create fancy
 graphs showing you where your bytes are.
 
+Duc scales quite well, it has been tested on systems with more then 500 million
+files and several petabytes of storage. 
+
 ![Example](/img/example.png) 
 
 
