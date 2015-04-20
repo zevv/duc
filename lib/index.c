@@ -212,7 +212,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		 
 		unsigned char type = DT_UNKNOWN;
 
-		if(S_ISREG(st.st_mode))  type = DT_BLK;
+		if(S_ISBLK(st.st_mode))  type = DT_BLK;
 		if(S_ISCHR(st.st_mode))  type = DT_CHR;
 		if(S_ISDIR(st.st_mode))  type = DT_DIR;
 		if(S_ISFIFO(st.st_mode)) type = DT_FIFO;
