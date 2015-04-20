@@ -22,7 +22,8 @@ files and several petabytes of storage.
 ### Install
 
 Duc depends on the Tokyo Cabinet [1] database library, and on Cairo [2] and
-Pango [3] for writing graphs.
+Pango [3] for writing graphs. The ncurses library is required for the curses
+user interface.
 
 1. http://fallabs.com/tokyocabinet/
 2. http://cairographics.org/
@@ -34,7 +35,7 @@ pre-built package.
 Building and installing on Debian or Ubuntu:
 
 ```
-$ sudo apt-get install libcairo2-dev libpango1.0-dev libtokyocabinet-dev libtool autoconf automake build-essential
+$ sudo apt-get install libncurses5-dev libcairo2-dev libpango1.0-dev libtokyocabinet-dev libtool autoconf automake build-essential
 $ autoreconf --install
 $ ./configure
 $ make
