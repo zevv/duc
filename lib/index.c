@@ -205,12 +205,27 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			continue;
 		}
 
+		/* Find out the file type from st.st_mode. It seems that we can
+		 * not trust e->d_type because it is not guaranteed to contain
+		 * a sane value on all file system types. See the readdir() man
+		 * page for more details */
+		 
+		unsigned char type = DT_UNKNOWN;
+
+		if(S_ISREG(st.st_mode))  type = DT_BLK;
+		if(S_ISCHR(st.st_mode))  type = DT_CHR;
+		if(S_ISDIR(st.st_mode))  type = DT_DIR;
+		if(S_ISFIFO(st.st_mode)) type = DT_FIFO;
+		if(S_ISLNK(st.st_mode))  type = DT_LNK;
+		if(S_ISREG(st.st_mode )) type = DT_REG;
+		if(S_ISSOCK(st.st_mode)) type = DT_SOCK;
+
 		/* Calculate size, recursing when needed */
 
 		off_t size_apparent = 0;
 		off_t size_actual = 0;
 		
-		if(e->d_type == DT_DIR) {
+		if(type == DT_DIR) {
 			struct index_result res2 = { 0 };
 			index_dir(req, report, e->d_name, fd_dir, &st_dir, depth+1, &res2);
 			size_apparent += res2.size_apparent;
@@ -237,11 +252,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		
 			/* Hide file names? */
 
-			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && e->d_type != DT_DIR) {
+			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && type != DT_DIR) {
 				name = "<FILE>";
 			}
 
-			duc_dir_add_ent(dir, name, size_apparent, size_actual, e->d_type, st.st_dev, st.st_ino);
+			duc_dir_add_ent(dir, name, size_apparent, size_actual, type, st.st_dev, st.st_ino);
 		}
 
 		dir->size_apparent_total += size_apparent;
