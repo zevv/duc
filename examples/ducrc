@@ -1,7 +1,10 @@
+# this file should be placed in /etc/ducrc if you want it to be enforced globally,
+# or in ~/.ducrc if you only want it enforced for your personal user account.
 
 [global]
-
-
+  # If you plan to regularly run duc index / from cron, you'll want duc.db located
+  # someplace global - and with no faffing about with ENV!
+  database /var/cache/duc.db
 
 [ls]
 
