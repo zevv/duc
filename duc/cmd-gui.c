@@ -247,16 +247,6 @@ int gui_main(duc *duc, int argc, char *argv[])
 	return 0;
 }
 
-#else
-
-int gui_main(int argc, char *argv[])
-{
-	duc_log(NULL, DUC_LOG_WRN, "gui is not supported on this platform");
-	return -1;
-}
-
-#endif
-
 static struct ducrc_option options[] = {
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
@@ -264,6 +254,21 @@ static struct ducrc_option options[] = {
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
 	{ NULL }
 };
+
+
+#else
+
+int gui_main(int argc, char *argv[])
+{
+	duc_log(NULL, DUC_LOG_WRN, "'duc gui' is not supported on this platform");
+	return -1;
+}
+
+static struct ducrc_option options[] = {
+	{ NULL }
+};
+
+#endif
 
 struct cmd cmd_gui = {
 	.name = "gui",

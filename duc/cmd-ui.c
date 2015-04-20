@@ -10,12 +10,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#ifdef HAVE_LIBNCURSES
-#include <ncurses.h>
-#endif
 
 #include "cmd.h"
 #include "duc.h"
+
+#ifdef HAVE_LIBNCURSES
+
+#include <ncurses.h>
 
 
 static char type_char[] = {
@@ -247,13 +248,27 @@ static int ui_main(duc *duc, int argc, char **argv)
 	return 0;
 }
 
-
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
 };
+
+
+#else
+
+int ui_main(int argc, char *argv[])
+{
+	duc_log(NULL, DUC_LOG_WRN, "'duc ui' is not supported on this platform.");
+	return -1;
+}
+
+static struct ducrc_option options[] = {
+	{ NULL }
+};
+
+#endif
 
 struct cmd cmd_ui = {
 	.name = "ui",
