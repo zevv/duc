@@ -20,8 +20,8 @@
 
 static char *opt_database = NULL;
 static int opt_force = 0;          
-static int opt_hide_files = 0;     
-static int opt_maxdepth = 0;       
+static int opt_hide_file_names = 0;     
+static int opt_max_depth = 0;       
 static int opt_one_file_system = 0;
 static int opt_progress = 0;
 static int opt_uncompressed = 0;   
@@ -62,9 +62,9 @@ static int index_main(duc *duc, int argc, char **argv)
 	int open_flags = DUC_OPEN_RW | DUC_OPEN_COMPRESS;
 	
 	if(opt_force) open_flags |= DUC_OPEN_FORCE;
-	if(opt_maxdepth) duc_index_req_set_maxdepth(req, opt_maxdepth);
+	if(opt_max_depth) duc_index_req_set_maxdepth(req, opt_max_depth);
 	if(opt_one_file_system) index_flags |= DUC_INDEX_XDEV;
-	if(opt_hide_files) index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
+	if(opt_hide_file_names) index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
 	if(opt_uncompressed) open_flags &= ~DUC_OPEN_COMPRESS;
 	if(opt_progress) duc_index_req_set_progress_cb(req, progress_cb, NULL);
 
@@ -129,8 +129,8 @@ static struct ducrc_option options[] = {
 	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file ARG" },
 	{ &fn_exclude,          "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching ARG"  },
 	{ &opt_force,           "force",           'f', DUCRC_TYPE_BOOL,   "force writing in case of corrupted db" },
-	{ &opt_hide_files,      "hide-files",       0 , DUCRC_TYPE_BOOL,   "hide file names, index only directories" },
-	{ &opt_maxdepth,        "maxdepth",        'm', DUCRC_TYPE_INT,    "limit directory names to given depth" },
+	{ &opt_hide_file_names, "hide-file-names",  0 , DUCRC_TYPE_BOOL,   "hide file names in index (privacy)" },
+	{ &opt_max_depth,       "max-depth",       'm', DUCRC_TYPE_INT,    "limit directory names to given depth" },
 	{ &opt_one_file_system, "one-file-system", 'x', DUCRC_TYPE_BOOL,   "don't cross filesystem boundaries" },
 	{ &opt_progress,        "progress",        'p', DUCRC_TYPE_BOOL,   "show progress during indexing" },
 	{ &opt_uncompressed,    "uncompressed",     0 , DUCRC_TYPE_BOOL,   "do not use compression for database" },
