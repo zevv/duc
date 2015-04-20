@@ -1,6 +1,8 @@
 
 [global]
-
+  # you'll want to ensure duc always looks for duc.db someplace globally accessible
+  # if you plan to regularly run duc index from cron.  no faffing about with ENV!
+  database /var/cache/duc.db
 
 
 [ls]
