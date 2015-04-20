@@ -1,23 +1,49 @@
 
+#
+# This is an example configuration file for duc. Each section holds the options
+# for the duc subcommand with the same name. The [global] section holds options
+# which are passed to all subcommands.
+#
+# This example configuration file does not list all available options, but is
+# only ment as a starting point. For a list of available options and their
+# meaning, run 'duc help --all'.
+#
+
 [global]
 
+#
+# Enable the line below if you want to ensure duc always looks for duc.db
+# someplace globally accessible, for example if you plan to regularly run duc
+# index from cron.
+#
+
+# database /var/cache/duc.db
+
+#
+# Enable one of the options below to see more info during duc runs. 
+#
+
+# verbose
+# debug
 
 
 [ls]
 
-  recursive
-  classify
-  color
+recursive
+classify
+color
+
 
 [index]
 
-  exclude Cache
-  exclude .ccache
+exclude Cache
+exclude .ccache
+
 
 [gui]
 
-  fuzz 0.7
-  palette rainbow
-  levels 7
+fuzz 0.7
+palette rainbow
+levels 7
 
 
