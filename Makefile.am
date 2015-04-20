@@ -4,3 +4,6 @@ SUBDIRS = lib duc
 
 test:
 	fakeroot ./test-duc
+
+install-exec-hook:
+	-/sbin/ldconfig || :;
