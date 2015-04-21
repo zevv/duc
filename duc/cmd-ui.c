@@ -45,24 +45,24 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 {
 	int top = 0;
 	int cur = 0;
-	off_t size_max = 1;
-	duc_size_type size_type = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
-
-	/* Iterate all dirents to find largest size */
-
-	duc_dir_seek(dir, 0);
-
-	struct duc_dirent *e;
-	while( (e = duc_dir_read(dir, size_type)) != NULL) {
-		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
-		if(size > size_max) size_max = size;
-	}
 
 	for(;;) {
-		
+	
+		duc_size_type size_type = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
+		/* Iterate all dirents to find largest size */
+
+		duc_dir_seek(dir, 0);
+
+		off_t size_max = 1;
+		struct duc_dirent *e;
+		while( (e = duc_dir_read(dir, size_type)) != NULL) {
+			off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+			if(size > size_max) size_max = size;
+		}
+
 		int count = duc_dir_get_count(dir);
 		int pgsize = rows - 2;
-		size_type = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 		
 		/* Check boundaries */
 
@@ -86,8 +86,8 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		/* Draw footer */
 	
 		off_t size = duc_dir_get_size(dir, size_type);
-		char *siz = duc_human_size(size);
-		char *cnt = duc_human_size(count);
+		char *siz = duc_human_size(size, opt_bytes);
+		char *cnt = duc_human_size(count, opt_bytes);
 		attrset(A_REVERSE);
 		mvhline(rows-1, 0, ' ', cols);
 		mvprintw(rows-1, 0, " Total %sB in %s files/directories", siz, cnt);
@@ -121,13 +121,9 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 					class = type_char[e->type];
 				}
 				
-				if(opt_bytes) {
-					printw("%*jd", max_size_len, (intmax_t)size);
-				} else {
-					char *siz = duc_human_size(size);
-					printw("%*s", max_size_len, siz);
-					free(siz);
-				}
+				char *siz = duc_human_size(size, opt_bytes);
+				printw("%*s", max_size_len, siz);
+				free(siz);
 
 				if(cur != i) attron(A_BOLD);
 				printw(" %s%c", e->name, class);
