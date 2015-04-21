@@ -242,7 +242,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		report->size_actual += 512 * st.st_blocks;
 		size_actual += 512 * st.st_blocks;
 
-		duc_log(duc, DUC_LOG_DMP, "%s %jd %jd", e->d_name, size_apparent, size_actual);
+		duc_log(duc, DUC_LOG_DMP, "%jd %jd %s", size_apparent, size_actual, e->d_name);
 
 		/* Store record */
 

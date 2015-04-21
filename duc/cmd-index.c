@@ -91,7 +91,7 @@ static int index_main(duc *duc, int argc, char **argv)
 			continue;
 		}
 
-		char *siz_apperent = duc_human_size(report->size_actual);
+		char *siz_apparent = duc_human_size(report->size_apparent);
 		char *siz_actual = duc_human_size(report->size_actual);
 
 		if(r == DUC_OK) {
@@ -100,14 +100,14 @@ static int index_main(duc *duc, int argc, char **argv)
 					"Indexed %zu files and %zu directories, (%sB apparent, %sB actual) in %s", 
 					report->file_count, 
 					report->dir_count,
-					siz_apperent,
+					siz_apparent,
 					siz_actual,
 					s);
 			free(s);
 		} else {
 			duc_log(duc, DUC_LOG_WRN, "An error occured while indexing: %s", duc_strerror(duc));
 		}
-		free(siz_apperent);
+		free(siz_apparent);
 		free(siz_actual);
 
 		duc_index_report_free(report);
