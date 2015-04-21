@@ -29,6 +29,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino)
 	dir->size_actual_total = 0;
 	dir->ent_pool = 32768;
 	dir->ent_list = duc_malloc(dir->ent_pool);
+	dir->size_type = -1;
 
 	return dir;
 }
@@ -78,9 +79,9 @@ char *duc_dir_get_path(duc_dir *dir)
 
 
 
-duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e, duc_size_type st)
+duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
 {
-	duc_dir *dir2 = db_read_dir(dir->duc, e->dev, e->ino, st);
+	duc_dir *dir2 = db_read_dir(dir->duc, e->dev, e->ino);
 	if(dir2) {
 		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
 	}
@@ -88,14 +89,14 @@ duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e, duc_size_type st)
 }
 
 
-duc_dir *duc_dir_openat(duc_dir *dir, const char *name, duc_size_type st)
+duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 {
 	if(strcmp(name, "..") == 0) {
 		
 		/* Special case: go up one directory */
 
 		if(dir->dev_parent && dir->ino_parent) {
-			duc_dir *pdir = db_read_dir(dir->duc, dir->dev_parent, dir->ino_parent, st);
+			duc_dir *pdir = db_read_dir(dir->duc, dir->dev_parent, dir->ino_parent);
 			if(pdir == NULL) return NULL;
 			pdir->path = duc_strdup(dir->path);
 			dirname(pdir->path);
@@ -110,7 +111,7 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name, duc_size_type st)
 		struct duc_dirent *e = dir->ent_list;
 		for(i=0; i<dir->ent_count; i++) {
 			if(strcmp(e->name, name) == 0) {
-				return duc_dir_openent(dir, e, st);
+				return duc_dir_openent(dir, e);
 			}
 			e++;
 		}
@@ -138,7 +139,7 @@ struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name)
 
 
 
-duc_dir *duc_dir_open(struct duc *duc, const char *path, duc_size_type st)
+duc_dir *duc_dir_open(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
 
@@ -176,7 +177,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path, duc_size_type st)
 
 	struct duc_dir *dir;
 
-	dir = db_read_dir(duc, dev, ino, st);
+	dir = db_read_dir(duc, dev, ino);
 
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
@@ -196,7 +197,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path, duc_size_type st)
 		struct duc_dir *dir_next = NULL;
 
 		if(ent) {
-			dir_next = duc_dir_openent(dir, ent, st);
+			dir_next = duc_dir_openent(dir, ent);
 		}
 
 		duc_dir_close(dir);
@@ -212,9 +213,34 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path, duc_size_type st)
 }
 
 
-struct duc_dirent *duc_dir_read(duc_dir *dir)
+static int fn_comp_apparent(const void *a, const void *b)
 {
+	const struct duc_dirent *ea = a;
+	const struct duc_dirent *eb = b;
+	return(ea->size_apparent < eb->size_apparent);
+}
+
+
+static int fn_comp_actual(const void *a, const void *b)
+{
+	const struct duc_dirent *ea = a;
+	const struct duc_dirent *eb = b;
+	return(ea->size_actual < eb->size_actual);
+}
+
+
+struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st)
+{
+	int (*fn_comp)(const void *, const void *);
+
 	dir->duc->err = 0;
+		
+	if(dir->size_type != st) {
+		fn_comp = (st == DUC_SIZE_TYPE_APPARENT) ? fn_comp_apparent : fn_comp_actual;
+		qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp);
+		dir->size_type = st;
+	}
+
 	if(dir->ent_cur < dir->ent_count) {
 		struct duc_dirent *ent = &dir->ent_list[dir->ent_cur];
 		dir->ent_cur ++;

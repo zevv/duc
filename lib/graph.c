@@ -369,7 +369,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	size_t size_min = size_total;
 	size_t size_max = 0;
 
-	while( (e = duc_dir_read(dir)) != NULL) {
+	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
 		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
 		if(size < size_min) size_min = size;
 		if(size > size_max) size_max = size;
@@ -378,7 +378,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	/* Rewind and iterate the objects to graph */
 
 	duc_dir_rewind(dir);
-	while( (e = duc_dir_read(dir)) != NULL) {
+	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
 		
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
@@ -443,14 +443,14 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				double r = g->spot_r;
 
 				if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-					g->spot_dir = duc_dir_openent(dir, e, g->size_type);
+					g->spot_dir = duc_dir_openent(dir, e);
 				}
 			}
 
 			/* Recurse into subdirectories */
 
 			if(level+1 < g->max_level) {
-				duc_dir *dir_child = duc_dir_openent(dir, e, g->size_type);
+				duc_dir *dir_child = duc_dir_openent(dir, e);
 				if(!dir_child) continue;
 				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
 				duc_dir_close(dir_child);
@@ -614,7 +614,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 	
 		/* If clicked in the center, go up one directory */
 
-		dir2 = duc_dir_openat(dir, "..", g->size_type);
+		dir2 = duc_dir_openat(dir, "..");
 
 	} else {
 

@@ -244,7 +244,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_dir *dir = NULL;
 	char *path = cgi_get("path");
 	if(path) {
-		dir = duc_dir_open(duc, path, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+		dir = duc_dir_open(duc, path);
 		if(dir == NULL) {
 			duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
 			return 0;
@@ -266,6 +266,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_palette(graph, palette);
+	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);

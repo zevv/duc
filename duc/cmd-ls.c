@@ -71,6 +71,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	off_t max_size = 0;
 	int max_name_len = 0;
 	int max_size_len = 6;
+	duc_size_type size_type = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 	if(level > opt_levels) return;
 
@@ -79,7 +80,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	/* Iterate the directory once to get maximum file size and name length */
 	
 	struct duc_dirent *e;
-	while( (e = duc_dir_read(dir)) != NULL) {
+	while( (e = duc_dir_read(dir, size_type)) != NULL) {
 
 		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
 
@@ -99,7 +100,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	size_t count = duc_dir_get_count(dir);
 	size_t n = 0;
 
-	while( (e = duc_dir_read(dir)) != NULL) {
+	while( (e = duc_dir_read(dir, size_type)) != NULL) {
 
 		if(opt_dirs_only && e->type != DT_DIR) continue;
 
@@ -161,7 +162,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 			} else {
 				prefix[level] = 4;
 			}
-			duc_dir *dir2 = duc_dir_openent(dir, e, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+			duc_dir *dir2 = duc_dir_openent(dir, e);
 			if(dir2) {
 				ls_one(dir2, level+1, prefix);
 				duc_dir_close(dir2);
@@ -201,7 +202,7 @@ static int ls_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_dir *dir = duc_dir_open(duc, path, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
 		return -1;
 	}

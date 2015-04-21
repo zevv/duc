@@ -41,6 +41,7 @@ struct duc_dir {
 	size_t ent_cur;
 	size_t ent_count;
 	size_t ent_pool;
+	duc_size_type size_type;
 };
 
 void *duc_malloc(size_t s);
