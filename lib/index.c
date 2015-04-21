@@ -40,6 +40,8 @@ struct duc_index_req {
 };
 
 struct index_result {
+	size_t file_count;
+	size_t dir_count;
 	off_t size_actual;
 	off_t size_apparent;
 };
@@ -124,9 +126,8 @@ static int match_list(const char *name, struct list *l)
 static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, int fd_parent, struct stat *st_parent, int depth, struct index_result *res)
 {
 	struct duc *duc = req->duc;
-	off_t dir_size_apparent = 0;
-	off_t dir_size_actual = 0;
-
+		
+	duc_log(duc, DUC_LOG_DMP, ">> %s", path);
 
 	/* Open dir and read file status */
 
@@ -220,29 +221,33 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		if(S_ISREG(st.st_mode )) type = DT_REG;
 		if(S_ISSOCK(st.st_mode)) type = DT_SOCK;
 
-		/* Calculate size, recursing when needed */
+		/* Calculate size of this dirent, recursing when needed */
 
-		off_t size_apparent = 0;
-		off_t size_actual = 0;
+		off_t ent_size_apparent;
+		off_t ent_size_actual;
 		
 		if(type == DT_DIR) {
 			struct index_result res2 = { 0 };
 			index_dir(req, report, e->d_name, fd_dir, &st_dir, depth+1, &res2);
-			size_apparent += res2.size_apparent;
-			size_actual += res2.size_actual;
-			dir->dir_count ++;
-			report->dir_count ++;
+
+			ent_size_apparent = res2.size_apparent + 512 * st.st_blocks;
+			ent_size_actual = res2.size_actual + 512 * st.st_blocks;
+
+			res->dir_count += res2.dir_count;
+			res->file_count += res2.file_count;
 		} else {
-			size_apparent = st.st_size;
-			dir->file_count ++;
-			report->file_count ++;
-			report->size_apparent += st.st_size;
+			ent_size_apparent = st.st_size;
+			ent_size_actual = 512 * st.st_blocks;
+
+			res->file_count ++;
 		}
+		
+		res->size_apparent += ent_size_apparent;
+		res->size_actual += ent_size_actual;
 
-		report->size_actual += 512 * st.st_blocks;
-		size_actual += 512 * st.st_blocks;
-
-		duc_log(duc, DUC_LOG_DMP, "%jd %jd %s", size_apparent, size_actual, e->d_name);
+		duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
+				(type == DT_DIR) ? 'd' : 'f',
+				ent_size_apparent, ent_size_actual, e->d_name);
 
 		/* Store record */
 
@@ -256,24 +261,21 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 				name = "<FILE>";
 			}
 
-			duc_dir_add_ent(dir, name, size_apparent, size_actual, type, st.st_dev, st.st_ino);
+			duc_dir_add_ent(dir, name, ent_size_apparent, ent_size_actual, type, st.st_dev, st.st_ino);
 		}
 
-		dir->size_apparent_total += size_apparent;
-		dir->size_actual_total += size_actual;
 
-		dir_size_apparent += size_apparent;
-		dir_size_actual += size_actual;
 	}
+	
+	res->dir_count ++;
+
+	duc_log(duc, DUC_LOG_DMP, "<< %s files:%jd dirs:%jd actual:%jd apparent:%jd", 
+			path, res->file_count, res->dir_count, res->size_apparent, res->size_actual);
 		
 	db_write_dir(dir);
 	duc_dir_close(dir);
 
 	closedir(d);
-
-	res->size_apparent = dir_size_apparent;
-	res->size_actual = dir_size_actual;
-
 	
 	/* Progress reporting */
 
@@ -332,6 +334,8 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
 	report->size_apparent = res.size_apparent;
 	report->size_actual = res.size_actual;
+	report->dir_count = res.dir_count;
+	report->file_count = res.file_count;
 	gettimeofday(&report->time_stop, NULL);
 
 	/* Store report */

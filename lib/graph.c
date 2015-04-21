@@ -54,6 +54,7 @@ struct duc_graph {
 	enum duc_graph_palette palette;
 	size_t max_name_len;
 	duc_size_type size_type;
+	int bytes;
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
@@ -150,6 +151,11 @@ void duc_graph_set_size_type(duc_graph *g, duc_size_type st)
 	g->size_type = st;
 }
 
+
+void duc_graph_set_exact_bytes(duc_graph *g, int exact)
+{
+	g->bytes = exact;
+}
 
 static void pol2car(duc_graph *g, double a, double r, int *x, int *y)
 {
@@ -469,7 +475,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 				off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
 
-				char *siz = duc_human_size(size);
+				char *siz = duc_human_size(size, g->bytes);
 				char *typ = type_name[e->type];
 				if(typ == NULL) typ = "unknown";
 				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
@@ -490,7 +496,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				
 				off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
 
-				char *siz = duc_human_size(size);
+				char *siz = duc_human_size(size, g->bytes);
 				char *name = duc_strdup(e->name);
 				shorten_name(name, g->max_name_len);
 
@@ -583,7 +589,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	draw_text(cr, g->cx, 10, FONT_SIZE_LABEL, p);
 	free(p);
 
-	char *siz = duc_human_size(duc_dir_get_size(dir, g->size_type));
+	char *siz = duc_human_size(duc_dir_get_size(dir, g->size_type), g->bytes);
 	draw_text(cr, g->cx, g->cy, 14, siz);
 	free(siz);
 

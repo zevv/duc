@@ -14,6 +14,7 @@
 #include "cmd.h"
 #include "duc.h"
 	
+static int opt_bytes = 0;
 static char *opt_database = NULL;
 
 static int info_db(duc *duc, char *file) 
@@ -33,7 +34,7 @@ static int info_db(duc *duc, char *file)
 		struct tm *tm = localtime(&report->time_start.tv_sec);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
-		char *siz = duc_human_size(report->size_actual);
+		char *siz = duc_human_size(report->size_actual, opt_bytes);
 		printf("  %s %7.7s %s\n", ts, siz, report->path);
 		free(siz);
 
@@ -69,6 +70,7 @@ static int info_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
+	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
 };

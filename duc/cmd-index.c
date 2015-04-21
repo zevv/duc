@@ -18,6 +18,7 @@
 #include "ducrc.h"
 
 
+static int opt_bytes = 0;
 static char *opt_database = NULL;
 static int opt_force = 0;          
 static int opt_hide_file_names = 0;     
@@ -43,9 +44,9 @@ void progress_cb(struct duc_index_report *rep, void *ptr)
 	meter[7 - abs(n-7)] = '#';
 	n = (n+1) % 14;
 
-	char *siz = duc_human_size(rep->size_actual);
-	char *fs = duc_human_size(rep->file_count);
-	char *ds = duc_human_size(rep->dir_count);
+	char *siz = duc_human_size(rep->size_actual, opt_bytes);
+	char *fs = duc_human_size(rep->file_count, opt_bytes);
+	char *ds = duc_human_size(rep->dir_count, opt_bytes);
 
 	printf("\e[K[%s] Indexed %sb in %s files and %s directories\r", meter, siz, fs, ds);
 	fflush(stdout);
@@ -91,8 +92,8 @@ static int index_main(duc *duc, int argc, char **argv)
 			continue;
 		}
 
-		char *siz_apparent = duc_human_size(report->size_apparent);
-		char *siz_actual = duc_human_size(report->size_actual);
+		char *siz_apparent = duc_human_size(report->size_apparent, opt_bytes);
+		char *siz_actual = duc_human_size(report->size_actual, opt_bytes);
 
 		if(r == DUC_OK) {
 			char *s = duc_human_duration(report->time_start, report->time_stop);
@@ -126,6 +127,7 @@ static void fn_exclude(const char *val)
 
 
 static struct ducrc_option options[] = {
+	{ &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file ARG" },
 	{ &fn_exclude,          "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching ARG"  },
 	{ &opt_force,           "force",           'f', DUCRC_TYPE_BOOL,   "force writing in case of corrupted db" },

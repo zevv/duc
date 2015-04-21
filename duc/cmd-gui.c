@@ -18,7 +18,8 @@
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
-	
+
+static int opt_bytes;
 static char *opt_database = NULL;
 static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
@@ -66,6 +67,7 @@ static void draw(void)
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_max_name_len(graph, 30);
 	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_exact_bytes(graph, opt_bytes);
 	duc_graph_draw_cairo(graph, dir, cr);
 	cairo_destroy(cr);
 
@@ -107,6 +109,7 @@ static void handle_event(XEvent e)
 			if(k == XK_Escape) exit(0);
 			if(k == XK_q) exit(0);
 			if(k == XK_a) opt_apparent = !opt_apparent;
+			if(k == XK_b) opt_bytes = !opt_bytes;
 			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
 			if(k == XK_p) {
 				palette = (palette + 1) % 4;
@@ -249,6 +252,7 @@ int gui_main(duc *duc, int argc, char *argv[])
 
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
+	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },

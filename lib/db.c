@@ -121,8 +121,8 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 	
 	}
 
-	dir->size_apparent_total = size_apparent_total;
-	dir->size_actual_total = size_actual_total;
+	dir->size_apparent = size_apparent_total;
+	dir->size_actual = size_actual_total;
 	dir->file_count = file_count;
 	dir->dir_count = dir_count;
 

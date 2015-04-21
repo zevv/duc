@@ -34,8 +34,8 @@ struct duc_dir {
 	ino_t ino_parent;
 	char *path;
 	struct duc_dirent *ent_list;
-	off_t size_apparent_total;
-	off_t size_actual_total;
+	off_t size_apparent;
+	off_t size_actual;
 	size_t file_count;
 	size_t dir_count;
 	size_t ent_cur;

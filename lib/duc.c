@@ -163,14 +163,14 @@ const char *duc_strerror(duc *duc)
 }
 
 
-char *duc_human_size(off_t size)
+char *duc_human_size(off_t size, int exact)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	double v = size;
 	char *p = prefix;
 
 	char *s;
-	if(size < 1024) {
+	if(exact || size < 1024) {
 		asprintf(&s, "%jd", size);
 	} else {
 		while(v >= 1000.0) {
