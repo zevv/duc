@@ -167,7 +167,7 @@ static void show_options(struct ducrc_option *o)
 {
 	while(o && o->longopt) {
 		char s[4] = "";
-		char l[16] = "";
+		char l[20] = "";
 
 		if(o->shortopt) snprintf(s, sizeof(s), "-%c,", o->shortopt); 
 
