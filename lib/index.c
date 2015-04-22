@@ -217,20 +217,6 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			continue;
 		}
 
-		/* Check for hard link duplicates in hash table */
-
-		if(req->flags & DUC_INDEX_CHECK_HARD_LINKS) {
-
-			struct { dev_t dev; ino_t ino; } key = { st.st_dev, st.st_ino };
-			int l;
-
-			const void *ptr = tcmapget(req->dev_ino_map, &key, sizeof(key), &l);
-
-			if(ptr)
-				continue;
-
-			tcmapput(req->dev_ino_map, &key, sizeof(key), "", 0);
-		}
 
 		/* Find out the file type from st.st_mode. It seems that we can
 		 * not trust e->d_type because it is not guaranteed to contain
@@ -246,6 +232,24 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		if(S_ISLNK(st.st_mode))  type = DT_LNK;
 		if(S_ISREG(st.st_mode )) type = DT_REG;
 		if(S_ISSOCK(st.st_mode)) type = DT_SOCK;
+
+
+		/* Skip hard link duplicates for any files with more then one hard link */
+
+		if((req->flags & DUC_INDEX_CHECK_HARD_LINKS) && 
+		   (type != DT_DIR) &&
+		   (st.st_nlink > 1)) {
+
+			struct { dev_t dev; ino_t ino; } key = { st.st_dev, st.st_ino };
+			int l;
+
+			if(tcmapget(req->dev_ino_map, &key, sizeof(key), &l)) {
+				continue;
+			}
+
+			tcmapput(req->dev_ino_map, &key, sizeof(key), "", 0);
+		}
+
 
 		/* Calculate size of this dirent, recursing when needed */
 
