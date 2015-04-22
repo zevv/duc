@@ -46,6 +46,13 @@ struct index_result {
 	off_t size_apparent;
 };
 
+
+static char typechar[] = {
+	[DT_BLK] = 'b', [DT_CHR] = 'c', [DT_DIR]  = 'd', [DT_FIFO]    = 'f',
+	[DT_LNK] = 'l', [DT_REG] = 'r', [DT_SOCK] = 's', [DT_UNKNOWN] = 'u',
+};
+
+
 duc_index_req *duc_index_req_new(duc *duc)
 {
 	struct duc_index_req *req = duc_malloc(sizeof(struct duc_index_req));
@@ -223,22 +230,19 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 		/* Calculate size of this dirent, recursing when needed */
 
-		off_t ent_size_apparent;
-		off_t ent_size_actual;
+		off_t ent_size_apparent = st.st_size;
+		off_t ent_size_actual = 512 * st.st_blocks;
 		
 		if(type == DT_DIR) {
 			struct index_result res2 = { 0 };
 			index_dir(req, report, e->d_name, fd_dir, &st_dir, depth+1, &res2);
 
-			ent_size_apparent = res2.size_apparent + 512 * st.st_blocks;
-			ent_size_actual = res2.size_actual + 512 * st.st_blocks;
-
+			ent_size_apparent += res2.size_apparent;
+			ent_size_actual += res2.size_actual;
 			res->dir_count += res2.dir_count;
 			res->file_count += res2.file_count;
+			res->dir_count ++;
 		} else {
-			ent_size_apparent = st.st_size;
-			ent_size_actual = 512 * st.st_blocks;
-
 			res->file_count ++;
 		}
 		
@@ -246,8 +250,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		res->size_actual += ent_size_actual;
 
 		duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
-				(type == DT_DIR) ? 'd' : 'f',
-				ent_size_apparent, ent_size_actual, e->d_name);
+				typechar[type], ent_size_apparent, ent_size_actual, e->d_name);
 
 		/* Store record */
 
@@ -266,8 +269,6 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 
 	}
-	
-	res->dir_count ++;
 
 	duc_log(duc, DUC_LOG_DMP, "<< %s files:%jd dirs:%jd actual:%jd apparent:%jd", 
 			path, res->file_count, res->dir_count, res->size_apparent, res->size_actual);
