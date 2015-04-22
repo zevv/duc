@@ -24,8 +24,9 @@ typedef enum {
 
 
 typedef enum {
-	DUC_INDEX_XDEV            = 1<<0, /* Do not cross device boundaries while indexing */
-	DUC_INDEX_HIDE_FILE_NAMES = 1<<1, /* Hide file names */
+	DUC_INDEX_XDEV             = 1<<0, /* Do not cross device boundaries while indexing */
+	DUC_INDEX_HIDE_FILE_NAMES  = 1<<1, /* Hide file names */
+	DUC_INDEX_CHECK_HARD_LINKS = 1<<2, /* Count hard links only once during indexing */
 } duc_index_flags;
 
 typedef enum {

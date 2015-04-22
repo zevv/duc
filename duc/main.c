@@ -177,7 +177,7 @@ static void show_options(struct ducrc_option *o)
 			snprintf(l, sizeof(l), "%s", o->longopt);
 		}
 
-		printf("  %-4.4s --%-16.16s", s, l);
+		printf("  %-4.4s --%-20.20s", s, l);
 		if(o->description) printf("%s", o->description); 
 		printf("\n");
 

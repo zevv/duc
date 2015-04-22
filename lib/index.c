@@ -16,6 +16,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <tcutil.h>
 #ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
 #endif
@@ -37,6 +38,7 @@ struct duc_index_req {
 	int progress_n;
 	struct timeval progress_interval;
 	struct timeval progress_time;
+	TCMAP *dev_ino_map;
 };
 
 struct index_result {
@@ -61,6 +63,7 @@ duc_index_req *duc_index_req_new(duc *duc)
 	req->duc = duc;
 	req->progress_interval.tv_sec = 0;
 	req->progress_interval.tv_usec = 100 * 1000;
+	req->dev_ino_map = tcmapnew();
 
 	return req;
 }
@@ -68,6 +71,7 @@ duc_index_req *duc_index_req_new(duc *duc)
 
 int duc_index_req_free(duc_index_req *req)
 {
+	tcmapdel(req->dev_ino_map);
 	list_free(req->exclude_list, free);
 	list_free(req->path_list, free);
 	free(req);
@@ -211,6 +215,21 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", e->d_name, strerror(errno));
 			continue;
+		}
+
+		/* Check for hard link duplicates in hash table */
+
+		if(req->flags & DUC_INDEX_CHECK_HARD_LINKS) {
+
+			struct { dev_t dev; ino_t ino; } key = { st.st_dev, st.st_ino };
+			int l;
+
+			const void *ptr = tcmapget(req->dev_ino_map, &key, sizeof(key), &l);
+
+			if(ptr)
+				continue;
+
+			tcmapput(req->dev_ino_map, &key, sizeof(key), "", 0);
 		}
 
 		/* Find out the file type from st.st_mode. It seems that we can
