@@ -145,11 +145,15 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_index = {
 	.name = "index",
-	.description = "Index filesystem",
+	.descr_short = "Scan the filesystem and generate the Duc index",
 	.usage = "[options] PATH ...",
 	.init = index_init,
 	.main = index_main,
 	.options = options,
+	.descr_long = 
+		"The 'index' subcommand performs a recursive scan of the given paths on the\n"
+		"filesystem and calculates the inclusive size of all directories. The results\n"
+		"are written to the index, and can later be queried by one of the other duc tools.\n"
 };
 
 /*

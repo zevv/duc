@@ -269,10 +269,26 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_ui = {
 	.name = "ui",
-	.description = "interactive ncurses user interface",
+	.descr_short = "Interactive ncurses user interface",
 	.usage = "[options] [PATH]",
 	.main = ui_main,
 	.options = options,
+	.descr_long = 
+		"The 'gui' subcommand queries the duc database and runs an interactive ncurses\n"
+		"utility for exploring the disk usage of the given path. If no path is given the\n"
+		"current working directory is explored.\n"
+		"\n"
+		"The following keys can be used to navigate and alter the file system:\n"
+		"\n"
+		"  k, up, pgup:     move cursor up\n"
+		"  j, down, pgdn:   move cursor down\n"
+		"  h, left:         go up to parent directory (..)\n"
+		"  l, right, enter: descent into selected directory\n"
+		"  a:               toggle between actual and apparent disk usage\n"
+		"  b:               toggle between exact and abbreviated sizes\n"
+		"  g:               toggle graph\n"
+		"  q, escape:       quit\n"
+
 };
 
 

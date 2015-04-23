@@ -11,7 +11,8 @@ struct cmd {
 	char *name;
 	int (*init)(duc *duc, int argc, char **argv);
 	int (*main)(duc *duc, int argc, char **argv);
-	char *description;
+	char *descr_short;
+	char *descr_long;
 	char *usage;
 	struct ducrc_option *options;
 };

@@ -277,10 +277,26 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_gui = {
 	.name = "gui",
-	.description = "Graphical interface",
+	.descr_short = "Interactive X11 graphical interface",
 	.usage = "[options] [PATH]",
 	.main = gui_main,
 	.options = options,
+	.descr_long = 
+		"The 'gui' subcommand queries the duc database and runs an interactive graphical\n"
+		"utility for exploring the disk usage of the given path. If no path is given the\n"
+		"current working directory is explored.\n"
+		"\n"
+		"The following keys can be used to navigate and alter the graph:\n"
+		"\n"
+		"  +           increase maximum graph depth\n"
+		"  -           decrease maximum graph depth\n"
+		"  0           Set default graph depth\n"
+		"  a           Toggle between apparent and actual disk usage\n"
+		"  b           Toggle between exact byte count and abbreviated sizes\n"
+		"  p           toggle palettes\n"
+		"  f           toggle graph fuzz\n"
+		"  backspace   go up one directory\n"
+
 };
 
 

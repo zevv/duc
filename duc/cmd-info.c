@@ -78,7 +78,7 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_info = {
 	.name = "info",
-	.description = "Dump database info",
+	.descr_short = "Dump database info",
 	.usage = "[options]",
 	.main = info_main,
 	.options = options,

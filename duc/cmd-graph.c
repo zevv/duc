@@ -112,10 +112,18 @@ static struct ducrc_option options[] = {
 	
 struct cmd cmd_graph = {
 	.name = "graph",
-	.description = "Draw graph",
+	.descr_short = "Generate a sunburst graph for a given path",
 	.usage = "[options] [PATH]",
 	.main = graph_main,
 	.options = options,
+	.descr_long = 
+		"The 'graph' subcommand queries the duc database and generates a sunburst graph\n"
+		"showing the disk usage of the given path. If no path is given a graph is created\n"
+		"for the current working directory.\n"
+		"\n"
+		"By default the graph is written to the file 'duc.png', which can be overridden by\n"
+		"using the -o/--output option. The output can be sent to stdout by using the special\n"
+		"file name '-'.\n"
 };
 
 /*

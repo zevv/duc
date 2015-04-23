@@ -230,10 +230,14 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_ls = {
 	.name = "ls",
-	.description = "List directory",
+	.descr_short = "List sizes of directory",
 	.usage = "[options] [PATH]",
 	.main = ls_main,
 	.options = options,
+	.descr_long = 
+		"The 'ls' subcommand queries the duc database and lists the inclusive size of\n"
+		"all files and directories on the given path. If no path is given the current\n"
+		"working directory is listed.\n"
 };
 
 

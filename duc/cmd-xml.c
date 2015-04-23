@@ -117,7 +117,7 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_xml = {
 	.name = "xml",
-	.description = "Dump XML output",
+	.descr_short = "Dump XML output",
 	.usage = "[options] [PATH]",
 	.main = xml_main,
 	.options = options,

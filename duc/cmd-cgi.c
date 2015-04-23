@@ -292,7 +292,7 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_cgi = {
 	.name = "cgi",
-	.description = "CGI interface",
+	.descr_short = "CGI interface wrapper",
 	.usage = "[options] [PATH]",
 	.main = cgi_main,
 	.options = options,
