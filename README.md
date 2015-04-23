@@ -62,7 +62,7 @@ maintain and query the disk usage database.  run `duc help` to get a list of
 available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand.
 
-Extensive documentation is availabel in the ![manual page](doc/duc.1.man)
+Extensive documentation is availabel in the ![manual page](doc/duc.md)
 
 
 
