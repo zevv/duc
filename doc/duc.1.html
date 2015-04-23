@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>duc(1) - index, query and graph disk usage</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#USAGE">USAGE</a>
+    <a href="#CREATING-THE-INDEX">CREATING THE INDEX</a>
+    <a href="#QUERYING-THE-INDEX">QUERYING THE INDEX</a>
+    <a href="#OPTIONS">OPTIONS</a>
+    <a href="#CGI-INTERFACING">CGI INTERFACING</a>
+    <a href="#A-NOTE-ON-FILE-SIZE-AND-DISK-USAGE">A NOTE ON FILE SIZE AND DISK USAGE</a>
+    <a href="#EXAMPLES">EXAMPLES</a>
+    <a href="#FILES">FILES</a>
+    <a href="#AUTHORS">AUTHORS</a>
+    <a href="#LICENSE">LICENSE</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>duc(1)</li>
+    <li class='tc'></li>
+    <li class='tr'>duc(1)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>duc</code> - <span class="man-whatis">index, query and graph disk usage</span>
+</p>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<p><code>duc</code> <var>subcommand</var> <a href="#OPTIONS" title="OPTIONS" data-bare-link="true">options</a></p>
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p>Duc is a collection of tools for inspecting and visualizing disk usage.</p>
+
+<p>Duc maintains an indexed database of accumulated sizes of directories of your
+file system, and allows you to query this database with some tools, or create
+fancy sunburst graphs to show you where your bytes are.</p>
+
+<p>Duc scales quite well, it has been tested on systems with more then 500 million
+files and several petabytes of storage.</p>
+
+<h2 id="USAGE">USAGE</h2>
+
+<p>Duc comes with a command line tool called <code>duc</code>, which is used to create,
+maintain and query the disk usage database.  run <code>duc help</code> to get a list of
+available commands. <code>duc help &lt;subcommand></code> describes the usage of a specific
+subcommand. Run <code>duc help --all</code> for an extensive list of all commands and
+their options.</p>
+
+<p>Duc allows any option to be placed either on the command line or in a
+configuration file. Options on the command line are preceded by a
+double-leading-dash (<code>--option</code>), some options have a corresponding short
+option which can be used as well with a single leading dash. (<code>-o</code>)</p>
+
+<p>At startup duc tries to read its configuration from three locations in this
+particular order: <code>/etc/ducrc</code>, <code>~/.ducrc</code> and <code>./.ducrc</code>.</p>
+
+<p>A configuration file consists of sections and parameters. The section names
+correspond to the duc subcommands for which the parameters in that section
+apply. A section begins with the name of the section in square brackets and
+continues until the next section begins.Sections contain parameters, one per
+line, which consist of a single option name for boolean flags, or a option name
+and a value for options which take a value. See the EXAMPLES section for an
+example of the configuration file format.</p>
+
+<h2 id="CREATING-THE-INDEX">CREATING THE INDEX</h2>
+
+<p>Duc needs an index file of the file system before it is able to show any
+information.  To create the index, run the <code>duc index</code> command. For example, to
+create an index of your home directory run <code>duc index ~</code></p>
+
+<pre><code>$ duc index /usr
+Skipping lost+found: Permission denied
+Indexed 333823 files and 48200 directories, (35.0GB total) in 1 seconds
+</code></pre>
+
+<p>The default location of the database is <code>$HOME/.duc.db</code>. To use a different
+database location, use the DUC_DATABASE environment variable or specify the
+database location with the --database argument.</p>
+
+<p>You can run <code>duc index</code> at any time later to rebuild the index.</p>
+
+<h2 id="QUERYING-THE-INDEX">QUERYING THE INDEX</h2>
+
+<p>Duc has various subcommands for querying or exploring the index:</p>
+
+<ul>
+<li><p><code>duc info</code> shows a list of available directory trees in the database, and the time
+and date of the last scan.</p></li>
+<li><p><code>duc ls</code> lists all files and directories under the given path on the console.</p></li>
+<li><p><code>duc ui</code> runs a ncurses based console user interface for exploring the file
+system usage</p></li>
+<li><p><code>duc gui</code> starts a graphical (X11) interface representing the file system in
+a sunburst graph. Click on a directory to redraw the graph from the
+perspective of the selected directory. Click in the center of the graph to go
+up one directory in the tree.</p></li>
+</ul>
+
+
+<h2 id="OPTIONS">OPTIONS</h2>
+
+<p>This section list all available subcommands and describes their usage and options.</p>
+
+<h3 id="Global-options">Global options</h3>
+
+<pre><code>These options apply to all Duc subcommands:
+</code></pre>
+
+<dl>
+<dt class="flush"><code>--debug</code></dt><dd><p>increase verbosity to debug level</p></dd>
+<dt><code>-h</code>, <code>--help</code></dt><dd><p>show help</p></dd>
+<dt><code>-q</code>, <code>--quiet</code></dt><dd><p>quiet mode, do not print any warning</p></dd>
+<dt><code>-v</code>, <code>--verbose</code></dt><dd><p>increase verbosity</p></dd>
+</dl>
+
+
+<h3 id="duc-cgi">duc cgi</h3>
+
+<p>Options for command <code>duc cgi [options] [PATH]</code>:</p>
+
+<dl>
+<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>Show apparent instead of actual file size</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
+<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
+<dt><code>-o</code>, <code>--output=VAL</code></dt><dd><p>output file name [duc.png]</p></dd>
+<dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
+<dt><code>-s</code>, <code>--size=VAL</code></dt><dd><p>image size [800]</p></dd>
+</dl>
+
+
+<h3 id="duc-graph">duc graph</h3>
+
+<pre><code>The 'graph' subcommand queries the duc database and generates a sunburst graph
+showing the disk usage of the given path. If no path is given a graph is created
+for the current working directory.
+
+By default the graph is written to the file 'duc.png', which can be overridden by
+using the -o/--output option. The output can be sent to stdout by using the special
+file name '-'.
+</code></pre>
+
+<p>Options for command <code>duc graph [options] [PATH]</code>:</p>
+
+<dl>
+<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>Show apparent instead of actual file size</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>-f</code>, <code>--format=VAL</code></dt><dd><p>select output format <var>png|svg|pdf</var> [png]</p></dd>
+<dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
+<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
+<dt><code>-o</code>, <code>--output=VAL</code></dt><dd><p>output file name [duc.png]</p></dd>
+<dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
+<dt><code>-s</code>, <code>--size=VAL</code></dt><dd><p>image size [800]</p></dd>
+</dl>
+
+
+<h3 id="duc-gui">duc gui</h3>
+
+<pre><code>The 'gui' subcommand queries the duc database and runs an interactive graphical
+utility for exploring the disk usage of the given path. If no path is given the
+current working directory is explored.
+
+The following keys can be used to navigate and alter the graph:
+
+  +           increase maximum graph depth
+  -           decrease maximum graph depth
+  0           Set default graph depth
+  a           Toggle between apparent and actual disk usage
+  b           Toggle between exact byte count and abbreviated sizes
+  p           toggle palettes
+  f           toggle graph fuzz
+  backspace   go up one directory
+</code></pre>
+
+<p>Options for command <code>duc gui [options] [PATH]</code>:</p>
+
+<dl>
+<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
+<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph</p></dd>
+<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
+<dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
+</dl>
+
+
+<h3 id="duc-help">duc help</h3>
+
+<p>Options for command <code>duc help [options]</code>:</p>
+
+<dl>
+<dt><code>-a</code>, <code>--all</code></dt><dd>show complete help for all commands</dd>
+</dl>
+
+
+<h3 id="duc-index">duc index</h3>
+
+<pre><code>The 'index' subcommand performs a recursive scan of the given paths on the
+filesystem and calculates the inclusive size of all directories. The results
+are written to the index, and can later be queried by one of the other duc tools.
+</code></pre>
+
+<p>Options for command <code>duc index [options] PATH ...</code>:</p>
+
+<dl>
+<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>use database file ARG</p></dd>
+<dt><code>-e</code>, <code>--exclude=VAL</code></dt><dd><p>exclude files matching ARG</p></dd>
+<dt><code>-H</code>, <code>--check-hard-links</code></dt><dd><p>count hard links only once</p></dd>
+<dt><code>-f</code>, <code>--force</code></dt><dd><p>force writing in case of corrupted db</p></dd>
+<dt><code>--hide-file-names</code></dt><dd><p>hide file names in index (privacy)</p></dd>
+<dt><code>-m</code>, <code>--max-depth=VAL</code></dt><dd><p>limit directory names to given depth</p></dd>
+<dt><code>-x</code>, <code>--one-file-system</code></dt><dd><p>don't cross filesystem boundaries</p></dd>
+<dt><code>-p</code>, <code>--progress</code></dt><dd><p>show progress during indexing</p></dd>
+<dt><code>--uncompressed</code></dt><dd><p>do not use compression for database</p></dd>
+</dl>
+
+
+<h3 id="duc-info">duc info</h3>
+
+<p>Options for command <code>duc info [options]</code>:</p>
+
+<dl>
+<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+</dl>
+
+
+<h3 id="duc-ls">duc ls</h3>
+
+<pre><code>The 'ls' subcommand queries the duc database and lists the inclusive size of
+all files and directories on the given path. If no path is given the current
+working directory is listed.
+</code></pre>
+
+<p>Options for command <code>duc ls [options] [PATH]</code>:</p>
+
+<dl>
+<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
+<dt class="flush"><code>--ascii</code></dt><dd><p>use ASCII characters instead of UTF-8 to draw tree</p></dd>
+<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
+<dt><code>-F</code>, <code>--classify</code></dt><dd><p>append file type indicator (one of */) to entries</p></dd>
+<dt><code>-c</code>, <code>--color</code></dt><dd><p>colorize output (only on ttys)</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>--dirs-only</code></dt><dd><p>list only directories, skip individual files</p></dd>
+<dt><code>-g</code>, <code>--graph</code></dt><dd><p>draw graph with relative size for each entry</p></dd>
+<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>traverse up to ARG levels deep [4]</p></dd>
+<dt><code>-R</code>, <code>--recursive</code></dt><dd><p>list subdirectories in a recursive tree view</p></dd>
+</dl>
+
+
+<h3 id="duc-ui">duc ui</h3>
+
+<pre><code>The 'gui' subcommand queries the duc database and runs an interactive ncurses
+utility for exploring the disk usage of the given path. If no path is given the
+current working directory is explored.
+
+The following keys can be used to navigate and alter the file system:
+
+  k, up, pgup:     move cursor up
+  j, down, pgdn:   move cursor down
+  h, left:         go up to parent directory (..)
+  l, right, enter: descent into selected directory
+  a:               toggle between actual and apparent disk usage
+  b:               toggle between exact and abbreviated sizes
+  g:               toggle graph
+  q, escape:       quit
+</code></pre>
+
+<p>Options for command <code>duc ui [options] [PATH]</code>:</p>
+
+<dl>
+<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
+<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+</dl>
+
+
+<h3 id="duc-xml">duc xml</h3>
+
+<p>Options for command <code>duc xml [options] [PATH]</code>:</p>
+
+<dl>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>-x</code>, <code>--exclude-files</code></dt><dd><p>exclude file from xml output, only include directories</p></dd>
+<dt><code>-s</code>, <code>--min_size=VAL</code></dt><dd><p>specify min size for files or directories</p></dd>
+</dl>
+
+
+<h2 id="CGI-INTERFACING">CGI INTERFACING</h2>
+
+<p>The <code>duc</code> binary has support for a rudimentary CGI interface, currently only
+tested with apache.  The CGI interface generates a simple HTML page with a list
+of indexed directories, and shows a clickable graph for navigating the file
+system.</p>
+
+<p>Configuration is done by creating a simple shell script as .cgi in a directory
+which is configured for CGI execution by your web server (usually
+<code>/usr/lib/cgi-bin</code>). The shell script should simply start duc, and pass the
+location of the database to offer.</p>
+
+<p>An example duc.cgi script would be</p>
+
+<pre><code>#!/bin/sh
+/usr/local/bin/duc cgi -d /home/jenny/.duc.db
+</code></pre>
+
+<ul>
+<li>Make sure the database file is readable by the user (usually www-data)</li>
+<li>Debuggin is best done by inspecting the web server's error log</li>
+<li>Make sure the .cgi script has execute permissions (<code>chmod +x duc.cgi</code>)</li>
+</ul>
+
+
+<p>The current CGI configuration is not very flexible, nor secure. Use at your own
+risk!</p>
+
+<h2 id="A-NOTE-ON-FILE-SIZE-AND-DISK-USAGE">A NOTE ON FILE SIZE AND DISK USAGE</h2>
+
+<p>The concepts of 'file size' and 'disk usage' can be a bit confusing. Files on
+disk have an apparent size, which indicates how much bytes are in the file from
+the users point of view; this is the size reported by tools like <code>ls -l</code>. The
+apparent size can be any number, from 0 bytes up to several TB.  The actual
+number of bytes which are used on the filesystem to store the file can differ
+from this apparent size for a number of reasons: disks store data in blocks,
+which cause files to always take up a multiple of the block size, files can
+have holes ('sparse' files), and other technical reasons. This number is always
+a multiple of 512, which means that the actual size used for a file is almost
+always a bit more then its apparent size.</p>
+
+<p>Duc has two modes for counting file sizes:</p>
+
+<ul>
+<li><p><code>apparent size</code>: this is the size as reported by <code>ls</code>. This number indicates
+the file length, which is usually smaller then the actual disk usage. In this
+mode, directories themselves do not have a size.</p></li>
+<li><p><code>actual size</code>: this is the size as reported by <code>du</code> and <code>df</code>. The actual file
+size tells you how much disk is actually used by a file, and is alwasys a
+multiple of 512 bytes. In this mode, the blocks used to store the directory
+information are counted as well.</p></li>
+</ul>
+
+
+<p>The default mode used by duc is to use the 'actual size'. Most duc commands to
+report disk usage (<code>duc ls</code>, <code>duc graph</code>, <code>duc gui</code>, etc) have an option to
+change between these two modes (usually the <code>-a</code>), in the gui tool use the 'a'
+key to toggle.</p>
+
+<h2 id="EXAMPLES">EXAMPLES</h2>
+
+<p>Index the /usr directory, writing to the default database location ~/.duc.db:</p>
+
+<p>   $ duc index /usr</p>
+
+<p>List all files and directories under /usr/local, showing relative file sizes
+in a graph:</p>
+
+<pre><code>$ duc ls -Fg /usr/local
+  4.7G lib/                 [+++++++++++++++++++++++++++++++++++++++++++]
+  3.1G share/               [++++++++++++++++++++++++++++               ]
+  2.7G src/                 [++++++++++++++++++++++++                   ]
+814.9M bin/                 [+++++++                                    ]
+196.6M include/             [+                                          ]
+ 66.6M x86_64-w64-mingw32/  [                                           ]
+ 59.9M local/               [                                           ]
+ 38.8M i686-w64-mingw32/    [                                           ]
+ 20.3M sbin/                [                                           ]
+ 13.6M lib32/               [                                           ]
+ 13.3M libx32/              [                                           ]
+</code></pre>
+
+<p>or use the -R  options for the tree view:</p>
+
+<pre><code>$ duc ls -RF /etc/logcheck
+ 24.0K `+- ignore.d.server/
+  4.0K  |  `+- hddtemp 
+  4.0K  |   |- ntpdate 
+  4.0K  |   |- lirc 
+  4.0K  |   |- rsyslog 
+  4.0K  |   `- libsasl2-modules 
+  8.0K  |- ignore.d.workstation/
+  4.0K  |   `- lirc 
+  8.0K  `- ignore.d.paranoid/
+  4.0K      `- lirc 
+</code></pre>
+
+<p>Start the graphical interface to explore the file system using sunburst graphs:</p>
+
+<pre><code>$ duc gui /usr
+</code></pre>
+
+<p>Generate a graph of /usr/local in .png format:</p>
+
+<pre><code>$ duc graph -o /tmp/usr.png /usr
+</code></pre>
+
+<p>The following sample configuration file defines default parameters for the <code>duc
+ls</code> and <code>duc gui</code> commands and defines a global option to configure the database
+path which is used by all subcommands</p>
+
+<pre><code>[global]
+database /var/cache/duc.db
+
+[ls]
+recursive
+classify
+color
+
+[gui]
+fuzz 0.7
+palette rainbow
+levels 4
+</code></pre>
+
+<h2 id="FILES">FILES</h2>
+
+<p>At startup duc tries to read its configuration from three locations in this
+particular order: <code>/etc/ducrc</code>, <code>~/.ducrc</code> and <code>./.ducrc</code>.</p>
+
+<p>Duc mainains an index of scanned directories, which defaults to ~/.duc.db. All tools
+take the -d/--database option to override the database path.</p>
+
+<h2 id="AUTHORS">AUTHORS</h2>
+
+<ul>
+<li>Ico Doornekamp <a href="&#x6d;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x64;&#117;&#99;&#64;&#x7a;&#x65;&#118;&#118;&#x2e;&#110;&#108;" data-bare-link="true">&#x64;&#x75;&#99;&#64;&#122;&#101;&#x76;&#x76;&#x2e;&#110;&#x6c;</a></li>
+<li>John Stoffel <a href="&#109;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#106;&#x6f;&#104;&#110;&#64;&#x73;&#116;&#x6f;&#x66;&#102;&#101;&#x6c;&#46;&#x6f;&#114;&#x67;" data-bare-link="true">&#x6a;&#111;&#x68;&#110;&#x40;&#x73;&#116;&#x6f;&#x66;&#x66;&#101;&#x6c;&#46;&#111;&#x72;&#103;</a></li>
+</ul>
+
+
+<p>Other contributers can be found in the Git log at GitHub.</p>
+
+<h2 id="LICENSE">LICENSE</h2>
+
+<p>Duc is free software; you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation;
+version 2 dated June, 1991. Duc is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+License for more details.</p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>April 2015</li>
+    <li class='tr'>duc(1)</li>
+  </ol>
+
+  </div>
+</body>
+</html>

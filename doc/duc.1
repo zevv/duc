@@ -1,0 +1,575 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "DUC" "1" "April 2015" "" ""
+.
+.SH "NAME"
+\fBduc\fR \- index, query and graph disk usage
+.
+.SH "SYNOPSIS"
+\fBduc\fR \fIsubcommand\fR \fIoptions\fR
+.
+.SH "DESCRIPTION"
+Duc is a collection of tools for inspecting and visualizing disk usage\.
+.
+.P
+Duc maintains an indexed database of accumulated sizes of directories of your file system, and allows you to query this database with some tools, or create fancy sunburst graphs to show you where your bytes are\.
+.
+.P
+Duc scales quite well, it has been tested on systems with more then 500 million files and several petabytes of storage\.
+.
+.SH "USAGE"
+Duc comes with a command line tool called \fBduc\fR, which is used to create, maintain and query the disk usage database\. run \fBduc help\fR to get a list of available commands\. \fBduc help <subcommand>\fR describes the usage of a specific subcommand\. Run \fBduc help \-\-all\fR for an extensive list of all commands and their options\.
+.
+.P
+Duc allows any option to be placed either on the command line or in a configuration file\. Options on the command line are preceded by a double\-leading\-dash (\fB\-\-option\fR), some options have a corresponding short option which can be used as well with a single leading dash\. (\fB\-o\fR)
+.
+.P
+At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
+.
+.P
+A configuration file consists of sections and parameters\. The section names correspond to the duc subcommands for which the parameters in that section apply\. A section begins with the name of the section in square brackets and continues until the next section begins\.Sections contain parameters, one per line, which consist of a single option name for boolean flags, or a option name and a value for options which take a value\. See the EXAMPLES section for an example of the configuration file format\.
+.
+.SH "CREATING THE INDEX"
+Duc needs an index file of the file system before it is able to show any information\. To create the index, run the \fBduc index\fR command\. For example, to create an index of your home directory run \fBduc index ~\fR
+.
+.IP "" 4
+.
+.nf
+
+$ duc index /usr
+Skipping lost+found: Permission denied
+Indexed 333823 files and 48200 directories, (35\.0GB total) in 1 seconds
+.
+.fi
+.
+.IP "" 0
+.
+.P
+The default location of the database is \fB$HOME/\.duc\.db\fR\. To use a different database location, use the DUC_DATABASE environment variable or specify the database location with the \-\-database argument\.
+.
+.P
+You can run \fBduc index\fR at any time later to rebuild the index\.
+.
+.SH "QUERYING THE INDEX"
+Duc has various subcommands for querying or exploring the index:
+.
+.IP "\(bu" 4
+\fBduc info\fR shows a list of available directory trees in the database, and the time and date of the last scan\.
+.
+.IP "\(bu" 4
+\fBduc ls\fR lists all files and directories under the given path on the console\.
+.
+.IP "\(bu" 4
+\fBduc ui\fR runs a ncurses based console user interface for exploring the file system usage
+.
+.IP "\(bu" 4
+\fBduc gui\fR starts a graphical (X11) interface representing the file system in a sunburst graph\. Click on a directory to redraw the graph from the perspective of the selected directory\. Click in the center of the graph to go up one directory in the tree\.
+.
+.IP "" 0
+.
+.SH "OPTIONS"
+This section list all available subcommands and describes their usage and options\.
+.
+.SS "Global options"
+.
+.nf
+
+These options apply to all Duc subcommands:
+.
+.fi
+.
+.TP
+\fB\-\-debug\fR
+increase verbosity to debug level
+.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show help
+.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+quiet mode, do not print any warning
+.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+increase verbosity
+.
+.SS "duc cgi"
+Options for command \fBduc cgi [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+Show apparent instead of actual file size
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-\-fuzz=VAL\fR
+use radius fuzz factor when drawing graph [0\.7]
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+draw up to ARG levels deep [4]
+.
+.TP
+\fB\-o\fR, \fB\-\-output=VAL\fR
+output file name [duc\.png]
+.
+.TP
+\fB\-\-palette=VAL\fR
+select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.TP
+\fB\-s\fR, \fB\-\-size=VAL\fR
+image size [800]
+.
+.SS "duc graph"
+.
+.nf
+
+The \'graph\' subcommand queries the duc database and generates a sunburst graph
+showing the disk usage of the given path\. If no path is given a graph is created
+for the current working directory\.
+
+By default the graph is written to the file \'duc\.png\', which can be overridden by
+using the \-o/\-\-output option\. The output can be sent to stdout by using the special
+file name \'\-\'\.
+.
+.fi
+.
+.P
+Options for command \fBduc graph [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+Show apparent instead of actual file size
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-f\fR, \fB\-\-format=VAL\fR
+select output format \fIpng|svg|pdf\fR [png]
+.
+.TP
+\fB\-\-fuzz=VAL\fR
+use radius fuzz factor when drawing graph [0\.7]
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+draw up to ARG levels deep [4]
+.
+.TP
+\fB\-o\fR, \fB\-\-output=VAL\fR
+output file name [duc\.png]
+.
+.TP
+\fB\-\-palette=VAL\fR
+select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.TP
+\fB\-s\fR, \fB\-\-size=VAL\fR
+image size [800]
+.
+.SS "duc gui"
+.
+.nf
+
+The \'gui\' subcommand queries the duc database and runs an interactive graphical
+utility for exploring the disk usage of the given path\. If no path is given the
+current working directory is explored\.
+
+The following keys can be used to navigate and alter the graph:
+
+  +           increase maximum graph depth
+  \-           decrease maximum graph depth
+  0           Set default graph depth
+  a           Toggle between apparent and actual disk usage
+  b           Toggle between exact byte count and abbreviated sizes
+  p           toggle palettes
+  f           toggle graph fuzz
+  backspace   go up one directory
+.
+.fi
+.
+.P
+Options for command \fBduc gui [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+show apparent instead of actual file size
+.
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-\-fuzz=VAL\fR
+use radius fuzz factor when drawing graph
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+draw up to ARG levels deep [4]
+.
+.TP
+\fB\-\-palette=VAL\fR
+select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.SS "duc help"
+Options for command \fBduc help [options]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-all\fR
+show complete help for all commands
+.
+.SS "duc index"
+.
+.nf
+
+The \'index\' subcommand performs a recursive scan of the given paths on the
+filesystem and calculates the inclusive size of all directories\. The results
+are written to the index, and can later be queried by one of the other duc tools\.
+.
+.fi
+.
+.P
+Options for command \fBduc index [options] PATH \.\.\.\fR:
+.
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+use database file ARG
+.
+.TP
+\fB\-e\fR, \fB\-\-exclude=VAL\fR
+exclude files matching ARG
+.
+.TP
+\fB\-H\fR, \fB\-\-check\-hard\-links\fR
+count hard links only once
+.
+.TP
+\fB\-f\fR, \fB\-\-force\fR
+force writing in case of corrupted db
+.
+.TP
+\fB\-\-hide\-file\-names\fR
+hide file names in index (privacy)
+.
+.TP
+\fB\-m\fR, \fB\-\-max\-depth=VAL\fR
+limit directory names to given depth
+.
+.TP
+\fB\-x\fR, \fB\-\-one\-file\-system\fR
+don\'t cross filesystem boundaries
+.
+.TP
+\fB\-p\fR, \fB\-\-progress\fR
+show progress during indexing
+.
+.TP
+\fB\-\-uncompressed\fR
+do not use compression for database
+.
+.SS "duc info"
+Options for command \fBduc info [options]\fR:
+.
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.SS "duc ls"
+.
+.nf
+
+The \'ls\' subcommand queries the duc database and lists the inclusive size of
+all files and directories on the given path\. If no path is given the current
+working directory is listed\.
+.
+.fi
+.
+.P
+Options for command \fBduc ls [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+show apparent instead of actual file size
+.
+.TP
+\fB\-\-ascii\fR
+use ASCII characters instead of UTF\-8 to draw tree
+.
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.
+.TP
+\fB\-F\fR, \fB\-\-classify\fR
+append file type indicator (one of */) to entries
+.
+.TP
+\fB\-c\fR, \fB\-\-color\fR
+colorize output (only on ttys)
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-\-dirs\-only\fR
+list only directories, skip individual files
+.
+.TP
+\fB\-g\fR, \fB\-\-graph\fR
+draw graph with relative size for each entry
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+traverse up to ARG levels deep [4]
+.
+.TP
+\fB\-R\fR, \fB\-\-recursive\fR
+list subdirectories in a recursive tree view
+.
+.SS "duc ui"
+.
+.nf
+
+The \'gui\' subcommand queries the duc database and runs an interactive ncurses
+utility for exploring the disk usage of the given path\. If no path is given the
+current working directory is explored\.
+
+The following keys can be used to navigate and alter the file system:
+
+  k, up, pgup:     move cursor up
+  j, down, pgdn:   move cursor down
+  h, left:         go up to parent directory (\.\.)
+  l, right, enter: descent into selected directory
+  a:               toggle between actual and apparent disk usage
+  b:               toggle between exact and abbreviated sizes
+  g:               toggle graph
+  q, escape:       quit
+.
+.fi
+.
+.P
+Options for command \fBduc ui [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+show apparent instead of actual file size
+.
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.SS "duc xml"
+Options for command \fBduc xml [options] [PATH]\fR:
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-x\fR, \fB\-\-exclude\-files\fR
+exclude file from xml output, only include directories
+.
+.TP
+\fB\-s\fR, \fB\-\-min_size=VAL\fR
+specify min size for files or directories
+.
+.SH "CGI INTERFACING"
+The \fBduc\fR binary has support for a rudimentary CGI interface, currently only tested with apache\. The CGI interface generates a simple HTML page with a list of indexed directories, and shows a clickable graph for navigating the file system\.
+.
+.P
+Configuration is done by creating a simple shell script as \.cgi in a directory which is configured for CGI execution by your web server (usually \fB/usr/lib/cgi\-bin\fR)\. The shell script should simply start duc, and pass the location of the database to offer\.
+.
+.P
+An example duc\.cgi script would be
+.
+.IP "" 4
+.
+.nf
+
+#!/bin/sh
+/usr/local/bin/duc cgi \-d /home/jenny/\.duc\.db
+.
+.fi
+.
+.IP "" 0
+.
+.IP "\(bu" 4
+Make sure the database file is readable by the user (usually www\-data)
+.
+.IP "\(bu" 4
+Debuggin is best done by inspecting the web server\'s error log
+.
+.IP "\(bu" 4
+Make sure the \.cgi script has execute permissions (\fBchmod +x duc\.cgi\fR)
+.
+.IP "" 0
+.
+.P
+The current CGI configuration is not very flexible, nor secure\. Use at your own risk!
+.
+.SH "A NOTE ON FILE SIZE AND DISK USAGE"
+The concepts of \'file size\' and \'disk usage\' can be a bit confusing\. Files on disk have an apparent size, which indicates how much bytes are in the file from the users point of view; this is the size reported by tools like \fBls \-l\fR\. The apparent size can be any number, from 0 bytes up to several TB\. The actual number of bytes which are used on the filesystem to store the file can differ from this apparent size for a number of reasons: disks store data in blocks, which cause files to always take up a multiple of the block size, files can have holes (\'sparse\' files), and other technical reasons\. This number is always a multiple of 512, which means that the actual size used for a file is almost always a bit more then its apparent size\.
+.
+.P
+Duc has two modes for counting file sizes:
+.
+.IP "\(bu" 4
+\fBapparent size\fR: this is the size as reported by \fBls\fR\. This number indicates the file length, which is usually smaller then the actual disk usage\. In this mode, directories themselves do not have a size\.
+.
+.IP "\(bu" 4
+\fBactual size\fR: this is the size as reported by \fBdu\fR and \fBdf\fR\. The actual file size tells you how much disk is actually used by a file, and is alwasys a multiple of 512 bytes\. In this mode, the blocks used to store the directory information are counted as well\.
+.
+.IP "" 0
+.
+.P
+The default mode used by duc is to use the \'actual size\'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc gui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), in the gui tool use the \'a\' key to toggle\.
+.
+.SH "EXAMPLES"
+Index the /usr directory, writing to the default database location ~/\.duc\.db:
+.
+.P
+$ duc index /usr
+.
+.P
+List all files and directories under /usr/local, showing relative file sizes in a graph:
+.
+.IP "" 4
+.
+.nf
+
+$ duc ls \-Fg /usr/local
+  4\.7G lib/                 [+++++++++++++++++++++++++++++++++++++++++++]
+  3\.1G share/               [++++++++++++++++++++++++++++               ]
+  2\.7G src/                 [++++++++++++++++++++++++                   ]
+814\.9M bin/                 [+++++++                                    ]
+196\.6M include/             [+                                          ]
+ 66\.6M x86_64\-w64\-mingw32/  [                                           ]
+ 59\.9M local/               [                                           ]
+ 38\.8M i686\-w64\-mingw32/    [                                           ]
+ 20\.3M sbin/                [                                           ]
+ 13\.6M lib32/               [                                           ]
+ 13\.3M libx32/              [                                           ]
+.
+.fi
+.
+.IP "" 0
+.
+.P
+or use the \-R options for the tree view:
+.
+.IP "" 4
+.
+.nf
+
+$ duc ls \-RF /etc/logcheck
+ 24\.0K `+\- ignore\.d\.server/
+  4\.0K  |  `+\- hddtemp
+  4\.0K  |   |\- ntpdate
+  4\.0K  |   |\- lirc
+  4\.0K  |   |\- rsyslog
+  4\.0K  |   `\- libsasl2\-modules
+  8\.0K  |\- ignore\.d\.workstation/
+  4\.0K  |   `\- lirc
+  8\.0K  `\- ignore\.d\.paranoid/
+  4\.0K      `\- lirc
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Start the graphical interface to explore the file system using sunburst graphs:
+.
+.IP "" 4
+.
+.nf
+
+$ duc gui /usr
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Generate a graph of /usr/local in \.png format:
+.
+.IP "" 4
+.
+.nf
+
+$ duc graph \-o /tmp/usr\.png /usr
+.
+.fi
+.
+.IP "" 0
+.
+.P
+The following sample configuration file defines default parameters for the \fBduc ls\fR and \fBduc gui\fR commands and defines a global option to configure the database path which is used by all subcommands
+.
+.IP "" 4
+.
+.nf
+
+[global]
+database /var/cache/duc\.db
+
+[ls]
+recursive
+classify
+color
+
+[gui]
+fuzz 0\.7
+palette rainbow
+levels 4
+.
+.fi
+.
+.IP "" 0
+.
+.SH "FILES"
+At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
+.
+.P
+Duc mainains an index of scanned directories, which defaults to ~/\.duc\.db\. All tools take the \-d/\-\-database option to override the database path\.
+.
+.SH "AUTHORS"
+.
+.IP "\(bu" 4
+Ico Doornekamp \fIduc@zevv\.nl\fR
+.
+.IP "\(bu" 4
+John Stoffel \fIjohn@stoffel\.org\fR
+.
+.IP "" 0
+.
+.P
+Other contributers can be found in the Git log at GitHub\.
+.
+.SH "LICENSE"
+Duc is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; version 2 dated June, 1991\. Duc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\. See the GNU General Public License for more details\.
