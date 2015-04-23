@@ -85,7 +85,7 @@ Duc has various subcommands for querying or exploring the index:
 
 This section list all available subcommands and describes their usage and options.
 
-###Global options
+### Global options
 
     These options apply to all Duc subcommands:
   * `--debug`:

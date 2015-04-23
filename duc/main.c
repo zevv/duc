@@ -48,6 +48,7 @@ static int opt_debug = 0;
 static int opt_verbose = 0;
 static int opt_quiet = 0;
 static int opt_help = 0;
+static int opt_version = 0;
 
 
 static struct ducrc_option global_options[] = {
@@ -55,6 +56,7 @@ static struct ducrc_option global_options[] = {
 	{ &opt_help,     "help",     'h', DUCRC_TYPE_BOOL,   "show help" },
 	{ &opt_quiet,    "quiet",    'q', DUCRC_TYPE_BOOL,   "quiet mode, do not print any warning" },
 	{ &opt_verbose,  "verbose",  'v', DUCRC_TYPE_BOOL,   "increase verbosity" },
+	{ &opt_version,  "version",    0, DUCRC_TYPE_BOOL,   "output version information and exit" },
 	{ NULL }
 };
 
@@ -77,6 +79,7 @@ int main(int argc, char **argv)
 
 	if(argc >= 2) {
 		cmd = find_cmd_by_name(argv[1]);
+		if(strcmp(argv[1], "--version") == 0) opt_version = 1;
 	}
 
 	if(cmd == NULL) {
@@ -115,9 +118,18 @@ int main(int argc, char **argv)
 	ducrc_read(ducrc, "./.ducrc");
 	r = ducrc_getopt(ducrc, &argc, &argv);
 
+	/* Error detected on option parsing? */
+
 	if(r == -1) {
 		fprintf(stderr, "Try 'duc --help' for more information.\n");
 		exit(1);
+	}
+
+	/* Version requested? */
+
+	if(opt_version) {
+		printf("duc version %s\n", PACKAGE_VERSION);
+		exit(0);
 	}
 
 	/* Help requested ? */
@@ -247,6 +259,11 @@ static int help_main(duc *duc, int argc, char **argv)
 		}
 
 		if(!opt_all) {
+
+			printf("\n");
+			printf("Global options:\n");
+			show_options(global_options);
+
 			printf(
 				"\n"
 				"Use 'duc help <subcommand>' or 'duc <subcommand> -h' for a complete list of all\n"
