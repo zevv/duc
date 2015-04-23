@@ -16,6 +16,7 @@
 struct cmd cmd_help;
 struct cmd cmd_info;
 struct cmd cmd_index;
+struct cmd cmd_manual;
 struct cmd cmd_ls;
 struct cmd cmd_gui;
 struct cmd cmd_graph;
@@ -31,6 +32,7 @@ struct cmd *cmd_list[] = {
 	&cmd_help,
 	&cmd_index,
 	&cmd_info,
+	&cmd_manual,
 	&cmd_ls,
 	&cmd_ui,
 	&cmd_xml,
@@ -232,6 +234,7 @@ static int help_main(duc *duc, int argc, char **argv)
 		int i;
 		for(i=0; i<SUBCOMMAND_COUNT; i++) {
 			struct cmd *c = cmd_list[i];
+			if(c->hidden) continue;
 
 			if(opt_all) {
 				printf("duc %s %s: %s\n", c->name, c->usage, c->descr_short);
@@ -262,6 +265,63 @@ static int help_main(duc *duc, int argc, char **argv)
 }
 
 
+static void show_options_manual(struct ducrc_option *o)
+{
+	while(o && o->longopt) {
+
+		printf("  * ");
+
+		if(o->shortopt) printf("`-%c`, ", o->shortopt); 
+
+		if(o->type != DUCRC_TYPE_BOOL) {
+			printf("`--%s=VAL`:", o->longopt);
+		} else {
+			printf("`--%s`:", o->longopt);
+		}
+		printf("\n");
+		printf("    %s", o->descr_short);
+		if(o->descr_long) {
+			printf(". %s\n", o->descr_long);
+		}
+		printf("\n");
+		printf("\n");
+		o++;
+	}
+}
+
+
+static int manual_main(duc *duc, int argc, char **argv)
+{
+	int i;
+
+	printf("###Global options\n");
+	printf("\n");
+	printf("    These options apply to all Duc subcommands:");
+	printf("\n");
+	show_options_manual(global_options);
+
+	for(i=0; i<SUBCOMMAND_COUNT; i++) {
+		struct cmd *c = cmd_list[i];
+		if(c->hidden) continue;
+		printf("### duc %s\n", c->name);
+		printf("\n");
+		if(c->descr_long) {
+			printf("```\n");
+			printf("%s\n", c->descr_long);
+			printf("```\n");
+			printf("\n");
+		}
+		printf("Options for command `duc %s %s`:\n", c->name, c->usage);
+		printf("\n");
+		show_options_manual(c->options);
+	}
+
+
+	return 0;
+}
+
+
+
 static struct ducrc_option help_options[] = {
 	{ &opt_all,     "all",     'a', DUCRC_TYPE_BOOL,   "show complete help for all commands" },
 	{ NULL }
@@ -273,6 +333,15 @@ struct cmd cmd_help = {
 	.usage = "[options]",
 	.main = help_main,
 	.options = help_options,
+};
+
+
+struct cmd cmd_manual = {
+       .name = "manual",
+       .descr_short = "Show manual",
+       .usage = "",
+       .main = manual_main,
+       .hidden = 1,
 };
 
 /*

@@ -15,6 +15,7 @@ struct cmd {
 	char *descr_long;
 	char *usage;
 	struct ducrc_option *options;
+	int hidden;
 };
 
 

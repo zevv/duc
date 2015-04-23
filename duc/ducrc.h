@@ -15,6 +15,7 @@ struct ducrc_option {
 	char shortopt;
 	enum ducrc_type type;
 	const char *descr_short;
+	const char *descr_long;
 };
 
 
