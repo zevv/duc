@@ -239,10 +239,6 @@ static int help_main(duc *duc, int argc, char **argv)
 			if(opt_all) {
 				printf("duc %s %s: %s\n", c->name, c->usage, c->descr_short);
 				printf("\n");
-				if(c->descr_short) {
-					printf("%s\n", c->descr_short);
-					printf("\n");
-				}
 				show_options(c->options);
 				printf("\n");
 			} else {
