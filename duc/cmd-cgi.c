@@ -78,10 +78,12 @@ static int cgi_parse(void)
 		param->key = malloc(keylen+1);
 		assert(param->key);
 		strncpy(param->key, key, keylen);
+		param->key[keylen] = '\0';
 
 		param->val = malloc(vallen+1);
 		assert(param->val);
 		strncpy(param->val, val, vallen);
+		param->val[vallen] = '\0';
 		
 		param->next = param_list;
 		param_list = param;
@@ -146,9 +148,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	if(x || y) {
 		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
 		if(dir2) {
-			duc_dir_close(dir);
-			dir = dir2;
-			path = duc_dir_get_path(dir);
+			path = duc_dir_get_path(dir2);
+			duc_dir_close(dir2);
 		}
 	}
 
