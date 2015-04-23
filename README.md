@@ -15,7 +15,7 @@ graphs showing you where your bytes are.
 Duc scales quite well, it has been tested on systems with more then 500 million
 files and several petabytes of storage. 
 
-![duc gui](/img/palette-size.png) 
+![duc gui](/img/example.png) 
 ![duc ui](img/ui.png)
 
 
