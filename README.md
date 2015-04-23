@@ -1,8 +1,7 @@
 
 [![Build Status](https://travis-ci.org/zevv/duc.svg?branch=master)](https://travis-ci.org/zevv/duc)
 
-![Duc](/img/duc.png) 
-
+![duc gui](/img/duc.png) 
 
 ### Introduction
 
@@ -16,7 +15,8 @@ graphs showing you where your bytes are.
 Duc scales quite well, it has been tested on systems with more then 500 million
 files and several petabytes of storage. 
 
-![Example](/img/palette-size.png) 
+![duc gui](/img/palette-size.png) 
+![duc ui](img/ui.png)
 
 
 ### Install
@@ -29,8 +29,8 @@ user interface.
 2. http://cairographics.org/
 3. http://www.pango.org/
 
-Duc uses the GNU Autoconf system for compiling if you do not have a
-pre-built package. 
+At this time there is no official packaged release for Duc, so you will have to
+clone the gitrepo and build using autoconf/automake.
 
 Building and installing on Debian or Ubuntu:
 
@@ -64,7 +64,7 @@ subcommand.
 
 Extensive documentation is availabel in the ![manual page](doc/duc.1.man)
 
-![ui](img/ui.png)
+
 
 
 ### License
