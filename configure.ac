@@ -7,7 +7,7 @@
 
 AC_PREREQ([2.13])
 
-AC_INIT([duc], [0.1], [duc@zevv.nl])
+AC_INIT([duc], [0.1-test], [duc@zevv.nl])
 
 dnl Library versioning
 dnl We begin with 1:0:0
