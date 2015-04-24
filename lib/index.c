@@ -256,6 +256,9 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		off_t ent_size_apparent = st.st_size;
 		off_t ent_size_actual = 512 * st.st_blocks;
 		
+		report->size_apparent += ent_size_apparent;
+		report->size_actual += ent_size_actual;
+		
 		if(type == DT_DIR) {
 			struct index_result res2 = { 0 };
 			index_dir(req, report, e->d_name, fd_dir, &st_dir, depth+1, &res2);
@@ -264,8 +267,10 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			ent_size_actual += res2.size_actual;
 			res->dir_count += res2.dir_count;
 			res->file_count += res2.file_count;
+			report->dir_count ++;
 			res->dir_count ++;
 		} else {
+			report->file_count ++;
 			res->file_count ++;
 		}
 		
@@ -356,10 +361,6 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Fill in report */
 
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
-	report->size_apparent = res.size_apparent;
-	report->size_actual = res.size_actual;
-	report->dir_count = res.dir_count;
-	report->file_count = res.file_count;
 	gettimeofday(&report->time_stop, NULL);
 
 	/* Store report */
