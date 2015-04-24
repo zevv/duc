@@ -255,7 +255,7 @@ static struct ducrc_option options[] = {
 
 #else
 
-int ui_main(int argc, char *argv[])
+int ui_main(duc *duc, int argc, char *argv[])
 {
 	duc_log(NULL, DUC_LOG_WRN, "'duc ui' is not supported on this platform.");
 	return -1;

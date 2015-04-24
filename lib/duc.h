@@ -73,7 +73,7 @@ struct duc_dirent {
 	char *name;                 /* File name */
 	off_t size_apparent;        /* Apparent file size */
 	off_t size_actual;          /* Actual file size */
-	uint8_t type;               /* File type, one of POSIX's DT_* */
+	int type;                   /* File type, one of POSIX's DT_* */
 	dev_t dev;                  /* ID of device containing file */
 	ino_t ino;                  /* inode number */
 };

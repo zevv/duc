@@ -133,6 +133,56 @@ static int match_list(const char *name, struct list *l)
 }
 
 
+/*
+ * Convert st_mode to DT_* type
+ */
+
+int st_to_type(mode_t mode)
+{
+	int type = DT_UNKNOWN;
+
+	if(S_ISBLK(mode))  type = DT_BLK;
+	if(S_ISCHR(mode))  type = DT_CHR;
+	if(S_ISDIR(mode))  type = DT_DIR;
+	if(S_ISFIFO(mode)) type = DT_FIFO;
+	if(S_ISLNK(mode))  type = DT_LNK;
+	if(S_ISREG(mode )) type = DT_REG;
+	if(S_ISSOCK(mode)) type = DT_SOCK;
+
+	return type;
+}
+
+
+/*
+ * Check if the given node is a duplicate. returns 1 if this dev/inode
+ * was seen before
+ */
+
+static int is_duplicate(struct duc_index_req *req, struct stat *st)
+{
+	if(S_ISDIR(st->st_mode)) return 0; /* Directorie hard links are ignored */
+	if(st->st_nlink <= 1) return 0; /* Files with 1 hard link are never dupes */
+
+	struct { 
+		dev_t dev; 
+		ino_t ino; 
+	} key = { 
+		st->st_dev, 
+		st->st_ino 
+	};
+
+	/* Check if the above key is already in the map. If so, this is a dup. If not,
+	 * we see this node for the first time, and we add it to the map */
+	 
+	int l;
+	if(tcmapget(req->dev_ino_map, &key, sizeof(key), &l)) {
+		return 1;
+	}
+
+	tcmapput(req->dev_ino_map, &key, sizeof(key), "", 0);
+	return 0;
+}
+
 
 static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, int fd_parent, struct stat *st_parent, int depth, struct index_result *res)
 {
@@ -197,58 +247,38 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 
 		/* Skip . and .. */
 
-		const char *n = e->d_name;
-		if(n[0] == '.') {
-			if(n[1] == '\0') continue;
-			if(n[1] == '.' && n[2] == '\0') continue;
+		char *name = e->d_name;
+
+		if(name[0] == '.') {
+			if(name[1] == '\0') continue;
+			if(name[1] == '.' && name[2] == '\0') continue;
 		}
 
-		if(match_list(e->d_name, req->exclude_list)) {
-			duc_log(duc, DUC_LOG_WRN, "Skipping %s: excluded by user", e->d_name);
+		if(match_list(name, req->exclude_list)) {
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: excluded by user", name);
 			continue;
 		}
 
-		/* Get file info */
+		/* Get file info. Derive the file type from st.st_mode. It
+		 * seems that we can not trust e->d_type because it is not
+		 * guaranteed to contain a sane value on all file system types.
+		 * See the readdir() man page for more details */
 
 		struct stat st;
-		int r = fstatat(fd_dir, e->d_name, &st, AT_SYMLINK_NOFOLLOW);
+		int r = fstatat(fd_dir, name, &st, AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
-			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", e->d_name, strerror(errno));
+			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", name, strerror(errno));
 			continue;
 		}
-
-
-		/* Find out the file type from st.st_mode. It seems that we can
-		 * not trust e->d_type because it is not guaranteed to contain
-		 * a sane value on all file system types. See the readdir() man
-		 * page for more details */
 		 
-		unsigned char type = DT_UNKNOWN;
-
-		if(S_ISBLK(st.st_mode))  type = DT_BLK;
-		if(S_ISCHR(st.st_mode))  type = DT_CHR;
-		if(S_ISDIR(st.st_mode))  type = DT_DIR;
-		if(S_ISFIFO(st.st_mode)) type = DT_FIFO;
-		if(S_ISLNK(st.st_mode))  type = DT_LNK;
-		if(S_ISREG(st.st_mode )) type = DT_REG;
-		if(S_ISSOCK(st.st_mode)) type = DT_SOCK;
+		int type = st_to_type(st.st_mode);
 
 
 		/* Skip hard link duplicates for any files with more then one hard link */
-
-		if((req->flags & DUC_INDEX_CHECK_HARD_LINKS) && 
-		   (type != DT_DIR) &&
-		   (st.st_nlink > 1)) {
-
-			struct { dev_t dev; ino_t ino; } key = { st.st_dev, st.st_ino };
-			int l;
-
-			if(tcmapget(req->dev_ino_map, &key, sizeof(key), &l)) {
+		
+		if(req->flags & DUC_INDEX_CHECK_HARD_LINKS)
+			if(is_duplicate(req, &st)) 
 				continue;
-			}
-
-			tcmapput(req->dev_ino_map, &key, sizeof(key), "", 0);
-		}
 
 
 		/* Calculate size of this dirent, recursing when needed */
@@ -261,7 +291,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		
 		if(type == DT_DIR) {
 			struct index_result res2 = { 0 };
-			index_dir(req, report, e->d_name, fd_dir, &st_dir, depth+1, &res2);
+			index_dir(req, report, name, fd_dir, &st_dir, depth+1, &res2);
 
 			ent_size_apparent += res2.size_apparent;
 			ent_size_actual += res2.size_actual;
@@ -278,24 +308,19 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		res->size_actual += ent_size_actual;
 
 		duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
-				typechar[type], ent_size_apparent, ent_size_actual, e->d_name);
+				typechar[type], ent_size_apparent, ent_size_actual, name);
 
 		/* Store record */
 
 		if(req->maxdepth == 0 || depth < req->maxdepth) {
 
-			char *name = e->d_name;
-		
 			/* Hide file names? */
 
-			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && type != DT_DIR) {
+			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && type != DT_DIR) 
 				name = "<FILE>";
-			}
 
 			duc_dir_add_ent(dir, name, ent_size_apparent, ent_size_actual, type, st.st_dev, st.st_ino);
 		}
-
-
 	}
 
 	duc_log(duc, DUC_LOG_DMP, "<< %s files:%jd dirs:%jd actual:%jd apparent:%jd", 
