@@ -1,5 +1,6 @@
-
 #include "config.h"
+
+#ifdef ENABLE_GRAPH
 
 #include <limits.h>
 #include <stdlib.h>
@@ -299,6 +300,8 @@ struct cmd cmd_cgi = {
 		
 };
 
+
+#endif
 
 /*
  * End

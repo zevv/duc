@@ -9,8 +9,6 @@ AC_PREREQ([2.13])
 
 AC_INIT([duc], [0.1-test], [duc@zevv.nl])
 
-dnl Library versioning
-dnl We begin with 1:0:0
 LIB_CURRENT=1
 LIB_REVISION=0
 LIB_AGE=0
@@ -18,65 +16,95 @@ AC_SUBST(LIB_CURRENT)
 AC_SUBST(LIB_REVISION)
 AC_SUBST(LIB_AGE)
 
-# Turn off GNU standards like README, etc, for now.
-# Do not do dependency tracking either.
-AM_INIT_AUTOMAKE([foreign no-dependencies])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 AC_CONFIG_HEADER([config.h])
 AC_GNU_SOURCE
 
-# We need LARGEFILE support turned on by default
 AC_SYS_LARGEFILE
-
-# Support long filenames too.
 AC_SYS_LONG_FILE_NAMES
 
-# Checks for programs.
 AC_PROG_CC
 AC_PROG_LIBTOOL
+PKG_PROG_PKG_CONFIG
 
-# Initialize libtool, but disable static libs for now
 AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
 
-
-# Checks for libraries.
 AC_CHECK_LIB([m], [main])
-AC_CHECK_LIB([X11], [XOpenDisplay])
-AC_CHECK_LIB([ncurses], [tputs])
 
-# Check for pkg-config, needs fallback for when it doesn't exist...
-PKG_PROG_PKG_CONFIG
+#
+# Check --disable options
+#
 
-# Check for tokyocabinet
-PKG_CHECK_MODULES([TC],[tokyocabinet],[
-   LIBS="$TC_LIBS $LIBS"
-   CFLAGS="$TC_CFLAGS $CFLAGS"], [
-   AC_CHECK_HEADER(tcadb.h, HAVE_TC_H=1)
-   AC_CHECK_LIB(tokyocabinet, tcfree , HAVE_TC=1)
-   if test -n "$HAVE_TC_H" -a -n "$HAVE_TC";  then
-      LIBS="-ltokyocabinet $LIBS"
-   else
-      echo -e "Error:  both library and header files for the tokyocabinet library\n"\
-      "are required to build this package.  See README file for"\
-      "further information."
-      exit 1;
-   fi
-])
+AC_ARG_ENABLE(
+        [graph],
+        [AS_HELP_STRING([--disable-graph], [disable graph drawing @<:@default=yes@:>@])], ,
+        [enable_graph="yes"]
+)
 
-# Check for Cairo support
-PKG_CHECK_MODULES([CAIRO],[cairo])
+AC_ARG_ENABLE(
+        [ui],
+        [AS_HELP_STRING([--disable-ui], [disable ncurses ui @<:@default=yes@:>@])], ,
+        [enable_ui="yes"]
+)
 
-# Check for Pango support
-PKG_CHECK_MODULES([PANGO],[pango])
+AC_ARG_ENABLE(
+        [gui],
+        [AS_HELP_STRING([--disable-gui], [disable X11 gui @<:@default=yes@:>@])], ,
+        [enable_gui="yes"]
+)
 
-# Check for Pangocairo support
-PKG_CHECK_MODULES([PANGOCAIRO],[pangocairo])
+#
+# Check for available libraries
+#
 
-# Checks for header files.
+PKG_CHECK_MODULES([TC],[tokyocabinet])
+
+if test "${enable_graph}" = "yes"; then
+
+	PKG_CHECK_MODULES([CAIRO], [cairo],, [AC_MSG_ERROR(
+[The cairo library was not found, which is needed for graph support. Either install
+the cairo development libraries, or compile without graph support (--disable-graph)
+	])])
+
+	PKG_CHECK_MODULES([PANGO], [pango],, [AC_MSG_ERROR([
+The pango library was not found, which is needed for graph support. Either install
+the pango development libraries, or compile without graph support (--disable-graph)
+	])])
+
+	PKG_CHECK_MODULES([PANGOCAIRO], [pangocairo],, [AC_MSG_ERROR([
+The pangocairo library was not found, which is needed for graph support. Either install
+the pangocairo development libraries, or compile without graph support (--disable-graph)
+	])])
+
+        AC_DEFINE([ENABLE_GRAPH], [1], [Enable graph])
+fi
+
+
+if test "${enable_ui}" = "yes"; then
+        AC_DEFINE([ENABLE_UI], [1], [Enable ui])
+
+	AC_CHECK_LIB([ncurses], [tputs],, [AC_MSG_ERROR([
+The ncurses library was not found, which is needed for ui support. Either install
+the ncurses development libraries, or compile without ui support (--disable-ui)
+	])])
+fi
+
+
+if test "${enable_gui}" = "yes"; then
+        test "${enable_graph}" != "yes" && AC_MSG_ERROR([graph must be enabled for gui])
+
+	AC_CHECK_LIB([X11], [XOpenDisplay],, [AC_MSG_ERROR([
+The X11 library was not found, which is needed for gui support. Either install
+the X11 development libraries, or compile without gui support (--disable-gui)
+	])])
+        AC_DEFINE([ENABLE_GUI], [1], [Enable gui])
+fi
+
+
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h glob.h])
 
-# Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
@@ -85,12 +113,27 @@ AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 AC_CHECK_TYPES([dev_t, ino_t])
 
-# Checks for library functions.
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_CHECK_FUNCS([floor memset strchr strdup strerror gettimeofday lstat])
 
-AC_CONFIG_FILES([Makefile lib/Makefile duc/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
-echo ""
-echo "Done"
+AM_CONDITIONAL([ENABLE_GRAPH], [test "$enable_graph" = "true"])
+AM_CONDITIONAL([ENABLE_UI], [test "$enable_ui" = "true"])
+AM_CONDITIONAL([ENABLE_GUI], [test "$enable_gui" = "true"])
+
+AC_MSG_RESULT([
+
+  configuration summary:
+  
+   - Package version: $PACKAGE $VERSION
+   - Prefix: ${prefix}
+   - GUI (X11) support: ${enable_gui}
+   - UI (ncurses) support: ${enable_ui}
+   - Graph drawing support: ${enable_graph}
+
+])
+
+# End
+

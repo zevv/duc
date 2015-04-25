@@ -1,5 +1,6 @@
-
 #include "config.h"
+
+#ifdef ENABLE_UI
 
 #include <limits.h>
 #include <stdlib.h>
@@ -291,6 +292,7 @@ struct cmd cmd_ui = {
 
 };
 
+#endif
 
 /*
  * End

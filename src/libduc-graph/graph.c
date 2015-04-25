@@ -1,5 +1,6 @@
-
 #include "config.h"
+
+#ifdef ENABLE_GRAPH
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -640,6 +641,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 	return dir2;
 }
 
+#endif
 
 /*
  * End
