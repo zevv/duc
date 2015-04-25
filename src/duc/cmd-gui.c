@@ -290,14 +290,14 @@ struct cmd cmd_gui = {
 		"\n"
 		"The following keys can be used to navigate and alter the graph:\n"
 		"\n"
-		"  +           increase maximum graph depth\n"
-		"  -           decrease maximum graph depth\n"
-		"  0           Set default graph depth\n"
-		"  a           Toggle between apparent and actual disk usage\n"
-		"  b           Toggle between exact byte count and abbreviated sizes\n"
-		"  p           toggle palettes\n"
-		"  f           toggle graph fuzz\n"
-		"  backspace   go up one directory\n"
+		"    +           increase maximum graph depth\n"
+		"    -           decrease maximum graph depth\n"
+		"    0           Set default graph depth\n"
+		"    a           Toggle between apparent and actual disk usage\n"
+		"    b           Toggle between exact byte count and abbreviated sizes\n"
+		"    p           toggle palettes\n"
+		"    f           toggle graph fuzz\n"
+		"    backspace   go up one directory\n"
 
 };
 

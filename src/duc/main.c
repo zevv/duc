@@ -329,9 +329,7 @@ static int manual_main(duc *duc, int argc, char **argv)
 		printf("### duc %s\n", c->name);
 		printf("\n");
 		if(c->descr_long) {
-			printf("```\n");
 			printf("%s\n", c->descr_long);
-			printf("```\n");
 			printf("\n");
 		}
 		printf("Options for command `duc %s %s`:\n", c->name, c->usage);

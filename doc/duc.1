@@ -95,133 +95,9 @@ quiet mode, do not print any warning
 \fB\-v\fR, \fB\-\-verbose\fR
 increase verbosity
 .
-.SS "duc cgi"
-Options for command \fBduc cgi [options] [PATH]\fR:
-.
 .TP
-\fB\-a\fR, \fB\-\-apparent\fR
-Show apparent instead of actual file size
-.
-.TP
-\fB\-d\fR, \fB\-\-database=VAL\fR
-select database file to use [~/\.duc\.db]
-.
-.TP
-\fB\-\-fuzz=VAL\fR
-use radius fuzz factor when drawing graph [0\.7]
-.
-.TP
-\fB\-l\fR, \fB\-\-levels=VAL\fR
-draw up to ARG levels deep [4]
-.
-.TP
-\fB\-o\fR, \fB\-\-output=VAL\fR
-output file name [duc\.png]
-.
-.TP
-\fB\-\-palette=VAL\fR
-select palette \fIsize|rainbow|greyscale|monochrome\fR
-.
-.TP
-\fB\-s\fR, \fB\-\-size=VAL\fR
-image size [800]
-.
-.SS "duc graph"
-.
-.nf
-
-The \'graph\' subcommand queries the duc database and generates a sunburst graph
-showing the disk usage of the given path\. If no path is given a graph is created
-for the current working directory\.
-
-By default the graph is written to the file \'duc\.png\', which can be overridden by
-using the \-o/\-\-output option\. The output can be sent to stdout by using the special
-file name \'\-\'\.
-.
-.fi
-.
-.P
-Options for command \fBduc graph [options] [PATH]\fR:
-.
-.TP
-\fB\-a\fR, \fB\-\-apparent\fR
-Show apparent instead of actual file size
-.
-.TP
-\fB\-d\fR, \fB\-\-database=VAL\fR
-select database file to use [~/\.duc\.db]
-.
-.TP
-\fB\-f\fR, \fB\-\-format=VAL\fR
-select output format \fIpng|svg|pdf\fR [png]
-.
-.TP
-\fB\-\-fuzz=VAL\fR
-use radius fuzz factor when drawing graph [0\.7]
-.
-.TP
-\fB\-l\fR, \fB\-\-levels=VAL\fR
-draw up to ARG levels deep [4]
-.
-.TP
-\fB\-o\fR, \fB\-\-output=VAL\fR
-output file name [duc\.png]
-.
-.TP
-\fB\-\-palette=VAL\fR
-select palette \fIsize|rainbow|greyscale|monochrome\fR
-.
-.TP
-\fB\-s\fR, \fB\-\-size=VAL\fR
-image size [800]
-.
-.SS "duc gui"
-.
-.nf
-
-The \'gui\' subcommand queries the duc database and runs an interactive graphical
-utility for exploring the disk usage of the given path\. If no path is given the
-current working directory is explored\.
-
-The following keys can be used to navigate and alter the graph:
-
-  +           increase maximum graph depth
-  \-           decrease maximum graph depth
-  0           Set default graph depth
-  a           Toggle between apparent and actual disk usage
-  b           Toggle between exact byte count and abbreviated sizes
-  p           toggle palettes
-  f           toggle graph fuzz
-  backspace   go up one directory
-.
-.fi
-.
-.P
-Options for command \fBduc gui [options] [PATH]\fR:
-.
-.TP
-\fB\-a\fR, \fB\-\-apparent\fR
-show apparent instead of actual file size
-.
-.TP
-\fB\-b\fR, \fB\-\-bytes\fR
-show file size in exact number of bytes
-.
-.TP
-\fB\-d\fR, \fB\-\-database=VAL\fR
-select database file to use [~/\.duc\.db]
-.
-.TP
-\fB\-\-fuzz=VAL\fR
-use radius fuzz factor when drawing graph
-.
-.TP
-\fB\-l\fR, \fB\-\-levels=VAL\fR
-draw up to ARG levels deep [4]
-.
-.TP
-\fB\-\-palette=VAL\fR
-select palette \fIsize|rainbow|greyscale|monochrome\fR
+\fB\-\-version\fR
+output version information and exit
 .
 .SS "duc help"
 Options for command \fBduc help [options]\fR:
@@ -231,14 +107,7 @@ Options for command \fBduc help [options]\fR:
 show complete help for all commands
 .
 .SS "duc index"
-.
-.nf
-
-The \'index\' subcommand performs a recursive scan of the given paths on the
-filesystem and calculates the inclusive size of all directories\. The results
-are written to the index, and can later be queried by one of the other duc tools\.
-.
-.fi
+The \'index\' subcommand performs a recursive scan of the given paths on the filesystem and calculates the inclusive size of all directories\. The results are written to the index, and can later be queried by one of the other duc tools\.
 .
 .P
 Options for command \fBduc index [options] PATH \.\.\.\fR:
@@ -295,14 +164,7 @@ show file size in exact number of bytes
 select database file to use [~/\.duc\.db]
 .
 .SS "duc ls"
-.
-.nf
-
-The \'ls\' subcommand queries the duc database and lists the inclusive size of
-all files and directories on the given path\. If no path is given the current
-working directory is listed\.
-.
-.fi
+The \'ls\' subcommand queries the duc database and lists the inclusive size of all files and directories on the given path\. If no path is given the current working directory is listed\.
 .
 .P
 Options for command \fBduc ls [options] [PATH]\fR:
@@ -347,26 +209,165 @@ traverse up to ARG levels deep [4]
 \fB\-R\fR, \fB\-\-recursive\fR
 list subdirectories in a recursive tree view
 .
-.SS "duc ui"
+.SS "duc xml"
+Options for command \fBduc xml [options] [PATH]\fR:
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-x\fR, \fB\-\-exclude\-files\fR
+exclude file from xml output, only include directories
+.
+.TP
+\fB\-s\fR, \fB\-\-min_size=VAL\fR
+specify min size for files or directories
+.
+.SS "duc cgi"
+Options for command \fBduc cgi [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+Show apparent instead of actual file size
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-\-fuzz=VAL\fR
+use radius fuzz factor when drawing graph [0\.7]
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+draw up to ARG levels deep [4]
+.
+.TP
+\fB\-o\fR, \fB\-\-output=VAL\fR
+output file name [duc\.png]
+.
+.TP
+\fB\-\-palette=VAL\fR
+select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.TP
+\fB\-s\fR, \fB\-\-size=VAL\fR
+image size [800]
+.
+.SS "duc graph"
+The \'graph\' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
+.
+.P
+By default the graph is written to the file \'duc\.png\', which can be overridden by using the \-o/\-\-output option\. The output can be sent to stdout by using the special file name \'\-\'\.
+.
+.P
+Options for command \fBduc graph [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+Show apparent instead of actual file size
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-f\fR, \fB\-\-format=VAL\fR
+select output format \fIpng|svg|pdf\fR [png]
+.
+.TP
+\fB\-\-fuzz=VAL\fR
+use radius fuzz factor when drawing graph [0\.7]
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+draw up to ARG levels deep [4]
+.
+.TP
+\fB\-o\fR, \fB\-\-output=VAL\fR
+output file name [duc\.png]
+.
+.TP
+\fB\-\-palette=VAL\fR
+select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.TP
+\fB\-s\fR, \fB\-\-size=VAL\fR
+image size [800]
+.
+.SS "duc gui"
+The \'gui\' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+.
+.P
+The following keys can be used to navigate and alter the graph:
+.
+.IP "" 4
 .
 .nf
 
-The \'gui\' subcommand queries the duc database and runs an interactive ncurses
-utility for exploring the disk usage of the given path\. If no path is given the
-current working directory is explored\.
-
-The following keys can be used to navigate and alter the file system:
-
-  k, up, pgup:     move cursor up
-  j, down, pgdn:   move cursor down
-  h, left:         go up to parent directory (\.\.)
-  l, right, enter: descent into selected directory
-  a:               toggle between actual and apparent disk usage
-  b:               toggle between exact and abbreviated sizes
-  g:               toggle graph
-  q, escape:       quit
++           increase maximum graph depth
+\-           decrease maximum graph depth
+0           Set default graph depth
+a           Toggle between apparent and actual disk usage
+b           Toggle between exact byte count and abbreviated sizes
+p           toggle palettes
+f           toggle graph fuzz
+backspace   go up one directory
 .
 .fi
+.
+.IP "" 0
+.
+.P
+Options for command \fBduc gui [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+show apparent instead of actual file size
+.
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-\-fuzz=VAL\fR
+use radius fuzz factor when drawing graph
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+draw up to ARG levels deep [4]
+.
+.TP
+\fB\-\-palette=VAL\fR
+select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.SS "duc ui"
+The \'gui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+.
+.P
+The following keys can be used to navigate and alter the file system:
+.
+.IP "" 4
+.
+.nf
+
+k, up, pgup:     move cursor up
+j, down, pgdn:   move cursor down
+h, left:         go up to parent directory (\.\.)
+l, right, enter: descent into selected directory
+a:               toggle between actual and apparent disk usage
+b:               toggle between exact and abbreviated sizes
+g:               toggle graph
+q, escape:       quit
+.
+.fi
+.
+.IP "" 0
 .
 .P
 Options for command \fBduc ui [options] [PATH]\fR:
@@ -382,21 +383,6 @@ show file size in exact number of bytes
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
 select database file to use [~/\.duc\.db]
-.
-.SS "duc xml"
-Options for command \fBduc xml [options] [PATH]\fR:
-.
-.TP
-\fB\-d\fR, \fB\-\-database=VAL\fR
-select database file to use [~/\.duc\.db]
-.
-.TP
-\fB\-x\fR, \fB\-\-exclude\-files\fR
-exclude file from xml output, only include directories
-.
-.TP
-\fB\-s\fR, \fB\-\-min_size=VAL\fR
-specify min size for files or directories
 .
 .SH "CGI INTERFACING"
 The \fBduc\fR binary has support for a rudimentary CGI interface, currently only tested with apache\. The CGI interface generates a simple HTML page with a list of indexed directories, and shows a clickable graph for navigating the file system\.

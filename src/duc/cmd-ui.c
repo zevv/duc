@@ -281,14 +281,14 @@ struct cmd cmd_ui = {
 		"\n"
 		"The following keys can be used to navigate and alter the file system:\n"
 		"\n"
-		"  k, up, pgup:     move cursor up\n"
-		"  j, down, pgdn:   move cursor down\n"
-		"  h, left:         go up to parent directory (..)\n"
-		"  l, right, enter: descent into selected directory\n"
-		"  a:               toggle between actual and apparent disk usage\n"
-		"  b:               toggle between exact and abbreviated sizes\n"
-		"  g:               toggle graph\n"
-		"  q, escape:       quit\n"
+		"    k, up, pgup:     move cursor up\n"
+		"    j, down, pgdn:   move cursor down\n"
+		"    h, left:         go up to parent directory (..)\n"
+		"    l, right, enter: descent into selected directory\n"
+		"    a:               toggle between actual and apparent disk usage\n"
+		"    b:               toggle between exact and abbreviated sizes\n"
+		"    g:               toggle graph\n"
+		"    q, escape:       quit\n"
 
 };
 
