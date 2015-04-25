@@ -21,33 +21,47 @@ files and several petabytes of storage.
 
 ### Install
 
-Duc depends on the ![Tokyo Cabinet](http://fallabs.com/tokyocabinet/) database library, and on ![Cairo](http://cairographics.org/) and ![Pango](http://www.pango.org/) for writing graphs. 
-The ncurses library is required for the curses user interface.
+Duc depends on the Tokyo Cabinet database library, and on Cairo and Pango for
+drawing graphs. The ncurses library is required for the curses user interface.
 
-At this time there is no official packaged release for Duc, so you will have to clone the 
-git repository and build using autoconf/automake.
-
-Building and installing on Debian or Ubuntu:
+To get the required dependencies on Debian / Ubuntu:
 
 ```
-$ sudo apt-get install libncurses5-dev libcairo2-dev libpango1.0-dev libtokyocabinet-dev libtool autoconf automake build-essential
-$ autoreconf --install
-$ ./configure
-$ make
-$ sudo make install
-$ sudo ldconfig
+$ sudo apt-get install libncurses5-dev libcairo2-dev libpango1.0-dev libtokyocabinet-dev build-essential
 ```
 
 On RHEL or CentOS systems, you need to do:
 
 ```
-$ sudo yum install pango-devel cairo-devel tokyocabinet-devel libtool
-$ autoreconf --install
+$ sudo yum install pango-devel cairo-devel tokyocabinet-devel 
+```
+
+Depending on available libraries or required functionality you can disable
+certain features of duc by passing any of the below switches to ./configure:
+
+```
+  --disable-graph         disable graph drawing [default=yes]
+  --disable-ui            disable ncurses ui [default=yes]
+  --disable-gui           disable X11 gui [default=yes]
+```
+
+#### Building from a release
+
+To build from a release, download the tgz tarball from
+https://github.com/zevv/duc/releases and do the usual thing:
+
+```
 $ ./configure
 $ make
 $ sudo make install
-$ sudo ldconfig
 ```
+
+
+#### Building from Git
+
+When building the latest version from the Git repo you will need to have
+autotools installed and run `autoreconf --install` to generate the
+`./configure` script yourself.
 
 
 ### Usage
@@ -58,7 +72,6 @@ available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand.
 
 Extensive documentation is available in the ![manual page](doc/duc.md)
-
 
 
 
