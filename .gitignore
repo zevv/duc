@@ -6,8 +6,10 @@
 /aclocal.m4
 /autom4te.cache/
 /config.*
+/compile
 /config.status
 /Makefile.in
+/Makefile
 /configure
 /libtool
 /ltmain.sh
@@ -17,3 +19,5 @@
 /depcomp
 /test
 /go
+.deps/
+.dirstamp
