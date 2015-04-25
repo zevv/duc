@@ -3,13 +3,13 @@
 
 ### Introduction
 
-Duc is a small a collection of tools for inspecting and visualizing disk usage.
-Duc maintains a database of accumulated sizes of directories of your file
-system, and allows you to query this database with some tools, or create fancy
-graphs showing you where your bytes are.
+Duc is a collection of tools for indexing, inspecting and visualizing disk
+usage.  Duc maintains a database of accumulated sizes of directories of your
+file system, and allows you to query this database with some tools, or create
+fancy graphs showing you where your bytes are.
 
-Duc scales quite well, it has been tested on systems with more then 500 million
-files and several petabytes of storage. 
+Duc is designed to scale to huge filesystems: it will index and display
+hundreds of millions of files on petabytes of storage without problems.
 
 ![duc gui](/img/example.png) 
 ![duc ui](img/ui.png)
