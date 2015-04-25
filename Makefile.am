@@ -19,7 +19,8 @@ duc_SOURCES := \
 	src/libduc/varint.h 
 
 duc_SOURCES += \
-	src/libduc-graph/graph.c 
+	src/libduc-graph/graph.c \
+	src/libduc-graph/duc-graph.h 
 
 duc_SOURCES  += \
 	src/duc/cmd-cgi.c \
