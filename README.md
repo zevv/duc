@@ -1,8 +1,6 @@
 
 [![Build Status](https://travis-ci.org/zevv/duc.svg?branch=master)](https://travis-ci.org/zevv/duc)
 
-![duc gui](/img/duc.png) 
-
 ### Introduction
 
 Duc is a small library and a collection of tools for inspecting and visualizing
