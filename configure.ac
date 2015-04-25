@@ -20,7 +20,7 @@ AC_SUBST(LIB_AGE)
 
 # Turn off GNU standards like README, etc, for now.
 # Do not do dependency tracking either.
-AM_INIT_AUTOMAKE([foreign no-dependencies])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 
 AC_CONFIG_HEADER([config.h])
 AC_GNU_SOURCE
@@ -89,7 +89,7 @@ AC_CHECK_TYPES([dev_t, ino_t])
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_CHECK_FUNCS([floor memset strchr strdup strerror gettimeofday lstat])
 
-AC_CONFIG_FILES([Makefile lib/Makefile duc/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
 echo ""
