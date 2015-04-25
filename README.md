@@ -22,35 +22,30 @@ drawing graphs. The ncurses library is required for the curses user interface.
 
 To get the required dependencies on Debian / Ubuntu:
 
-```
-$ sudo apt-get install libncurses5-dev libcairo2-dev libpango1.0-dev libtokyocabinet-dev build-essential
-```
+   $ sudo apt-get install libncurses5-dev libcairo2-dev libpango1.0-dev \
+     libtokyocabinet-dev build-essential
 
 On RHEL or CentOS systems, you need to do:
 
-```
-$ sudo yum install pango-devel cairo-devel tokyocabinet-devel 
-```
+   $ sudo yum install pango-devel cairo-devel tokyocabinet-devel 
+
 
 Depending on available libraries or required functionality you can disable
 certain features of duc by passing any of the below switches to ./configure:
 
-```
-  --disable-graph         disable graph drawing [default=yes]
-  --disable-ui            disable ncurses ui [default=yes]
-  --disable-gui           disable X11 gui [default=yes]
-```
+
+    --disable-graph         disable graph drawing [default=yes]
+    --disable-ui            disable ncurses ui [default=yes]
+    --disable-gui           disable X11 gui [default=yes]
 
 #### Building from a release
 
 To build from a release, download the tgz tarball from
 https://github.com/zevv/duc/releases and do the usual thing:
 
-```
-$ ./configure
-$ make
-$ sudo make install
-```
+    $ ./configure
+    $ make
+    $ sudo make install
 
 
 #### Building from Git
@@ -68,7 +63,6 @@ available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand.
 
 Extensive documentation is available in the ![manual page](doc/duc.md)
-
 
 
 ### License
