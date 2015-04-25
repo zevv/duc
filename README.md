@@ -3,9 +3,7 @@
 
 ### Introduction
 
-Duc is a small library and a collection of tools for inspecting and visualizing
-disk usage. 
-
+Duc is a small a collection of tools for inspecting and visualizing disk usage.
 Duc maintains a database of accumulated sizes of directories of your file
 system, and allows you to query this database with some tools, or create fancy
 graphs showing you where your bytes are.
