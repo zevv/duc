@@ -26,16 +26,26 @@ struct cmd cmd_ui;
 
 
 struct cmd *cmd_list[] = {
-	&cmd_cgi,
-	&cmd_graph,
-	&cmd_gui,
 	&cmd_help,
 	&cmd_index,
 	&cmd_info,
 	&cmd_manual,
 	&cmd_ls,
-	&cmd_ui,
 	&cmd_xml,
+
+#ifdef ENABLE_GRAPH
+	&cmd_cgi,
+	&cmd_graph,
+#endif
+
+#ifdef ENABLE_GUI
+	&cmd_gui,
+#endif
+
+#ifdef ENABLE_UI
+	&cmd_ui,
+#endif
+
 };
 
 #define SUBCOMMAND_COUNT (sizeof(cmd_list) / sizeof(cmd_list[0]))

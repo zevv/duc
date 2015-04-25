@@ -1,22 +1,7 @@
 
 bin_PROGRAMS := duc
 
-duc_SOURCES  := \
-	src/duc/cmd-cgi.c \
-	src/duc/cmd-graph.c \
-	src/duc/cmd-gui.c \
-	src/duc/cmd.h \
-	src/duc/cmd.h  \
-	src/duc/cmd-index.c \
-	src/duc/cmd-info.c \
-	src/duc/cmd-ls.c \
-	src/duc/cmd-ui.c \
-	src/duc/cmd-xml.c \
-	src/duc/ducrc.c \
-	src/duc/ducrc.h \
-	src/duc/main.c 
-
-duc_SOURCES += \
+duc_SOURCES := \
 	src/libduc/buffer.c \
 	src/libduc/buffer.h \
 	src/libduc/db.c \
@@ -34,8 +19,23 @@ duc_SOURCES += \
 	src/libduc/varint.h 
 
 duc_SOURCES += \
-	src/libduc-graph/duc-graph.h \
 	src/libduc-graph/graph.c 
+
+duc_SOURCES  += \
+	src/duc/cmd-cgi.c \
+	src/duc/cmd-graph.c \
+	src/duc/cmd-gui.c \
+	src/duc/cmd.h \
+	src/duc/cmd.h  \
+	src/duc/cmd-index.c \
+	src/duc/cmd-info.c \
+	src/duc/cmd-ls.c \
+	src/duc/cmd-ui.c \
+	src/duc/cmd-xml.c \
+	src/duc/ducrc.c \
+	src/duc/ducrc.h \
+	src/duc/main.c 
+
 
 AM_CFLAGS := @TC_CFLAGS@ @CAIRO_CFLAGS@ @PANGO_CFLAGS@ @PANGOCAIRO_CFLAGS@ 
 AM_CFLAGS += -Isrc/libduc -Isrc/libduc-graph

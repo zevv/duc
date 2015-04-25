@@ -1,5 +1,6 @@
-
 #include "config.h"
+
+#ifdef ENABLE_GRAPH
 
 #include <stdio.h>
 #include <ctype.h>
@@ -125,6 +126,8 @@ struct cmd cmd_graph = {
 		"using the -o/--output option. The output can be sent to stdout by using the special\n"
 		"file name '-'.\n"
 };
+
+#endif
 
 /*
  * End

@@ -1,5 +1,7 @@
-
 #include "config.h"
+
+#ifdef ENABLE_GUI
+
 #include "duc.h"
 #include "duc-graph.h"
 #include "ducrc.h"
@@ -299,7 +301,7 @@ struct cmd cmd_gui = {
 
 };
 
-
+#endif
 
 /*
  * End
