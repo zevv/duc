@@ -82,7 +82,7 @@ static void draw(void)
 }
 
 
-static void handle_event(XEvent e)
+static int handle_event(XEvent e)
 {
 	KeySym k;
 	int x, y, b;
@@ -108,8 +108,8 @@ static void handle_event(XEvent e)
 			if(k == XK_minus) opt_levels--;
 			if(k == XK_equal) opt_levels++;
 			if(k == XK_0) opt_levels = 4;
-			if(k == XK_Escape) exit(0);
-			if(k == XK_q) exit(0);
+			if(k == XK_Escape) return 1;
+			if(k == XK_q) return 1;
 			if(k == XK_a) opt_apparent = !opt_apparent;
 			if(k == XK_b) opt_bytes = !opt_bytes;
 			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
@@ -159,10 +159,12 @@ static void handle_event(XEvent e)
 			tooltip_x = e.xmotion.x;
 			tooltip_y = e.xmotion.y;
 	}
+
+	return 0;
 }
 
 
-int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
+static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 
 	Display *dpy = XOpenDisplay(NULL);
@@ -189,8 +191,10 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	pfd.fd = ConnectionNumber(dpy);
 	pfd.events = POLLIN | POLLERR;
+		
+	int quit = 0;
 
-	while(1) {
+	while(!quit) {
 
 		if(redraw) {
 			draw();
@@ -209,8 +213,7 @@ int do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 			XEvent e;
 			XNextEvent(dpy, &e);
 
-			handle_event(e);
-
+			quit = handle_event(e);
 		}
 	}
 
@@ -248,6 +251,8 @@ int gui_main(duc *duc, int argc, char *argv[])
 	graph = duc_graph_new(duc);
 
 	do_gui(duc, graph, dir);
+
+	duc_dir_close(dir);
 
 	return 0;
 }

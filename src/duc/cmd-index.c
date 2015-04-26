@@ -117,6 +117,7 @@ static int index_main(duc *duc, int argc, char **argv)
 	}
 
 	duc_close(duc);
+	duc_index_req_free(req);
 
 	return 0;
 }

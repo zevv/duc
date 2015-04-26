@@ -197,6 +197,8 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 		dir->path = strdup(path_canon);
 	}
 
+	free(path_canon);
+
 	return dir;
 }
 
