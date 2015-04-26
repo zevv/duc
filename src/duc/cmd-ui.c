@@ -49,7 +49,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 	for(;;) {
 	
-		duc_size_type size_type = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 		/* Iterate all dirents to find largest size */
 
@@ -57,8 +57,8 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 		off_t size_max = 1;
 		struct duc_dirent *e;
-		while( (e = duc_dir_read(dir, size_type)) != NULL) {
-			off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+		while( (e = duc_dir_read(dir, st)) != NULL) {
+			off_t size = opt_apparent ? e->size.apparent : e->size.actual;
 			if(size > size_max) size_max = size;
 		}
 
@@ -85,10 +85,11 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 
 		/* Draw footer */
-	
-		off_t size = duc_dir_get_size(dir, size_type);
-		char *siz = duc_human_size(size, opt_bytes);
-		char *cnt = duc_human_size(count, opt_bytes);
+
+		struct duc_size size;
+		duc_dir_get_size(dir, &size);
+		char *siz = duc_human_size(&size, st, opt_bytes);
+		char *cnt = duc_human_number(count, opt_bytes);
 		attrset(A_REVERSE);
 		mvhline(rows-1, 0, ' ', cols);
 		mvprintw(rows-1, 0, " Total %sB in %s files/directories", siz, cnt);
@@ -106,14 +107,14 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 		for(i=top; i<top + pgsize; i++) {
 			
-			struct duc_dirent *e = duc_dir_read(dir, size_type);
+			struct duc_dirent *e = duc_dir_read(dir, st);
 
 			attrset(cur == i ? A_REVERSE : 0);
 			mvhline(y, 0, ' ', cols);
 
 			if(e) {
 
-				off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+				off_t size = opt_apparent ? e->size.apparent : e->size.actual;
 		
 				size_t max_size_len = opt_bytes ? 12 : 7;
 
@@ -122,7 +123,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 					class = type_char[e->type];
 				}
 				
-				char *siz = duc_human_size(size, opt_bytes);
+				char *siz = duc_human_size(&e->size, st, opt_bytes);
 				printw("%*s", max_size_len, siz);
 				free(siz);
 
@@ -187,7 +188,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case '\r':
 			case '\n': 
 				  duc_dir_seek(dir, cur);
-				  struct duc_dirent *e = duc_dir_read(dir, size_type);
+				  struct duc_dirent *e = duc_dir_read(dir, st);
 				  if(e->type == DT_DIR) {
 					dir2 = duc_dir_openent(dir, e);
 					if(dir2) {

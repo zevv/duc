@@ -367,8 +367,10 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	double ring_width = (g->size/2 - g->r_start - 30) / g->max_level;
 
 	/* Calculate max and total size */
-	
-	off_t size_total = duc_dir_get_size(dir, g->size_type);
+
+	struct duc_size tmp;
+	duc_dir_get_size(dir, &tmp);
+	off_t size_total = g->size_type == DUC_SIZE_TYPE_APPARENT ? tmp.apparent : tmp.actual;
 	if(size_total == 0) return 0;
 
 	struct duc_dirent *e;
@@ -377,7 +379,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	size_t size_max = 0;
 
 	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
-		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
+		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size.apparent : e->size.actual;
 		if(size < size_min) size_min = size;
 		if(size > size_max) size_max = size;
 	}
@@ -389,7 +391,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
-		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
+		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size.apparent : e->size.actual;
 
 		double size_rel = (double)size / size_total;
 		double size_nrel = (size_max == size_min) ? 1 : ((double)size - size_min) / (size_max - size_min);
@@ -474,9 +476,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
 
-				off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
-
-				char *siz = duc_human_size(size, g->bytes);
+				char *siz = duc_human_size(&e->size, g->size_type, g->bytes);
 				char *typ = type_name[e->type];
 				if(typ == NULL) typ = "unknown";
 				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
@@ -495,9 +495,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			if(r1 * (a2 - a1) > 5) {
 				struct label *label = malloc(sizeof *label);
 				
-				off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size_apparent : e->size_actual;
-
-				char *siz = duc_human_size(size, g->bytes);
+				char *siz = duc_human_size(&e->size, g->size_type, g->bytes);
 				char *name = duc_strdup(e->name);
 				shorten_name(name, g->max_name_len);
 
@@ -590,7 +588,9 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	draw_text(cr, g->cx, 10, FONT_SIZE_LABEL, p);
 	free(p);
 
-	char *siz = duc_human_size(duc_dir_get_size(dir, g->size_type), g->bytes);
+	struct duc_size size;
+	duc_dir_get_size(dir, &size);
+	char *siz = duc_human_size(&size, g->size_type, g->bytes);
 	draw_text(cr, g->cx, g->cy, 14, siz);
 	free(siz);
 

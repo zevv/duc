@@ -56,26 +56,31 @@ typedef enum {
 } duc_log_level;
 
 
+struct duc_devino {
+	dev_t dev;
+	ino_t ino;
+};
+
+struct duc_size {
+	off_t actual;
+	off_t apparent;
+};
 
 struct duc_index_report {
 	char path[PATH_MAX];        /* Indexed path */
-	dev_t dev;                  /* Index top device id */
-	ino_t ino;                  /* Index top inode */
+	struct duc_devino devino;   /* Index top device id and inode number */
 	struct timeval time_start;  /* Index start time */
 	struct timeval time_stop;   /* Index finished time */
 	size_t file_count;          /* Total number of files indexed */
 	size_t dir_count;           /* Total number of directories indexed */
-	off_t size_apparent;        /* Total apparent size indexed */
-	off_t size_actual;          /* Total actual size indexed */
+	struct duc_size size;       /* Total size */
 };
 
 struct duc_dirent {
 	char *name;                 /* File name */
-	off_t size_apparent;        /* Apparent file size */
-	off_t size_actual;          /* Actual file size */
 	int type;                   /* File type, one of POSIX's DT_* */
-	dev_t dev;                  /* ID of device containing file */
-	ino_t ino;                  /* inode number */
+	struct duc_size size;       /* File size */
+	struct duc_devino devino;   /* Device id and inode number */
 };
 
 
@@ -129,7 +134,7 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name);
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e);
 struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st);
 char *duc_dir_get_path(duc_dir *dir);
-off_t duc_dir_get_size(duc_dir *dir, duc_size_type st);
+void duc_dir_get_size(duc_dir *dir, struct duc_size *size);
 size_t duc_dir_get_count(duc_dir *dir);
 struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name);
 int duc_dir_seek(duc_dir *dir, off_t offset);
@@ -140,7 +145,8 @@ int duc_dir_close(duc_dir *dir);
  * Helper functions
  */
 
-char *duc_human_size(off_t size, int exact);
+char *duc_human_number(double v, int exact);
+char *duc_human_size(struct duc_size *size, duc_size_type st, int exact);
 char *duc_human_duration(struct timeval start, struct timeval end);
 size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list);
 void duc_log(struct duc *duc, duc_log_level lvl, const char *fmt, ...);

@@ -162,16 +162,14 @@ const char *duc_strerror(duc *duc)
 	return "Unknown error, contact the author";
 }
 
-
-char *duc_human_size(off_t size, int exact)
+char *duc_human_number(double v, int exact)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
-	double v = size;
 	char *p = prefix;
 
 	char *s;
-	if(exact || size < 1024) {
-		asprintf(&s, "%jd", size);
+	if(exact || v < 1024) {
+		asprintf(&s, "%.0f", v);
 	} else {
 		while(v >= 1000.0) {
 			v /= 1024.0;
@@ -180,6 +178,13 @@ char *duc_human_size(off_t size, int exact)
 		asprintf(&s, "%.1f%c", v, *p);
 	}
 	return s;
+}
+
+
+char *duc_human_size(struct duc_size *size, duc_size_type st, int exact)
+{
+	double v = (st == DUC_SIZE_TYPE_APPARENT) ? size->apparent : size->actual;
+	return duc_human_number(v, exact);
 }
 
 

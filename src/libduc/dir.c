@@ -14,19 +14,15 @@
 #include "private.h"
 
 
-struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino)
+struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 {
 	struct duc_dir *dir = duc_malloc(sizeof(struct duc_dir));
 	memset(dir, 0, sizeof *dir);
 
 	dir->duc = duc;
-	dir->dev = dev;
-	dir->ino = ino;
+	dir->devino.dev = devino->dev;
+	dir->devino.ino = devino->ino;
 	dir->path = NULL;
-	dir->ent_cur = 0;
-	dir->ent_count = 0;
-	dir->size_apparent = 0;
-	dir->size_actual = 0;
 	dir->ent_pool = 32768;
 	dir->ent_list = duc_malloc(dir->ent_pool);
 	dir->size_type = -1;
@@ -35,7 +31,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino)
 }
 
 
-int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size_apparent, off_t size_actual, uint8_t type, dev_t dev, ino_t ino)
+int duc_dir_add_ent(struct duc_dir *dir, const char *name, struct duc_size *size, uint8_t type, struct duc_devino *devino)
 {
 	if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
 		dir->ent_pool *= 2;
@@ -46,23 +42,17 @@ int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size_apparent, 
 	dir->ent_count ++;
 
 	ent->name = duc_strdup(name);
-	ent->size_apparent = size_apparent;
-	ent->size_actual = size_actual;
 	ent->type = type;
-	ent->dev = dev;
-	ent->ino = ino;
+	ent->size = *size;
+	ent->devino = *devino;
 
 	return 0;
 }
 
 
-off_t duc_dir_get_size(duc_dir *dir, duc_size_type st)
+void duc_dir_get_size(duc_dir *dir, struct duc_size *size)
 {
-	if(st == DUC_SIZE_TYPE_APPARENT) {
-		return dir->size_apparent;
-	} else {
-		return dir->size_actual;
-	}
+	*size = dir->size;
 }
 
 
@@ -81,7 +71,7 @@ char *duc_dir_get_path(duc_dir *dir)
 
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
 {
-	duc_dir *dir2 = db_read_dir(dir->duc, e->dev, e->ino);
+	duc_dir *dir2 = db_read_dir(dir->duc, &e->devino);
 	if(dir2) {
 		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
 	}
@@ -95,8 +85,8 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 		
 		/* Special case: go up one directory */
 
-		if(dir->dev_parent && dir->ino_parent) {
-			duc_dir *pdir = db_read_dir(dir->duc, dir->dev_parent, dir->ino_parent);
+		if(dir->devino_parent.dev && dir->devino_parent.ino) {
+			duc_dir *pdir = db_read_dir(dir->duc, &dir->devino_parent);
 			if(pdir == NULL) return NULL;
 			pdir->path = duc_strdup(dir->path);
 			dirname(pdir->path);
@@ -152,15 +142,13 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 	/* Find top path in database */
 
 	int l = strlen(path_canon);
-	dev_t dev = 0;
-	ino_t ino = 0;
+	struct duc_devino devino = { 0, 0 };
 	while(l > 0) {
 		struct duc_index_report *report;
 		size_t report_len;
 		report = db_get(duc->db, path_canon, l, &report_len);
 		if(report && report_len == sizeof(*report)) {
-			dev = report->dev;
-			ino = report->ino;
+			devino = report->devino;
 			free(report);
 			break;
 		}
@@ -177,7 +165,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
-	dir = db_read_dir(duc, dev, ino);
+	dir = db_read_dir(duc, &devino);
 
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
@@ -217,7 +205,7 @@ static int fn_comp_apparent(const void *a, const void *b)
 {
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
-	return(ea->size_apparent < eb->size_apparent);
+	return(ea->size.apparent < eb->size.apparent);
 }
 
 
@@ -225,7 +213,7 @@ static int fn_comp_actual(const void *a, const void *b)
 {
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
-	return(ea->size_actual < eb->size_actual);
+	return(ea->size.actual < eb->size.actual);
 }
 
 

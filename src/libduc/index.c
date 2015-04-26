@@ -44,8 +44,7 @@ struct duc_index_req {
 struct index_result {
 	size_t file_count;
 	size_t dir_count;
-	off_t size_actual;
-	off_t size_apparent;
+	struct duc_size size;
 };
 
 
@@ -158,33 +157,23 @@ int st_to_type(mode_t mode)
  * was seen before
  */
 
-static int is_duplicate(struct duc_index_req *req, struct stat *st)
+static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 {
-	if(S_ISDIR(st->st_mode)) return 0; /* Directorie hard links are ignored */
-	if(st->st_nlink <= 1) return 0; /* Files with 1 hard link are never dupes */
-
-	struct { 
-		dev_t dev; 
-		ino_t ino; 
-	} key = { 
-		st->st_dev, 
-		st->st_ino 
-	};
-
 	/* Check if the above key is already in the map. If so, this is a dup. If not,
 	 * we see this node for the first time, and we add it to the map */
 	 
 	int l;
-	if(tcmapget(req->dev_ino_map, &key, sizeof(key), &l)) {
+	if(tcmapget(req->dev_ino_map, devino, sizeof(*devino), &l)) {
 		return 1;
 	}
 
-	tcmapput(req->dev_ino_map, &key, sizeof(key), "", 0);
+	tcmapput(req->dev_ino_map, devino, sizeof(*devino), "", 0);
 	return 0;
 }
 
 
-static off_t index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, int fd_parent, struct stat *st_parent, int depth, struct index_result *res)
+static void index_dir(struct duc_index_req *req, struct duc_index_report *report, const char *path, 
+		int fd_parent, struct duc_devino *devino_parent, int depth, struct index_result *res)
 {
 	struct duc *duc = req->duc;
 		
@@ -195,7 +184,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	int fd_dir = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
 	if(fd_dir == -1) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
-		return 0;
+		return;
 	}
 
 	struct stat st_dir;
@@ -203,16 +192,17 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	if(r == -1) {
 		duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
 		close(fd_dir);
-		return 0;
+		return;
 	}
 	
 	if(req->dev == 0) {
 		req->dev = st_dir.st_dev;
 	}
 
-	if(report->dev == 0) {
-		report->dev = st_dir.st_dev;
-		report->ino = st_dir.st_ino;
+	struct duc_devino di_dir = { .dev = st_dir.st_dev, .ino = st_dir.st_ino };
+
+	if(report->devino.dev == 0) {
+		report->devino = di_dir;
 	}
 
 
@@ -221,7 +211,7 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	if(req->flags & DUC_INDEX_XDEV) {
 		if(st_dir.st_dev != req->dev) {
 			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", path);
-			return 0;
+			return;
 		}
 	}
 
@@ -229,14 +219,13 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 	if(d == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
 		close(fd_dir);
-		return 0;
+		return;
 	}
 
-	struct duc_dir *dir = duc_dir_new(duc, st_dir.st_dev, st_dir.st_ino);
+	struct duc_dir *dir = duc_dir_new(duc, &di_dir);
 
-	if(st_parent) {
-		dir->dev_parent = st_parent->st_dev;
-		dir->ino_parent = st_parent->st_ino;
+	if(devino_parent) {
+		dir->devino_parent = *devino_parent;
 	}
 
 
@@ -272,29 +261,34 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		}
 		 
 		int type = st_to_type(st.st_mode);
+		struct duc_devino devino = { .dev = st.st_dev, .ino = st.st_ino };
 
 
 		/* Skip hard link duplicates for any files with more then one hard link */
 		
-		if(req->flags & DUC_INDEX_CHECK_HARD_LINKS)
-			if(is_duplicate(req, &st)) 
-				continue;
+		if((req->flags & DUC_INDEX_CHECK_HARD_LINKS) && 
+		   (type != DT_DIR) && 
+		   (st.st_nlink > 1) && is_duplicate(req, &devino)) 
+			continue;
 
 
 		/* Calculate size of this dirent, recursing when needed */
 
-		off_t ent_size_apparent = st.st_size;
-		off_t ent_size_actual = 512 * st.st_blocks;
+		struct duc_size ent_size = {
+			.apparent = st.st_size,
+			.actual = 512 * st.st_blocks,
+		};
 		
-		report->size_apparent += ent_size_apparent;
-		report->size_actual += ent_size_actual;
+		report->size.apparent += ent_size.apparent;
+		report->size.actual += ent_size.actual;
 		
 		if(type == DT_DIR) {
 			struct index_result res2 = { 0 };
-			index_dir(req, report, name, fd_dir, &st_dir, depth+1, &res2);
+			struct duc_devino devino_parent = { .dev = st_dir.st_dev, .ino = st_dir.st_ino };
+			index_dir(req, report, name, fd_dir, &devino_parent, depth+1, &res2);
 
-			ent_size_apparent += res2.size_apparent;
-			ent_size_actual += res2.size_actual;
+			ent_size.apparent += res2.size.apparent;
+			ent_size.actual += res2.size.actual;
 			res->dir_count += res2.dir_count;
 			res->file_count += res2.file_count;
 			report->dir_count ++;
@@ -304,11 +298,11 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			res->file_count ++;
 		}
 		
-		res->size_apparent += ent_size_apparent;
-		res->size_actual += ent_size_actual;
+		res->size.apparent += ent_size.apparent;
+		res->size.actual += ent_size.actual;
 
 		duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
-				typechar[type], ent_size_apparent, ent_size_actual, name);
+				typechar[type], ent_size.apparent, ent_size.actual, name);
 
 		/* Store record */
 
@@ -319,12 +313,12 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 			if((req->flags & DUC_INDEX_HIDE_FILE_NAMES) && type != DT_DIR) 
 				name = "<FILE>";
 
-			duc_dir_add_ent(dir, name, ent_size_apparent, ent_size_actual, type, st.st_dev, st.st_ino);
+			duc_dir_add_ent(dir, name, &ent_size, type, &devino);
 		}
 	}
 
 	duc_log(duc, DUC_LOG_DMP, "<< %s files:%jd dirs:%jd actual:%jd apparent:%jd", 
-			path, res->file_count, res->dir_count, res->size_apparent, res->size_actual);
+			path, res->file_count, res->dir_count, res->size.apparent, res->size.actual);
 		
 	db_write_dir(dir);
 	duc_dir_close(dir);
@@ -348,8 +342,6 @@ static off_t index_dir(struct duc_index_req *req, struct duc_index_report *repor
 		}
 
 	}
-
-	return 0;
 }	
 
 

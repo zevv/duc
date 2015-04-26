@@ -71,7 +71,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	off_t max_size = 0;
 	int max_name_len = 0;
 	int max_size_len = 6;
-	duc_size_type size_type = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 	if(level > opt_levels) return;
 
@@ -80,9 +80,9 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	/* Iterate the directory once to get maximum file size and name length */
 	
 	struct duc_dirent *e;
-	while( (e = duc_dir_read(dir, size_type)) != NULL) {
+	while( (e = duc_dir_read(dir, st)) != NULL) {
 
-		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+		off_t size = opt_apparent ? e->size.apparent : e->size.actual;
 
 		if(size > max_size) max_size = size;
 		size_t l = strlen(e->name);
@@ -100,11 +100,11 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	size_t count = duc_dir_get_count(dir);
 	size_t n = 0;
 
-	while( (e = duc_dir_read(dir, size_type)) != NULL) {
+	while( (e = duc_dir_read(dir, st)) != NULL) {
 
 		if(opt_dirs_only && e->type != DT_DIR) continue;
 
-		off_t size = opt_apparent ? e->size_apparent : e->size_actual;
+		off_t size = opt_apparent ? e->size.apparent : e->size.actual;
 
 		if(opt_recursive) {
 			if(n == 0)       prefix[level] = 1;
@@ -122,7 +122,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		}
 
 		printf("%s", color_on);
-		char *siz = duc_human_size(size, opt_bytes);
+		char *siz = duc_human_size(&e->size, st, opt_bytes);
 		printf("%*s", max_size_len, siz);
 		free(siz);
 		printf("%s", color_off);

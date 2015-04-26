@@ -45,9 +45,9 @@ void progress_cb(struct duc_index_report *rep, void *ptr)
 	meter[7 - abs(n-7)] = '#';
 	n = (n+1) % 14;
 
-	char *siz = duc_human_size(rep->size_actual, opt_bytes);
-	char *fs = duc_human_size(rep->file_count, opt_bytes);
-	char *ds = duc_human_size(rep->dir_count, opt_bytes);
+	char *siz = duc_human_size(&rep->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes);
+	char *fs = duc_human_number(rep->file_count, opt_bytes);
+	char *ds = duc_human_number(rep->dir_count, opt_bytes);
 
 	printf("\e[K[%s] Indexed %sb in %s files and %s directories\r", meter, siz, fs, ds);
 	fflush(stdout);
@@ -94,8 +94,8 @@ static int index_main(duc *duc, int argc, char **argv)
 			continue;
 		}
 
-		char *siz_apparent = duc_human_size(report->size_apparent, opt_bytes);
-		char *siz_actual = duc_human_size(report->size_actual, opt_bytes);
+		char *siz_apparent = duc_human_size(&report->size, DUC_SIZE_TYPE_APPARENT, opt_bytes);
+		char *siz_actual = duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes);
 
 		if(r == DUC_OK) {
 			char *s = duc_human_duration(report->time_start, report->time_stop);

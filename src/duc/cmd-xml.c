@@ -51,11 +51,11 @@ static void dump(duc *duc, duc_dir *dir, int depth, int min_size, int ex_files)
 
 	while( (e = duc_dir_read(dir, DUC_SIZE_TYPE_ACTUAL)) != NULL) {
 
-		if(e->type == DT_DIR && e->size_apparent >= min_size) {
+		if(e->type == DT_DIR && e->size.apparent >= min_size) {
 			indent(depth);
 			printf("<ent type='dir' name='");
 			print_escaped(e->name);
-			printf("' size_apparent='%jd' size_actual='%jd'>\n", (intmax_t)e->size_apparent, (intmax_t)e->size_actual);
+			printf("' size_apparent='%jd' size_actual='%jd'>\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
 			duc_dir *dir_child = duc_dir_openent(dir, e);
 			if(dir_child) {
 				dump(duc, dir_child, depth + 1, min_size, ex_files);
@@ -63,11 +63,11 @@ static void dump(duc *duc, duc_dir *dir, int depth, int min_size, int ex_files)
 				printf("</ent>\n");
 			}
 		} else {
-			if(!ex_files && e->size_apparent >= min_size) {
+			if(!ex_files && e->size.apparent >= min_size) {
 				indent(depth);
 				printf("<ent name='");
 				print_escaped(e->name);
-				printf("' size_apparent='%jd' size_actual='%jd' />\n", (intmax_t)e->size_apparent, (intmax_t)e->size_actual);
+				printf("' size_apparent='%jd' size_actual='%jd' />\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
 			}
 		}
 	}
@@ -90,11 +90,11 @@ static int xml_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
+	struct duc_size size;
+	duc_dir_get_size(dir, &size);
 	printf("<?xml version='1.0' encoding='UTF-8'?>\n");
 	printf("<duc root='%s' size_apparent='%jd' size_actual='%jd'>\n", 
-			path, 
-			(intmax_t)duc_dir_get_size(dir, DUC_SIZE_TYPE_APPARENT),
-			(intmax_t)duc_dir_get_size(dir, DUC_SIZE_TYPE_ACTUAL));
+			path, (uintmax_t)size.apparent, (uintmax_t)size.actual);
 
 	dump(duc, dir, 1, opt_min_size, opt_exclude_files);
 

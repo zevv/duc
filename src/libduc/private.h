@@ -28,14 +28,11 @@ struct duc {
 
 struct duc_dir {
 	struct duc *duc;
-	dev_t dev;
-	ino_t ino;
-	dev_t dev_parent;
-	ino_t ino_parent;
+	struct duc_devino devino;
+	struct duc_devino devino_parent;
 	char *path;
 	struct duc_dirent *ent_list;
-	off_t size_apparent;
-	off_t size_actual;
+	struct duc_size size;
 	size_t file_count;
 	size_t dir_count;
 	size_t ent_cur;
@@ -49,8 +46,8 @@ void *duc_realloc(void *p, size_t s);
 char *duc_strdup(const char *s);
 void duc_free(void *p);
 
-struct duc_dir *duc_dir_new(struct duc *duc, dev_t dev, ino_t ino);
-int duc_dir_add_ent(struct duc_dir *dir, const char *name, off_t size_apparent, off_t size_actual, uint8_t type, dev_t dev, ino_t ino);
+struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino);
+int duc_dir_add_ent(struct duc_dir *dir, const char *name, struct duc_size *size, uint8_t type, struct duc_devino *devino);
 
 char *stripdir(const char *dir);
 

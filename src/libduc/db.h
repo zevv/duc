@@ -2,6 +2,7 @@
 #ifndef db_h
 #define db_h
 
+#include "private.h"
 #include "duc.h"
 
 struct db;
@@ -14,7 +15,7 @@ void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len);
 
 
 duc_errno db_write_dir(struct duc_dir *dir);
-struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino);
+struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *di);
 duc_errno db_write_report(duc *duc, struct duc_index_report *rep);
 
 #endif

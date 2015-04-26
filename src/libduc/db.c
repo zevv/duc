@@ -12,9 +12,9 @@
 
 
 
-static int mkkey(dev_t dev, ino_t ino, char *key, size_t keylen)
+static int mkkey(struct duc_devino *devino, char *key, size_t keylen)
 {
-	return snprintf(key, keylen, "%jx/%jx", (uintmax_t)dev, (uintmax_t)ino);
+	return snprintf(key, keylen, "%jx/%jx", (uintmax_t)devino->dev, (uintmax_t)devino->ino);
 }
 
 
@@ -26,26 +26,26 @@ duc_errno db_write_dir(struct duc_dir *dir)
 {
 	struct buffer *b = buffer_new(NULL, 0);
 		
-	buffer_put_varint(b, dir->dev_parent);
-	buffer_put_varint(b, dir->ino_parent);
+	buffer_put_varint(b, dir->devino_parent.dev);
+	buffer_put_varint(b, dir->devino_parent.ino);
 
 	int i;
 	struct duc_dirent *ent = dir->ent_list;
 
 	for(i=0; i<dir->ent_count; i++) {
 		buffer_put_string(b, ent->name);
-		buffer_put_varint(b, ent->size_apparent);
-		buffer_put_varint(b, ent->size_actual);
+		buffer_put_varint(b, ent->size.apparent);
+		buffer_put_varint(b, ent->size.actual);
 		buffer_put_varint(b, ent->type);
 		if(ent->type == DT_DIR) {
-			buffer_put_varint(b, ent->dev);
-			buffer_put_varint(b, ent->ino);
+			buffer_put_varint(b, ent->devino.dev);
+			buffer_put_varint(b, ent->devino.ino);
 		}
 		ent++;
 	}
 
 	char key[32];
-	size_t keyl = mkkey(dir->dev, dir->ino, key, sizeof key);
+	size_t keyl = mkkey(&dir->devino, key, sizeof key);
 	int r = db_put(dir->duc->db, key, keyl, b->data, b->len);
 	if(r != 0) {
 		dir->duc->err = r;
@@ -62,15 +62,15 @@ duc_errno db_write_dir(struct duc_dir *dir)
  * Read database record and deserialize into duc_dir
  */
 
-struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
+struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
 {
-	struct duc_dir *dir = duc_dir_new(duc, dev, ino);
+	struct duc_dir *dir = duc_dir_new(duc, devino);
 
 	char key[32];
 	size_t keyl;
 	size_t vall;
 
-	keyl = mkkey(dev, ino, key, sizeof key);
+	keyl = mkkey(devino, key, sizeof key);
 	char *val = db_get(duc->db, key, keyl, &vall);
 	if(val == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Key %s not found in database", key);
@@ -80,14 +80,13 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 
 	struct buffer *b = buffer_new(val, vall);
 
-	off_t size_apparent_total = 0;
-	off_t size_actual_total = 0;
+	struct duc_size size_total = { 0, 0 };
 	size_t file_count = 0;
 	size_t dir_count = 0;
 
 	uint64_t v;
-	buffer_get_varint(b, &v); dir->dev_parent = v;
-	buffer_get_varint(b, &v); dir->ino_parent = v;
+	buffer_get_varint(b, &v); dir->devino_parent.dev = v;
+	buffer_get_varint(b, &v); dir->devino_parent.ino = v;
 	
 	while(b->ptr < b->len) {
 
@@ -112,17 +111,24 @@ struct duc_dir *db_read_dir(struct duc *duc, dev_t dev, ino_t ino)
 		}
 
 		if(name) {
-			duc_dir_add_ent(dir, name, size_apparent, size_actual, type, dev, ino);
+			struct duc_size size = {
+				.apparent = size_apparent,
+				.actual = size_actual,
+			};
+			struct duc_devino devino = {
+				.dev = dev,
+				.ino = ino,
+			};
+			duc_dir_add_ent(dir, name, &size, type, &devino);
 			free(name);
 		}
 
-		size_apparent_total += size_apparent;
-		size_actual_total += size_actual;
+		size_total.apparent += size_apparent;
+		size_total.actual += size_actual;
 	
 	}
 
-	dir->size_apparent = size_apparent_total;
-	dir->size_actual = size_actual_total;
+	dir->size = size_total;
 	dir->file_count = file_count;
 	dir->dir_count = dir_count;
 
