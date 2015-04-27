@@ -14,6 +14,8 @@ wrapper for disk usage querying and visualisation.
 Duc is designed to scale to huge filesystems: it will index and display
 hundreds of millions of files on petabytes of storage without problems.
 
+For more information, check the ![manual page](doc/duc.md)
+
 ![duc gui](/img/example.png) 
 ![duc ui](img/ui.png)
 
