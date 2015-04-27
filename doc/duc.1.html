@@ -195,7 +195,7 @@ are written to the index, and can later be queried by one of the other duc tools
 <dt><code>-f</code>, <code>--force</code></dt><dd><p>force writing in case of corrupted db</p></dd>
 <dt><code>--hide-file-names</code></dt><dd><p>hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden</p></dd>
 <dt><code>-m</code>, <code>--max-depth=VAL</code></dt><dd><p>limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index</p></dd>
-<dt><code>-x</code>, <code>--one-file-system</code></dt><dd><p>don't cross filesystem boundaries</p></dd>
+<dt><code>-x</code>, <code>--one-file-system</code></dt><dd><p>skip directories on different file systems</p></dd>
 <dt><code>-p</code>, <code>--progress</code></dt><dd><p>show progress during indexing</p></dd>
 <dt><code>--uncompressed</code></dt><dd><p>do not use compression for database. Duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time</p></dd>
 </dl>
@@ -483,8 +483,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#100;&#x75;&#x63;&#64;&#122;&#x65;&#118;&#118;&#46;&#110;&#108;" data-bare-link="true">&#100;&#117;&#x63;&#x40;&#122;&#x65;&#x76;&#118;&#46;&#110;&#108;</a></li>
-<li>John Stoffel <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#x6a;&#111;&#x68;&#x6e;&#x40;&#x73;&#x74;&#111;&#x66;&#102;&#x65;&#108;&#46;&#x6f;&#114;&#x67;" data-bare-link="true">&#x6a;&#111;&#104;&#110;&#64;&#115;&#116;&#x6f;&#102;&#102;&#x65;&#x6c;&#46;&#x6f;&#114;&#x67;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#x64;&#x75;&#99;&#x40;&#122;&#101;&#x76;&#x76;&#46;&#x6e;&#108;" data-bare-link="true">&#x64;&#x75;&#x63;&#64;&#122;&#101;&#118;&#x76;&#46;&#110;&#108;</a></li>
+<li>John Stoffel <a href="&#109;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#x6a;&#x6f;&#104;&#110;&#x40;&#x73;&#x74;&#x6f;&#x66;&#102;&#101;&#108;&#x2e;&#x6f;&#x72;&#103;" data-bare-link="true">&#x6a;&#x6f;&#104;&#x6e;&#x40;&#115;&#x74;&#x6f;&#x66;&#x66;&#x65;&#108;&#x2e;&#x6f;&#x72;&#x67;</a></li>
 </ul>
 
 

@@ -144,7 +144,7 @@ Options for command `duc index [options] PATH ...`:
 
 
   * `-x`, `--one-file-system`:
-    don't cross filesystem boundaries
+    skip directories on different file systems
 
   * `-p`, `--progress`:
     show progress during indexing

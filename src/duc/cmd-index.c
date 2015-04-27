@@ -141,7 +141,7 @@ static struct ducrc_option options[] = {
 	{ &opt_max_depth,       "max-depth",       'm', DUCRC_TYPE_INT,    "limit directory names to given depth" ,
 	  "when this option is given duc will traverse the complete file system, but will only the first VAL "
 	  "levels of directories in the database to reduce the size of the index" },
-	{ &opt_one_file_system, "one-file-system", 'x', DUCRC_TYPE_BOOL,   "don't cross filesystem boundaries" },
+	{ &opt_one_file_system, "one-file-system", 'x', DUCRC_TYPE_BOOL,   "skip directories on different file systems" },
 	{ &opt_progress,        "progress",        'p', DUCRC_TYPE_BOOL,   "show progress during indexing" },
 	{ &opt_uncompressed,    "uncompressed",     0 , DUCRC_TYPE_BOOL,   "do not use compression for database",
           "Duc enables compression if the underlying database supports this. This reduces index size at the cost "
