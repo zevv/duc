@@ -16,7 +16,6 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <tcutil.h>
 #ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
 #endif
@@ -25,6 +24,12 @@
 #include "duc.h"
 #include "list.h"
 #include "private.h"
+#include "uthash.h"
+
+struct devino_ent {
+	struct duc_devino devino;
+	UT_hash_handle hh;
+};
 
 struct duc_index_req {
 	duc *duc;
@@ -38,7 +43,7 @@ struct duc_index_req {
 	int progress_n;
 	struct timeval progress_interval;
 	struct timeval progress_time;
-	TCMAP *dev_ino_map;
+	struct devino_ent *devino_map;
 };
 
 struct index_result {
@@ -62,7 +67,7 @@ duc_index_req *duc_index_req_new(duc *duc)
 	req->duc = duc;
 	req->progress_interval.tv_sec = 0;
 	req->progress_interval.tv_usec = 100 * 1000;
-	req->dev_ino_map = tcmapnew();
+	req->devino_map = NULL;
 
 	return req;
 }
@@ -70,7 +75,11 @@ duc_index_req *duc_index_req_new(duc *duc)
 
 int duc_index_req_free(duc_index_req *req)
 {
-	tcmapdel(req->dev_ino_map);
+	struct devino_ent *de, *den;
+	HASH_ITER(hh, req->devino_map, de, den) {
+		HASH_DEL(req->devino_map, de);
+		free(de);
+	}
 	list_free(req->exclude_list, free);
 	list_free(req->path_list, free);
 	free(req);
@@ -161,13 +170,17 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 {
 	/* Check if the above key is already in the map. If so, this is a dup. If not,
 	 * we see this node for the first time, and we add it to the map */
-	 
-	int l;
-	if(tcmapget(req->dev_ino_map, devino, sizeof(*devino), &l)) {
-		return 1;
-	}
 
-	tcmapput(req->dev_ino_map, devino, sizeof(*devino), "", 0);
+	struct devino_ent *di;
+	HASH_FIND(hh, req->devino_map, devino, sizeof(*devino), di);
+
+	if(di)
+		return 1;
+
+	di = duc_malloc(sizeof *di);
+	di->devino = *devino;
+	HASH_ADD(hh, req->devino_map, devino, sizeof(di->devino), di);
+
 	return 0;
 }
 
