@@ -136,13 +136,11 @@ always a bit more then its apparent size.
 Duc has two modes for counting file sizes:
 
 - `apparent size`: this is the size as reported by `ls`. This number indicates
-  the file length, which is usually smaller then the actual disk usage. In this
-  mode, directories themselves do not have a size.
+  the file length, which is usually smaller then the actual disk usage. 
 
 - `actual size`: this is the size as reported by `du` and `df`. The actual file
   size tells you how much disk is actually used by a file, and is alwasys a
-  multiple of 512 bytes. In this mode, the blocks used to store the directory
-  information are counted as well.
+  multiple of 512 bytes. 
 
 The default mode used by duc is to use the 'actual size'. Most duc commands to
 report disk usage (`duc ls`, `duc graph`, `duc gui`, etc) have an option to
