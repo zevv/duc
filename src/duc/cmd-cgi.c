@@ -32,7 +32,6 @@ static int opt_list = 0;
 static int opt_size = 800;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
-static char *opt_output = NULL;
 static char *opt_palette = NULL;
 
 static struct param *param_list = NULL;
@@ -351,7 +350,6 @@ static struct ducrc_option options[] = {
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_list,      "list",        0, DUCRC_TYPE_BOOL,   "generate table with file list" },
-	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
 	{ NULL }
