@@ -81,8 +81,6 @@ struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
 	struct buffer *b = buffer_new(val, vall);
 
 	struct duc_size size_total = { 0, 0 };
-	size_t file_count = 0;
-	size_t dir_count = 0;
 
 	uint64_t v;
 	buffer_get_varint(b, &v); dir->devino_parent.dev = v;
@@ -105,9 +103,9 @@ struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
 		if(type == DT_DIR) {
 			buffer_get_varint(b, &dev);
 			buffer_get_varint(b, &ino);
-			dir_count ++;
+			dir->dir_count ++;
 		} else {
-			file_count ++;
+			dir->file_count ++;
 		}
 
 		if(name) {
@@ -129,8 +127,6 @@ struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
 	}
 
 	dir->size = size_total;
-	dir->file_count = file_count;
-	dir->dir_count = dir_count;
 
 	buffer_free(b);
 
