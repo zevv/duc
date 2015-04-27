@@ -25,6 +25,7 @@ struct param {
 
 
 static int opt_apparent = 0;
+static char *opt_css_url = NULL;
 static char *opt_database = NULL;
 static int opt_bytes = 0;
 static int opt_list = 0;
@@ -122,19 +123,29 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		"\n"
 		"<!DOCTYPE html>\n"
 		"<head>\n"
-		"<style>\n"
-		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
-		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
-		"#main { display:table-cell; }\n"
-		"#index { border-bottom: solid 1px #777777; }\n"
-		"#index table td { padding-left: 5px; }\n"
-		"#graph { float: left; }\n"
-		"#list { float: left; }\n"
-		"#list table { margin-left: auto; margin-right: auto; }\n"
-		"#list table td { padding-left: 5px; }\n"
-		"#list table td.name, th.name{ text-align: left; }\n"
-		"#list table td.size, th.size{ text-align: right; }\n"
-		"</style>\n"
+	);
+
+	if(opt_css_url) {
+		printf("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">\n", opt_css_url);
+	} else {
+		printf(
+			"<style>\n"
+			"body { font-family: \"arial\", \"sans-serif\"; font-size: 11px; }\n"
+			"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
+			"#main { display:table-cell; }\n"
+			"#index { border-bottom: solid 1px #777777; }\n"
+			"#index table td { padding-left: 5px; }\n"
+			"#graph { float: left; }\n"
+			"#list { float: left; }\n"
+			"#list table { margin-left: auto; margin-right: auto; }\n"
+			"#list table td { padding-left: 5px; }\n"
+			"#list table td.name, th.name{ text-align: left; }\n"
+			"#list table td.size, th.size{ text-align: right; }\n"
+			"</style>\n"
+		);
+	}
+
+	printf(
 		"</head>\n"
 		"<div id=main>\n"
 	);
@@ -193,7 +204,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		char *siz = duc_human_size(&report->size, st, 0);
 
 		printf("  <tr>\n");
-		printf("   <td><a href='%s&path=%s'>%s</a></td>\n", url, report->path, report->path);
+		printf("   <td><a href=\"%s&path=%s\">%s</a></td>\n", url, report->path, report->path);
 		printf("   <td>%s</td>\n", siz);
 		printf("   <td>%zu</td>\n", report->file_count);
 		printf("   <td>%zu</td>\n", report->dir_count);
@@ -213,8 +224,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	if(path) {
 		printf("<div id=graph>\n");
-		printf(" <a href='%s?cmd=index&path=%s&'>\n", script, path);
-		printf("  <img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
+		printf(" <a href=\"%s?cmd=index&path=%s&\">\n", script, path);
+		printf("  <img src=\"%s?cmd=image&path=%s\" ismap=\"ismap\">\n", script, path);
 		printf(" </a>\n");
 		printf("</div>\n");
 	}
@@ -237,7 +248,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			printf("  <tr><td class=name>");
 
 			if(e->type == DT_DIR) 
-				printf("<a href='%s&path=%s/%s'>", url, path, e->name);
+				printf("<a href=\"%s&path=%s/%s\">", url, path, e->name);
 
 			printf("%s", e->name);
 
@@ -335,6 +346,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+	{ &opt_css_url,   "css-url",     0, DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS is embedded" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },

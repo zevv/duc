@@ -218,6 +218,12 @@ Options for command `duc cgi [options] [PATH]`:
   * `-a`, `--apparent`:
     Show apparent instead of actual file size
 
+  * `-b`, `--bytes`:
+    show file size in exact number of bytes
+
+  * `--css-url=VAL`:
+    url of CSS style sheet to use instead of default CSS is embedded
+
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
 
@@ -226,6 +232,9 @@ Options for command `duc cgi [options] [PATH]`:
 
   * `-l`, `--levels=VAL`:
     draw up to ARG levels deep [4]
+
+  * `--list`:
+    generate table with file list
 
   * `-o`, `--output=VAL`:
     output file name [duc.png]
@@ -347,7 +356,8 @@ Options for command `duc ui [options] [PATH]`:
 The `duc` binary has support for a rudimentary CGI interface, currently only
 tested with apache.  The CGI interface generates a simple HTML page with a list
 of indexed directories, and shows a clickable graph for navigating the file
-system.
+system. If the option `--list` is given, a list of top sized files/dirs is also
+written.
 
 Configuration is done by creating a simple shell script as .cgi in a directory
 which is configured for CGI execution by your web server (usually
@@ -362,8 +372,12 @@ An example duc.cgi script would be
 ```
 
 * Make sure the database file is readable by the user (usually www-data)
-* Debuggin is best done by inspecting the web server's error log
+* Debugging is best done by inspecting the web server's error log
 * Make sure the .cgi script has execute permissions (`chmod +x duc.cgi`)
+
+The HTML page is generated with a simple embedded CSS style sheet. If the style
+is not to your liking you can provide an external CSS url with the --css-url
+option which will then be used instead of the embedded style definition.
 
 The current CGI configuration is not very flexible, nor secure. Use at your own
 risk!

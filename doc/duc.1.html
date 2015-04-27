@@ -250,9 +250,12 @@ working directory is listed.</p>
 
 <dl>
 <dt><code>-a</code>, <code>--apparent</code></dt><dd><p>Show apparent instead of actual file size</p></dd>
+<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
+<dt><code>--css-url=VAL</code></dt><dd><p>url of CSS style sheet to use instead of default CSS is embedded</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
 <dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
 <dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
+<dt class="flush"><code>--list</code></dt><dd><p>generate table with file list</p></dd>
 <dt><code>-o</code>, <code>--output=VAL</code></dt><dd><p>output file name [duc.png]</p></dd>
 <dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
 <dt><code>-s</code>, <code>--size=VAL</code></dt><dd><p>image size [800]</p></dd>
@@ -345,7 +348,8 @@ q, escape:       quit
 <p>The <code>duc</code> binary has support for a rudimentary CGI interface, currently only
 tested with apache.  The CGI interface generates a simple HTML page with a list
 of indexed directories, and shows a clickable graph for navigating the file
-system.</p>
+system. If the option <code>--list</code> is given, a list of top sized files/dirs is also
+written.</p>
 
 <p>Configuration is done by creating a simple shell script as .cgi in a directory
 which is configured for CGI execution by your web server (usually
@@ -360,10 +364,14 @@ location of the database to offer.</p>
 
 <ul>
 <li>Make sure the database file is readable by the user (usually www-data)</li>
-<li>Debuggin is best done by inspecting the web server's error log</li>
+<li>Debugging is best done by inspecting the web server's error log</li>
 <li>Make sure the .cgi script has execute permissions (<code>chmod +x duc.cgi</code>)</li>
 </ul>
 
+
+<p>The HTML page is generated with a simple embedded CSS style sheet. If the style
+is not to your liking you can provide an external CSS url with the --css-url
+option which will then be used instead of the embedded style definition.</p>
 
 <p>The current CGI configuration is not very flexible, nor secure. Use at your own
 risk!</p>
@@ -476,8 +484,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#109;&#97;&#105;&#x6c;&#x74;&#x6f;&#58;&#100;&#117;&#x63;&#x40;&#x7a;&#101;&#x76;&#x76;&#46;&#x6e;&#108;" data-bare-link="true">&#100;&#117;&#99;&#x40;&#122;&#101;&#x76;&#118;&#46;&#x6e;&#x6c;</a></li>
-<li>John Stoffel <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#106;&#111;&#104;&#110;&#x40;&#x73;&#116;&#x6f;&#102;&#x66;&#101;&#x6c;&#46;&#111;&#114;&#103;" data-bare-link="true">&#106;&#111;&#x68;&#x6e;&#64;&#x73;&#116;&#111;&#102;&#102;&#x65;&#108;&#x2e;&#111;&#114;&#103;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#111;&#x3a;&#x64;&#117;&#x63;&#64;&#x7a;&#101;&#x76;&#x76;&#x2e;&#x6e;&#108;" data-bare-link="true">&#x64;&#x75;&#99;&#x40;&#x7a;&#x65;&#x76;&#118;&#x2e;&#110;&#x6c;</a></li>
+<li>John Stoffel <a href="&#109;&#x61;&#105;&#108;&#116;&#111;&#58;&#106;&#x6f;&#x68;&#x6e;&#64;&#x73;&#116;&#x6f;&#102;&#x66;&#101;&#108;&#x2e;&#x6f;&#x72;&#x67;" data-bare-link="true">&#x6a;&#111;&#104;&#110;&#64;&#x73;&#116;&#x6f;&#102;&#102;&#x65;&#108;&#46;&#x6f;&#114;&#x67;</a></li>
 </ul>
 
 

@@ -232,6 +232,14 @@ Options for command \fBduc cgi [options] [PATH]\fR:
 Show apparent instead of actual file size
 .
 .TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.
+.TP
+\fB\-\-css\-url=VAL\fR
+url of CSS style sheet to use instead of default CSS is embedded
+.
+.TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
 select database file to use [~/\.duc\.db]
 .
@@ -242,6 +250,10 @@ use radius fuzz factor when drawing graph [0\.7]
 .TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
 draw up to ARG levels deep [4]
+.
+.TP
+\fB\-\-list\fR
+generate table with file list
 .
 .TP
 \fB\-o\fR, \fB\-\-output=VAL\fR
@@ -385,7 +397,7 @@ show file size in exact number of bytes
 select database file to use [~/\.duc\.db]
 .
 .SH "CGI INTERFACING"
-The \fBduc\fR binary has support for a rudimentary CGI interface, currently only tested with apache\. The CGI interface generates a simple HTML page with a list of indexed directories, and shows a clickable graph for navigating the file system\.
+The \fBduc\fR binary has support for a rudimentary CGI interface, currently only tested with apache\. The CGI interface generates a simple HTML page with a list of indexed directories, and shows a clickable graph for navigating the file system\. If the option \fB\-\-list\fR is given, a list of top sized files/dirs is also written\.
 .
 .P
 Configuration is done by creating a simple shell script as \.cgi in a directory which is configured for CGI execution by your web server (usually \fB/usr/lib/cgi\-bin\fR)\. The shell script should simply start duc, and pass the location of the database to offer\.
@@ -408,12 +420,15 @@ An example duc\.cgi script would be
 Make sure the database file is readable by the user (usually www\-data)
 .
 .IP "\(bu" 4
-Debuggin is best done by inspecting the web server\'s error log
+Debugging is best done by inspecting the web server\'s error log
 .
 .IP "\(bu" 4
 Make sure the \.cgi script has execute permissions (\fBchmod +x duc\.cgi\fR)
 .
 .IP "" 0
+.
+.P
+The HTML page is generated with a simple embedded CSS style sheet\. If the style is not to your liking you can provide an external CSS url with the \-\-css\-url option which will then be used instead of the embedded style definition\.
 .
 .P
 The current CGI configuration is not very flexible, nor secure\. Use at your own risk!
