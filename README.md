@@ -20,29 +20,25 @@ hundreds of millions of files on petabytes of storage without problems.
 Duc depends on the Cairo and Pango libraries for drawing graphs. The ncurses
 library is required for the curses user interface.
 
-The database engine is configurable at build time, at this time Tokyocabinet
-and Leveldb are supported.
-
 Depending on available libraries or required functionality you can disable
 certain features of duc by passing any of the below switches to ./configure:
 
     --disable-graph         disable graph drawing [default=yes]
     --disable-ui            disable ncurses ui [default=yes]
     --disable-gui           disable X11 gui [default=yes]
-    --with-db-backend=ARG   choose db backend (tokyocabinet, leveldb) [tokyocabinet]
+    --with-db-backend=ARG   choose db backend (tokyocabinet,leveldb,sqlite3) [tokyocabinet]
 
-To get the required dependencies on Debian / Ubuntu:
+The database engine is configurable at build time, at this time Tokyocabinet,
+Leveldb and Sqlite3 are supported. Duc uses Tokyocabinet by default: the
+performance is acceptable and generates in the smallest database size.
+
+To get the required dependencies on Debian or Ubuntu, run:
 
     $ sudo apt-get install libncurses5-dev libcairo2-dev libpango1.0-dev \
       build-essential
 
-And depending on the chose database type:
-
-    $ sudo apt-get install  libtokyocabinet-dev 
-
-or
-
-    $ sudo apt-get install libleveldb-dev
+depending on the database library, also install `libtokyocabinet-dev`,
+`libleveldb-dev` or `libsqlite3-dev`.
 
 On RHEL or CentOS systems, you need to do:
 
