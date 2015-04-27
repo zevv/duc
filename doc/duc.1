@@ -391,7 +391,7 @@ select database file to use [~/\.duc\.db]
 The \fBduc\fR binary has support for a rudimentary CGI interface, currently only tested with apache\. The CGI interface generates a simple HTML page with a list of indexed directories, and shows a clickable graph for navigating the file system\. If the option \fB\-\-list\fR is given, a list of top sized files/dirs is also written\.
 .
 .P
-Configuration is done by creating a simple shell script as \.cgi in a directory which is configured for CGI execution by your web server (usually \fB/usr/lib/cgi\-bin\fR)\. The shell script should simply start duc, and pass the location of the database to offer\.
+Configuration is done by creating a simple shell script as \.cgi in a directory which is configured for CGI execution by your web server (usually \fB/usr/lib/cgi\-bin\fR)\. The shell script should simply start duc, and pass the location of the database to navigate\.
 .
 .P
 An example duc\.cgi script would be
@@ -419,10 +419,18 @@ Make sure the \.cgi script has execute permissions (\fBchmod +x duc\.cgi\fR)
 .IP "" 0
 .
 .P
+Some notes:
+.
+.IP "\(bu" 4
 The HTML page is generated with a simple embedded CSS style sheet\. If the style is not to your liking you can provide an external CSS url with the \-\-css\-url option which will then be used instead of the embedded style definition\.
 .
+.IP "\(bu" 4
+Add the option \-\-list to generate a table of top sized files and directories in the HTML page\.
+.
+.IP "" 0
+.
 .P
-The current CGI configuration is not very flexible, nor secure\. Use at your own risk!
+The current CGI configuration is not very flexible, nor secure\. It is not advised to run the CGI from public reachable web servers, use at your own risk\.
 .
 .SH "A NOTE ON FILE SIZE AND DISK USAGE"
 The concepts of \'file size\' and \'disk usage\' can be a bit confusing\. Files on disk have an apparent size, which indicates how much bytes are in the file from the users point of view; this is the size reported by tools like \fBls \-l\fR\. The apparent size can be any number, from 0 bytes up to several TB\. The actual number of bytes which are used on the filesystem to store the file can differ from this apparent size for a number of reasons: disks store data in blocks, which cause files to always take up a multiple of the block size, files can have holes (\'sparse\' files), and other technical reasons\. This number is always a multiple of 512, which means that the actual size used for a file is almost always a bit more then its apparent size\.

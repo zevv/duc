@@ -362,7 +362,7 @@ written.
 Configuration is done by creating a simple shell script as .cgi in a directory
 which is configured for CGI execution by your web server (usually
 `/usr/lib/cgi-bin`). The shell script should simply start duc, and pass the
-location of the database to offer.
+location of the database to navigate.
 
 An example duc.cgi script would be
 
@@ -373,12 +373,18 @@ An example duc.cgi script would be
 * Debugging is best done by inspecting the web server's error log
 * Make sure the .cgi script has execute permissions (`chmod +x duc.cgi`)
 
-The HTML page is generated with a simple embedded CSS style sheet. If the style
-is not to your liking you can provide an external CSS url with the --css-url
-option which will then be used instead of the embedded style definition.
+Some notes:
 
-The current CGI configuration is not very flexible, nor secure. Use at your own
-risk!
+* The HTML page is generated with a simple embedded CSS style sheet. If the
+  style is not to your liking you can provide an external CSS url with the
+  --css-url option which will then be used instead of the embedded style
+  definition.
+
+* Add the option --list to generate a table of top sized files and directories
+  in the HTML page.
+
+The current CGI configuration is not very flexible, nor secure. It is not
+advised to run the CGI from public reachable web servers, use at your own risk.
 
 
 ## A NOTE ON FILE SIZE AND DISK USAGE
