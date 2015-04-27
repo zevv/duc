@@ -187,7 +187,36 @@ static struct cmd *find_cmd_by_name(const char *name)
 }
 
 
-static void show_options(struct ducrc_option *o)
+static void printi(const char *s, int pos, int indent, int max)
+{
+	const char *p1 = s;
+	const char *p2 = s;
+	int i;
+
+	while(*p1) {
+		while(*p2 && !isspace(*p2)) p2++;
+		int l = p2 - p1;
+
+		if(pos + l > 80) {
+			putchar('\n');
+			for(i=0; i<indent; i++) putchar(' ');
+			pos = indent;
+		}
+
+		if(*p2) fwrite(p1, l, 1, stdout);
+		while(*p2 && isspace(*p2)) p2++;
+		pos += l;
+		if(pos < max) {
+			putchar(' ');
+		} else {
+		}
+		p1 = p2;
+	}
+}
+
+		
+
+static void show_options(struct ducrc_option *o, int show_long)
 {
 	while(o && o->longopt) {
 		char s[4] = "";
@@ -203,6 +232,10 @@ static void show_options(struct ducrc_option *o)
 
 		printf("  %-4.4s --%-20.20s", s, l);
 		if(o->descr_short) printf("%s", o->descr_short); 
+		if(show_long && o->descr_long) {
+			printf(". ");
+			printi(o->descr_long, 29 + strlen(o->descr_short), 31, 80);
+		}
 		printf("\n");
 
 		o++;
@@ -223,11 +256,11 @@ static void help_cmd(struct cmd *cmd)
 	}
 	
 	printf("Options for the command '%s':\n", cmd->name);
-	show_options(cmd->options);
+	show_options(cmd->options, 1);
 
 	printf("\n");
 	printf("Global options:\n");
-	show_options(global_options);
+	show_options(global_options, 1);
 
 	if(cmd->descr_long) {
 		printf("\n%s", cmd->descr_long); 
@@ -261,7 +294,7 @@ static int help_main(duc *duc, int argc, char **argv)
 			if(opt_all) {
 				printf("duc %s %s: %s\n", c->name, c->usage, c->descr_short);
 				printf("\n");
-				show_options(c->options);
+				show_options(c->options, 0);
 				printf("\n");
 			} else {
 				printf("  %-10.10s: %s\n", c->name, c->descr_short);
@@ -272,7 +305,7 @@ static int help_main(duc *duc, int argc, char **argv)
 
 			printf("\n");
 			printf("Global options:\n");
-			show_options(global_options);
+			show_options(global_options, 1);
 
 			printf(
 				"\n"

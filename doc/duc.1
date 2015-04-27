@@ -126,7 +126,7 @@ exclude files matching ARG
 .
 .TP
 \fB\-H\fR, \fB\-\-check\-hard\-links\fR
-count hard links only once
+count hard links only once\. when this option is enabled, duc will only display and count the first occurrence of files with multiple hard links
 .
 .TP
 \fB\-f\fR, \fB\-\-force\fR
@@ -134,11 +134,11 @@ force writing in case of corrupted db
 .
 .TP
 \fB\-\-hide\-file\-names\fR
-hide file names in index (privacy)
+hide file names in index (privacy)\. the names of directories will be preserved, but the names of the individual files will be hidden
 .
 .TP
 \fB\-m\fR, \fB\-\-max\-depth=VAL\fR
-limit directory names to given depth
+limit directory names to given depth\. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index
 .
 .TP
 \fB\-x\fR, \fB\-\-one\-file\-system\fR
@@ -150,7 +150,7 @@ show progress during indexing
 .
 .TP
 \fB\-\-uncompressed\fR
-do not use compression for database
+do not use compression for database\. duc enables compression if the underlying database supports this\. This reduces index size at the cost of slightly longer indexing time
 .
 .SS "duc info"
 Options for command \fBduc info [options]\fR:
@@ -237,7 +237,7 @@ show file size in exact number of bytes
 .
 .TP
 \fB\-\-css\-url=VAL\fR
-url of CSS style sheet to use instead of default CSS is embedded
+url of CSS style sheet to use instead of default CSS
 .
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
@@ -254,10 +254,6 @@ draw up to ARG levels deep [4]
 .TP
 \fB\-\-list\fR
 generate table with file list
-.
-.TP
-\fB\-o\fR, \fB\-\-output=VAL\fR
-output file name [duc\.png]
 .
 .TP
 \fB\-\-palette=VAL\fR

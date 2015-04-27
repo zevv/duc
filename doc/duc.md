@@ -129,16 +129,19 @@ Options for command `duc index [options] PATH ...`:
     exclude files matching ARG
 
   * `-H`, `--check-hard-links`:
-    count hard links only once
+    count hard links only once. when this option is enabled, duc will only display and count the first occurrence of files with multiple hard links
+
 
   * `-f`, `--force`:
     force writing in case of corrupted db
 
   * `--hide-file-names`:
-    hide file names in index (privacy)
+    hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden
+
 
   * `-m`, `--max-depth=VAL`:
-    limit directory names to given depth
+    limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index
+
 
   * `-x`, `--one-file-system`:
     don't cross filesystem boundaries
@@ -147,7 +150,8 @@ Options for command `duc index [options] PATH ...`:
     show progress during indexing
 
   * `--uncompressed`:
-    do not use compression for database
+    do not use compression for database. duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time
+
 
 ### duc info
 
@@ -222,7 +226,7 @@ Options for command `duc cgi [options] [PATH]`:
     show file size in exact number of bytes
 
   * `--css-url=VAL`:
-    url of CSS style sheet to use instead of default CSS is embedded
+    url of CSS style sheet to use instead of default CSS
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
@@ -235,9 +239,6 @@ Options for command `duc cgi [options] [PATH]`:
 
   * `--list`:
     generate table with file list
-
-  * `-o`, `--output=VAL`:
-    output file name [duc.png]
 
   * `--palette=VAL`:
     select palette <size|rainbow|greyscale|monochrome>
