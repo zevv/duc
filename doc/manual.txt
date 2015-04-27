@@ -139,7 +139,7 @@ Duc has two modes for counting file sizes:
   the file length, which is usually smaller then the actual disk usage. 
 
 - `actual size`: this is the size as reported by `du` and `df`. The actual file
-  size tells you how much disk is actually used by a file, and is alwasys a
+  size tells you how much disk is actually used by a file, and is always a
   multiple of 512 bytes. 
 
 The default mode used by duc is to use the 'actual size'. Most duc commands to
