@@ -197,13 +197,13 @@ static void printi(const char *s, int pos, int indent, int max)
 		while(*p2 && !isspace(*p2)) p2++;
 		int l = p2 - p1;
 
-		if(pos + l > 80) {
+		if(pos + l >= max) {
 			putchar('\n');
 			for(i=0; i<indent; i++) putchar(' ');
 			pos = indent;
 		}
 
-		if(*p2) fwrite(p1, l, 1, stdout);
+		fwrite(p1, l, 1, stdout);
 		while(*p2 && isspace(*p2)) p2++;
 		pos += l;
 		if(pos < max) {
@@ -234,7 +234,7 @@ static void show_options(struct ducrc_option *o, int show_long)
 		if(o->descr_short) printf("%s", o->descr_short); 
 		if(show_long && o->descr_long) {
 			printf(". ");
-			printi(o->descr_long, 29 + strlen(o->descr_short), 31, 80);
+			printi(o->descr_long, 29 + strlen(o->descr_short), 31, 78);
 		}
 		printf("\n");
 

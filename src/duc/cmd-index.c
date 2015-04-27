@@ -134,7 +134,7 @@ static struct ducrc_option options[] = {
 	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file ARG" },
 	{ &fn_exclude,          "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching ARG"  },
 	{ &opt_check_hard_links,"check-hard-links",'H', DUCRC_TYPE_BOOL,   "count hard links only once",
-          "if two or more hard links point to the same file, only one of the hard links is displayed and counted." },
+          "if two or more hard links point to the same file, only one of the hard links is displayed and counted" },
 	{ &opt_force,           "force",           'f', DUCRC_TYPE_BOOL,   "force writing in case of corrupted db" },
 	{ &opt_hide_file_names, "hide-file-names",  0 , DUCRC_TYPE_BOOL,   "hide file names in index (privacy)", 
 	  "the names of directories will be preserved, but the names of the individual files will be hidden" },
