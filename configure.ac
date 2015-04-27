@@ -55,11 +55,31 @@ AC_ARG_ENABLE(
         [enable_gui="yes"]
 )
 
+AC_ARG_WITH(
+        [db-backend],
+        [AS_HELP_STRING([--with-db-backend], [select database backend (tokyocabinet,leveldb) @<:@default=tokyocabinet@:>@])], ,
+        [with_db_backend="tokyocabinet"]
+)
+
+AC_MSG_RESULT([Selected backend ${with_db_backend}])
+
 #
 # Check for available libraries
 #
 
-PKG_CHECK_MODULES([TC],[tokyocabinet])
+case "${with_db_backend}" in
+	tokyocabinet)
+		PKG_CHECK_MODULES([TC], [tokyocabinet])
+		AC_DEFINE([ENABLE_TOKYOCABINET], [1], "Enable tokyocabinet db backend")
+		;;
+	leveldb)
+		AC_CHECK_LIB([leveldb], [leveldb_open])
+		AC_DEFINE([ENABLE_LEVELDB], [1], "Enable leveldb db backend")
+		;;
+	*)
+		AC_MSG_ERROR([Unsupported db-backend])
+esac
+
 
 if test "${enable_graph}" = "yes"; then
 
@@ -129,6 +149,7 @@ AC_MSG_RESULT([
   
    - Package version: $PACKAGE $VERSION
    - Prefix: ${prefix}
+   - Database backend: ${with_db_backend}
    - GUI (X11) support: ${enable_gui}
    - UI (ncurses) support: ${enable_ui}
    - Graph drawing support: ${enable_graph}

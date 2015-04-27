@@ -7,6 +7,7 @@ duc_SOURCES := \
 	src/libduc/db.c \
 	src/libduc/db.h \
 	src/libduc/db-tokyo.c \
+	src/libduc/db-leveldb.c \
 	src/libduc/dir.c \
 	src/libduc/duc.c \
 	src/libduc/duc.h \
@@ -16,7 +17,8 @@ duc_SOURCES := \
 	src/libduc/private.h \
 	src/libduc/stripdir.c \
 	src/libduc/varint.c \
-	src/libduc/varint.h 
+	src/libduc/varint.h \
+	src/libduc/uthash.h 
 
 duc_SOURCES += \
 	src/libduc-graph/graph.c \
