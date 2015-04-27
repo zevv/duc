@@ -129,7 +129,7 @@ Options for command `duc index [options] PATH ...`:
     exclude files matching ARG
 
   * `-H`, `--check-hard-links`:
-    count hard links only once. when this option is enabled, duc will only display and count the first occurrence of files with multiple hard links
+    count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted.
 
 
   * `-f`, `--force`:
@@ -150,7 +150,7 @@ Options for command `duc index [options] PATH ...`:
     show progress during indexing
 
   * `--uncompressed`:
-    do not use compression for database. duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time
+    do not use compression for database. Duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time
 
 
 ### duc info
