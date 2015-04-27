@@ -85,7 +85,8 @@ This section list all available subcommands and describes their usage and option
 
 ### Global options
 
-    These options apply to all Duc subcommands:
+These options apply to all Duc subcommands:
+
   * `--debug`:
     increase verbosity to debug level
 
@@ -127,7 +128,7 @@ Options for command `duc index [options] PATH ...`:
     exclude files matching ARG
 
   * `-H`, `--check-hard-links`:
-    count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted.
+    count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted
 
 
   * `-f`, `--force`:

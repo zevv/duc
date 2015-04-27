@@ -352,7 +352,7 @@ static int manual_main(duc *duc, int argc, char **argv)
 
 	printf("### Global options\n");
 	printf("\n");
-	printf("    These options apply to all Duc subcommands:");
+	printf("These options apply to all Duc subcommands:\n");
 	printf("\n");
 	show_options_manual(global_options);
 
