@@ -50,11 +50,9 @@ Duc needs an index file of the file system before it is able to show any
 information.  To create the index, run the `duc index` command. For example, to
 create an index of your home directory run `duc index ~`
 
-```
-$ duc index /usr
-Skipping lost+found: Permission denied
-Indexed 333823 files and 48200 directories, (35.0GB total) in 1 seconds
-```
+    $ duc index /usr
+    Skipping lost+found: Permission denied
+    Indexed 333823 files and 48200 directories, (35.0GB total) in 1 seconds
 
 The default location of the database is `$HOME/.duc.db`. To use a different
 database location, use the DUC_DATABASE environment variable or specify the
@@ -367,10 +365,8 @@ location of the database to offer.
 
 An example duc.cgi script would be
 
-```
-#!/bin/sh
-/usr/local/bin/duc cgi -d /home/jenny/.duc.db
-```
+    #!/bin/sh
+    /usr/local/bin/duc cgi -d /home/jenny/.duc.db
 
 * Make sure the database file is readable by the user (usually www-data)
 * Debugging is best done by inspecting the web server's error log
@@ -403,7 +399,7 @@ Duc has two modes for counting file sizes:
   the file length, which is usually smaller then the actual disk usage. 
 
 - `actual size`: this is the size as reported by `du` and `df`. The actual file
-  size tells you how much disk is actually used by a file, and is alwasys a
+  size tells you how much disk is actually used by a file, and is always a
   multiple of 512 bytes. 
 
 The default mode used by duc is to use the 'actual size'. Most duc commands to
@@ -417,7 +413,7 @@ key to toggle.
 
 Index the /usr directory, writing to the default database location ~/.duc.db:
 
-   $ duc index /usr
+    $ duc index /usr
 
 List all files and directories under /usr/local, showing relative file sizes
 in a graph:
