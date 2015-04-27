@@ -1,6 +1,8 @@
 
 #include "config.h"
 
+#ifdef ENABLE_SQLITE
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -77,6 +79,7 @@ void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len)
 	return val;
 }
 
+#endif
 
 /*
  * End

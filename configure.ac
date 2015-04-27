@@ -57,7 +57,7 @@ AC_ARG_ENABLE(
 
 AC_ARG_WITH(
         [db-backend],
-        [AS_HELP_STRING([--with-db-backend], [select database backend (tokyocabinet,leveldb) @<:@default=tokyocabinet@:>@])], ,
+        [AS_HELP_STRING([--with-db-backend], [select database backend (tokyocabinet,leveldb,sqlite3) @<:@default=tokyocabinet@:>@])], ,
         [with_db_backend="tokyocabinet"]
 )
 
@@ -75,6 +75,10 @@ case "${with_db_backend}" in
 	leveldb)
 		AC_CHECK_LIB([leveldb], [leveldb_open])
 		AC_DEFINE([ENABLE_LEVELDB], [1], "Enable leveldb db backend")
+		;;
+	sqlite3)
+		PKG_CHECK_MODULES([SQLITE3], [sqlite3])
+		AC_DEFINE([ENABLE_SQLITE], [1], "Enable sqlite3 db backend")
 		;;
 	*)
 		AC_MSG_ERROR([Unsupported db-backend])
