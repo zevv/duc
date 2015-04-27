@@ -4,9 +4,12 @@
 ### Introduction
 
 Duc is a collection of tools for indexing, inspecting and visualizing disk
-usage.  Duc maintains a database of accumulated sizes of directories of your
-file system, and allows you to query this database with some tools, or create
-fancy graphs showing you where your bytes are.
+usage. Duc maintains a database of accumulated sizes of directories of the file
+system, and allows you to query this database with some tools, or create fancy
+graphs showing you where your bytes are.
+
+Duc comes with console utilities, ncurses and X11 user interfaces and a CGI
+wrapper for disk usage querying and visualisation.
 
 Duc is designed to scale to huge filesystems: it will index and display
 hundreds of millions of files on petabytes of storage without problems.
