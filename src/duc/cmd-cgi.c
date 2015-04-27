@@ -26,6 +26,8 @@ struct param {
 
 static int opt_apparent = 0;
 static char *opt_database = NULL;
+static int opt_bytes = 0;
+static int opt_list = 0;
 static int opt_size = 800;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
@@ -123,15 +125,26 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		"<style>\n"
 		"body { font-family: 'arial', 'sans-serif'; font-size: 11px; }\n"
 		"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
-		"#list { 100%%; }\n"
-		"#list td { padding-left: 5px; }\n"
+		"#main { display:table-cell; }\n"
+		"#index { border-bottom: solid 1px #777777; }\n"
+		"#index table td { padding-left: 5px; }\n"
+		"#graph { float: left; }\n"
+		"#list { float: left; }\n"
+		"#list table { margin-left: auto; margin-right: auto; }\n"
+		"#list table td { padding-left: 5px; }\n"
+		"#list table td.name, th.name{ text-align: left; }\n"
+		"#list table td.size, th.size{ text-align: right; }\n"
 		"</style>\n"
 		"</head>\n"
+		"<div id=main>\n"
 	);
 	
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
+		
+	char url[PATH_MAX];
+	snprintf(url, sizeof url, "%s?cmd=index", script);
 
 	char *qs = getenv("QUERY_STRING");
 	int x = 0, y = 0;
@@ -149,25 +162,24 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	if(x || y) {
 		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
 		if(dir2) {
-			path = duc_dir_get_path(dir2);
-			duc_dir_close(dir2);
+			dir = dir2;
+			path = duc_dir_get_path(dir);
 		}
 	}
 
 	struct duc_index_report *report;
 	int i = 0;
 
-	printf("<center>");
-
-	printf("<table id=list>");
-	printf("<tr>");
-	printf("<th>Path</th>");
-	printf("<th>Size</th>");
-	printf("<th>Files</th>");
-	printf("<th>Directories</th>");
-	printf("<th>Date</th>");
-	printf("<th>Time</th>");
-	printf("</tr>");
+	printf("<div id=index>");
+	printf(" <table>\n");
+	printf("  <tr>\n");
+	printf("   <th>Path</th>\n");
+	printf("   <th>Size</th>\n");
+	printf("   <th>Files</th>\n");
+	printf("   <th>Directories</th>\n");
+	printf("   <th>Date</th>\n");
+	printf("   <th>Time</th>\n");
+	printf("  </tr>\n");
 
 	while( (report = duc_get_report(duc, i)) != NULL) {
 
@@ -177,33 +189,72 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 
-		char url[PATH_MAX];
-		snprintf(url, sizeof url, "%s?cmd=index&path=%s", script, report->path);
-
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 		char *siz = duc_human_size(&report->size, st, 0);
 
-		printf("<tr>");
-		printf("<td><a href='%s'>%s</a></td>", url, report->path);
-		printf("<td>%s</td>", siz);
-		printf("<td>%zu</td>", report->file_count);
-		printf("<td>%zu</td>", report->dir_count);
-		printf("<td>%s</td>", ts_date);
-		printf("<td>%s</td>", ts_time);
-		printf("</tr>\n");
+		printf("  <tr>\n");
+		printf("   <td><a href='%s&path=%s'>%s</a></td>\n", url, report->path, report->path);
+		printf("   <td>%s</td>\n", siz);
+		printf("   <td>%zu</td>\n", report->file_count);
+		printf("   <td>%zu</td>\n", report->dir_count);
+		printf("   <td>%s</td>\n", ts_date);
+		printf("   <td>%s</td>\n", ts_time);
+		printf("  </tr>\n");
+
+		if(path == NULL && report->path) {
+			//path = duc_strdup(report->path);
+		}
 
 		free(siz);
-
 		duc_index_report_free(report);
 		i++;
 	}
-	printf("</table>");
+	printf(" </table>\n");
 
 	if(path) {
-		printf("<a href='%s?cmd=index&path=%s&'>", script, path);
-		printf("<img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
-		printf("</a><br>");
+		printf("<div id=graph>\n");
+		printf(" <a href='%s?cmd=index&path=%s&'>\n", script, path);
+		printf("  <img src='%s?cmd=image&path=%s' ismap='ismap'>\n", script, path);
+		printf(" </a>\n");
+		printf("</div>\n");
 	}
+
+	if(path && dir && opt_list) {
+
+		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
+		printf("<div id=list>\n");
+		printf(" <table>\n");
+		printf("  <tr>\n");
+		printf("   <th class=name>Filename</th>\n");
+		printf("   <th class=size>Size</th>\n");
+		printf("  </tr>\n");
+
+		struct duc_dirent *e;
+		int n = 0;
+		while((n++ < 40) && (e = duc_dir_read(dir, st)) != NULL) {
+			char *siz = duc_human_size(&e->size, st, opt_bytes);
+			printf("  <tr><td class=name>");
+
+			if(e->type == DT_DIR) 
+				printf("<a href='%s&path=%s/%s'>", url, path, e->name);
+
+			printf("%s", e->name);
+
+			if(e->type == DT_DIR) 
+				printf("</a>\n");
+
+			printf("   <td class=size>%s</td>\n", siz);
+			printf("  </tr>\n");
+			free(siz);
+		}
+
+		printf(" </table>\n");
+		printf("</div>\n");
+	}
+
+	printf("</div>\n");
+
 	fflush(stdout);
 }
 
@@ -269,12 +320,12 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_palette(graph, palette);
+	duc_graph_set_exact_bytes(graph, opt_bytes);
 	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
 
-	if(dir) duc_dir_close(dir);
 	duc_close(duc);
 
 	return 0;
@@ -283,9 +334,11 @@ static int cgi_main(duc *duc, int argc, char **argv)
 
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
+	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
+	{ &opt_list,      "list",        0, DUCRC_TYPE_BOOL,   "generate table with file list" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
