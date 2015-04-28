@@ -3,7 +3,7 @@
 mkfile()
 {
 	mkdir -p `dirname $1`
-	dd if=/dev/zero of=$1 bs=1 count=$2 2> /dev/null
+	dd if=/dev/zero of="$1" bs=1 count=$2 2> /dev/null
 }
 
 export DUC_DATABASE=test.db
@@ -34,6 +34,16 @@ ln test/tree/sub2/hotel test/tree/sub3
 
 mkdir test/tree/sub4
 dd if=/dev/zero of=test/tree/sub3/sparse bs=1 count=1 seek=32K 2> /dev/null
+
+# Strange naems
+
+mkdir test/strange
+mkfile "test/strange/<h1>html/file" 100
+mkfile "test/strange/no%20space/file" 100
+mkfile "test/strange/embbeddednewline/file" 100
+mkfile "test/strange/this?might=break&the=cgi/file" 100
+
+# Create index
 
 ./duc index --check-hard-links --bytes --verbose test > test.out 2>&1
 

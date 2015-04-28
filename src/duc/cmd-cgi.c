@@ -36,22 +36,48 @@ static char *opt_palette = NULL;
 
 static struct param *param_list = NULL;
 
-
-int decodeURIComponent (char *sSource, char *sDest) 
+static void print_html(const char *s)
 {
-	int nLength;
-	for (nLength = 0; *sSource; nLength++) {
-		if (*sSource == '%' && sSource[1] && sSource[2] && isxdigit(sSource[1]) && isxdigit(sSource[2])) {
-			sSource[1] -= sSource[1] <= '9' ? '0' : (sSource[1] <= 'F' ? 'A' : 'a')-10;
-			sSource[2] -= sSource[2] <= '9' ? '0' : (sSource[2] <= 'F' ? 'A' : 'a')-10;
-			sDest[nLength] = 16 * sSource[1] + sSource[2];
-			sSource += 3;
+	while(*s) {
+		switch(*s) {
+			case '<': printf("&lt;"); break;
+			case '>': printf("&gt;"); break;
+			case '&': printf("&amp;"); break;
+			case '"': printf("&quot;"); break;
+			default: putchar(*s); break;
+		}
+		s++;
+	}
+}
+
+static void print_cgi(const char *s)
+{
+	while(*s) {
+		if(*s == '/' || isalnum(*s)) {
+			putchar(*s);
+		} else {
+			printf("%%%02x", *s);
+		}
+		s++;
+	}
+}
+
+
+static int decode_uri(char *src, char *dst) 
+{
+	int len;
+	for (len = 0; *src; len++) {
+		if (*src == '%' && src[1] && src[2] && isxdigit(src[1]) && isxdigit(src[2])) {
+			src[1] -= src[1] <= '9' ? '0' : (src[1] <= 'F' ? 'A' : 'a')-10;
+			src[2] -= src[2] <= '9' ? '0' : (src[2] <= 'F' ? 'A' : 'a')-10;
+			dst[len] = 16 * src[1] + src[2];
+			src += 3;
 			continue;
 		}
-		sDest[nLength] = *sSource++;
+		dst[len] = *src++;
 	}
-	sDest[nLength] = '\0';
-	return nLength;
+	dst[len] = '\0';
+	return len;
 }
 
 
@@ -59,7 +85,6 @@ static int cgi_parse(void)
 {
 	char *qs = getenv("QUERY_STRING");
 	if(qs == NULL) return -1;
-	decodeURIComponent(qs,qs);
 
 	char *p = qs;
 
@@ -82,11 +107,13 @@ static int cgi_parse(void)
 		assert(param->key);
 		strncpy(param->key, key, keylen);
 		param->key[keylen] = '\0';
+		decode_uri(param->key, param->key);
 
 		param->val = malloc(vallen+1);
 		assert(param->val);
 		strncpy(param->val, val, vallen);
 		param->val[vallen] = '\0';
+		decode_uri(param->val, param->val);
 		
 		param->next = param_list;
 		param_list = param;
@@ -203,7 +230,11 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		char *siz = duc_human_size(&report->size, st, 0);
 
 		printf("  <tr>\n");
-		printf("   <td><a href=\"%s&path=%s\">%s</a></td>\n", url, report->path, report->path);
+		printf("   <td><a href=\"%s&path=", url);
+		print_cgi(report->path);
+		printf("\">");
+		print_html(report->path);
+		printf("</a></td>\n");
 		printf("   <td>%s</td>\n", siz);
 		printf("   <td>%zu</td>\n", report->file_count);
 		printf("   <td>%zu</td>\n", report->dir_count);
@@ -223,8 +254,12 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	if(path) {
 		printf("<div id=graph>\n");
-		printf(" <a href=\"%s?cmd=index&path=%s&\">\n", script, path);
-		printf("  <img src=\"%s?cmd=image&path=%s\" ismap=\"ismap\">\n", script, path);
+		printf(" <a href=\"%s?cmd=index&path=", script);
+		print_cgi(path);
+		printf("&\">\n");
+		printf("  <img src=\"%s?cmd=image&path=", script);
+		print_cgi(path);
+		printf("\" ismap=\"ismap\">\n", path);
 		printf(" </a>\n");
 		printf("</div>\n");
 	}
@@ -246,10 +281,15 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			char *siz = duc_human_size(&e->size, st, opt_bytes);
 			printf("  <tr><td class=name>");
 
-			if(e->type == DT_DIR) 
-				printf("<a href=\"%s&path=%s/%s\">", url, path, e->name);
+			if(e->type == DT_DIR) {
+				printf("<a href=\"%s&path=", url);
+				print_cgi(path);
+				printf("/");
+				print_cgi(e->name);
+				printf("\">");
+			}
 
-			printf("%s", e->name);
+			print_html(e->name);
 
 			if(e->type == DT_DIR) 
 				printf("</a>\n");
@@ -310,8 +350,10 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	if(path) {
 		dir = duc_dir_open(duc, path);
 		if(dir == NULL) {
-			duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
-			return 0;
+			printf("Content-Type: text/plain\n\n");
+			printf("%s\n", duc_strerror(duc));
+			print_html(path);
+			return -1;
 		}
 	}
 
