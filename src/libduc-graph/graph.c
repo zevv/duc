@@ -483,7 +483,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
 				duc_dir_close(dir_child);
 			} else {
-				draw_section(g, cr, a1, a2, r2, r2+5, H, S, V/2, L);
+				draw_section(g, cr, a1, a2, r2+2, r2+8, H, S/2, V/2, L);
 			}
 		}
 
