@@ -438,10 +438,29 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				L = 0;
 				break;
 		}
+		
+		/* Check if the tooltip lies within this section */
 
-		/* Draw section for this object */
+		{
+			double a = g->tooltip_a;
+			double r = g->tooltip_r;
 
-		draw_section(g, cr, a1, a2, r1, r2, H, S, V, L);
+			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
+
+				V -= 0.7;
+				char *siz = duc_human_size(&e->size, g->size_type, g->bytes);
+				char *typ = type_name[e->type];
+				if(typ == NULL) typ = "unknown";
+				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
+					"name: %s\n"
+					"type: %s\n"
+					"size: %s",
+					e->name, 
+					typ, 
+					siz);
+			}
+		}
+
 
 		if(e->type == DT_DIR) {
 
@@ -468,31 +487,12 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			}
 		}
 
-		/* Check if the tooltip lies within this section */
-
-		{
-			double a = g->tooltip_a;
-			double r = g->tooltip_r;
-
-			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-
-				char *siz = duc_human_size(&e->size, g->size_type, g->bytes);
-				char *typ = type_name[e->type];
-				if(typ == NULL) typ = "unknown";
-				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
-					"name: %s\n"
-					"type: %s\n"
-					"size: %s",
-					e->name, 
-					typ, 
-					siz);
-			}
-		}
 
 		/* Place labels if there is enough room to display */
 
 		if(cr) {
-			if(r1 * (a2 - a1) > 5) {
+			double area = (r2 - r1) * (a2 - a1);
+			if(area > 1.5) {
 				struct label *label = malloc(sizeof *label);
 				
 				char *siz = duc_human_size(&e->size, g->size_type, g->bytes);
@@ -508,6 +508,10 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			}
 		}
 		
+		/* Draw section for this object */
+
+		draw_section(g, cr, a1, a2, r1, r2, H, S, V, L);
+
 		a1 = a2;
 	}
 
