@@ -179,14 +179,14 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 
 
 struct foo {
+	int depth;
+	const char *path;
 	int fd;
 	DIR *d;
 	duc_dir *dir;
 	struct stat st;
 	struct duc_devino devino;
 	struct duc_size size;
-	size_t dir_count;
-	size_t file_count;
 	struct duc *duc;
 	struct duc_index_req *req;
 	struct duc_index_report *rep;
@@ -203,10 +203,13 @@ static int foo_open(struct duc *duc, struct foo *foo_parent, const char *path, s
 	
 	if(foo_parent) {
 		fd_parent = foo_parent->fd;
+		foo->depth = foo_parent->depth + 1;
 		foo->duc = foo_parent->duc;
 		foo->req = foo_parent->req;
 		foo->rep = foo_parent->rep;
 	}
+
+	foo->path = path;
 
 	foo->fd = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
 	if(foo->fd == -1) {
@@ -237,8 +240,6 @@ static int foo_open(struct duc *duc, struct foo *foo_parent, const char *path, s
 		foo->dir->devino_parent = foo_parent->devino;
 	}
 
-	foo->file_count = 0;
-	foo->dir_count = 0;
 	foo->size.apparent = 0;
 	foo->size.actual = 0;
 
@@ -253,14 +254,13 @@ void foo_close(struct foo *foo)
 }
 
 
-static void index_dir(const char *path, struct foo *foo_dir, struct foo *foo_parent, int depth)
+static void index_dir(struct foo *foo_dir)
 {
 	struct duc *duc = foo_dir->duc;
 	struct duc_index_req *req = foo_dir->req;
 	struct duc_index_report *report = foo_dir->rep; 	
 
-	duc_log(duc, DUC_LOG_DMP, ">> %s", path);
-
+	duc_log(duc, DUC_LOG_DMP, ">> %s", foo_dir->path);
 
 	/* Iterate directory entries */
 
@@ -286,60 +286,64 @@ static void index_dir(const char *path, struct foo *foo_dir, struct foo *foo_par
 		 * guaranteed to contain a sane value on all file system types.
 		 * See the readdir() man page for more details */
 
-		struct stat st;
-		int r = fstatat(foo_dir->fd, name, &st, AT_SYMLINK_NOFOLLOW);
+		struct stat st_ent;
+		int r = fstatat(foo_dir->fd, name, &st_ent, AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", name, strerror(errno));
 			continue;
 		}
 		 
-		int type = st_to_type(st.st_mode);
-		struct duc_devino devino = { .dev = st.st_dev, .ino = st.st_ino };
+		int type = st_to_type(st_ent.st_mode);
+		struct duc_devino devino = { .dev = st_ent.st_dev, .ino = st_ent.st_ino };
 
+		/* Calculate size of this dirent */
 
-		/* Skip hard link duplicates for any files with more then one hard link */
-		
-		if((req->flags & DUC_INDEX_CHECK_HARD_LINKS) && 
-		   (type != DT_DIR) && 
-		   (st.st_nlink > 1) && is_duplicate(req, &devino)) 
-			continue;
-
-
-		/* Calculate size of this dirent, recursing when needed */
-
-		struct duc_size ent_size = {
-			.apparent = st.st_size,
-			.actual = 512 * st.st_blocks,
-		};
-		
-		report->size.apparent += ent_size.apparent;
-		report->size.actual += ent_size.actual;
+		struct duc_size ent_size;
 		
 		if(type == DT_DIR) {
 
-			if((req->flags & DUC_INDEX_XDEV) && (st.st_dev != req->dev)) {
-				duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", path);
+			/* Check if we can skip file system boundaries */
+
+			if((req->flags & DUC_INDEX_XDEV) && (st_ent.st_dev != req->dev)) {
+				duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", foo_dir->path);
 				continue;
 			}
 
+			/* Open child directory */
+
 			struct foo foo_ent;
-			int r = foo_open(duc, foo_dir, e->d_name, &foo_ent);
+			int r = foo_open(duc, foo_dir, name, &foo_ent);
 			if(r == -1) 
 				continue;
 
-			index_dir(name, &foo_ent, foo_dir, depth+1);
+			/* Recursive scan */
 
-			ent_size.apparent += foo_ent.size.apparent;
-			ent_size.actual += foo_ent.size.actual;
-			foo_dir->dir_count += foo_ent.dir_count;
-			foo_dir->file_count += foo_ent.file_count;
+			index_dir(&foo_ent);
+
+			/* Calculate totals */
+
+			ent_size.apparent = st_ent.st_size + foo_ent.size.apparent;
+			ent_size.actual = 512 * st_ent.st_blocks + foo_ent.size.actual;
+
 			report->dir_count ++;
-			foo_dir->dir_count ++;
+			report->size.apparent += st_ent.st_size;
+			report->size.actual += 512 * st_ent.st_blocks;
 
 			foo_close(&foo_ent);
 		} else {
+
+			/* Skip hard link duplicates for any files with more then one hard link */
+			
+			if((req->flags & DUC_INDEX_CHECK_HARD_LINKS) && 
+			   (st_ent.st_nlink > 1) && is_duplicate(req, &devino)) 
+				continue;
+
+			ent_size.apparent = st_ent.st_size,
+			ent_size.actual = 512 * st_ent.st_blocks,
+
+			report->size.apparent += st_ent.st_size;
+			report->size.actual += 512 * st_ent.st_blocks;
 			report->file_count ++;
-			foo_dir->file_count ++;
 		}
 		
 		foo_dir->size.apparent += ent_size.apparent;
@@ -350,7 +354,7 @@ static void index_dir(const char *path, struct foo *foo_dir, struct foo *foo_par
 
 		/* Store record */
 
-		if(req->maxdepth == 0 || depth < req->maxdepth) {
+		if(req->maxdepth == 0 || foo_dir->depth < req->maxdepth) {
 
 			/* Hide file names? */
 
@@ -361,8 +365,8 @@ static void index_dir(const char *path, struct foo *foo_dir, struct foo *foo_par
 		}
 	}
 
-	duc_log(duc, DUC_LOG_DMP, "<< %s files:%jd dirs:%jd actual:%jd apparent:%jd", 
-			path, foo_dir->file_count, foo_dir->dir_count, foo_dir->size.apparent, foo_dir->size.actual);
+	duc_log(duc, DUC_LOG_DMP, "<< %s actual:%jd apparent:%jd", 
+			foo_dir->path, foo_dir->size.apparent, foo_dir->size.actual);
 		
 	db_write_dir(foo_dir->dir);
 	
@@ -407,35 +411,31 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	
 	struct duc_index_report *report = duc_malloc(sizeof(struct duc_index_report));
 	memset(report, 0, sizeof *report);
+	gettimeofday(&report->time_start, NULL);
+	snprintf(report->path, sizeof(report->path), "%s", path_canon);
 
 	/* Recursively index subdirectories */
-
-	gettimeofday(&report->time_start, NULL);
-
 
 	struct foo foo;
 	foo.duc = duc;
 	foo.req = req;
 	foo.rep = report;
-	int r = foo_open(duc, NULL, path_canon, &foo);
-	if(r == 0) {
 
+	int r = foo_open(duc, NULL, path_canon, &foo);
+
+	if(r == 0) {
 		req->dev = foo.st.st_dev;
 		report->devino.dev = foo.st.st_dev;
 		report->devino.ino = foo.st.st_ino;
 
-		index_dir(path_canon, &foo, NULL, 0);
+		index_dir(&foo);
 		gettimeofday(&report->time_stop, NULL);
 		foo_close(&foo);
 	}
 	
-	/* Fill in report */
-
-	snprintf(report->path, sizeof(report->path), "%s", path_canon);
-	gettimeofday(&report->time_stop, NULL);
-
 	/* Store report */
 
+	gettimeofday(&report->time_stop, NULL);
 	db_write_report(duc, report);
 
 	free(path_canon);
