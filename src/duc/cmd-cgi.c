@@ -259,7 +259,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("&\">\n");
 		printf("  <img src=\"%s?cmd=image&path=", script);
 		print_cgi(path);
-		printf("\" ismap=\"ismap\">\n", path);
+		printf("\" ismap=\"ismap\">\n");
 		printf(" </a>\n");
 		printf("</div>\n");
 	}
