@@ -1,0 +1,5 @@
+
+- try to open with O_NOATIME if proper capabilities available
+- parallel indexing
+- add import feature for loading output of gnu find
+
