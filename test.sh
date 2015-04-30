@@ -35,7 +35,7 @@ ln test/tree/sub2/hotel test/tree/sub3
 mkdir test/tree/sub4
 dd if=/dev/zero of=test/tree/sub3/sparse bs=1 count=1 seek=32K 2> /dev/null
 
-# Strange naems
+# Strange names
 
 mkdir test/strange
 mkfile "test/strange/<h1>html/file" 100
@@ -47,7 +47,7 @@ mkfile "test/strange/this?might=break&the=cgi/file" 100
 
 ./duc index --check-hard-links --bytes --verbose test > test.out 2>&1
 
-grep -q "Indexed 13 files and 5 directories, (77849B apparent, 90112B actual)" test.out
+grep -q "Indexed 17 files and 10 directories, (98729B apparent, 126976B actual) in 0.00 secs." test.out
 
 if [ "$?" = "0" ]; then
 	echo "ok"
