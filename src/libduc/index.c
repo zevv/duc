@@ -180,7 +180,7 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 
 struct scanner {
 	int depth;
-	const char *path;
+	char *path;
 	int fd;
 	DIR *d;
 	duc_dir *dir;
@@ -197,60 +197,67 @@ struct scanner {
  * Open dir and read file status 
  */
 
-static int scanner_open(struct duc *duc, struct scanner *scanner_parent, const char *path, struct scanner *scanner)
+static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_parent, const char *path, struct stat *st)
 {
-	int fd_parent = 0;
-	
-	if(scanner_parent) {
-		fd_parent = scanner_parent->fd;
-		scanner->depth = scanner_parent->depth + 1;
-		scanner->duc = scanner_parent->duc;
-		scanner->req = scanner_parent->req;
-		scanner->rep = scanner_parent->rep;
-	}
+	struct scanner *scanner;
+	scanner = duc_malloc(sizeof *scanner);
 
-	scanner->path = path;
+	int fd_parent = scanner_parent ? scanner_parent->fd : 0;
 
 	scanner->fd = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
 	if(scanner->fd == -1) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
-		return -1;
+		free(scanner);
+		return NULL;
 	}
 
-	int r = fstat(scanner->fd, &scanner->st);
-	if(r == -1) {
-		duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
-		close(scanner->fd);
-		return -1;
+	if(st) {
+		scanner->st = *st;
+	} else {
+		int r = fstat(scanner->fd, &scanner->st);
+		if(r == -1) {
+			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
+			close(scanner->fd);
+			free(scanner);
+			return NULL;
+		}
 	}
-	
-	scanner->devino.dev = scanner->st.st_dev;
-	scanner->devino.ino = scanner->st.st_ino;
 	
 	scanner->d = fdopendir(scanner->fd);
 	if(scanner->d == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
 		close(scanner->fd);
-		return -1;
+		free(scanner);
+		return NULL;
 	}
 	
 	scanner->dir = duc_dir_new(duc, &scanner->devino);
 
 	if(scanner_parent) {
+		scanner->depth = scanner_parent->depth + 1;
+		scanner->duc = scanner_parent->duc;
+		scanner->req = scanner_parent->req;
+		scanner->rep = scanner_parent->rep;
 		scanner->dir->devino_parent = scanner_parent->devino;
 	}
 
+	scanner->devino.dev = scanner->st.st_dev;
+	scanner->devino.ino = scanner->st.st_ino;
 	scanner->size.apparent = 0;
 	scanner->size.actual = 0;
+	scanner->path = duc_strdup(path);
+	scanner->duc = duc;
 
-	return 0;
+	return scanner;
 }
 
 
-void scanner_close(struct scanner *scanner)
+static void scanner_free(struct scanner *scanner)
 {
 	duc_dir_close(scanner->dir);
 	closedir(scanner->d);
+	duc_free(scanner->path);
+	duc_free(scanner);
 }
 
 
@@ -312,25 +319,24 @@ static void index_dir(struct scanner *scanner_dir)
 
 			/* Open child directory */
 
-			struct scanner scanner_ent;
-			int r = scanner_open(duc, scanner_dir, name, &scanner_ent);
-			if(r == -1) 
+			struct scanner *scanner_ent = scanner_new(duc, scanner_dir, name, &st_ent);
+			if(scanner_ent == NULL)
 				continue;
 
 			/* Recursive scan */
 
-			index_dir(&scanner_ent);
+			index_dir(scanner_ent);
 
 			/* Calculate totals */
 
-			ent_size.apparent = st_ent.st_size + scanner_ent.size.apparent;
-			ent_size.actual = 512 * st_ent.st_blocks + scanner_ent.size.actual;
+			ent_size.apparent = st_ent.st_size + scanner_ent->size.apparent;
+			ent_size.actual = 512 * st_ent.st_blocks + scanner_ent->size.actual;
 
 			report->dir_count ++;
 			report->size.apparent += st_ent.st_size;
 			report->size.actual += 512 * st_ent.st_blocks;
 
-			scanner_close(&scanner_ent);
+			scanner_free(scanner_ent);
 
 		} else {
 
@@ -416,21 +422,19 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	/* Recursively index subdirectories */
 
-	struct scanner scanner;
-	scanner.duc = duc;
-	scanner.req = req;
-	scanner.rep = report;
+	struct scanner *scanner = scanner_new(duc, NULL, path_canon, NULL);
 
-	int r = scanner_open(duc, NULL, path_canon, &scanner);
+	if(scanner) {
+		scanner->req = req;
+		scanner->rep = report;
+	
+		req->dev = scanner->st.st_dev;
+		report->devino.dev = scanner->st.st_dev;
+		report->devino.ino = scanner->st.st_ino;
 
-	if(r == 0) {
-		req->dev = scanner.st.st_dev;
-		report->devino.dev = scanner.st.st_dev;
-		report->devino.ino = scanner.st.st_ino;
-
-		index_dir(&scanner);
+		index_dir(scanner);
 		gettimeofday(&report->time_stop, NULL);
-		scanner_close(&scanner);
+		scanner_free(scanner);
 	}
 	
 	/* Store report */
