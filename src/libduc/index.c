@@ -203,7 +203,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	scanner = duc_malloc(sizeof *scanner);
 
 	int fd_parent = scanner_parent ? scanner_parent->fd : 0;
-
+	
 	scanner->fd = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
 	if(scanner->fd == -1) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
@@ -214,6 +214,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	if(st) {
 		scanner->st = *st;
 	} else {
+
 		int r = fstat(scanner->fd, &scanner->st);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
@@ -231,6 +232,13 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		return NULL;
 	}
 	
+	scanner->path = duc_strdup(path);
+	scanner->duc = duc;
+	scanner->size.apparent = 0;
+	scanner->size.actual = 0;
+	scanner->devino.dev = scanner->st.st_dev;
+	scanner->devino.ino = scanner->st.st_ino;
+
 	scanner->dir = duc_dir_new(duc, &scanner->devino);
 
 	if(scanner_parent) {
@@ -240,13 +248,6 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		scanner->rep = scanner_parent->rep;
 		scanner->dir->devino_parent = scanner_parent->devino;
 	}
-
-	scanner->devino.dev = scanner->st.st_dev;
-	scanner->devino.ino = scanner->st.st_ino;
-	scanner->size.apparent = 0;
-	scanner->size.actual = 0;
-	scanner->path = duc_strdup(path);
-	scanner->duc = duc;
 
 	return scanner;
 }
