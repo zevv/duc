@@ -26,7 +26,7 @@
 #include "private.h"
 #include "uthash.h"
 
-struct devino_ent {
+struct hard_link {
 	struct duc_devino devino;
 	UT_hash_handle hh;
 };
@@ -43,7 +43,22 @@ struct duc_index_req {
 	int progress_n;
 	struct timeval progress_interval;
 	struct timeval progress_time;
-	struct devino_ent *devino_map;
+	struct hard_link *hard_link_map;
+};
+
+struct scanner {
+	struct scanner *parent;
+	int depth;
+	char *path;
+	int fd;
+	DIR *d;
+	duc_dir *dir;
+	struct stat st;
+	struct duc_devino devino;
+	struct duc_size size;
+	struct duc *duc;
+	struct duc_index_req *req;
+	struct duc_index_report *rep;
 };
 
 static char typechar[] = {
@@ -74,7 +89,7 @@ duc_index_req *duc_index_req_new(duc *duc)
 	req->duc = duc;
 	req->progress_interval.tv_sec = 0;
 	req->progress_interval.tv_usec = 100 * 1000;
-	req->devino_map = NULL;
+	req->hard_link_map = NULL;
 
 	return req;
 }
@@ -82,10 +97,10 @@ duc_index_req *duc_index_req_new(duc *duc)
 
 int duc_index_req_free(duc_index_req *req)
 {
-	struct devino_ent *de, *den;
-	HASH_ITER(hh, req->devino_map, de, den) {
-		HASH_DEL(req->devino_map, de);
-		free(de);
+	struct hard_link *h, *hn;
+	HASH_ITER(hh, req->hard_link_map, h, hn) {
+		HASH_DEL(req->hard_link_map, h);
+		free(h);
 	}
 	list_free(req->exclude_list, free);
 	list_free(req->path_list, free);
@@ -175,37 +190,15 @@ int st_to_type(mode_t mode)
 
 static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 {
-	/* Check if the above key is already in the map. If so, this is a dup. If not,
-	 * we see this node for the first time, and we add it to the map */
+	struct hard_link *h;
+	HASH_FIND(hh, req->hard_link_map, devino, sizeof(*devino), h);
+	if(h) return 1;
 
-	struct devino_ent *di;
-	HASH_FIND(hh, req->devino_map, devino, sizeof(*devino), di);
-
-	if(di)
-		return 1;
-
-	di = duc_malloc(sizeof *di);
-	di->devino = *devino;
-	HASH_ADD(hh, req->devino_map, devino, sizeof(di->devino), di);
-
+	h = duc_malloc(sizeof *h);
+	h->devino = *devino;
+	HASH_ADD(hh, req->hard_link_map, devino, sizeof(h->devino), h);
 	return 0;
 }
-
-
-struct scanner {
-	struct scanner *parent;
-	int depth;
-	char *path;
-	int fd;
-	DIR *d;
-	duc_dir *dir;
-	struct stat st;
-	struct duc_devino devino;
-	struct duc_size size;
-	struct duc *duc;
-	struct duc_index_req *req;
-	struct duc_index_report *rep;
-};
 
 	
 /* 
