@@ -52,6 +52,20 @@ static char typechar[] = {
 };
 
 
+static void size_from_st(struct duc_size *s1, struct stat *st)
+{
+	s1->apparent = st->st_size;
+	s1->actual = st->st_blocks * 512;
+}
+
+
+static void size_accum(struct duc_size *s1, struct duc_size *s2)
+{
+	s1->actual += s2->actual;
+	s1->apparent += s2->apparent;
+}
+
+
 duc_index_req *duc_index_req_new(duc *duc)
 {
 	struct duc_index_req *req = duc_malloc(sizeof(struct duc_index_req));
@@ -179,6 +193,7 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 
 
 struct scanner {
+	struct scanner *parent;
 	int depth;
 	char *path;
 	int fd;
@@ -203,12 +218,11 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	scanner = duc_malloc(sizeof *scanner);
 
 	int fd_parent = scanner_parent ? scanner_parent->fd : 0;
-	
+
 	scanner->fd = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
 	if(scanner->fd == -1) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
-		free(scanner);
-		return NULL;
+		goto err;
 	}
 
 	if(st) {
@@ -218,26 +232,22 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		int r = fstat(scanner->fd, &scanner->st);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
-			close(scanner->fd);
-			free(scanner);
-			return NULL;
+			goto err;
 		}
 	}
 	
 	scanner->d = fdopendir(scanner->fd);
 	if(scanner->d == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
-		close(scanner->fd);
-		free(scanner);
-		return NULL;
+		goto err;
 	}
 	
+	scanner->parent = scanner_parent;
 	scanner->path = duc_strdup(path);
 	scanner->duc = duc;
-	scanner->size.apparent = 0;
-	scanner->size.actual = 0;
 	scanner->devino.dev = scanner->st.st_dev;
 	scanner->devino.ino = scanner->st.st_ino;
+	size_from_st(&scanner->size, &scanner->st);
 
 	scanner->dir = duc_dir_new(duc, &scanner->devino);
 
@@ -248,13 +258,54 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		scanner->rep = scanner_parent->rep;
 		scanner->dir->devino_parent = scanner_parent->devino;
 	}
+		
+	duc_log(duc, DUC_LOG_DMP, ">> %s", scanner->path);
 
 	return scanner;
+
+err:
+	if(scanner->fd > 0) close(scanner->fd);
+	if(scanner) free(scanner);
+	return NULL;
 }
 
 
 static void scanner_free(struct scanner *scanner)
 {
+	struct duc *duc = scanner->duc;
+	struct duc_index_req *req = scanner->req;
+	struct duc_index_report *report = scanner->rep; 	
+	
+	duc_log(duc, DUC_LOG_DMP, "<< %s actual:%jd apparent:%jd", 
+			scanner->path, scanner->size.apparent, scanner->size.actual);
+
+	if(scanner->parent) {
+		size_accum(&scanner->parent->size, &scanner->size);
+
+		if(req->maxdepth == 0 || scanner->depth < req->maxdepth) 
+			duc_dir_add_ent(scanner->parent->dir, scanner->path, &scanner->size, DT_DIR, &scanner->devino);
+
+	}
+	
+	/* Progress reporting */
+
+	if(req->progress_fn) {
+
+		if(!scanner->parent || req->progress_n++ == 100) {
+			
+			struct timeval t_now;
+			gettimeofday(&t_now, NULL);
+
+			if(!scanner->parent || timercmp(&t_now, &req->progress_time, > )) {
+				req->progress_fn(report, req->progress_fndata);
+				timeradd(&t_now, &req->progress_interval, &req->progress_time);
+			}
+			req->progress_n = 0;
+		}
+
+	}
+
+	db_write_dir(scanner->dir);
 	duc_dir_close(scanner->dir);
 	closedir(scanner->d);
 	duc_free(scanner->path);
@@ -268,8 +319,8 @@ static void index_dir(struct scanner *scanner_dir)
 	struct duc_index_req *req = scanner_dir->req;
 	struct duc_index_report *report = scanner_dir->rep; 	
 
-	duc_log(duc, DUC_LOG_DMP, ">> %s", scanner_dir->path);
-
+	report->dir_count ++;
+	size_accum(&report->size, &scanner_dir->size);
 
 	/* Iterate directory entries */
 
@@ -305,94 +356,59 @@ static void index_dir(struct scanner *scanner_dir)
 		int type = st_to_type(st_ent.st_mode);
 		struct duc_devino devino = { .dev = st_ent.st_dev, .ino = st_ent.st_ino };
 
-		/* Calculate size of this dirent */
 
-		struct duc_size ent_size;
+		/* Skip hard link duplicates for any files with more then one hard link */
+
+		if(type != DT_DIR && req->flags & DUC_INDEX_CHECK_HARD_LINKS && 
+	 	   st_ent.st_nlink > 1 && is_duplicate(req, &devino)) {
+			continue;
+		}
+
+
+		/* Check if we can cross file system boundaries */
+
+		if(type == DT_DIR && req->flags & DUC_INDEX_XDEV && st_ent.st_dev != req->dev) {
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", scanner_dir->path);
+			continue;
+		}
+
+
+		/* Calculate size of this dirent */
 		
 		if(type == DT_DIR) {
 
-			/* Check if we can skip file system boundaries */
-
-			if((req->flags & DUC_INDEX_XDEV) && (st_ent.st_dev != req->dev)) {
-				duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", scanner_dir->path);
-				continue;
-			}
-
-			/* Open child directory */
+			/* Open and scan child directory */
 
 			struct scanner *scanner_ent = scanner_new(duc, scanner_dir, name, &st_ent);
 			if(scanner_ent == NULL)
 				continue;
 
-			/* Recursive scan */
-
 			index_dir(scanner_ent);
-
-			/* Calculate totals */
-
-			ent_size.apparent = st_ent.st_size + scanner_ent->size.apparent;
-			ent_size.actual = 512 * st_ent.st_blocks + scanner_ent->size.actual;
-
-			report->dir_count ++;
-			report->size.apparent += st_ent.st_size;
-			report->size.actual += 512 * st_ent.st_blocks;
-
 			scanner_free(scanner_ent);
 
 		} else {
 
-			/* Skip hard link duplicates for any files with more then one hard link */
-			
-			if((req->flags & DUC_INDEX_CHECK_HARD_LINKS) && 
-			   (st_ent.st_nlink > 1) && is_duplicate(req, &devino)) 
-				continue;
+			struct duc_size ent_size;
+			size_from_st(&ent_size, &st_ent);
+			size_accum(&scanner_dir->size, &ent_size);
+			size_accum(&report->size, &ent_size);
 
-			/* Hide file names? */
-
-			if(req->flags & DUC_INDEX_HIDE_FILE_NAMES) 
-				name = "<FILE>";
-
-			ent_size.apparent = st_ent.st_size,
-			ent_size.actual = 512 * st_ent.st_blocks,
-
-			report->size.apparent += st_ent.st_size;
-			report->size.actual += 512 * st_ent.st_blocks;
 			report->file_count ++;
-		}
+
+			duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
+					typechar[type], ent_size.apparent, ent_size.actual, name);
+
+
+			/* Optionally hide file names */
+
+			if(req->flags & DUC_INDEX_HIDE_FILE_NAMES) name = "<FILE>";
 		
-		scanner_dir->size.apparent += ent_size.apparent;
-		scanner_dir->size.actual += ent_size.actual;
 
-		duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
-				typechar[type], ent_size.apparent, ent_size.actual, name);
+			/* Store record */
 
-		/* Store record */
-
-		if(req->maxdepth == 0 || scanner_dir->depth < req->maxdepth) 
-			duc_dir_add_ent(scanner_dir->dir, name, &ent_size, type, &devino);
-	}
-
-	duc_log(duc, DUC_LOG_DMP, "<< %s actual:%jd apparent:%jd", 
-			scanner_dir->path, scanner_dir->size.apparent, scanner_dir->size.actual);
-		
-	db_write_dir(scanner_dir->dir);
-	
-	/* Progress reporting */
-
-	if(req->progress_fn) {
-
-		if(req->progress_n++ == 100) {
-			
-			struct timeval t_now;
-			gettimeofday(&t_now, NULL);
-
-			if(timercmp(&t_now, &req->progress_time, > )) {
-				req->progress_fn(report, req->progress_fndata);
-				timeradd(&t_now, &req->progress_interval, &req->progress_time);
-			}
-			req->progress_n = 0;
+			if(req->maxdepth == 0 || scanner_dir->depth < req->maxdepth) 
+				duc_dir_add_ent(scanner_dir->dir, name, &ent_size, type, &devino);
 		}
-
 	}
 }	
 
@@ -444,12 +460,6 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	db_write_report(duc, report);
 
 	free(path_canon);
-
-	/* Final progress callback */
-
-	if(req->progress_fn) {
-		req->progress_fn(report, req->progress_fndata);
-	}
 
 	return report;
 }

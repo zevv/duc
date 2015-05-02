@@ -47,7 +47,7 @@ mkfile "test/strange/this?might=break&the=cgi/file" 100
 
 ./duc index --debug --check-hard-links --bytes --verbose test > test.out 2>&1
 
-grep -q "Indexed 17 files and 10 directories, (98729B apparent, 126976B actual) in 0.00 secs." test.out
+grep -q "Indexed 17 files and 11 directories, (102825B apparent, 131072B actual) in 0.00 secs." test.out
 
 if [ "$?" = "0" ]; then
 	echo "report ok"
