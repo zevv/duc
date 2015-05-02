@@ -361,7 +361,7 @@ static void index_dir(struct scanner *scanner_dir)
 		/* Check if we can cross file system boundaries */
 
 		if(type == DT_DIR && req->flags & DUC_INDEX_XDEV && st_ent.st_dev != req->dev) {
-			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", scanner_dir->path);
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", name);
 			continue;
 		}
 
