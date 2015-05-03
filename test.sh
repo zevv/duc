@@ -59,7 +59,14 @@ valgrind \
 	--leak-check=full \
 	--show-leak-kinds=all \
 	--num-callers=30 \
+	--error-exitcode=1 \
 	./duc index --debug --check-hard-links --bytes --verbose test > test.out 2>&1
+
+if [ "$?" != "0" ]; then
+	echo "valgrind error"
+	cat test.out
+	exit 1
+fi
 
 cat test.out | grep -q "Indexed 20 files and 15 directories, (119509B apparent, 159744B actual)"
 
@@ -78,7 +85,14 @@ valgrind \
 	--leak-check=full \
 	--show-leak-kinds=all \
 	--num-callers=30 \
+	--error-exitcode=1 \
 	duc ls -aR test > test.out 2>&1
+
+if [ "$?" != "0" ]; then
+	echo "valgrind error"
+	cat test.out
+	exit 1
+fi
 
 md5sum test.out | grep -q 23c9bd7e1dd1b4b966d656e8a78937cf
 
