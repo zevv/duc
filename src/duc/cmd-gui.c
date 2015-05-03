@@ -32,6 +32,7 @@ static int opt_apparent = 0;
 static int redraw = 1;
 static int tooltip_x = 0;
 static int tooltip_y = 0;
+static int tooltip_moved = 0;
 static struct pollfd pfd;
 static enum duc_graph_palette palette = 0;
 static int win_w = 600;
@@ -59,6 +60,7 @@ static void draw(void)
 	duc_graph_set_max_name_len(graph, 30);
 	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 	duc_graph_set_exact_bytes(graph, opt_bytes);
+	duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 
 	cairo_push_group(cr);
 	cairo_set_source_rgb(cr, 1, 1, 1);
@@ -146,6 +148,8 @@ static int handle_event(XEvent e)
 
 			tooltip_x = e.xmotion.x;
 			tooltip_y = e.xmotion.y;
+			tooltip_moved = 1;
+			break;
 	}
 
 	return 0;
@@ -193,8 +197,10 @@ static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 		int r = poll(&pfd, 1, 10);
 
 		if(r == 0) {
-			duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
-			redraw = 1;
+			if(tooltip_moved) {
+				tooltip_moved = 0;
+				redraw = 1;
+			}
 		}
 
 		while (XEventsQueued(dpy, QueuedAfterReading) > 0) {
