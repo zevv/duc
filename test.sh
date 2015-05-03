@@ -46,9 +46,9 @@ mkfile "test/strange/this?might=break&the=cgi/file" 100
 # Special characters
 
 mkdir test/special-chars
-mkfile test/special-chars/оживлённым 100
-mkfile test/special-chars/有朋自遠方來 100
-mkfile test/special-chars/♜♞♝♛♚♝♞♜ 100
+mkfile test/special-chars/оживлённым/foo 100
+mkfile test/special-chars/有朋自遠方來/foo 100
+mkfile test/special-chars/♜♞♝♛♚♝♞♜/foo 100
 
 # Create index
 

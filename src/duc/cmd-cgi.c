@@ -56,7 +56,7 @@ static void print_cgi(const char *s)
 		if(*s == '/' || isalnum(*s)) {
 			putchar(*s);
 		} else {
-			printf("%%%02x", *s);
+			printf("%%%02x", *(uint8_t *)s);
 		}
 		s++;
 	}
