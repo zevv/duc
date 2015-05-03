@@ -54,7 +54,7 @@ mkfile test/special-chars/♜♞♝♛♚♝♞♜/foo 100
 
 ./duc index --debug --check-hard-links --bytes --verbose test > test.out 2>&1
 
-cat test.out | grep -q "Indexed 20 files and 12 directories, (107221B apparent, 147456B actual)"
+cat test.out | grep -q "Indexed 20 files and 15 directories, (119509B apparent, 159744B actual)"
 
 if [ "$?" = "0" ]; then
 	echo "report ok"
@@ -65,7 +65,7 @@ else
 fi
 
 duc ls -aR test > test.out 2>&1
-md5sum test.out | grep -q f034174d93184da27149da9ebc7a5186
+md5sum test.out | grep -q 23c9bd7e1dd1b4b966d656e8a78937cf
 
 if [ "$?" = "0" ]; then
 	echo "md5sum ok"
