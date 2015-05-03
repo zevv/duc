@@ -149,6 +149,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		"\n"
 		"<!DOCTYPE html>\n"
 		"<head>\n"
+		"  <meta charset=\"utf-8\" />\n"
 	);
 
 	if(opt_css_url) {

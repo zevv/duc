@@ -43,27 +43,36 @@ mkfile "test/strange/no%20space/file" 100
 mkfile "test/strange/embbeddednewline/file" 100
 mkfile "test/strange/this?might=break&the=cgi/file" 100
 
+# Special characters
+
+mkdir test/special-chars
+mkfile test/special-chars/оживлённым 100
+mkfile test/special-chars/有朋自遠方來 100
+mkfile test/special-chars/♜♞♝♛♚♝♞♜ 100
+
 # Create index
 
 ./duc index --debug --check-hard-links --bytes --verbose test > test.out 2>&1
 
-grep -q "Indexed 17 files and 11 directories, (102825B apparent, 131072B actual) in 0.00 secs." test.out
+cat test.out | grep -q "Indexed 20 files and 12 directories, (107221B apparent, 147456B actual)"
 
 if [ "$?" = "0" ]; then
 	echo "report ok"
 else
 	echo "report failed"
 	cat test.out
+	exit 1
 fi
 
 duc ls -aR test > test.out 2>&1
-md5sum test.out | grep -q 8d824ccf8f50f961a0f66c1c44c611ef
+md5sum test.out | grep -q f034174d93184da27149da9ebc7a5186
 
 if [ "$?" = "0" ]; then
 	echo "md5sum ok"
 else
 	echo "md5sum failed"
-	cat test.out
+	cat test.out 
+	exit 1
 fi
 
 # end
