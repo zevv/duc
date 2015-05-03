@@ -88,15 +88,13 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 		struct duc_size size;
 		duc_dir_get_size(dir, &size);
-		char *siz = duc_human_size(&size, st, opt_bytes);
-		char *cnt = duc_human_number(count, opt_bytes);
+		char siz[16], cnt[16];
+		duc_human_size(&size, st, opt_bytes, siz, sizeof siz);
+		duc_human_number(count, opt_bytes, cnt, sizeof cnt);
 		attrset(A_REVERSE);
 		mvhline(rows-1, 0, ' ', cols);
 		mvprintw(rows-1, 0, " Total %sB in %s files/directories", siz, cnt);
 		attrset(0);
-		free(siz);
-		free(cnt);
-
 
 		/* Draw dirents */
 	
@@ -122,10 +120,10 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 				if(opt_classify && e->type < sizeof(type_char)) {
 					class = type_char[e->type];
 				}
-				
-				char *siz = duc_human_size(&e->size, st, opt_bytes);
+			
+				char siz[16];
+				duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 				printw("%*s", max_size_len, siz);
-				free(siz);
 
 				if(cur != i) attron(A_BOLD);
 				printw(" %s%c", e->name, class);

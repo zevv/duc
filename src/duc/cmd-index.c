@@ -45,16 +45,13 @@ void progress_cb(struct duc_index_report *rep, void *ptr)
 	meter[7 - abs(n-7)] = '#';
 	n = (n+1) % 14;
 
-	char *siz = duc_human_size(&rep->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes);
-	char *fs = duc_human_number(rep->file_count, opt_bytes);
-	char *ds = duc_human_number(rep->dir_count, opt_bytes);
+	char siz[16], fs[16], ds[16];
+	duc_human_size(&rep->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes, siz, sizeof siz);
+	duc_human_number(rep->file_count, opt_bytes, fs, sizeof fs);
+	duc_human_number(rep->dir_count, opt_bytes, ds, sizeof ds);
 
 	printf("\e[K[%s] Indexed %sb in %s files and %s directories\r", meter, siz, fs, ds);
 	fflush(stdout);
-
-	free(siz);
-	free(fs);
-	free(ds);
 }
 
 
@@ -94,24 +91,23 @@ static int index_main(duc *duc, int argc, char **argv)
 			continue;
 		}
 
-		char *siz_apparent = duc_human_size(&report->size, DUC_SIZE_TYPE_APPARENT, opt_bytes);
-		char *siz_actual = duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes);
+		char siz_apparent[16], siz_actual[16];
+		duc_human_size(&report->size, DUC_SIZE_TYPE_APPARENT, opt_bytes, siz_apparent, sizeof siz_apparent);
+		duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL,   opt_bytes, siz_actual,   sizeof siz_actual);
 
 		if(r == DUC_OK) {
-			char *s = duc_human_duration(report->time_start, report->time_stop);
+			char dur[32];
+			duc_human_duration(report->time_start, report->time_stop, dur, sizeof dur);
 			duc_log(duc, DUC_LOG_INF, 
 					"Indexed %zu files and %zu directories, (%sB apparent, %sB actual) in %s", 
 					report->file_count, 
 					report->dir_count,
 					siz_apparent,
 					siz_actual,
-					s);
-			free(s);
+					dur);
 		} else {
 			duc_log(duc, DUC_LOG_WRN, "An error occured while indexing: %s", duc_strerror(duc));
 		}
-		free(siz_apparent);
-		free(siz_actual);
 
 		duc_index_report_free(report);
 	}

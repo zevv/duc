@@ -35,15 +35,12 @@ static int info_db(duc *duc, char *file)
 		struct tm *tm = localtime(&report->time_start.tv_sec);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
-		char *siz = duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes);
-		char *fs = duc_human_number(report->file_count, 0);
-		char *ds = duc_human_number(report->dir_count, 0);
+		char siz[16], fs[16], ds[16];
+		duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes, siz, sizeof siz);
+		duc_human_number(report->file_count, 0, fs, sizeof fs);
+		duc_human_number(report->dir_count, 0, ds, sizeof ds);
 
 		printf("%s %7.7s %7.7s %7.7s %s\n", ts, fs, ds, siz, report->path);
-
-		free(siz);
-		free(fs);
-		free(ds);
 
 		duc_index_report_free(report);
 		i++;

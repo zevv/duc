@@ -163,48 +163,45 @@ const char *duc_strerror(duc *duc)
 }
 
 
-static char *humanize(double v, int exact, double scale)
+static int humanize(double v, int exact, double scale, char *buf, size_t maxlen)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	char *p = prefix;
 
-	char *s;
 	if(exact || v < scale) {
-		asprintf(&s, "%.0f", v);
+		return snprintf(buf, maxlen, "%.0f", v);
 	} else {
 		while(v >= scale) {
 			v /= scale;
 			p ++;
 		}
-		asprintf(&s, "%.1f%c", v, *p);
+		return snprintf(buf, maxlen, "%.1f%c", v, *p);
 	}
-	return s;
 }
 
 
-char *duc_human_number(double v, int exact)
+int duc_human_number(double v, int exact, char *buf, size_t maxlen)
 {
-	return humanize(v, exact, 1000);
+	return humanize(v, exact, 1000, buf, maxlen);
 }
 
 
-char *duc_human_size(struct duc_size *size, duc_size_type st, int exact)
+int duc_human_size(struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen)
 {
 	double v = (st == DUC_SIZE_TYPE_APPARENT) ? size->apparent : size->actual;
-	return humanize(v, exact, 1024);
+	return humanize(v, exact, 1024, buf, maxlen);
 }
 
 
-char *duc_human_duration(struct timeval start, struct timeval stop) 
+int duc_human_duration(struct timeval start, struct timeval stop, char *buf, size_t maxlen) 
 {
 	double start_secs, stop_secs, secs;
 	unsigned int days, hours, mins; 
-	// char human_time[80];
 
 	/* fixme: use timersub here */
 
-	start_secs=start.tv_sec + (start.tv_usec / 1000000.0);  
-	stop_secs=stop.tv_sec + (stop.tv_usec / 1000000.0);  
+	start_secs =start.tv_sec + (start.tv_usec / 1000000.0);  
+	stop_secs = stop.tv_sec + (stop.tv_usec / 1000000.0);  
 	secs = stop_secs - start_secs;
 
 	days = secs / 86400;
@@ -214,22 +211,19 @@ char *duc_human_duration(struct timeval start, struct timeval stop)
 	mins = secs / 60;
 	secs = secs - (mins * 60);
 
-	char *s;
+	int l;
 
 	if (days) {
-		asprintf(&s, "%d days, %02d hours, %02d minutes, and %.2f seconds.", days, hours, mins, secs); 
-	}
-	else if (hours) {
-		asprintf(&s, "%02d hours, %02d minutes, and %.2f seconds.", hours, mins, secs);
-	}
-	else if (mins) {
-		asprintf(&s, "%02d minutes, and %.2f seconds.", mins, secs);
-	}
-	else {
-		asprintf(&s, "%.2f secs.", secs);
+		l = snprintf(buf, maxlen, "%d days, %02d hours, %02d minutes, and %.2f seconds.", days, hours, mins, secs); 
+	} else if (hours) {
+		l = snprintf(buf, maxlen, "%02d hours, %02d minutes, and %.2f seconds.", hours, mins, secs);
+	} else if (mins) {
+		l = snprintf(buf, maxlen, "%02d minutes, and %.2f seconds.", mins, secs);
+	} else {
+		l = snprintf(buf, maxlen, "%f secs.", secs);
 	}
 
-	return s;
+	return l;
 }
 
 						 

@@ -228,7 +228,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
-		char *siz = duc_human_size(&report->size, st, 0);
+		char siz[16];
+		duc_human_size(&report->size, st, 0, siz, sizeof siz);
 
 		printf("  <tr>\n");
 		printf("   <td><a href=\"%s&path=", url);
@@ -247,7 +248,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			//path = duc_strdup(report->path);
 		}
 
-		free(siz);
 		duc_index_report_free(report);
 		i++;
 	}
@@ -279,7 +279,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		struct duc_dirent *e;
 		int n = 0;
 		while((n++ < 40) && (e = duc_dir_read(dir, st)) != NULL) {
-			char *siz = duc_human_size(&e->size, st, opt_bytes);
+			char siz[16];
+			duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 			printf("  <tr><td class=name>");
 
 			if(e->type == DT_DIR) {
@@ -297,7 +298,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			printf("   <td class=size>%s</td>\n", siz);
 			printf("  </tr>\n");
-			free(siz);
 		}
 
 		printf(" </table>\n");

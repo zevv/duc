@@ -449,7 +449,8 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
 
 				V -= 0.7;
-				char *siz = duc_human_size(&e->size, g->size_type, g->bytes);
+				char siz[16];
+				duc_human_size(&e->size, g->size_type, g->bytes, siz, sizeof siz);
 				char *typ = type_name[e->type];
 				if(typ == NULL) typ = "unknown";
 				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
@@ -495,8 +496,9 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			double area = (r2 - r1) * (a2 - a1);
 			if(area > 1.5) {
 				struct label *label = malloc(sizeof *label);
-				
-				char *siz = duc_human_size(&e->size, g->size_type, g->bytes);
+			
+				char siz[16];
+				duc_human_size(&e->size, g->size_type, g->bytes, siz, sizeof siz);
 				char *name = duc_strdup(e->name);
 				shorten_name(name, g->max_name_len);
 
@@ -505,7 +507,6 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				LL_APPEND(g->label_list, label);
 
 				free(name);
-				free(siz);
 			}
 		}
 		
@@ -595,9 +596,9 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 
 	struct duc_size size;
 	duc_dir_get_size(dir, &size);
-	char *siz = duc_human_size(&size, g->size_type, g->bytes);
+	char siz[16];
+	duc_human_size(&size, g->size_type, g->bytes, siz, sizeof siz);
 	draw_text(cr, g->cx, g->cy, 14, siz);
-	free(siz);
 
 	/* Draw tooltip */
 
