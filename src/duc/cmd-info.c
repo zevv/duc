@@ -28,6 +28,7 @@ static int info_db(duc *duc, char *file)
 		return -1;
 	}
 
+	printf("Date       Time       Files    Dirs    Size Path\n");
 	while(( report = duc_get_report(duc, i)) != NULL) {
 
 		char ts[32];
@@ -35,8 +36,14 @@ static int info_db(duc *duc, char *file)
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
 		char *siz = duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes);
-		printf("  %s %7.7s %s\n", ts, siz, report->path);
+		char *fs = duc_human_number(report->file_count, 0);
+		char *ds = duc_human_number(report->dir_count, 0);
+
+		printf("%s %7.7s %7.7s %7.7s %s\n", ts, fs, ds, siz, report->path);
+
 		free(siz);
+		free(fs);
+		free(ds);
 
 		duc_index_report_free(report);
 		i++;

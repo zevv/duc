@@ -168,11 +168,11 @@ char *duc_human_number(double v, int exact)
 	char *p = prefix;
 
 	char *s;
-	if(exact || v < 1024) {
+	if(exact || v < 1000) {
 		asprintf(&s, "%.0f", v);
 	} else {
 		while(v >= 1000.0) {
-			v /= 1024.0;
+			v /= 1000.0;
 			p ++;
 		}
 		asprintf(&s, "%.1f%c", v, *p);
