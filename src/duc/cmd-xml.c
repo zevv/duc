@@ -15,7 +15,7 @@
 	
 
 static char *opt_database = NULL;
-static int opt_min_size = 0;
+static double opt_min_size = 0;
 static int opt_exclude_files = 0;
 
 
@@ -45,7 +45,7 @@ static void print_escaped(const char *s)
 }
 
 
-static void dump(duc *duc, duc_dir *dir, int depth, int min_size, int ex_files)
+static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files)
 {
 	struct duc_dirent *e;
 
@@ -79,6 +79,8 @@ static int xml_main(duc *duc, int argc, char **argv)
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
+	printf("%f\n", opt_min_size);
+
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		return -1;
@@ -110,7 +112,7 @@ static int xml_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_database,      "database",      'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_exclude_files, "exclude-files", 'x', DUCRC_TYPE_BOOL,   "exclude file from xml output, only include directories" },
-	{ &opt_min_size,      "min_size",      's', DUCRC_TYPE_INT,    "specify min size for files or directories" },
+	{ &opt_min_size,      "min_size",      's', DUCRC_TYPE_DOUBLE, "specify min size for files or directories" },
 	{ NULL }
 };
 
