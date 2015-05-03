@@ -31,14 +31,21 @@ static void indent(int n)
 static void print_escaped(const char *s)
 {
 	while(*s) {
-		if(isprint(*s)) {
-			if(*s == '&') {
-				fwrite("&amp;", 1, 5, stdout);
-			} else if(*s == '\'') {
-				fwrite("&apos;", 1, 6, stdout);
-			} else {
-				putchar(*s);
-			}
+		switch(*s) {
+			case '<': printf("&lt;"); break;
+			case '>': printf("&gt;"); break;
+			case '&': printf("&amp;"); break;
+			case '"': printf("&quot;"); break;
+			case '\t': putchar('\t');
+			case '\n': putchar('\n');
+			case '\r': putchar('\r');
+			default:
+				if(*s < 32) {
+					printf("#x%02x", *s);
+				} else {
+					putchar(*s); 
+				}
+				break;
 		}
 		s++;
 	}
@@ -53,9 +60,9 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 
 		if(e->type == DT_DIR && e->size.apparent >= min_size) {
 			indent(depth);
-			printf("<ent type='dir' name='");
+			printf("<ent type=\"dir\" name=\"");
 			print_escaped(e->name);
-			printf("' size_apparent='%jd' size_actual='%jd'>\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
+			printf("\" size_apparent=\"%jd\" size_actual=\"%jd\">\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
 			duc_dir *dir_child = duc_dir_openent(dir, e);
 			if(dir_child) {
 				dump(duc, dir_child, depth + 1, min_size, ex_files);
@@ -65,9 +72,9 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 		} else {
 			if(!ex_files && e->size.apparent >= min_size) {
 				indent(depth);
-				printf("<ent name='");
+				printf("<ent name=\"");
 				print_escaped(e->name);
-				printf("' size_apparent='%jd' size_actual='%jd' />\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
+				printf("\" size_apparent=\"%jd\" size_actual=\"%jd\" />\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
 			}
 		}
 	}
@@ -92,8 +99,8 @@ static int xml_main(duc *duc, int argc, char **argv)
 
 	struct duc_size size;
 	duc_dir_get_size(dir, &size);
-	printf("<?xml version='1.0' encoding='UTF-8'?>\n");
-	printf("<duc root='%s' size_apparent='%jd' size_actual='%jd'>\n", 
+	printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	printf("<duc root=\"%s\" size_apparent=\"%jd\" size_actual=\"%jd\">\n", 
 			path, (uintmax_t)size.apparent, (uintmax_t)size.actual);
 
 	dump(duc, dir, 1, opt_min_size, opt_exclude_files);
