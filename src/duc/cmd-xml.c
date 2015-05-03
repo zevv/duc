@@ -36,9 +36,9 @@ static void print_escaped(const char *s)
 			case '>': printf("&gt;"); break;
 			case '&': printf("&amp;"); break;
 			case '"': printf("&quot;"); break;
-			case '\t': putchar('\t');
-			case '\n': putchar('\n');
-			case '\r': putchar('\r');
+			case '\t': putchar('\t'); break;
+			case '\n': putchar('\n'); break;
+			case '\r': putchar('\r'); break;
 			default:
 				if(*s >= 0 && *s < 32) {
 					printf("#x%02x", *(uint8_t *)s);
@@ -59,12 +59,12 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 	while( (e = duc_dir_read(dir, DUC_SIZE_TYPE_ACTUAL)) != NULL) {
 
 		if(e->type == DT_DIR && e->size.apparent >= min_size) {
-			indent(depth);
-			printf("<ent type=\"dir\" name=\"");
-			print_escaped(e->name);
-			printf("\" size_apparent=\"%jd\" size_actual=\"%jd\">\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
 			duc_dir *dir_child = duc_dir_openent(dir, e);
 			if(dir_child) {
+				indent(depth);
+				printf("<ent type=\"dir\" name=\"");
+				print_escaped(e->name);
+				printf("\" size_apparent=\"%jd\" size_actual=\"%jd\">\n", (intmax_t)e->size.apparent, (intmax_t)e->size.actual);
 				dump(duc, dir_child, depth + 1, min_size, ex_files);
 				indent(depth);
 				printf("</ent>\n");
