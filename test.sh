@@ -52,7 +52,14 @@ mkfile test/special-chars/♜♞♝♛♚♝♞♜/foo 100
 
 # Create index
 
-./duc index --debug --check-hard-links --bytes --verbose test > test.out 2>&1
+valgrind \
+	--quiet \
+	--suppressions=valgrind-suppressions \
+	--leak-check=full \
+	--leak-check=full \
+	--show-leak-kinds=all \
+	--num-callers=30 \
+	./duc index --debug --check-hard-links --bytes --verbose test > test.out 2>&1
 
 cat test.out | grep -q "Indexed 20 files and 15 directories, (119509B apparent, 159744B actual)"
 
@@ -64,7 +71,15 @@ else
 	exit 1
 fi
 
-duc ls -aR test > test.out 2>&1
+valgrind \
+	--quiet \
+	--suppressions=valgrind-suppressions \
+	--leak-check=full \
+	--leak-check=full \
+	--show-leak-kinds=all \
+	--num-callers=30 \
+	duc ls -aR test > test.out 2>&1
+
 md5sum test.out | grep -q 23c9bd7e1dd1b4b966d656e8a78937cf
 
 if [ "$?" = "0" ]; then
