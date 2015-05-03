@@ -35,7 +35,10 @@ static int info_db(duc *duc, char *file)
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
 		char *siz = duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes);
+		char *s = duc_human_duration(report->time_start, report->time_stop);
 		printf("  %s %7.7s %s\n", ts, siz, report->path);
+		printf("  Indexed %zu files and %zu directories in %s\n", report->file_count, report->dir_count, s);
+		free(s);
 		free(siz);
 
 		duc_index_report_free(report);
