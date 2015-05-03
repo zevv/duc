@@ -79,8 +79,6 @@ static int xml_main(duc *duc, int argc, char **argv)
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
-	printf("%f\n", opt_min_size);
-
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		return -1;
