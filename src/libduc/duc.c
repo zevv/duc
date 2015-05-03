@@ -162,17 +162,18 @@ const char *duc_strerror(duc *duc)
 	return "Unknown error, contact the author";
 }
 
-char *duc_human_number(double v, int exact)
+
+static char *humanize(double v, int exact, double scale)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	char *p = prefix;
 
 	char *s;
-	if(exact || v < 1000) {
+	if(exact || v < scale) {
 		asprintf(&s, "%.0f", v);
 	} else {
-		while(v >= 1000.0) {
-			v /= 1000.0;
+		while(v >= scale) {
+			v /= scale;
 			p ++;
 		}
 		asprintf(&s, "%.1f%c", v, *p);
@@ -181,10 +182,16 @@ char *duc_human_number(double v, int exact)
 }
 
 
+char *duc_human_number(double v, int exact)
+{
+	return humanize(v, exact, 1000);
+}
+
+
 char *duc_human_size(struct duc_size *size, duc_size_type st, int exact)
 {
 	double v = (st == DUC_SIZE_TYPE_APPARENT) ? size->apparent : size->actual;
-	return duc_human_number(v, exact);
+	return humanize(v, exact, 1024);
 }
 
 
