@@ -22,10 +22,10 @@
 #include <cairo-pdf.h>
 #include <pango/pangocairo.h>
 
-#include "list.h"
 #include "private.h"
 #include "duc.h"
 #include "duc-graph.h"
+#include "utlist.h"
 
 #define FONT_SIZE_LABEL 8
 #define FONT_SIZE_TOOLTIP 8
@@ -35,6 +35,7 @@
 struct label {
 	int x, y;
 	char *text;
+	struct label *next;
 };
 
 
@@ -59,7 +60,7 @@ struct duc_graph {
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
-	struct list *label_list;
+	struct label *label_list;
 	double spot_a;
 	double spot_r;
 	duc_dir *spot_dir;
@@ -501,7 +502,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 				pol2car(g, ang((a1+a2)/2), (r1+r2)/2, &label->x, &label->y);
 				asprintf(&label->text, "%s\n%s", name, siz);
-				list_push(&g->label_list, label);
+				LL_APPEND(g->label_list, label);
 
 				free(name);
 				free(siz);
@@ -580,12 +581,12 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 
 	/* Draw collected labels */
 
-	struct label *label;
+	struct label *l, *ln;
 
-	while((label = list_pop(&g->label_list)) != NULL) {
-		draw_text(cr, label->x, label->y, FONT_SIZE_LABEL, label->text);
-		free(label->text);
-		free(label);
+	LL_FOREACH_SAFE(g->label_list, l, ln) {
+		draw_text(cr, l->x, l->y, FONT_SIZE_LABEL, l->text);
+		free(l->text);
+		free(l);
 	}
 	
 	char *p = duc_dir_get_path(dir);

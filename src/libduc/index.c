@@ -22,19 +22,23 @@
 
 #include "db.h"
 #include "duc.h"
-#include "list.h"
 #include "private.h"
 #include "uthash.h"
+#include "utlist.h"
 
 struct hard_link {
 	struct duc_devino devino;
 	UT_hash_handle hh;
 };
 
+struct exclude {
+	char *name;
+	struct exclude *next;
+};
+
 struct duc_index_req {
 	duc *duc;
-	struct list *path_list;
-	struct list *exclude_list;
+	struct exclude *exclude_list;
 	dev_t dev;
 	duc_index_flags flags;
 	int maxdepth;
@@ -98,38 +102,29 @@ duc_index_req *duc_index_req_new(duc *duc)
 int duc_index_req_free(duc_index_req *req)
 {
 	struct hard_link *h, *hn;
+	struct exclude *e, *en;
+
 	HASH_ITER(hh, req->hard_link_map, h, hn) {
 		HASH_DEL(req->hard_link_map, h);
 		free(h);
 	}
-	list_free(req->exclude_list, free);
-	list_free(req->path_list, free);
-	free(req);
-	return 0;
-}
 
-
-int duc_index_req_add_path(duc_index_req *req, const char *path)
-{
-	duc *duc = req->duc;
-	char *path_canon = stripdir(path);
-	if(path_canon == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s", path, strerror(errno));
-		duc->err = DUC_E_UNKNOWN;
-		if(errno == EACCES) duc->err = DUC_E_PERMISSION_DENIED;
-		if(errno == ENOENT) duc->err = DUC_E_PATH_NOT_FOUND;
-		return -1;
+	LL_FOREACH_SAFE(req->exclude_list, e, en) {
+		free(e->name);
+		free(e);
 	}
 
-	list_push(&req->path_list, path_canon);
+	free(req);
+
 	return 0;
 }
 
 
 int duc_index_req_add_exclude(duc_index_req *req, const char *patt)
 {
-	char *pcopy = duc_strdup(patt);
-	list_push(&req->exclude_list, pcopy);
+	struct exclude *e = duc_malloc(sizeof(struct exclude));
+	e->name = duc_strdup(patt);
+	LL_APPEND(req->exclude_list, e);
 	return 0;
 }
 
@@ -149,15 +144,15 @@ int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, 
 }
 
 
-static int match_list(const char *name, struct list *l)
+static int match_exclude(const char *name, struct exclude *list)
 {
-	while(l) {
+	struct exclude *e;
+	LL_FOREACH(list, e) {
 #ifdef HAVE_FNMATCH_H
-		if(fnmatch(l->data, name, 0) == 0) return 1;
+		if(fnmatch(e->name, name, 0) == 0) return 1;
 #else
-		if(strstr(name, l->data) == 0) return 1;
+		if(strstr(name, e->name) == 0) return 1;
 #endif
-		l = l->next;
 	}
 	return 0;
 }
@@ -329,7 +324,7 @@ static void index_dir(struct scanner *scanner_dir)
 			if(name[1] == '.' && name[2] == '\0') continue;
 		}
 
-		if(match_list(name, req->exclude_list)) {
+		if(match_exclude(name, req->exclude_list)) {
 			duc_log(duc, DUC_LOG_WRN, "Skipping %s: excluded by user", name);
 			continue;
 		}

@@ -13,13 +13,12 @@ duc_SOURCES := \
 	src/libduc/duc.c \
 	src/libduc/duc.h \
 	src/libduc/index.c \
-	src/libduc/list.c \
-	src/libduc/list.h \
 	src/libduc/private.h \
 	src/libduc/stripdir.c \
 	src/libduc/varint.c \
 	src/libduc/varint.h \
-	src/libduc/uthash.h 
+	src/libduc/uthash.h \
+	src/libduc/utlist.h 
 
 duc_SOURCES += \
 	src/libduc-graph/graph.c \
