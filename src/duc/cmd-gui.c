@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <sys/poll.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
 
 #include <cairo.h>
@@ -36,25 +37,13 @@ static enum duc_graph_palette palette = 0;
 static int win_w = 600;
 static int win_h = 600;
 static cairo_surface_t *cs;
+static cairo_t *cr;
 static duc_dir *dir;
 static duc_graph *graph;
 static double fuzz;
 
 static void draw(void)
 {
-	cairo_t *cr;
-
-	cairo_surface_t *cs2 = cairo_surface_create_similar(
-			cs, 
-			CAIRO_CONTENT_COLOR,
-			cairo_xlib_surface_get_width(cs),
-			cairo_xlib_surface_get_height(cs));
-
-	cr = cairo_create(cs2);
-
-	cairo_set_source_rgb(cr, 1, 1, 1);
-	cairo_paint(cr);
-
 	int size = win_w < win_h ? win_w : win_h;
 	int pos_x = (win_w - size) / 2;
 	int pos_y = (win_h - size) / 2;
@@ -70,15 +59,14 @@ static void draw(void)
 	duc_graph_set_max_name_len(graph, 30);
 	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 	duc_graph_set_exact_bytes(graph, opt_bytes);
-	duc_graph_draw_cairo(graph, dir, cr);
-	cairo_destroy(cr);
 
-	cr = cairo_create(cs);
-	cairo_set_source_surface(cr, cs2, 0, 0);
+	cairo_push_group(cr);
+	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_paint(cr);
-	cairo_destroy(cr);
-
-	cairo_surface_destroy(cs2);
+	duc_graph_draw_cairo(graph, dir, cr);
+	cairo_pop_group_to_source(cr);
+	cairo_paint(cr);
+	cairo_surface_flush(cs);
 }
 
 
@@ -187,7 +175,7 @@ static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 	XMapWindow(dpy, win);
 	
 	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
-
+	cr = cairo_create(cs);
 
 	pfd.fd = ConnectionNumber(dpy);
 	pfd.events = POLLIN | POLLERR;
