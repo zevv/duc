@@ -40,8 +40,8 @@ static void print_escaped(const char *s)
 			case '\n': putchar('\n');
 			case '\r': putchar('\r');
 			default:
-				if(*s < 32) {
-					printf("#x%02x", *s);
+				if(*s >= 0 && *s < 32) {
+					printf("#x%02x", *(uint8_t *)s);
 				} else {
 					putchar(*s); 
 				}
