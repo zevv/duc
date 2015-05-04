@@ -8,7 +8,7 @@ usage. Duc maintains a database of accumulated sizes of directories of the file
 system, and allows you to query this database with some tools, or create fancy
 graphs showing you where your bytes are.
 
-Duc comes with console utilities, ncurses and X11 user interfaces and a CGI
+Duc comes with console utilities, ncursesw and X11 user interfaces and a CGI
 wrapper for disk usage querying and visualisation.
 
 Duc is designed to scale to huge filesystems: it will index and display
@@ -22,14 +22,14 @@ For more information, check the manual page at http://htmlpreview.github.io/?htt
 
 ### Install
 
-Duc depends on the Cairo and Pango libraries for drawing graphs. The ncurses
+Duc depends on the Cairo and Pango libraries for drawing graphs. The ncursesw
 library is required for the curses user interface.
 
 Depending on available libraries or required functionality you can disable
 certain features of duc by passing any of the below switches to ./configure:
 
     --disable-graph         disable graph drawing [default=yes]
-    --disable-ui            disable ncurses ui [default=yes]
+    --disable-ui            disable ncursesw ui [default=yes]
     --disable-gui           disable X11 gui [default=yes]
     --with-db-backend=ARG   choose db backend (tokyocabinet,leveldb,sqlite3) [tokyocabinet]
 
@@ -39,7 +39,7 @@ performance is acceptable and generates in the smallest database size.
 
 To get the required dependencies on Debian or Ubuntu, run:
 
-    $ sudo apt-get install libncurses5-dev libcairo2-dev libpango1.0-dev \
+    $ sudo apt-get install libncursesw5-dev libcairo2-dev libpango1.0-dev \
       build-essential
 
 depending on the database library, also install `libtokyocabinet-dev`,

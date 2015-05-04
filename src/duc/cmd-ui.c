@@ -11,13 +11,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <locale.h>
 
 #include "cmd.h"
 #include "duc.h"
 
-#ifdef HAVE_LIBNCURSES
-
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 
 
 static char type_char[] = {
@@ -225,6 +224,7 @@ static int ui_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
+	setlocale(LC_CTYPE, "");
 	initscr();
 	atexit(bye);
 	cbreak();
@@ -252,20 +252,6 @@ static struct ducrc_option options[] = {
 	{ NULL }
 };
 
-
-#else
-
-int ui_main(duc *duc, int argc, char *argv[])
-{
-	duc_log(NULL, DUC_LOG_WRN, "'duc ui' is not supported on this platform.");
-	return -1;
-}
-
-static struct ducrc_option options[] = {
-	{ NULL }
-};
-
-#endif
 
 struct cmd cmd_ui = {
 	.name = "ui",

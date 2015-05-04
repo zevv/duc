@@ -109,7 +109,7 @@ fi
 if test "${enable_ui}" = "yes"; then
         AC_DEFINE([ENABLE_UI], [1], [Enable ui])
 
-	AC_CHECK_LIB([ncurses], [tputs],, [AC_MSG_ERROR([
+	AC_CHECK_LIB([ncursesw], [tputs],, [AC_MSG_ERROR([
 The ncurses library was not found, which is needed for ui support. Either install
 the ncurses development libraries, or compile without ui support (--disable-ui)
 	])])
