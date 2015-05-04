@@ -359,19 +359,24 @@ static void draw_section(duc_graph *g, cairo_t *cr, double a1, double a2, double
  *   that is below that spot
  */
 
-static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1, double a1_dir, double a2_dir)
+static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1, double a1_dir, double a2_dir, struct duc_size *total)
 {
 	double a_range = a2_dir - a1_dir;
 	double a1 = a1_dir;
 	double a2 = a1_dir;
-			
+
 	double ring_width = (g->size/2 - g->r_start - 30) / g->max_level;
 
 	/* Calculate max and total size */
 
 	struct duc_size tmp;
-	duc_dir_get_size(dir, &tmp);
-	off_t size_total = g->size_type == DUC_SIZE_TYPE_APPARENT ? tmp.apparent : tmp.actual;
+	off_t size_total;
+	if(total) {
+		tmp = *total;
+	} else {
+		duc_dir_get_size(dir, &tmp);
+	}
+	size_total = g->size_type == DUC_SIZE_TYPE_APPARENT ? tmp.apparent : tmp.actual;
 	if(size_total == 0) return 0;
 
 	struct duc_dirent *e;
@@ -389,7 +394,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 	duc_dir_rewind(dir);
 	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
-		
+
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
 		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size.apparent : e->size.actual;
@@ -482,7 +487,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 			if(level+1 < g->max_level) {
 				duc_dir *dir_child = duc_dir_openent(dir, e);
 				if(!dir_child) continue;
-				do_dir(g, cr, dir_child, level + 1, r2, a1, a2);
+				do_dir(g, cr, dir_child, level + 1, r2, a1, a2, &e->size);
 				duc_dir_close(dir_child);
 			} else {
 				draw_section(g, cr, a1, a2, r2+2, r2+8, H, S/2, V/2, L);
@@ -578,7 +583,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	
 	duc_dir_rewind(dir);
 
-	do_dir(g, cr, dir, 0, g->r_start, 0, 1);
+	do_dir(g, cr, dir, 0, g->r_start, 0, 1, NULL);
 
 	/* Draw collected labels */
 
@@ -636,7 +641,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 		g->spot_dir = NULL;
 
 		duc_dir_rewind(dir);
-		do_dir(g, NULL, dir, 0, g->r_start, 0, 1);
+		do_dir(g, NULL, dir, 0, g->r_start, 0, 1, NULL);
 
 		g->spot_a = 0;
 		g->spot_r = 0;
