@@ -130,7 +130,16 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 				printw("%*s", max_size_len, siz);
 
 				if(cur != i) attron(A_BOLD);
-				printw(" %s%c", e->name, class);
+				printw(" ");
+				char *p = e->name;
+				while(*p) {
+					if(*(uint8_t *)p >= 32) {
+						printw("%c", *p);
+					} else {
+						printw("^%c", *p+64);
+					}
+				}
+				printw("%c", class);
 				attroff(A_BOLD);
 
 				int w = cols - 30;
