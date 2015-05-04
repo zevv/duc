@@ -207,12 +207,10 @@ static int fn_comp_apparent(const void *a, const void *b)
 {
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
-	off_t d;
-	d = eb->size.apparent > ea->size.apparent;
-	return d;
-	if(d) return d;
-	d = eb->size.actual > ea->size.actual;
-	if(d) return d;
+	const struct duc_size *sa = &ea->size;
+	const struct duc_size *sb = &eb->size;
+	if(sa->apparent != sb->apparent) return(sa->apparent < sb->apparent);
+	if(sa->actual != sb->actual) return(sa->actual < sb->actual);
 	return strcmp(ea->name, eb->name);
 }
 
@@ -221,12 +219,10 @@ static int fn_comp_actual(const void *a, const void *b)
 {
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
-	off_t d;
-	d = eb->size.actual > ea->size.actual;
-	return d;
-	if(d) return d;
-	d = eb->size.apparent > ea->size.apparent;
-	if(d) return d;
+	const struct duc_size *sa = &ea->size;
+	const struct duc_size *sb = &eb->size;
+	if(sa->actual != sb->actual) return(sa->actual < sb->actual);
+	if(sa->apparent != sb->apparent) return(sa->apparent < sb->apparent);
 	return strcmp(ea->name, eb->name);
 }
 
