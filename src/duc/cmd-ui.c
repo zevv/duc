@@ -16,7 +16,12 @@
 #include "cmd.h"
 #include "duc.h"
 
+#ifdef HAVE_LIBNCURSES
+#include <ncurses.h>
+#endif
+#ifdef HAVE_LIBNCURSESW
 #include <ncursesw/ncurses.h>
+#endif
 
 
 static char type_char[] = {
