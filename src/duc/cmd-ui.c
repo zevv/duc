@@ -138,6 +138,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 					} else {
 						printw("^%c", *p+64);
 					}
+					p++;
 				}
 				printw("%c", class);
 				attroff(A_BOLD);
