@@ -24,16 +24,24 @@ mkfile test/tree/sub2/echo 100
 mkfile test/tree/sub2/foxtrot 1000
 mkfile test/tree/sub2/golf 1000
 mkfile test/tree/sub2/hotel 10000
+mkfile test/tree/sub3/india 5000
+mkfile test/tree/sub3/juliet 4000
+mkfile test/tree/sub4/kilo 1000
+mkfile test/tree/sub4/lima 2000
+mkfile test/tree/sub4/mike 3000
+mkfile test/tree/sub4/november 5000
 
 # Hard link
 
-mkdir test/tree/sub3
-ln test/tree/sub2/hotel test/tree/sub3
+mkdir test/hard-link
+mkfile test/hard-link/one 10000
+ln test/hard-link/one test/hard-link/two
+ln test/hard-link/one test/hard-link/three
 
 # Sparse file
 
-mkdir test/tree/sub4
-dd if=/dev/zero of=test/tree/sub3/sparse bs=1 count=1 seek=32K 2> /dev/null
+mkdir test/sparse
+dd if=/dev/zero of=test/sparse/first bs=1 count=1 seek=32K 2> /dev/null
 
 # Potentional problematic characters
 
@@ -77,7 +85,7 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-cat test.out | grep -q "Indexed 30 files and 25 directories, (161469B apparent, 241664B actual)"
+cat test.out | grep -q "Indexed 37 files and 27 directories, (199661B apparent, 294912B actual)"
 
 if [ "$?" = "0" ]; then
 	echo "report ok"
@@ -103,7 +111,7 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-md5sum test.out | grep -q 240bb4b92ce47d5df0e0518afa06da47
+md5sum test.out | grep -q decda4c4f77b20a45aee5e90f7587603
 
 if [ "$?" = "0" ]; then
 	echo "md5sum ok"
