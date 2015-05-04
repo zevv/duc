@@ -44,6 +44,8 @@ mkfile "test/strange/space- -dir/file" 100
 mkfile "test/strange/carriage-return-
 -dir/file" 100
 mkfile "test/strange/question-mark-?-dir/file" 100
+mkfile "test/strange/control-a--dir/file" 100
+mkfile "test/strange/escape--dir/file" 100
 mkfile "test/strange/less-then-<-dir/file" 100
 mkfile "test/strange/more-then->-dir/file" 100
 mkfile "test/strange/ampersand-&-dir/file" 100
@@ -75,7 +77,7 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-cat test.out | grep -q "Indexed 28 files and 23 directories, (153077B apparent, 225280B actual)"
+cat test.out | grep -q "Indexed 30 files and 25 directories, (161469B apparent, 241664B actual)"
 
 if [ "$?" = "0" ]; then
 	echo "report ok"
@@ -101,7 +103,7 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-md5sum test.out | grep -q 682f788d87995c04ca615dfa3c54537b
+md5sum test.out | grep -q 240bb4b92ce47d5df0e0518afa06da47
 
 if [ "$?" = "0" ]; then
 	echo "md5sum ok"
