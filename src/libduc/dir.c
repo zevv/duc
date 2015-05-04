@@ -208,9 +208,10 @@ static int fn_comp_apparent(const void *a, const void *b)
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
 	off_t d;
-	d = eb->size.apparent - ea->size.apparent;
+	d = eb->size.apparent > ea->size.apparent;
+	return d;
 	if(d) return d;
-	d = eb->size.actual - ea->size.actual;
+	d = eb->size.actual > ea->size.actual;
 	if(d) return d;
 	return strcmp(ea->name, eb->name);
 }
@@ -221,9 +222,10 @@ static int fn_comp_actual(const void *a, const void *b)
 	const struct duc_dirent *ea = a;
 	const struct duc_dirent *eb = b;
 	off_t d;
-	d = eb->size.actual - ea->size.actual;
+	d = eb->size.actual > ea->size.actual;
+	return d;
 	if(d) return d;
-	d = eb->size.apparent - ea->size.apparent;
+	d = eb->size.apparent > ea->size.apparent;
 	if(d) return d;
 	return strcmp(ea->name, eb->name);
 }
