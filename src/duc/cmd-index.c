@@ -69,13 +69,13 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_progress) duc_index_req_set_progress_cb(req, progress_cb, NULL);
 
 	if(argc < 1) {
-		duc_log(duc, DUC_LOG_WRN, "Required index PATH missing.");
+		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");
 		return -2;
 	}
 	
 	int r = duc_open(duc, opt_database, open_flags);
 	if(r != DUC_OK) {
-		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 

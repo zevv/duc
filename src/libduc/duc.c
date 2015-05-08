@@ -82,7 +82,7 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 
 	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error opening: %s - %s", path_db, duc_strerror(duc));
+		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - %s", path_db, duc_strerror(duc));
 		return -1;
 	}
 

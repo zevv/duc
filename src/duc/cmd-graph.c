@@ -60,13 +60,13 @@ static int graph_main(duc *duc, int argc, char **argv)
 
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
-		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 
@@ -85,7 +85,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 	}
 
 	if(f == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error opening output file: %s", strerror(errno));
+		duc_log(duc, DUC_LOG_FTL, "Error opening output file: %s", strerror(errno));
 		return -1;
 	}
 

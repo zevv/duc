@@ -231,11 +231,13 @@ static int ui_main(duc *duc, int argc, char **argv)
 
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 

@@ -25,6 +25,7 @@ static int info_db(duc *duc, char *file)
 
 	int r = duc_open(duc, file, DUC_OPEN_RO);
 	if(r != DUC_OK) {
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 
