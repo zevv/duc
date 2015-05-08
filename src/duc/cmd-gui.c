@@ -161,7 +161,7 @@ static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	Display *dpy = XOpenDisplay(NULL);
 	if(dpy == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "ERROR: Could not open display");
+		duc_log(duc, DUC_LOG_FTL, "ERROR: Could not open display");
 		exit(1);
 	}
 
@@ -233,12 +233,13 @@ int gui_main(duc *duc, int argc, char *argv[])
 
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 	
 	dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "%s", duc_strerror(duc));
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 
@@ -266,7 +267,7 @@ static struct ducrc_option options[] = {
 
 int gui_main(int argc, char *argv[])
 {
-	duc_log(NULL, DUC_LOG_WRN, "'duc gui' is not supported on this platform");
+	duc_log(NULL, DUC_LOG_FTL, "'duc gui' is not supported on this platform");
 	return -1;
 }
 

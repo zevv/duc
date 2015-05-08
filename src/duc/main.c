@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 	
 	duc *duc = duc_new();
 	if(duc == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Error creating duc context");
+		duc_log(duc, DUC_LOG_FTL, "Error creating duc context");
 		return -1;
 	}
 
