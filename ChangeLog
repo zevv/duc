@@ -1,6 +1,17 @@
+1.1      (2015-05-09)
+
+	- new: Added support for leveldb database backend
+	- new: Some visual changes and performance improvements in duc-gui
+	- new: Link to ncursesw if available for proper UTF-8 support in
+	       duc-ui
+	- fix: Fixed HTML and CGI escaping for duc-cgi
+	- fix: Fixed unit scaling on 'humanized' formatted numbers
+	- fix: Added UTF-8 charset declaration to duc-cgi
+	- fix: Fatal errors are still printed in --quiet mode
+	- fix: Better handling of non-printable characters in file names
 
 1.0-rc1  (2015-04-25)
 
 	- First release candidate for 1.0
 
-	
+
