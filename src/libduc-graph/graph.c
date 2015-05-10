@@ -57,6 +57,7 @@ struct duc_graph {
 	size_t max_name_len;
 	duc_size_type size_type;
 	int bytes;
+	double ring_width;
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
@@ -365,8 +366,6 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 	double a1 = a1_dir;
 	double a2 = a1_dir;
 
-	double ring_width = (g->size/2 - g->r_start - 30) / g->max_level;
-
 	/* Calculate max and total size */
 
 	struct duc_size tmp;
@@ -402,7 +401,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		double size_rel = (double)size / size_total;
 		double size_nrel = (size_max == size_min) ? 1 : ((double)size - size_min) / (size_max - size_min);
 
-		double r2 = r1 + ring_width * (1 - (1 - size_nrel) * g->fuzz);
+		double r2 = r1 + g->ring_width * (1 - (1 - size_nrel) * g->fuzz);
 		a2 += a_range * size_rel;
 
 		/* Skip any segments that would be smaller then one pixel */
@@ -576,6 +575,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 	int tooltip_x = g->tooltip_x - g->pos_x;
 	int tooltip_y = g->tooltip_y - g->pos_y;
 	g->tooltip_msg[0] = '\0';
+	g->ring_width = (g->size/2 - g->r_start - 30) / g->max_level;
 
 	car2pol(g, tooltip_x, tooltip_y, &g->tooltip_a, &g->tooltip_r);
 

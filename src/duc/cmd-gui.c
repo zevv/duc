@@ -23,6 +23,7 @@
 #include <X11/keysym.h>
 
 static int opt_bytes;
+static int opt_dark;
 static char *opt_database = NULL;
 static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
@@ -63,7 +64,11 @@ static void draw(void)
 	duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 
 	cairo_push_group(cr);
-	cairo_set_source_rgb(cr, 1, 1, 1);
+	if(opt_dark) {
+		cairo_set_source_rgb(cr, 0, 0, 0);
+	} else {
+		cairo_set_source_rgb(cr, 1, 1, 1);
+	}
 	cairo_paint(cr);
 	duc_graph_draw_cairo(graph, dir, cr);
 	cairo_pop_group_to_source(cr);
@@ -255,6 +260,7 @@ int gui_main(duc *duc, int argc, char *argv[])
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+	{ &opt_dark,      "dark",       0,  DUCRC_TYPE_BOOL,   "use dark background color" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },

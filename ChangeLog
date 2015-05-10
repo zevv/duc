@@ -1,3 +1,6 @@
+
+	- new: Added --dark option to duc-gui
+
 1.1      (2015-05-09)
 
 	- new: Added support for leveldb database backend
