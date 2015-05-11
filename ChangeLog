@@ -1,5 +1,9 @@
 
+1.2	(1015-05-11)
+
 	- new: Added --dark option to duc-gui
+	- fix: Fixed CGI file system traversing
+	- fix: Fixed duc-info output to be consistent with other tools
 
 1.1      (2015-05-09)
 
