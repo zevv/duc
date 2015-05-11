@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <time.h>
-#include <glob.h>
 
 #include "private.h"
 #include "duc.h"
@@ -97,27 +96,6 @@ int duc_close(struct duc *duc)
 		duc->db = NULL;
 	}
 	return 0;
-}
-
-
-/* 
- * Scan db_dir_path and return the number of DBs found, or -1 for error, putting an array
- * db filenames into *dbs 
- */
-
-size_t duc_find_dbs(const char *db_dir_path, glob_t *db_list) 
-{
-	size_t count;
-
-	char tmp[256];
-	sprintf(tmp,"%s/*.db", db_dir_path);
-	glob(tmp, GLOB_TILDE_CHECK, NULL, db_list);
-
-	count = db_list->gl_pathc;
-	if (count < 1) {
-		duc_log(NULL, DUC_LOG_WRN,"failed to find DBs in %s", tmp);
-	}
-	return count;
 }
 
 

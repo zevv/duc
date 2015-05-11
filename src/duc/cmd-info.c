@@ -56,20 +56,6 @@ static int info_db(duc *duc, char *file)
 
 static int info_main(duc *duc, int argc, char **argv)
 {
-	char *db_dir = NULL;
-
-	if (db_dir) {
-		glob_t bunch_of_dbs;
-		char **db_file;
-		size_t n = duc_find_dbs(db_dir, &bunch_of_dbs);
-		printf("Found %zu (%zu) DBs to look at.\n", n, bunch_of_dbs.gl_pathc);
-		int i = 0;
-		for (db_file = bunch_of_dbs.gl_pathv; i < n; db_file++, i++) {
-		info_db(duc, *db_file);
-	    }
-	    return 0;
-	}
-
 	info_db(duc, opt_database);
 	return 0;
 }
