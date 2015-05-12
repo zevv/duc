@@ -166,9 +166,36 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			"#list { float: left; }\n"
 			"#list table { margin-left: auto; margin-right: auto; }\n"
 			"#list table td { padding-left: 5px; }\n"
-			"#list table td.name, th.name{ text-align: left; }\n"
-			"#list table td.size, th.size{ text-align: right; }\n"
+			"#list table td.name, th.name { text-align: left; }\n"
+			"#list table td.size, th.size { text-align: right; }\n"
+			"#tooltip { display: none; position: absolute; z-index: 1; background-color: white; border: solid 1px black; padding: 10px; }\n"
 			"</style>\n"
+			"<script>\n"
+			"  window.onload = function() {\n"
+			"    var img = document.getElementById('img');\n"
+			"    var tt = document.getElementById('tooltip');\n"
+			"    var timer;\n"
+			"    img.onmouseout = function() { tt.style.display = \"none\"; };\n"
+			"    img.onmousemove = function(e) {\n"
+			"      if(timer) clearTimeout(timer);\n"
+			"      timer = setTimeout(function() {\n"
+			"        var x = e.clientX - img.offsetLeft;\n"
+			"        var y = e.clientY - img.offsetTop;\n"
+			"        var req = new XMLHttpRequest();\n"
+			"        req.onreadystatechange = function() {\n"
+			"          if(req.readyState == 4 && req.status == 200) {\n"
+			"            tt.innerHTML = req.responseText;\n"
+                        "            tt.style.display = \"block\";\n"
+			"            tt.style.left = (e.clientX - tt.offsetWidth / 2) + \"px\";\n"
+			"            tt.style.top = (e.clientY - tt.offsetHeight - 5) + \"px\";\n"
+			"          }\n"
+			"        };\n"
+			"        req.open(\"GET\", \"?cmd=lookup&path=%s&x=\"+x+\"&y=\"+y , true);\n"
+			"        req.send()\n"
+			"      }, 100);\n"
+			"    };\n"
+			"  };\n"
+			"</script>\n", cgi_get("path")
 		);
 	}
 
@@ -258,7 +285,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf(" <a href=\"%s?cmd=index&path=", script);
 		print_cgi(path);
 		printf("&\">\n");
-		printf("  <img src=\"%s?cmd=image&path=", script);
+		printf("  <img id=\"img\" src=\"%s?cmd=image&path=", script);
 		print_cgi(path);
 		printf("\" ismap=\"ismap\">\n");
 		printf(" </a>\n");
@@ -305,6 +332,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 
 	printf("</div>\n");
+	printf("<div id=\"tooltip\"></div>\n");
 
 	fflush(stdout);
 }
@@ -320,6 +348,27 @@ void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 }
 
+
+void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
+{
+	printf("Content-Type: text/html\n");
+	printf("\n");
+	char *xs = cgi_get("x");
+	char *ys = cgi_get("y");
+	if(dir && xs && ys) {
+		int x = atoi(xs);
+		int y = atoi(ys);
+		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+		if(dir2) {
+			char *path = duc_dir_get_path(dir2);
+			if(path) {
+				printf("Path: %s\n", path);
+				free(path);
+			}
+			duc_dir_close(dir2);
+		}
+	}
+}
 
 
 static int cgi_main(duc *duc, int argc, char **argv)
@@ -378,6 +427,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
+	if(strcmp(cmd, "lookup") == 0) do_lookup(duc, graph, dir);
 
 	duc_close(duc);
 
