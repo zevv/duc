@@ -1,4 +1,6 @@
 
+	- new: added tooltip to CGI, enable with --tooltip option
+
 1.2	(1015-05-11)
 
 	- new: Added --dark option to duc-gui
