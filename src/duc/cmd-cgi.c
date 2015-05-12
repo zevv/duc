@@ -283,7 +283,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 			printf("  <tr><td class=name>");
 
-			if(e->type == DT_DIR) {
+			if(e->type == DUC_FILE_TYPE_DIR) {
 				printf("<a href=\"%s&path=", url);
 				print_cgi(path);
 				printf("/");
@@ -293,7 +293,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			print_html(e->name);
 
-			if(e->type == DT_DIR) 
+			if(e->type == DUC_FILE_TYPE_DIR) 
 				printf("</a>\n");
 
 			printf("   <td class=size>%s</td>\n", siz);

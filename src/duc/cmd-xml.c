@@ -58,7 +58,7 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 
 	while( (e = duc_dir_read(dir, DUC_SIZE_TYPE_ACTUAL)) != NULL) {
 
-		if(e->type == DT_DIR && e->size.apparent >= min_size) {
+		if(e->type == DUC_FILE_TYPE_DIR && e->size.apparent >= min_size) {
 			duc_dir *dir_child = duc_dir_openent(dir, e);
 			if(dir_child) {
 				indent(depth);

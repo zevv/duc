@@ -37,7 +37,7 @@ duc_errno db_write_dir(struct duc_dir *dir)
 		buffer_put_varint(b, ent->size.apparent);
 		buffer_put_varint(b, ent->size.actual);
 		buffer_put_varint(b, ent->type);
-		if(ent->type == DT_DIR) {
+		if(ent->type == DUC_FILE_TYPE_DIR) {
 			buffer_put_varint(b, ent->devino.dev);
 			buffer_put_varint(b, ent->devino.ino);
 		}
@@ -99,7 +99,7 @@ struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
 		buffer_get_varint(b, &size_actual);
 		buffer_get_varint(b, &type);
 
-		if(type == DT_DIR) {
+		if(type == DUC_FILE_TYPE_DIR) {
 			buffer_get_varint(b, &dev);
 			buffer_get_varint(b, &ino);
 			dir->dir_count ++;

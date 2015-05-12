@@ -244,6 +244,32 @@ void duc_free(void *p)
 }
 
 
+static struct {
+	char c;
+	char *s;
+} duc_file_type_list[] = {
+	[DUC_FILE_TYPE_BLK]     = { '%', "block device" },
+	[DUC_FILE_TYPE_CHR]     = { '%', "character device" },
+	[DUC_FILE_TYPE_DIR]     = { '/', "directory" },
+	[DUC_FILE_TYPE_FIFO]    = { '|', "fifo" },
+	[DUC_FILE_TYPE_LNK]     = { '>', "soft link" },
+	[DUC_FILE_TYPE_REG]     = { ' ', "regular file" },
+	[DUC_FILE_TYPE_SOCK]    = { '@', "socket" },
+	[DUC_FILE_TYPE_UNKNOWN] = { '?', "unknown" },
+};
+
+
+char duc_file_type_char(duc_file_type t)
+{
+	return (t >= 0 && t <= DUC_FILE_TYPE_UNKNOWN) ? duc_file_type_list[t].c : ' ';
+}
+
+
+char *duc_file_type_name(duc_file_type t)
+{
+	return (t >= 0 && t <= DUC_FILE_TYPE_UNKNOWN) ? duc_file_type_list[t].s : " ";
+}
+
 /*
  * End
  */

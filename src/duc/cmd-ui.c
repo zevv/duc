@@ -23,18 +23,6 @@
 #include <ncursesw/ncurses.h>
 #endif
 
-
-static char type_char[] = {
-        [DT_BLK]     = ' ',
-        [DT_CHR]     = ' ',
-        [DT_DIR]     = '/',
-        [DT_FIFO]    = '|',
-        [DT_LNK]     = '>',
-        [DT_REG]     = ' ',
-        [DT_SOCK]    = '@',
-        [DT_UNKNOWN] = ' ',
-};
-
 static int opt_classify = 1;
 static int opt_apparent = 0;
 static int opt_bytes = 0;
@@ -121,10 +109,9 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 				size_t max_size_len = opt_bytes ? 12 : 7;
 
 				char class = ' ';
-				if(opt_classify && e->type < sizeof(type_char)) {
-					class = type_char[e->type];
-				}
-			
+				if(opt_classify)
+					class = duc_file_type_char(e->type);
+
 				char siz[16];
 				duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 				printw("%*s", max_size_len, siz);
@@ -201,7 +188,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case '\n': 
 				  duc_dir_seek(dir, cur);
 				  struct duc_dirent *e = duc_dir_read(dir, st);
-				  if(e->type == DT_DIR) {
+				  if(e->type == DUC_FILE_TYPE_DIR) {
 					dir2 = duc_dir_openent(dir, e);
 					if(dir2) {
 						do_dir(dir2, depth + 1);

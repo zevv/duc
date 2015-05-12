@@ -67,17 +67,6 @@ struct duc_graph {
 };
 
 
-static char *type_name[] = {
-        [DT_BLK]     = "block device",
-        [DT_CHR]     = "character device",
-        [DT_DIR]     = "directory",
-        [DT_FIFO]    = "fifo",
-        [DT_LNK]     = "soft link",
-        [DT_REG]     = "regular file",
-        [DT_SOCK]    = "socket",
-};
-
-
 duc_graph *duc_graph_new(duc *duc)
 {
 	duc_graph *g;
@@ -456,8 +445,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 				V -= 0.7;
 				char siz[16];
 				duc_human_size(&e->size, g->size_type, g->bytes, siz, sizeof siz);
-				char *typ = type_name[e->type];
-				if(typ == NULL) typ = "unknown";
+				char *typ = duc_file_type_name(e->type);
 				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
 					"name: %s\n"
 					"type: %s\n"
@@ -469,7 +457,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		}
 
 
-		if(e->type == DT_DIR) {
+		if(e->type == DUC_FILE_TYPE_DIR) {
 
 			/* Check if the requested spot lies in this section */
 
