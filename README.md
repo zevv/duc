@@ -49,6 +49,10 @@ On RHEL or CentOS systems, you need to do:
 
     $ sudo yum install pango-devel cairo-devel tokyocabinet-devel 
 
+Duc is usable on MacOS X using MacPorts. You'll need to inform the configure
+script where the X11 libraries can be found:
+
+    $ env LDFLAGS=-L/opt/X11/lib ./configure
 
 #### Building from a release
 
