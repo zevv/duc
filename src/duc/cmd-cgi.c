@@ -156,69 +156,6 @@ static char *cgi_get(const char *key)
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 
-	printf(
-		"Content-Type: text/html\n"
-		"\n"
-		"<!DOCTYPE html>\n"
-		"<head>\n"
-		"  <meta charset=\"utf-8\" />\n"
-	);
-
-	if(opt_css_url) {
-		printf("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">\n", opt_css_url);
-	} else {
-		printf(
-			"<style>\n"
-			"body { font-family: \"arial\", \"sans-serif\"; font-size: 11px; }\n"
-			"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
-			"#main { display:table-cell; }\n"
-			"#index { border-bottom: solid 1px #777777; }\n"
-			"#index table td { padding-left: 5px; }\n"
-			"#graph { float: left; }\n"
-			"#list { float: left; }\n"
-			"#list table { margin-left: auto; margin-right: auto; }\n"
-			"#list table td { padding-left: 5px; }\n"
-			"#list table td.name, th.name { text-align: left; }\n"
-			"#list table td.size, th.size { text-align: right; }\n"
-			"#tooltip { display: none; position: absolute; background-color: white; border: solid 1px black; padding: 3px; }\n"
-			"</style>\n"
-		);
-
-		if(opt_tooltip) printf(
-			"<script>\n"
-			"  window.onload = function() {\n"
-			"    var img = document.getElementById('img');\n"
-			"    var rect = img.getBoundingClientRect(img);\n"
-			"    var tt = document.getElementById('tooltip');\n"
-			"    var timer;\n"
-			"    img.onmouseout = function() { tt.style.display = \"none\"; };\n"
-			"    img.onmousemove = function(e) {\n"
-			"      if(timer) clearTimeout(timer);\n"
-			"      timer = setTimeout(function() {\n"
-			"        var x = e.clientX - rect.left;\n"
-			"        var y = e.clientY - rect.top;\n"
-			"        var req = new XMLHttpRequest();\n"
-			"        req.onreadystatechange = function() {\n"
-			"          if(req.readyState == 4 && req.status == 200) {\n"
-			"            tt.innerHTML = req.responseText;\n"
-                        "            tt.style.display = tt.innerHTML.length > 0 ? \"block\" : \"none\";\n"
-			"            tt.style.left = (e.clientX - tt.offsetWidth / 2) + \"px\";\n"
-			"            tt.style.top = (e.clientY - tt.offsetHeight - 5) + \"px\";\n"
-			"          }\n"
-			"        };\n"
-			"        req.open(\"GET\", \"?cmd=lookup&path=%s&x=\"+x+\"&y=\"+y , true);\n"
-			"        req.send()\n"
-			"      }, 100);\n"
-			"    };\n"
-			"  };\n"
-			"</script>\n", cgi_get("path")
-		);
-	}
-
-	printf(
-		"</head>\n"
-		"<div id=main>\n"
-	);
 	
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
@@ -250,6 +187,72 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	struct duc_index_report *report;
 	int i = 0;
+
+	printf(
+		"Content-Type: text/html\n"
+		"\n"
+		"<!DOCTYPE html>\n"
+		"<head>\n"
+		"  <meta charset=\"utf-8\" />\n"
+	);
+
+	if(opt_css_url) {
+		printf("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">\n", opt_css_url);
+	} else {
+		printf(
+			"<style>\n"
+			"body { font-family: \"arial\", \"sans-serif\"; font-size: 11px; }\n"
+			"table, thead, tbody, tr, td, th { font-size: inherit; font-family: inherit; }\n"
+			"#main { display:table-cell; }\n"
+			"#index { border-bottom: solid 1px #777777; }\n"
+			"#index table td { padding-left: 5px; }\n"
+			"#graph { float: left; }\n"
+			"#list { float: left; }\n"
+			"#list table { margin-left: auto; margin-right: auto; }\n"
+			"#list table td { padding-left: 5px; }\n"
+			"#list table td.name, th.name { text-align: left; }\n"
+			"#list table td.size, th.size { text-align: right; }\n"
+			"#tooltip { display: none; position: absolute; background-color: white; border: solid 1px black; padding: 3px; }\n"
+			"</style>\n"
+		);
+	}
+
+	if(opt_tooltip) {
+		printf(
+			"<script>\n"
+			"  window.onload = function() {\n"
+			"    var img = document.getElementById('img');\n"
+			"    var rect = img.getBoundingClientRect(img);\n"
+			"    var tt = document.getElementById('tooltip');\n"
+			"    var timer;\n"
+			"    img.onmouseout = function() { tt.style.display = \"none\"; };\n"
+			"    img.onmousemove = function(e) {\n"
+			"      if(timer) clearTimeout(timer);\n"
+			"      timer = setTimeout(function() {\n"
+			"        var x = e.clientX - rect.left;\n"
+			"        var y = e.clientY - rect.top;\n"
+			"        var req = new XMLHttpRequest();\n"
+			"        req.onreadystatechange = function() {\n"
+			"          if(req.readyState == 4 && req.status == 200) {\n"
+			"            tt.innerHTML = req.responseText;\n"
+			"            tt.style.display = tt.innerHTML.length > 0 ? \"block\" : \"none\";\n"
+			"            tt.style.left = (e.clientX - tt.offsetWidth / 2) + \"px\";\n"
+			"            tt.style.top = (e.clientY - tt.offsetHeight - 5) + \"px\";\n"
+			"          }\n"
+			"        };\n"
+			"        req.open(\"GET\", \"?cmd=lookup&path=%s&x=\"+x+\"&y=\"+y , true);\n"
+			"        req.send()\n"
+			"      }, 100);\n"
+			"    };\n"
+			"  };\n"
+			"</script>\n", path
+			);
+	}
+
+	printf(
+		"</head>\n"
+		"<div id=main>\n"
+	);
 
 	printf("<div id=index>");
 	printf(" <table>\n");
