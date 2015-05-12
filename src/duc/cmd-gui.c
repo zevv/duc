@@ -129,7 +129,7 @@ static int handle_event(XEvent e)
 			b = e.xbutton.button;
 
 			if(b == 1) {
-				duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+				duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
 				if(dir2) {
 					duc_dir_close(dir);
 					dir = dir2;

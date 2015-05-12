@@ -24,6 +24,17 @@ struct param {
 };
 
 
+static char *type_name[] = {
+        [DT_BLK]     = "block device",
+        [DT_CHR]     = "character device",
+        [DT_DIR]     = "directory",
+        [DT_FIFO]    = "fifo",
+        [DT_LNK]     = "soft link",
+        [DT_REG]     = "regular file",
+        [DT_SOCK]    = "socket",
+};
+
+
 static int opt_apparent = 0;
 static char *opt_css_url = NULL;
 static char *opt_database = NULL;
@@ -33,6 +44,7 @@ static int opt_size = 800;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
+static int opt_tooltip = 0;
 
 static struct param *param_list = NULL;
 
@@ -168,24 +180,28 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			"#list table td { padding-left: 5px; }\n"
 			"#list table td.name, th.name { text-align: left; }\n"
 			"#list table td.size, th.size { text-align: right; }\n"
-			"#tooltip { display: none; position: absolute; z-index: 1; background-color: white; border: solid 1px black; padding: 10px; }\n"
+			"#tooltip { display: none; position: absolute; background-color: white; border: solid 1px black; padding: 3px; }\n"
 			"</style>\n"
+		);
+
+		if(opt_tooltip) printf(
 			"<script>\n"
 			"  window.onload = function() {\n"
 			"    var img = document.getElementById('img');\n"
+			"    var rect = img.getBoundingClientRect(img);\n"
 			"    var tt = document.getElementById('tooltip');\n"
 			"    var timer;\n"
 			"    img.onmouseout = function() { tt.style.display = \"none\"; };\n"
 			"    img.onmousemove = function(e) {\n"
 			"      if(timer) clearTimeout(timer);\n"
 			"      timer = setTimeout(function() {\n"
-			"        var x = e.clientX - img.offsetLeft;\n"
-			"        var y = e.clientY - img.offsetTop;\n"
+			"        var x = e.clientX - rect.left;\n"
+			"        var y = e.clientY - rect.top;\n"
 			"        var req = new XMLHttpRequest();\n"
 			"        req.onreadystatechange = function() {\n"
 			"          if(req.readyState == 4 && req.status == 200) {\n"
 			"            tt.innerHTML = req.responseText;\n"
-                        "            tt.style.display = \"block\";\n"
+                        "            tt.style.display = tt.innerHTML.length > 0 ? \"block\" : \"none\";\n"
 			"            tt.style.left = (e.clientX - tt.offsetWidth / 2) + \"px\";\n"
 			"            tt.style.top = (e.clientY - tt.offsetHeight - 5) + \"px\";\n"
 			"          }\n"
@@ -225,7 +241,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 
 	if(x || y) {
-		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
+		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
 		if(dir2) {
 			dir = dir2;
 			path = duc_dir_get_path(dir);
@@ -332,7 +348,10 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 
 	printf("</div>\n");
-	printf("<div id=\"tooltip\"></div>\n");
+
+	if(opt_tooltip) {
+		printf("<div id=\"tooltip\"></div>\n");
+	}
 
 	fflush(stdout);
 }
@@ -351,21 +370,37 @@ void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
 
 void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 {
+	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
 	printf("Content-Type: text/html\n");
 	printf("\n");
+
 	char *xs = cgi_get("x");
 	char *ys = cgi_get("y");
+
 	if(dir && xs && ys) {
+
 		int x = atoi(xs);
 		int y = atoi(ys);
-		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y);
-		if(dir2) {
-			char *path = duc_dir_get_path(dir2);
-			if(path) {
-				printf("Path: %s\n", path);
-				free(path);
-			}
-			duc_dir_close(dir2);
+
+		struct duc_dirent ent;
+		ent.name[0] = '\0';
+		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, &ent);
+		if(dir2) duc_dir_close(dir2);
+
+		if(ent.name[0]) {
+
+			char siz[16];
+			duc_human_size(&ent.size, st, opt_bytes, siz, sizeof siz);
+			char *typ = type_name[ent.type];
+			if(typ == NULL) typ = "unknown";
+
+			printf( "name: %s<br>\n"
+				"type: %s<br>\n"
+				"size: %s<br>\n",
+				ent.name,
+				typ,
+				siz);
 		}
 	}
 }
@@ -443,8 +478,11 @@ static struct ducrc_option options[] = {
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_list,      "list",        0, DUCRC_TYPE_BOOL,   "generate table with file list" },
-	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_palette,   "palette",     0, DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
+	{ &opt_tooltip,   "tooltip",     0, DUCRC_TYPE_BOOL,   "enable tooltip when hovering over the graph",
+		"enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and "
+		"can greatly increas the HTTP traffic to the web server" },
 	{ NULL }
 };
 

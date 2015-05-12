@@ -42,7 +42,7 @@ void duc_graph_set_exact_bytes(duc_graph *g, int exact);
 
 int duc_graph_draw_file(duc_graph *g, duc_dir *dir, enum duc_graph_file_format fmt, FILE *fout);
 int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr);
-duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y);
+duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent *ent);
 
 #endif
 #endif

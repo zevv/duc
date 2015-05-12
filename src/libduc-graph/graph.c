@@ -64,6 +64,7 @@ struct duc_graph {
 	double spot_a;
 	double spot_r;
 	duc_dir *spot_dir;
+	struct duc_dirent spot_ent;
 };
 
 
@@ -469,18 +470,21 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		}
 
 
-		if(e->type == DT_DIR) {
+		/* Check if the requested spot lies in this section */
 
-			/* Check if the requested spot lies in this section */
+		if(g->spot_r > 0) {
+			double a = g->spot_a;
+			double r = g->spot_r;
 
-			if(g->spot_r > 0) {
-				double a = g->spot_a;
-				double r = g->spot_r;
-
-				if(a >= a1 && a < a2 && r >= r1 && r < r2) {
+			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
+				g->spot_ent = *e;
+				if(e->type == DT_DIR)
 					g->spot_dir = duc_dir_openent(dir, e);
-				}
 			}
+		}
+
+
+		if(e->type == DT_DIR) {
 
 			/* Recurse into subdirectories */
 
@@ -618,7 +622,7 @@ int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr)
 }
 
 
-duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
+duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent *ent)
 {
 	duc_dir *dir2 = NULL;
 
@@ -645,7 +649,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y)
 
 		g->spot_a = 0;
 		g->spot_r = 0;
-
+		if(ent) *ent = g->spot_ent;
 		dir2 = g->spot_dir;
 	}
 

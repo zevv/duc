@@ -76,7 +76,7 @@ struct duc_index_report {
 };
 
 struct duc_dirent {
-	char *name;                 /* File name */
+	char name[NAME_MAX];        /* File name */
 	int type;                   /* File type, one of POSIX's DT_* */
 	struct duc_size size;       /* File size */
 	struct duc_devino devino;   /* Device id and inode number */

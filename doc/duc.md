@@ -156,6 +156,9 @@ Options for command `duc index [options] PATH ...`:
 
 Options for command `duc info [options]`:
 
+  * `-a`, `--apparent`:
+    show apparent instead of actual file size
+
   * `-b`, `--bytes`:
     show file size in exact number of bytes
 
@@ -245,6 +248,10 @@ Options for command `duc cgi [options] [PATH]`:
   * `-s`, `--size=VAL`:
     image size [800]
 
+  * `--tooltip`:
+    enable tooltip when hovering over the graph. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increas the HTTP traffic to the web server
+
+
 ### duc graph
 
 The 'graph' subcommand queries the duc database and generates a sunburst graph
@@ -307,6 +314,9 @@ Options for command `duc gui [options] [PATH]`:
 
   * `-b`, `--bytes`:
     show file size in exact number of bytes
+
+  * `--dark`:
+    use dark background color
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]

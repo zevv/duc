@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "DUC" "1" "April 2015" "" ""
+.TH "DUC" "1" "May 2015" "" ""
 .
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
@@ -151,6 +151,10 @@ do not use compression for database\. Duc enables compression if the underlying 
 Options for command \fBduc info [options]\fR:
 .
 .TP
+\fB\-a\fR, \fB\-\-apparent\fR
+show apparent instead of actual file size
+.
+.TP
 \fB\-b\fR, \fB\-\-bytes\fR
 show file size in exact number of bytes
 .
@@ -258,6 +262,10 @@ select palette \fIsize|rainbow|greyscale|monochrome\fR
 \fB\-s\fR, \fB\-\-size=VAL\fR
 image size [800]
 .
+.TP
+\fB\-\-tooltip\fR
+enable tooltip when hovering over the graph\. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increas the HTTP traffic to the web server
+.
 .SS "duc graph"
 The \'graph\' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
 .
@@ -332,6 +340,10 @@ show apparent instead of actual file size
 .TP
 \fB\-b\fR, \fB\-\-bytes\fR
 show file size in exact number of bytes
+.
+.TP
+\fB\-\-dark\fR
+use dark background color
 .
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
