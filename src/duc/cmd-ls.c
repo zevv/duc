@@ -23,17 +23,6 @@
 #define COLOR_RED    "\e[31m";
 #define COLOR_YELLOW "\e[33m";
 
-static char type_char[] = {
-        [DT_BLK]     = '%',
-        [DT_CHR]     = '%',
-        [DT_DIR]     = '/',
-        [DT_FIFO]    = '|',
-        [DT_LNK]     = '>',
-        [DT_REG]     = ' ',
-        [DT_SOCK]    = '@',
-        [DT_UNKNOWN] = '?',
-};
-
 static char *tree_ascii[] = {
 	"####",
 	" `+-",
@@ -102,7 +91,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 	while( (e = duc_dir_read(dir, st)) != NULL) {
 
-		if(opt_dirs_only && e->type != DT_DIR) continue;
+		if(opt_dirs_only && e->type != DUC_FILE_TYPE_DIR) continue;
 
 		off_t size = opt_apparent ? e->size.apparent : e->size.actual;
 
@@ -131,12 +120,9 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		while(*p) printf("%s", tree[*p++]);
 
 		int l = printf(" %s", e->name);
-		if(opt_classify && e->type < sizeof(type_char)) {
-			char c = type_char[e->type];
-			if(c) {
-				putchar(c);
-				l++;
-			}
+		if(opt_classify) {
+			putchar(duc_file_type_char(e->type));
+			l++;
 		}
 
 		if(opt_graph) {
@@ -152,7 +138,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 		printf("\n");
 			
-		if(opt_recursive && level < MAX_DEPTH && e->type == DT_DIR) {
+		if(opt_recursive && level < MAX_DEPTH && e->type == DUC_FILE_TYPE_DIR) {
 			if(n == count-1) {
 				prefix[level] = 5;
 			} else {

@@ -54,6 +54,16 @@ typedef enum {
 	DUC_LOG_DMP
 } duc_log_level;
 
+typedef enum {
+	DUC_FILE_TYPE_BLK,
+	DUC_FILE_TYPE_CHR,
+	DUC_FILE_TYPE_DIR,
+	DUC_FILE_TYPE_FIFO,
+	DUC_FILE_TYPE_LNK,
+	DUC_FILE_TYPE_REG,
+	DUC_FILE_TYPE_SOCK,
+	DUC_FILE_TYPE_UNKNOWN,
+} duc_file_type;
 
 struct duc_devino {
 	dev_t dev;
@@ -77,11 +87,10 @@ struct duc_index_report {
 
 struct duc_dirent {
 	char name[MAXNAMLEN];       /* File name */
-	int type;                   /* File type, one of POSIX's DT_* */
+	duc_file_type type;         /* File type */
 	struct duc_size size;       /* File size */
 	struct duc_devino devino;   /* Device id and inode number */
 };
-
 
 /*
  * Duc context, logging and error reporting
@@ -148,5 +157,7 @@ int duc_human_number(double v, int exact, char *buf, size_t maxlen);
 int duc_human_size(struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen);
 int duc_human_duration(struct timeval start, struct timeval end, char *buf, size_t maxlen);
 void duc_log(struct duc *duc, duc_log_level lvl, const char *fmt, ...);
+char duc_file_type_char(duc_file_type t);
+char *duc_file_type_name(duc_file_type t);
 
 #endif

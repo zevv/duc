@@ -65,12 +65,6 @@ struct scanner {
 	struct duc_index_report *rep;
 };
 
-static char typechar[] = {
-	[DT_BLK] = 'b', [DT_CHR] = 'c', [DT_DIR]  = 'd', [DT_FIFO]    = 'f',
-	[DT_LNK] = 'l', [DT_REG] = 'r', [DT_SOCK] = 's', [DT_UNKNOWN] = 'u',
-};
-
-
 static void size_from_st(struct duc_size *s1, struct stat *st)
 {
 	s1->apparent = st->st_size;
@@ -159,20 +153,20 @@ static int match_exclude(const char *name, struct exclude *list)
 
 
 /*
- * Convert st_mode to DT_* type
+ * Convert st_mode to DUC_FILE_TYPE_* type
  */
 
-int st_to_type(mode_t mode)
+duc_file_type st_to_type(mode_t mode)
 {
-	int type = DT_UNKNOWN;
+	duc_file_type type = DUC_FILE_TYPE_UNKNOWN;
 
-	if(S_ISBLK(mode))  type = DT_BLK;
-	if(S_ISCHR(mode))  type = DT_CHR;
-	if(S_ISDIR(mode))  type = DT_DIR;
-	if(S_ISFIFO(mode)) type = DT_FIFO;
-	if(S_ISLNK(mode))  type = DT_LNK;
-	if(S_ISREG(mode )) type = DT_REG;
-	if(S_ISSOCK(mode)) type = DT_SOCK;
+	if(S_ISBLK(mode))  type = DUC_FILE_TYPE_BLK;
+	if(S_ISCHR(mode))  type = DUC_FILE_TYPE_CHR;
+	if(S_ISDIR(mode))  type = DUC_FILE_TYPE_DIR;
+	if(S_ISFIFO(mode)) type = DUC_FILE_TYPE_FIFO;
+	if(S_ISLNK(mode))  type = DUC_FILE_TYPE_LNK;
+	if(S_ISREG(mode )) type = DUC_FILE_TYPE_REG;
+	if(S_ISSOCK(mode)) type = DUC_FILE_TYPE_SOCK;
 
 	return type;
 }
@@ -271,7 +265,7 @@ static void scanner_free(struct scanner *scanner)
 		size_accum(&scanner->parent->size, &scanner->size);
 
 		if(req->maxdepth == 0 || scanner->depth < req->maxdepth) 
-			duc_dir_add_ent(scanner->parent->dir, scanner->path, &scanner->size, DT_DIR, &scanner->devino);
+			duc_dir_add_ent(scanner->parent->dir, scanner->path, &scanner->size, DUC_FILE_TYPE_DIR, &scanner->devino);
 
 	}
 	
@@ -341,13 +335,13 @@ static void index_dir(struct scanner *scanner_dir)
 			continue;
 		}
 		 
-		int type = st_to_type(st_ent.st_mode);
+		duc_file_type type = st_to_type(st_ent.st_mode);
 		struct duc_devino devino = { .dev = st_ent.st_dev, .ino = st_ent.st_ino };
 
 
 		/* Skip hard link duplicates for any files with more then one hard link */
 
-		if(type != DT_DIR && req->flags & DUC_INDEX_CHECK_HARD_LINKS && 
+		if(type != DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_CHECK_HARD_LINKS && 
 	 	   st_ent.st_nlink > 1 && is_duplicate(req, &devino)) {
 			continue;
 		}
@@ -355,7 +349,7 @@ static void index_dir(struct scanner *scanner_dir)
 
 		/* Check if we can cross file system boundaries */
 
-		if(type == DT_DIR && req->flags & DUC_INDEX_XDEV && st_ent.st_dev != req->dev) {
+		if(type == DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_XDEV && st_ent.st_dev != req->dev) {
 			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", name);
 			continue;
 		}
@@ -363,7 +357,7 @@ static void index_dir(struct scanner *scanner_dir)
 
 		/* Calculate size of this dirent */
 		
-		if(type == DT_DIR) {
+		if(type == DUC_FILE_TYPE_DIR) {
 
 			/* Open and scan child directory */
 
@@ -384,7 +378,7 @@ static void index_dir(struct scanner *scanner_dir)
 			report->file_count ++;
 
 			duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
-					typechar[type], ent_size.apparent, ent_size.actual, name);
+					duc_file_type_char(type), ent_size.apparent, ent_size.actual, name);
 
 
 			/* Optionally hide file names */

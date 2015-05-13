@@ -24,17 +24,6 @@ struct param {
 };
 
 
-static char *type_name[] = {
-        [DT_BLK]     = "block device",
-        [DT_CHR]     = "character device",
-        [DT_DIR]     = "directory",
-        [DT_FIFO]    = "fifo",
-        [DT_LNK]     = "soft link",
-        [DT_REG]     = "regular file",
-        [DT_SOCK]    = "socket",
-};
-
-
 static int opt_apparent = 0;
 static char *opt_css_url = NULL;
 static char *opt_database = NULL;
@@ -329,7 +318,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 			printf("  <tr><td class=name>");
 
-			if(e->type == DT_DIR) {
+			if(e->type == DUC_FILE_TYPE_DIR) {
 				printf("<a href=\"%s&path=", url);
 				print_cgi(path);
 				printf("/");
@@ -339,7 +328,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			print_html(e->name);
 
-			if(e->type == DT_DIR) 
+			if(e->type == DUC_FILE_TYPE_DIR) 
 				printf("</a>\n");
 
 			printf("   <td class=size>%s</td>\n", siz);
@@ -395,7 +384,7 @@ void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 
 			char siz[16];
 			duc_human_size(&ent.size, st, opt_bytes, siz, sizeof siz);
-			char *typ = type_name[ent.type];
+			char *typ = duc_file_type_name(ent.type);
 			if(typ == NULL) typ = "unknown";
 
 			printf( "name: %s<br>\n"
