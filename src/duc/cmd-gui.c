@@ -29,6 +29,7 @@ static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
 static int opt_levels = 4;
 static int opt_apparent = 0;
+static int opt_ring_gap = 0;
 
 static int redraw = 1;
 static int tooltip_x = 0;
@@ -62,6 +63,7 @@ static void draw(void)
 	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
 	duc_graph_set_exact_bytes(graph, opt_bytes);
 	duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
+	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
 	cairo_push_group(cr);
 	if(opt_dark) {
@@ -108,6 +110,8 @@ static int handle_event(XEvent e)
 			if(k == XK_a) opt_apparent = !opt_apparent;
 			if(k == XK_b) opt_bytes = !opt_bytes;
 			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
+			if(k == XK_comma) if(opt_ring_gap > 0) opt_ring_gap --;
+			if(k == XK_period) opt_ring_gap ++;
 			if(k == XK_p) {
 				palette = (palette + 1) % 4;
 			}
@@ -263,8 +267,9 @@ static struct ducrc_option options[] = {
 	{ &opt_dark,      "dark",       0,  DUCRC_TYPE_BOOL,   "use dark background color" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
-	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
+	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to VAL levels deep [4]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
 	{ NULL }
 };
 

@@ -57,6 +57,7 @@ struct duc_graph {
 	size_t max_name_len;
 	duc_size_type size_type;
 	int bytes;
+	int ring_gap;
 
 	/* Reusable runtime info. Cleared after each graph_draw_* call */
 
@@ -148,6 +149,13 @@ void duc_graph_set_exact_bytes(duc_graph *g, int exact)
 {
 	g->bytes = exact;
 }
+
+
+void duc_graph_set_ring_gap(duc_graph *g, int gap)
+{
+	g->ring_gap = gap;
+}
+
 
 static void pol2car(duc_graph *g, double a, double r, int *x, int *y)
 {
@@ -509,7 +517,7 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 		
 		/* Draw section for this object */
 
-		draw_section(g, cr, a1, a2, r1, r2, H, S, V, L);
+		draw_section(g, cr, a1, a2, r1, r2 - g->ring_gap, H, S, V, L);
 
 		a1 = a2;
 	}

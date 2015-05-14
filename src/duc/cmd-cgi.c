@@ -34,6 +34,7 @@ static double opt_fuzz = 0.7;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
 static int opt_tooltip = 0;
+static int opt_ring_gap = 0;
 
 static struct param *param_list = NULL;
 
@@ -451,6 +452,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_exact_bytes(graph, opt_bytes);
 	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
@@ -471,6 +473,7 @@ static struct ducrc_option options[] = {
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_list,      "list",        0, DUCRC_TYPE_BOOL,   "generate table with file list" },
 	{ &opt_palette,   "palette",     0, DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
 	{ &opt_tooltip,   "tooltip",     0, DUCRC_TYPE_BOOL,   "enable tooltip when hovering over the graph",
 		"enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and "

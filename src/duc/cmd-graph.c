@@ -27,6 +27,7 @@ static int opt_levels = 4;
 static char *opt_output = NULL;
 static char *opt_palette = NULL;
 static enum duc_graph_palette palette = 0;
+static int opt_ring_gap = 0;
 
 static int graph_main(duc *duc, int argc, char **argv)
 {
@@ -76,6 +77,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
 	FILE *f = NULL;
 	if(strcmp(path_out, "-") == 0) {
@@ -107,6 +109,7 @@ static struct ducrc_option options[] = {
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
 	{ NULL }
 };
