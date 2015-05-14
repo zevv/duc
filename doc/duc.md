@@ -245,6 +245,9 @@ Options for command `duc cgi [options] [PATH]`:
   * `--palette=VAL`:
     select palette <size|rainbow|greyscale|monochrome>
 
+  * `--ring-gap=VAL`:
+    leave a gap of VAL pixels between rings
+
   * `-s`, `--size=VAL`:
     image size [800]
 
@@ -286,6 +289,9 @@ Options for command `duc graph [options] [PATH]`:
   * `--palette=VAL`:
     select palette <size|rainbow|greyscale|monochrome>
 
+  * `--ring-gap=VAL`:
+    leave a gap of VAL pixels between rings
+
   * `-s`, `--size=VAL`:
     image size [800]
 
@@ -325,10 +331,13 @@ Options for command `duc gui [options] [PATH]`:
     use radius fuzz factor when drawing graph
 
   * `-l`, `--levels=VAL`:
-    draw up to ARG levels deep [4]
+    draw up to VAL levels deep [4]
 
   * `--palette=VAL`:
     select palette <size|rainbow|greyscale|monochrome>
+
+  * `--ring-gap=VAL`:
+    leave a gap of VAL pixels between rings
 
 ### duc ui
 

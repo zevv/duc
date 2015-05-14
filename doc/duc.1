@@ -259,6 +259,10 @@ generate table with file list
 select palette \fIsize|rainbow|greyscale|monochrome\fR
 .
 .TP
+\fB\-\-ring\-gap=VAL\fR
+leave a gap of VAL pixels between rings
+.
+.TP
 \fB\-s\fR, \fB\-\-size=VAL\fR
 image size [800]
 .
@@ -302,6 +306,10 @@ output file name [duc\.png]
 .TP
 \fB\-\-palette=VAL\fR
 select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.TP
+\fB\-\-ring\-gap=VAL\fR
+leave a gap of VAL pixels between rings
 .
 .TP
 \fB\-s\fR, \fB\-\-size=VAL\fR
@@ -355,11 +363,15 @@ use radius fuzz factor when drawing graph
 .
 .TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
-draw up to ARG levels deep [4]
+draw up to VAL levels deep [4]
 .
 .TP
 \fB\-\-palette=VAL\fR
 select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.TP
+\fB\-\-ring\-gap=VAL\fR
+leave a gap of VAL pixels between rings
 .
 .SS "duc ui"
 The \'gui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
