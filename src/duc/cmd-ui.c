@@ -17,7 +17,11 @@
 #include "duc.h"
 
 #ifdef HAVE_LIBNCURSES
+#ifdef HAVE_NCURSES_NCURSES_H
+#include <ncurses/ncurses.h>
+#else
 #include <ncurses.h>
+#endif
 #endif
 #ifdef HAVE_LIBNCURSESW
 #include <ncursesw/ncurses.h>

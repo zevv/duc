@@ -25,11 +25,7 @@ AC_SYS_LARGEFILE
 AC_SYS_LONG_FILE_NAMES
 
 AC_PROG_CC
-AC_PROG_LIBTOOL
 PKG_PROG_PKG_CONFIG
-
-AM_DISABLE_STATIC
-AM_PROG_LIBTOOL
 
 AC_CHECK_LIB([m], [main])
 
@@ -132,6 +128,7 @@ fi
 
 
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h])
+AC_CHECK_HEADERS([ncurses.h ncurses/ncurses.h ncursesw/ncurses.h])
 
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
