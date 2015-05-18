@@ -379,8 +379,8 @@ static int do_dir(duc_graph *g, cairo_t *cr, duc_dir *dir, int level, double r1,
 
 	struct duc_dirent *e;
 
-	size_t size_min = size_total;
-	size_t size_max = 0;
+	off_t size_min = size_total;
+	off_t size_max = 0;
 
 	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
 		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size.apparent : e->size.actual;
