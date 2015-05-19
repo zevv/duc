@@ -41,7 +41,7 @@ typedef enum {
 	DUC_E_PATH_NOT_FOUND,       /* Requested path not found */
 	DUC_E_PERMISSION_DENIED,    /* Permission denied */
 	DUC_E_OUT_OF_MEMORY,        /* Out of memory */
-	DUC_E_DB_TCBDBNEW,          /* Unable to initialize TokyoCabinet DB */
+	DUC_E_DB_BACKEND,           /* Unable to initialize database backend */
 	DUC_E_UNKNOWN,              /* Unknown error, contact the author */
 } duc_errno;
 

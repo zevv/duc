@@ -133,7 +133,7 @@ const char *duc_strerror(duc *duc)
 	case DUC_E_PATH_NOT_FOUND:       return "Requested path not found"; break;
 	case DUC_E_PERMISSION_DENIED:    return "Permission denied"; break;
 	case DUC_E_OUT_OF_MEMORY:        return "Out of memory"; break;
-	case DUC_E_DB_TCBDBNEW:          return "Unable to create DB using tcbdbnew()"; break;
+	case DUC_E_DB_BACKEND:           return "An error occured in the database backend"; break;
 	case DUC_E_UNKNOWN:              break;
 	}
 

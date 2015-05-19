@@ -55,7 +55,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 
 	db->hdb = tcbdbnew();
 	if(!db->hdb) {
-		*e = DUC_E_DB_TCBDBNEW;
+		*e = DUC_E_DB_BACKEND;
 		goto err1;
 	}
 
