@@ -467,8 +467,7 @@ struct duc_index_report *duc_get_report(duc *duc, size_t id)
 
 	char *path = index + id * PATH_MAX;
 
-	size_t rlen;
-	struct duc_index_report *r = db_get(duc->db, path, strlen(path), &rlen);
+	struct duc_index_report *r = db_read_report(duc, path);
 
 	free(index);
 

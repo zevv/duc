@@ -158,10 +158,65 @@ duc_errno db_write_report(duc *duc, struct duc_index_report *report)
 		free(tmp);
 	}
 
-	db_put(duc->db, report->path, strlen(report->path), report, sizeof *report);
+	struct buffer *b = buffer_new(NULL, 0);
+	buffer_put_string(b, report->path);
+	buffer_put_varint(b, report->devino.dev);
+	buffer_put_varint(b, report->devino.ino);
+	buffer_put_varint(b, report->time_start.tv_sec);
+	buffer_put_varint(b, report->time_start.tv_usec);
+	buffer_put_varint(b, report->time_stop.tv_sec);
+	buffer_put_varint(b, report->time_stop.tv_usec);
+	buffer_put_varint(b, report->file_count);
+	buffer_put_varint(b, report->dir_count);
+	buffer_put_varint(b, report->size.apparent);
+	buffer_put_varint(b, report->size.actual);
+
+	db_put(duc->db, report->path, strlen(report->path), b->data, b->len);
+
+	buffer_free(b);
 
 	return 0;
 }
+
+
+struct duc_index_report *db_read_report(duc *duc, const char *path)
+{
+	struct duc_index_report *rep;
+	size_t vall;
+	char *vs;
+	uint64_t vi;
+
+	char *val = db_get(duc->db, path, strlen(path), &vall);
+	if(val == NULL) {
+		duc->err = DUC_E_PATH_NOT_FOUND;
+		return NULL;
+	}
+
+
+	rep = duc_malloc(sizeof *rep);
+
+	struct buffer *b = buffer_new(val, vall);
+
+	buffer_get_string(b, &vs);
+	snprintf(rep->path, sizeof(rep->path), "%s", vs);
+	free(vs);
+
+	buffer_get_varint(b, &vi); rep->devino.dev = vi;
+	buffer_get_varint(b, &vi); rep->devino.ino = vi;
+	buffer_get_varint(b, &vi); rep->time_start.tv_sec = vi;
+	buffer_get_varint(b, &vi); rep->time_start.tv_usec = vi;
+	buffer_get_varint(b, &vi); rep->time_stop.tv_sec = vi;
+	buffer_get_varint(b, &vi); rep->time_stop.tv_usec = vi;
+	buffer_get_varint(b, &vi); rep->file_count = vi;
+	buffer_get_varint(b, &vi); rep->dir_count = vi;
+	buffer_get_varint(b, &vi); rep->size.apparent = vi;
+	buffer_get_varint(b, &vi); rep->size.actual = vi;
+
+	buffer_free(b);
+
+	return rep;
+}
+
 
 /*
  * End

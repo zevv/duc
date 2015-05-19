@@ -141,20 +141,22 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 
 	/* Find top path in database */
 
-	int l = strlen(path_canon);
+	char *path_try = duc_strdup(path_canon);
+	int l = strlen(path_try);
 	struct duc_devino devino = { 0, 0 };
 	while(l > 0) {
+		path_try[l] = '\0';
 		struct duc_index_report *report;
-		size_t report_len;
-		report = db_get(duc->db, path_canon, l, &report_len);
-		if(report && report_len == sizeof(*report)) {
+		report = db_read_report(duc, path_try);
+		if(report) {
 			devino = report->devino;
 			free(report);
 			break;
 		}
 		l--;
-		while(l > 1  && path_canon[l] != '/') l--;
+		while(l > 1 && path_try[l] != '/') l--;
 	}
+	free(path_try);
 
 	if(l == 0) {
 		duc_log(duc, DUC_LOG_FTL, "Path %s not found in database", path_canon);
