@@ -175,7 +175,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 		return NULL;
 	}
 	
-	char rest[PATH_MAX];
+	char rest[DUC_PATH_MAX];
 	strncpy(rest, path_canon+l, sizeof rest);
 
 	char *name = strtok(rest, "/");

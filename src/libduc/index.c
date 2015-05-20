@@ -462,10 +462,10 @@ struct duc_index_report *duc_get_report(duc *duc, size_t id)
 	char *index = db_get(duc->db, "duc_index_reports", 17, &indexl);
 	if(index == NULL) return NULL;
 
-	int report_count = indexl / PATH_MAX;
+	int report_count = indexl / DUC_PATH_MAX;
 	if(id >= report_count) return NULL;
 
-	char *path = index + id * PATH_MAX;
+	char *path = index + id * DUC_PATH_MAX;
 
 	struct duc_index_report *r = db_read_report(duc, path);
 

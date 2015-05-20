@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
+#define DUC_PATH_MAX 16384
+
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;
 typedef struct duc_index_req duc_index_req;
@@ -76,7 +78,7 @@ struct duc_size {
 };
 
 struct duc_index_report {
-	char path[PATH_MAX];        /* Indexed path */
+	char path[DUC_PATH_MAX];        /* Indexed path */
 	struct duc_devino devino;   /* Index top device id and inode number */
 	struct timeval time_start;  /* Index start time */
 	struct timeval time_stop;   /* Index finished time */

@@ -151,7 +151,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
 		
-	char url[PATH_MAX];
+	char url[DUC_PATH_MAX];
 	snprintf(url, sizeof url, "%s?cmd=index", script);
 
 	char *qs = getenv("QUERY_STRING");

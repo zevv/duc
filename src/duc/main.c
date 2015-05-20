@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 	ducrc_read(ducrc, "/etc/ducrc");
 	char *home = getenv("HOME");
 	if(home) {
-		char tmp[PATH_MAX];
+		char tmp[DUC_PATH_MAX];
 		snprintf(tmp, sizeof(tmp), "%s/.ducrc", home);
 		ducrc_read(ducrc, tmp);
 	}

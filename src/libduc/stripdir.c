@@ -23,7 +23,7 @@ char *stripdir(const char *dir)
 	char * last;
 	int ldots;
 
-	int maxlen = PATH_MAX;
+	int maxlen = DUC_PATH_MAX;
 	char *buf = duc_malloc(maxlen);
 	in   = dir;
 	out  = buf;

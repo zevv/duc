@@ -54,7 +54,7 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
-	char tmp[PATH_MAX];
+	char tmp[DUC_PATH_MAX];
 
 	/* An empty path means check the ENV path instead */
 	if(path_db == NULL) {
