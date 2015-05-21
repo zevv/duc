@@ -54,6 +54,7 @@ struct cmd *cmd_list[] = {
 
 static struct cmd *find_cmd_by_name(const char *name);
 static void help_cmd(struct cmd *cmd);
+static void show_version(void);
 
 
 static int opt_debug = 0;
@@ -140,7 +141,7 @@ int main(int argc, char **argv)
 	/* Version requested? */
 
 	if(opt_version) {
-		printf("duc version %s\n", PACKAGE_VERSION);
+		show_version();
 		exit(0);
 	}
 
@@ -377,6 +378,23 @@ static int manual_main(duc *duc, int argc, char **argv)
 }
 
 
+static void show_version(void)
+{
+	printf("duc version: %s\n", PACKAGE_VERSION);
+	printf("options: ");
+#ifdef ENABLE_GRAPH
+	printf("graph ");
+#endif
+#ifdef ENABLE_GUI
+	printf("gui ");
+#endif
+#ifdef ENABLE_UI
+	printf("ui ");
+#endif
+	printf(DB_BACKEND "\n");
+
+	exit(0);
+}
 
 static struct ducrc_option help_options[] = {
 	{ &opt_all,     "all",     'a', DUCRC_TYPE_BOOL,   "show complete help for all commands" },

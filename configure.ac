@@ -80,6 +80,7 @@ case "${with_db_backend}" in
 		AC_MSG_ERROR([Unsupported db-backend])
 esac
 
+AC_DEFINE_UNQUOTED(DB_BACKEND, "${with_db_backend}", [Database backend])
 
 if test "${enable_graph}" = "yes"; then
 
