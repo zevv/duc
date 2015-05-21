@@ -21,10 +21,22 @@ struct db {
 struct db *db_open(const char *path_db, int flags, duc_errno *e)
 {
 	struct db *db;
+	int sflags = 0;
 
 	db = duc_malloc(sizeof *db);
 
-	sqlite3_open(path_db, &db->s);
+	if(flags & DUC_OPEN_RW)
+		sflags |= SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+	else
+		sflags |= SQLITE_OPEN_READONLY;
+
+	int r = sqlite3_open_v2(path_db, &db->s, sflags, NULL);
+
+	if(r != SQLITE_OK) {
+		*e = (r == SQLITE_CANTOPEN) ? DUC_E_DB_NOT_FOUND : DUC_E_DB_BACKEND;
+		free(db);
+		return NULL;
+	}
 
 	char *q = "create table blobs(key unique primary key, value)";
 	sqlite3_exec(db->s, q, 0, 0, 0);
