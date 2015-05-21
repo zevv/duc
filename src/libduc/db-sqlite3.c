@@ -31,12 +31,13 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 		sflags |= SQLITE_OPEN_READONLY;
 
 	int r = sqlite3_open_v2(path_db, &db->s, sflags, NULL);
+	if(r != SQLITE_OK) goto err1;
 
-	if(r != SQLITE_OK) {
-		*e = (r == SQLITE_CANTOPEN) ? DUC_E_DB_NOT_FOUND : DUC_E_DB_BACKEND;
-		free(db);
-		return NULL;
-	}
+	/* sqlite3_open() does not always notice corrupt database files. We do a bugus query
+	 * here to catch this error case */
+
+	r = sqlite3_exec(db->s, "select bogus from bogus", 0, 0, 0);
+	if(r != 1) goto err1;
 
 	char *q = "create table blobs(key unique primary key, value)";
 	sqlite3_exec(db->s, q, 0, 0, 0);
@@ -47,6 +48,11 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	sqlite3_exec(db->s, "begin", 0, 0, 0);
 
 	return db;
+err1:
+	free(db);
+	*e = DUC_E_DB_CORRUPT;
+	if(r == SQLITE_CANTOPEN) *e = DUC_E_DB_NOT_FOUND;
+	return NULL;
 }
 
 
