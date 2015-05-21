@@ -1,5 +1,10 @@
 
 	- new: added tooltip to CGI, enable with --tooltip option
+	- new: duc database is now portable between endianess and
+	       architectures for sqlite3 databases
+	- new: added --ring-gap option to gui
+	- fix: fixed building on Solaris
+	- fix: added better error handling in sqlite3 backend
 
 1.2	(1015-05-11)
 
