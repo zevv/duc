@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
 
 #include "duc.h"
 #include "db.h"
@@ -211,7 +214,7 @@ static void printi(const char *s, int pos, int indent, int max)
 		pos += l;
 		if(pos < max) {
 			putchar(' ');
-		} else {
+			pos ++;
 		}
 		p1 = p2;
 	}
@@ -221,6 +224,16 @@ static void printi(const char *s, int pos, int indent, int max)
 
 static void show_options(struct ducrc_option *o, int show_long)
 {
+	int width = 80;
+
+	if(isatty(1)) {
+#ifdef TIOCGWINSZ
+		struct winsize w;
+		int r = ioctl(STDIN_FILENO, TIOCGWINSZ, &w);
+		if(r == 0) width = w.ws_col;
+#endif
+	}
+
 	while(o && o->longopt) {
 		char s[4] = "";
 		char l[20] = "";
@@ -237,7 +250,7 @@ static void show_options(struct ducrc_option *o, int show_long)
 		if(o->descr_short) printf("%s", o->descr_short); 
 		if(show_long && o->descr_long) {
 			printf(". ");
-			printi(o->descr_long, 29 + strlen(o->descr_short), 31, 78);
+			printi(o->descr_long, 29 + strlen(o->descr_short), 29, width-2);
 		}
 		printf("\n");
 
