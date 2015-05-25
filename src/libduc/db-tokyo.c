@@ -59,9 +59,9 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 		goto err1;
 	}
 
-	if(compress) {
-		tcbdbtune(db->hdb, -1, -1, -1, -1, -1, BDBTDEFLATE);
-	}
+	int opts = BDBTLARGE;
+	if(compress) opts |= BDBTDEFLATE;
+	tcbdbtune(db->hdb, -1, -1, -1, -1, -1, opts);
 
 	int r = tcbdbopen(db->hdb, path_db, mode);
 	if(r == 0) {
