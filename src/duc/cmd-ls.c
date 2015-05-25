@@ -165,13 +165,13 @@ static int ls_main(duc *duc, int argc, char **argv)
 
 	/* Get terminal width */
 
-	if(isatty(0)) {
 #ifdef TIOCGWINSZ
+	if(isatty(STDOUT_FILENO)) {
 		struct winsize w;
-		int r = ioctl(STDIN_FILENO, TIOCGWINSZ, &w);
+		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
-#endif
 	}
+#endif
 
 	/* Disable color if output is not a tty */
 

@@ -226,13 +226,13 @@ static void show_options(struct ducrc_option *o, int show_long)
 {
 	int width = 80;
 
-	if(isatty(1)) {
 #ifdef TIOCGWINSZ
+	if(isatty(STDOUT_FILENO)) {
 		struct winsize w;
-		int r = ioctl(STDIN_FILENO, TIOCGWINSZ, &w);
+		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
-#endif
 	}
+#endif
 
 	while(o && o->longopt) {
 		char s[4] = "";
