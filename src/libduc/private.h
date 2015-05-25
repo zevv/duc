@@ -3,7 +3,7 @@
 
 #include "duc.h"
 
-#define DUC_DB_VERSION "14"
+#define DUC_DB_VERSION "15"
 
 #ifndef HAVE_LSTAT
 #define lstat stat
