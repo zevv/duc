@@ -88,7 +88,7 @@ struct duc_index_report {
 };
 
 struct duc_dirent {
-	char name[MAXNAMLEN];       /* File name */
+	char *name;                 /* File name */
 	duc_file_type type;         /* File type */
 	struct duc_size size;       /* File size */
 	struct duc_devino devino;   /* Device id and inode number */

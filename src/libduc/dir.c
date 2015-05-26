@@ -41,7 +41,7 @@ int duc_dir_add_ent(struct duc_dir *dir, const char *name, struct duc_size *size
 	struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
 	dir->ent_count ++;
 
-	snprintf(ent->name, sizeof(ent->name), "%s", name);
+	ent->name = duc_strdup(name);
 	ent->type = type;
 	ent->size = *size;
 	ent->devino = *devino;
@@ -275,6 +275,10 @@ int duc_dir_rewind(duc_dir *dir)
 int duc_dir_close(duc_dir *dir)
 {
 	if(dir->path) free(dir->path);
+	int i;
+	for(i=0; i<dir->ent_count; i++) {
+		free(dir->ent_list[i].name);
+	}
 	free(dir->ent_list);
 	free(dir);
 	return 0;
