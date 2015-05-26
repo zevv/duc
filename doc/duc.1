@@ -389,6 +389,7 @@ h, left:         go up to parent directory (\.\.)
 l, right, enter: descent into selected directory
 a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
+c:               toggle between color and monochrome display
 g:               toggle graph
 q, escape:       quit
 .
@@ -406,6 +407,10 @@ show apparent instead of actual file size
 .TP
 \fB\-b\fR, \fB\-\-bytes\fR
 show file size in exact number of bytes
+.
+.TP
+\fB\-c\fR, \fB\-\-color\fR
+colorize output
 .
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
@@ -578,6 +583,9 @@ color
 fuzz 0\.7
 palette rainbow
 levels 4
+
+[ui]
+color
 .
 .fi
 .

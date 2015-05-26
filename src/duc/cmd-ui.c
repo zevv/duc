@@ -27,10 +27,19 @@
 #include <ncursesw/ncurses.h>
 #endif
 
-static int opt_classify = 1;
+enum {
+	PAIR_SIZE = 1,
+	PAIR_NAME,
+	PAIR_CLASS,
+	PAIR_GRAPH,
+	PAIR_BAR,
+	PAIR_CURSOR,
+};
+
 static int opt_apparent = 0;
 static int opt_bytes = 0;
 static int opt_graph = 1;
+static int opt_color = 0;
 static char *opt_database = NULL;
 
 
@@ -44,6 +53,25 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 	int cur = 0;
 
 	for(;;) {
+
+		int attr_size, attr_name, attr_class, attr_graph, attr_bar, attr_cursor;
+
+		if(opt_color) {
+			attr_size = COLOR_PAIR(PAIR_SIZE);
+			attr_name = COLOR_PAIR(PAIR_NAME);
+			attr_bar = COLOR_PAIR(PAIR_BAR);
+			attr_cursor = COLOR_PAIR(PAIR_CURSOR);
+			attr_graph = COLOR_PAIR(PAIR_GRAPH);
+			attr_class = COLOR_PAIR(PAIR_CLASS);
+		} else {
+			attr_size = 0;
+			attr_name = A_BOLD;
+			attr_class = 0;
+			attr_graph = 0;
+			attr_bar = A_REVERSE;
+			attr_cursor = A_REVERSE;
+			use_default_colors();
+		}
 	
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
@@ -73,7 +101,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		/* Draw header */
 
 		char *path = duc_dir_get_path(dir);
-		attrset(A_REVERSE);
+		attrset(attr_bar);
 		mvhline(0, 0, ' ', cols);
 		mvprintw(0, 1, " %s ", path);
 		attrset(0);
@@ -87,7 +115,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		char siz[16], cnt[16];
 		duc_human_size(&size, st, opt_bytes, siz, sizeof siz);
 		duc_human_number(count, opt_bytes, cnt, sizeof cnt);
-		attrset(A_REVERSE);
+		attrset(attr_bar);
 		mvhline(rows-1, 0, ' ', cols);
 		mvprintw(rows-1, 0, " Total %sB in %s files/directories", siz, cnt);
 		attrset(0);
@@ -103,7 +131,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			
 			struct duc_dirent *e = duc_dir_read(dir, st);
 
-			attrset(cur == i ? A_REVERSE : 0);
+			attrset(cur == i ? attr_cursor : 0);
 			mvhline(y, 0, ' ', cols);
 
 			if(e) {
@@ -112,17 +140,16 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		
 				size_t max_size_len = opt_bytes ? 12 : 7;
 
-				char class = ' ';
-				if(opt_classify)
-					class = duc_file_type_char(e->type);
+				char class = duc_file_type_char(e->type);
 
 				char siz[16];
 				duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
+				if(cur != i) attrset(attr_size);
 				printw("%*s", max_size_len, siz);
 
-				if(cur != i) attron(A_BOLD);
 				printw(" ");
 				char *p = e->name;
+				if(cur != i) attrset(attr_name);
 				while(*p) {
 					if(*(uint8_t *)p >= 32) {
 						printw("%c", *p);
@@ -131,14 +158,15 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 					}
 					p++;
 				}
+				if(cur != i) attrset(attr_class);
 				printw("%c", class);
-				attroff(A_BOLD);
 
 				int w = cols - 30;
 				if(w > cols / 2) w = cols / 2;
 				if(opt_graph && w > 2) {
 					int j;
 					off_t g = w * size / size_max;
+					if(cur != i) attrset(attr_graph);
 					mvprintw(y, cols - w - 4, " [");
 					for(j=0; j<w; j++) printw("%s", j < g ? "=" : " ");
 					printw("] ");
@@ -167,7 +195,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case KEY_RESIZE: getmaxyx(stdscr, rows, cols); break;
 			case 'a': opt_apparent ^= 1; break;
 			case 'b': opt_bytes ^= 1; break;
-			case 'c': opt_classify ^= 1; break;
+			case 'c': opt_color ^= 1; break;
 			case 'g': opt_graph ^= 1; break;
 
 			case 27:
@@ -242,8 +270,14 @@ static int ui_main(duc *duc, int argc, char **argv)
 	//halfdelay(1);
 	curs_set(0);
 	start_color();
-	use_default_colors();
 	getmaxyx(stdscr, rows, cols);
+
+	init_pair(PAIR_SIZE, COLOR_WHITE, COLOR_BLACK);
+	init_pair(PAIR_NAME, COLOR_GREEN, COLOR_BLACK);
+	init_pair(PAIR_CLASS, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(PAIR_GRAPH, COLOR_CYAN, COLOR_BLACK);
+	init_pair(PAIR_BAR, COLOR_WHITE, COLOR_BLUE);
+	init_pair(PAIR_CURSOR, COLOR_BLACK, COLOR_CYAN);
 
 	do_dir(dir, 0);
 
@@ -256,6 +290,7 @@ static int ui_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
 };
@@ -280,6 +315,7 @@ struct cmd cmd_ui = {
 		"    l, right, enter: descent into selected directory\n"
 		"    a:               toggle between actual and apparent disk usage\n"
 		"    b:               toggle between exact and abbreviated sizes\n"
+		"    c:               toggle between color and monochrome display\n"
 		"    g:               toggle graph\n"
 		"    q, escape:       quit\n"
 

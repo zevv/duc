@@ -213,6 +213,8 @@ path which is used by all subcommands
     palette rainbow
     levels 4
 
+    [ui]
+    color
 
 ## FILES
 

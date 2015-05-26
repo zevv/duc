@@ -334,6 +334,7 @@ h, left:         go up to parent directory (..)
 l, right, enter: descent into selected directory
 a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
+c:               toggle between color and monochrome display
 g:               toggle graph
 q, escape:       quit
 </code></pre>
@@ -343,6 +344,7 @@ q, escape:       quit
 <dl>
 <dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
 <dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
+<dt><code>-c</code>, <code>--color</code></dt><dd><p>colorize output</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
 </dl>
 
@@ -482,6 +484,9 @@ color
 fuzz 0.7
 palette rainbow
 levels 4
+
+[ui]
+color
 </code></pre>
 
 <h2 id="FILES">FILES</h2>
@@ -495,8 +500,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#100;&#117;&#x63;&#64;&#122;&#x65;&#x76;&#x76;&#46;&#110;&#x6c;" data-bare-link="true">&#x64;&#x75;&#x63;&#64;&#x7a;&#x65;&#x76;&#118;&#x2e;&#110;&#x6c;</a></li>
-<li>John Stoffel <a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#x3a;&#x6a;&#111;&#104;&#110;&#64;&#115;&#116;&#x6f;&#x66;&#x66;&#101;&#x6c;&#46;&#x6f;&#114;&#103;" data-bare-link="true">&#x6a;&#x6f;&#x68;&#110;&#x40;&#115;&#x74;&#111;&#x66;&#102;&#x65;&#x6c;&#x2e;&#111;&#x72;&#x67;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#105;&#x6c;&#116;&#111;&#58;&#x64;&#x75;&#x63;&#x40;&#x7a;&#x65;&#118;&#118;&#x2e;&#110;&#108;" data-bare-link="true">&#x64;&#x75;&#99;&#64;&#x7a;&#101;&#118;&#x76;&#46;&#x6e;&#108;</a></li>
+<li>John Stoffel <a href="&#109;&#x61;&#105;&#108;&#x74;&#x6f;&#58;&#106;&#x6f;&#104;&#x6e;&#64;&#x73;&#116;&#x6f;&#102;&#102;&#x65;&#108;&#46;&#111;&#x72;&#103;" data-bare-link="true">&#106;&#111;&#104;&#x6e;&#x40;&#115;&#116;&#111;&#x66;&#x66;&#101;&#x6c;&#46;&#x6f;&#114;&#103;</a></li>
 </ul>
 
 

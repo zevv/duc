@@ -353,6 +353,7 @@ The following keys can be used to navigate and alter the file system:
     l, right, enter: descent into selected directory
     a:               toggle between actual and apparent disk usage
     b:               toggle between exact and abbreviated sizes
+    c:               toggle between color and monochrome display
     g:               toggle graph
     q, escape:       quit
 
@@ -364,6 +365,9 @@ Options for command `duc ui [options] [PATH]`:
 
   * `-b`, `--bytes`:
     show file size in exact number of bytes
+
+  * `-c`, `--color`:
+    colorize output
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
@@ -497,6 +501,8 @@ path which is used by all subcommands
     palette rainbow
     levels 4
 
+    [ui]
+    color
 
 ## FILES
 
