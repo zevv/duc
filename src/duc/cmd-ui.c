@@ -36,6 +36,8 @@ enum {
 	PAIR_CURSOR,
 };
 
+static void help(void);
+
 static int opt_apparent = 0;
 static int opt_bytes = 0;
 static int opt_graph = 1;
@@ -188,15 +190,20 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		int c = getch();
 
 		switch(c) {
+			case 'k':
 			case KEY_UP: cur--; break;
+			case 'j':
 			case KEY_DOWN: cur++; break;
+			case 21: cur -= pgsize/2; break;
 			case KEY_PPAGE: cur -= pgsize; break;
+			case 4: cur += pgsize/2; break;
 			case KEY_NPAGE: cur += pgsize; break;
 			case KEY_RESIZE: getmaxyx(stdscr, rows, cols); break;
 			case 'a': opt_apparent ^= 1; break;
 			case 'b': opt_bytes ^= 1; break;
 			case 'c': opt_color ^= 1; break;
 			case 'g': opt_graph ^= 1; break;
+			case 'h': help(); break;
 
 			case 27:
 			case 'q': 
@@ -309,17 +316,34 @@ struct cmd cmd_ui = {
 		"\n"
 		"The following keys can be used to navigate and alter the file system:\n"
 		"\n"
-		"    k, up, pgup:     move cursor up\n"
-		"    j, down, pgdn:   move cursor down\n"
-		"    h, left:         go up to parent directory (..)\n"
-		"    l, right, enter: descent into selected directory\n"
+		"    up, pgup, j:     move cursor up\n"
+		"    down, pgdn, k:   move cursor down\n"
+		"    left, backspace: go up to parent directory (..)\n"
+		"    right, enter:    descent into selected directory\n"
 		"    a:               toggle between actual and apparent disk usage\n"
 		"    b:               toggle between exact and abbreviated sizes\n"
 		"    c:               toggle between color and monochrome display\n"
 		"    g:               toggle graph\n"
+		"    h:               show help. press 'q' to return to the main screen\n"
 		"    q, escape:       quit\n"
 
 };
+
+
+static void help(void)
+{
+	attrset(0);
+	refresh();
+
+	FILE *f = popen("clear; less -", "w");
+	fputs(cmd_ui.descr_long, f);
+	fclose(f);
+
+	erase();
+	redrawwin(stdscr);
+	touchwin(stdscr);
+	refresh();
+}
 
 #endif
 

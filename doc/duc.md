@@ -347,14 +347,15 @@ current working directory is explored.
 
 The following keys can be used to navigate and alter the file system:
 
-    k, up, pgup:     move cursor up
-    j, down, pgdn:   move cursor down
-    h, left:         go up to parent directory (..)
-    l, right, enter: descent into selected directory
+    up, pgup, j:     move cursor up
+    down, pgdn, k:   move cursor down
+    left, backspace: go up to parent directory (..)
+    right, enter:    descent into selected directory
     a:               toggle between actual and apparent disk usage
     b:               toggle between exact and abbreviated sizes
     c:               toggle between color and monochrome display
     g:               toggle graph
+    h:               show help. press 'q' to return to the main screen
     q, escape:       quit
 
 
