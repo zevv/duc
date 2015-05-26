@@ -3,6 +3,8 @@
 	- new: duc database is now portable between endianess and
 	       architectures for sqlite3 databases
 	- new: added --ring-gap option to gui
+	- new: added --color option to ui
+	- cha: optimized memory usage
 	- fix: fixed building on Solaris
 	- fix: added better error handling in sqlite3 backend
 
