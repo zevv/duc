@@ -47,7 +47,7 @@ duc_graph *duc_graph_new(duc *duc)
 	g->r_start = 100;
 	g->fuzz = 0;
 	duc_graph_set_max_level(g, 3);
-	duc_graph_set_size(g, 400);
+	duc_graph_set_size(g, 400, 400);
 
 	return g;
 }
@@ -72,12 +72,10 @@ void duc_graph_set_max_name_len(duc_graph *g, size_t len)
 }
 
 
-void duc_graph_set_size(duc_graph *g, int size)
+void duc_graph_set_size(duc_graph *g, int w, int h)
 {
-	g->size = size;
-	g->cx = size / 2;
-	g->cy = size / 2;
-	g->r_start = size / 10;
+	g->width = w;
+	g->height = h;
 }
 
 
@@ -391,6 +389,12 @@ static cairo_status_t cairo_writer(void *closure, const unsigned char *data, uns
 int duc_graph_draw(duc_graph *g, duc_dir *dir)
 {
 	g->backend->start(g);
+
+	double n = g->width < g->height ? g->width : g->height;
+	g->size = n;
+	g->cx = g->width / 2;
+	g->cy = g->height / 2;
+	g->r_start = g->size / 10;
 
 	/* Convert tooltip xy to polar coords */
 

@@ -446,7 +446,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	}
 
 	duc_graph *graph = duc_graph_new_file(duc, DUC_GRAPH_FORMAT_PNG, stdout);
-	duc_graph_set_size(graph, opt_size);
+	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_palette(graph, palette);

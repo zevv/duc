@@ -16,11 +16,13 @@
 #include <time.h>
 #include <string.h>
 
-#include <cairo.h>
 #include <string.h>
-#include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
 
 static int opt_bytes;
 static int opt_dark;
@@ -31,8 +33,6 @@ static int opt_levels = 4;
 static int opt_apparent = 0;
 static int opt_ring_gap = 0;
 
-static Display *dpy;
-static Window rootwin;
 static int redraw = 1;
 static int tooltip_x = 0;
 static int tooltip_y = 0;
@@ -41,8 +41,6 @@ static struct pollfd pfd;
 static enum duc_graph_palette palette = 0;
 static int win_w = 600;
 static int win_h = 600;
-static cairo_surface_t *cs;
-static cairo_t *cr;
 static duc_dir *dir;
 static duc_graph *graph;
 static double fuzz;
@@ -53,7 +51,6 @@ static void draw(void)
 	if(opt_levels > 10) opt_levels = 10;
 
 	duc_graph_set_size(graph, win_w, win_h);
-	duc_graph_set_position(graph, 0, 0);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, fuzz);
 	duc_graph_set_palette(graph, palette);
@@ -63,17 +60,7 @@ static void draw(void)
 	duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
-	cairo_push_group(cr);
-	if(opt_dark) {
-		cairo_set_source_rgb(cr, 0, 0, 0);
-	} else {
-		cairo_set_source_rgb(cr, 1, 1, 1);
-	}
-	cairo_paint(cr);
 	duc_graph_draw(graph, dir);
-	cairo_pop_group_to_source(cr);
-	cairo_paint(cr);
-	cairo_surface_flush(cs);
 }
 
 
@@ -87,7 +74,7 @@ static int handle_event(XEvent e)
 		case ConfigureNotify: 
 			win_w = e.xconfigure.width;
 			win_h = e.xconfigure.height;
-			cairo_xlib_surface_set_size(cs, win_w, win_h);
+			glViewport(0, 0, win_w, win_h);
 			redraw = 1;
 			break;
 			
@@ -163,8 +150,45 @@ static int handle_event(XEvent e)
 }
 
 
-static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
+static void do_gui(duc *duc, duc_dir *dir)
 {
+	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+
+	Display *dpy = XOpenDisplay(NULL);
+	if(dpy == NULL) {
+		duc_log(duc, DUC_LOG_FTL, "ERROR: Could not open display");
+		exit(1);
+	}
+
+	int scr = DefaultScreen(dpy);
+	Window rootwin = RootWindow(dpy, scr);
+
+	Window win = XCreateSimpleWindow(
+			dpy, 
+			rootwin, 
+			1, 1, 
+			win_w, win_h, 0, 
+			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
+
+	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
+	XMapWindow(dpy, win);
+
+	XVisualInfo *vi = glXChooseVisual(dpy, 0, att);
+	if(vi == NULL) {
+		duc_log(duc, DUC_LOG_FTL, "no appropriate visual found");
+		exit(1); 
+	}
+
+	GLXContext glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
+	if(glc == NULL) {
+		duc_log(duc, DUC_LOG_FTL, "cannot create gl context");
+		exit(1); 
+	}
+
+	glXMakeCurrent(dpy, win, glc);
+	glEnable(GL_DEPTH_TEST);
+
+	graph = duc_graph_new_opengl(duc);
 
 	pfd.fd = ConnectionNumber(dpy);
 	pfd.events = POLLIN | POLLERR;
@@ -175,6 +199,7 @@ static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 
 		if(redraw) {
 			draw();
+			glXSwapBuffers(dpy, win); 
 			XFlush(dpy);
 			redraw = 0;
 		}
@@ -196,12 +221,11 @@ static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 		}
 	}
 
-	cairo_surface_destroy(cs);
 	XCloseDisplay(dpy);
 }
 
 	
-int gui_main(duc *duc, int argc, char *argv[])
+int guigl_main(duc *duc, int argc, char *argv[])
 {
 	char *path = ".";
 	if(argc > 0) path = argv[0];
@@ -227,34 +251,8 @@ int gui_main(duc *duc, int argc, char *argv[])
 		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
-	
-	dpy = XOpenDisplay(NULL);
-	if(dpy == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "ERROR: Could not open display");
-		exit(1);
-	}
 
-	int scr = DefaultScreen(dpy);
-	rootwin = RootWindow(dpy, scr);
-
-	Window win = XCreateSimpleWindow(
-			dpy, 
-			rootwin, 
-			1, 1, 
-			win_w, win_h, 0, 
-			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
-
-	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
-	XMapWindow(dpy, win);
-	
-	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
-	cr = cairo_create(cs);
-
-
-
-	graph = duc_graph_new_cairo(duc, cr);
-
-	do_gui(duc, graph, dir);
+	do_gui(duc, dir);
 
 	duc_dir_close(dir);
 
@@ -276,7 +274,7 @@ static struct ducrc_option options[] = {
 
 #else
 
-int gui_main(int argc, char *argv[])
+static int guigl_main(int argc, char *argv[])
 {
 	duc_log(NULL, DUC_LOG_FTL, "'duc gui' is not supported on this platform");
 	return -1;
@@ -288,11 +286,11 @@ static struct ducrc_option options[] = {
 
 #endif
 
-struct cmd cmd_gui = {
-	.name = "gui",
-	.descr_short = "Interactive X11 graphical interface",
+struct cmd cmd_guigl = {
+	.name = "guigl",
+	.descr_short = "Interactive X11/OpenGL graphical interface",
 	.usage = "[options] [PATH]",
-	.main = gui_main,
+	.main = guigl_main,
 	.options = options,
 	.descr_long = 
 		"The 'gui' subcommand queries the duc database and runs an interactive graphical\n"

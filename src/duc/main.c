@@ -24,6 +24,7 @@ struct cmd cmd_index;
 struct cmd cmd_manual;
 struct cmd cmd_ls;
 struct cmd cmd_gui;
+struct cmd cmd_guigl;
 struct cmd cmd_graph;
 struct cmd cmd_xml;
 struct cmd cmd_cgi;
@@ -45,6 +46,7 @@ struct cmd *cmd_list[] = {
 
 #ifdef ENABLE_GUI
 	&cmd_gui,
+	&cmd_guigl,
 #endif
 
 #ifdef ENABLE_UI
