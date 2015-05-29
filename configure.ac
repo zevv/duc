@@ -28,6 +28,7 @@ AC_PROG_CC
 PKG_PROG_PKG_CONFIG
 
 AC_CHECK_LIB([m], [main])
+AC_CHECK_LIB([GL], [main])
 
 #
 # Check --disable options

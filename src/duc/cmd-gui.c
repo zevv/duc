@@ -31,6 +31,8 @@ static int opt_levels = 4;
 static int opt_apparent = 0;
 static int opt_ring_gap = 0;
 
+static Display *dpy;
+static Window rootwin;
 static int redraw = 1;
 static int tooltip_x = 0;
 static int tooltip_y = 0;
@@ -72,7 +74,7 @@ static void draw(void)
 		cairo_set_source_rgb(cr, 1, 1, 1);
 	}
 	cairo_paint(cr);
-	duc_graph_draw_cairo(graph, dir, cr);
+	duc_graph_draw(graph, dir);
 	cairo_pop_group_to_source(cr);
 	cairo_paint(cr);
 	cairo_surface_flush(cs);
@@ -168,28 +170,6 @@ static int handle_event(XEvent e)
 static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 
-	Display *dpy = XOpenDisplay(NULL);
-	if(dpy == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "ERROR: Could not open display");
-		exit(1);
-	}
-
-	int scr = DefaultScreen(dpy);
-	Window rootwin = RootWindow(dpy, scr);
-
-	Window win = XCreateSimpleWindow(
-			dpy, 
-			rootwin, 
-			1, 1, 
-			win_w, win_h, 0, 
-			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
-
-	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
-	XMapWindow(dpy, win);
-	
-	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
-	cr = cairo_create(cs);
-
 	pfd.fd = ConnectionNumber(dpy);
 	pfd.events = POLLIN | POLLERR;
 		
@@ -251,8 +231,32 @@ int gui_main(duc *duc, int argc, char *argv[])
 		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
+	
+	dpy = XOpenDisplay(NULL);
+	if(dpy == NULL) {
+		duc_log(duc, DUC_LOG_FTL, "ERROR: Could not open display");
+		exit(1);
+	}
 
-	graph = duc_graph_new(duc);
+	int scr = DefaultScreen(dpy);
+	rootwin = RootWindow(dpy, scr);
+
+	Window win = XCreateSimpleWindow(
+			dpy, 
+			rootwin, 
+			1, 1, 
+			win_w, win_h, 0, 
+			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
+
+	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
+	XMapWindow(dpy, win);
+	
+	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
+	cr = cairo_create(cs);
+
+
+
+	graph = duc_graph_new_cairo(duc, cr);
 
 	do_gui(duc, graph, dir);
 

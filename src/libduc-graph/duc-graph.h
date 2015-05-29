@@ -21,13 +21,16 @@ enum duc_graph_palette {
 	DUC_GRAPH_PALETTE_MONOCHROME,
 };
 
-enum duc_graph_file_format {
+typedef enum {
 	DUC_GRAPH_FORMAT_PNG,
 	DUC_GRAPH_FORMAT_SVG,
 	DUC_GRAPH_FORMAT_PDF
-};
+} duc_graph_file_format;
 
-duc_graph *duc_graph_new(duc *duc);
+duc_graph *duc_graph_new_cairo(duc *duc, cairo_t *cr);
+duc_graph *duc_graph_new_file(duc *duc, duc_graph_file_format fmt, FILE *fout);
+duc_graph *duc_graph_new_opengl(duc *duc);
+
 void duc_graph_free(duc_graph *g);
 
 void duc_graph_set_max_level(duc_graph *g, int max_level);
@@ -41,8 +44,9 @@ void duc_graph_set_size_type(duc_graph *g, duc_size_type st);
 void duc_graph_set_exact_bytes(duc_graph *g, int exact);
 void duc_graph_set_ring_gap(duc_graph *g, int gap);
 
-int duc_graph_draw_file(duc_graph *g, duc_dir *dir, enum duc_graph_file_format fmt, FILE *fout);
+int duc_graph_draw_file(duc_graph *g, duc_dir *dir, duc_graph_file_format fmt, FILE *fout);
 int duc_graph_draw_cairo(duc_graph *g, duc_dir *dir, cairo_t *cr);
+int duc_graph_draw_opengl(duc_graph *g, duc_dir *dir);
 duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent *ent);
 
 #endif
