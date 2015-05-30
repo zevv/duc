@@ -133,6 +133,12 @@ void cb_mouse_motion(int x, int y)
 {
 	tooltip_x = x;
 	tooltip_y = y;
+}
+
+
+void cb_idle(void)
+{
+	usleep(30000);
 	cb_draw();
 }
 
@@ -176,7 +182,7 @@ int guigl_main(duc *duc, int argc, char *argv[])
 	glutKeyboardFunc(cb_keyboard);
 	glutMouseFunc(cb_mouse_button);
 	glutPassiveMotionFunc(cb_mouse_motion);
-	//glutIdleFunc(cb_idle);
+	glutIdleFunc(cb_idle);
 	glutIgnoreKeyRepeat(1);
 	glutMainLoop();
 
