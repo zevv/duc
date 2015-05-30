@@ -240,6 +240,7 @@ static GLuint load_shader(const GLchar * const *txt, GLenum type)
 	return s;
 }
 
+
 static GLuint shaders(void)
 {
 	/* Load and link shaders */
@@ -269,65 +270,8 @@ static GLuint shaders(void)
 }
 
 
-
 void br_opengl_done(duc_graph *g)
 {
-
-	return;
-
-	struct opengl_backend_data *bd = g->backend_data;
-
-	glUniform4f(bd->loc_color, 0.5, 0.5, 0.5, 0.5);
-
-	const GLfloat texices[] = { 
-		0, 0,
-		0, 1,
-		1, 1,
-		1, 0 
-	};
-
-	const GLfloat vertices[] = { 
-		100, 100, 0,
-		100, 200, 0,
-		200, 200, 0,
-		200, 100, 0,
-	};
-
-	const GLubyte indices[] = { 
-		0, 2, 1,
-		0, 3, 2 
-	};
-
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);    
-
-	glVertexAttribPointer(bd->loc_pos, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), vertices);
-	glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), texices);
-
-	glEnableVertexAttribArray(bd->loc_pos);
-	glEnableVertexAttribArray(bd->loc_texture);
-
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
-
-
-	if(0) {
-	
-		GLfloat vs[4][2];
-		vs[0][0] = 100; vs[0][1] = 100;
-		vs[1][0] = 100; vs[1][1] = 200;
-		vs[2][0] = 200; vs[2][1] = 100;
-		vs[3][0] = 200; vs[3][1] = 200;
-
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, bd->font_texid);
-		glUniform1i(bd->loc_texture, 0);
-
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vs);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	}
-
 }
 
 
