@@ -20,14 +20,12 @@
 #include <libgen.h>
 
 #include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
 
 #include "private.h"
 #include "duc.h"
 #include "duc-graph.h"
 #include "graph-private.h"
 #include "utlist.h"
-
 #include "font.c"
 
 struct opengl_backend_data {
@@ -52,7 +50,7 @@ static const GLchar *vshader =
 	"{\n"
 	"	gl_Position = matrix * pos;\n"
 	"       tex_out = tex_in;\n"
-	"}";
+	"}\n";
 
 static const GLchar *fshader = 
 	"#version 330 core\n"
@@ -75,7 +73,7 @@ void br_opengl_start(duc_graph *g)
 
 	GLfloat mv[] = { 
 		1 / g->width*2, 0,             0, 0,
-		0,              1/g->height*2, 0, 0,
+		0,              -1/g->height*2, 0, 0,
 		0,              0,             1, 0,
 		0,              0,             0, 1 
 	};
@@ -109,10 +107,10 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 
 		struct opengl_backend_data *bd = g->backend_data;
 		GLfloat vVertices[] = {
-			x + cd->x0f, -y - cd->y0f,   cd->s0f, cd->t0f,
-			x + cd->x1f, -y - cd->y0f,   cd->s1f, cd->t0f,
-			x + cd->x1f, -y - cd->y1f,   cd->s1f, cd->t1f,
-			x + cd->x0f, -y - cd->y1f,   cd->s0f, cd->t1f,
+			x + cd->x0f, y + cd->y0f,   cd->s0f, cd->t0f,
+			x + cd->x1f, y + cd->y0f,   cd->s1f, cd->t0f,
+			x + cd->x1f, y + cd->y1f,   cd->s1f, cd->t1f,
+			x + cd->x0f, y + cd->y1f,   cd->s0f, cd->t1f,
 		};
 		GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
@@ -192,8 +190,8 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 
 	for(i=0; i<ss; i++) {
 		double x1, y1, x2, y2;
-		x1 = r1 * sin(a1 + da * i); y1 = r1 * cos(a1 + da * i);
-		x2 = r2 * sin(a1 + da * i); y2 = r2 * cos(a1 + da * i);
+		x1 = r1 * sin(a1 + da * i); y1 = -r1 * cos(a1 + da * i);
+		x2 = r2 * sin(a1 + da * i); y2 = -r2 * cos(a1 + da * i);
 
 		vs_fill[i*2 + 0][0] = x1; vs_fill[i*2 + 0][1] = y1;
 		vs_fill[i*2 + 1][0] = x2; vs_fill[i*2 + 1][1] = y2;
