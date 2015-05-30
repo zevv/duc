@@ -42,10 +42,10 @@ struct opengl_backend_data {
 
 static const GLchar *vshader = 
 	"#version 330 core\n"
+	"uniform mat4 matrix;\n"
 	"in vec4 pos_in;\n"
 	"in vec2 tex_in;\n"
 	"in vec4 color_in;\n"
-	"uniform mat4 matrix;\n"
 	"out vec2 tex_out;\n"
 	"out vec4 color;\n"
 	"void main()\n"
@@ -57,9 +57,9 @@ static const GLchar *vshader =
 
 static const GLchar *fshader = 
 	"#version 330 core\n"
+	"uniform sampler2D Texture;\n"
 	"in vec4 color;\n"
 	"in lowp vec2 tex_out;\n"
-	"uniform sampler2D Texture;\n"
 	"out vec4 outV;\n"
 	"void main()\n"
 	"{\n"
@@ -106,6 +106,7 @@ static double draw_char(duc_graph *g, double x, double y, int c)
 		x + cd->x1f, y + cd->y1f,   cd->s1f, cd->t1f,
 		x + cd->x0f, y + cd->y1f,   cd->s0f, cd->t1f,
 	};
+
 	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
 	glVertexAttribPointer(bd->loc_pos,     2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[0]);
@@ -130,8 +131,12 @@ static double draw_char(duc_graph *g, double x, double y, int c)
 static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
 {
 	struct opengl_backend_data *bd = g->backend_data;
+	int lines = 1;
 	double w = 0;
 	int i;
+	
+	for(i=0; i<l; i++) 
+		if(text[i] == '\n' || text[i] == '\r') lines ++;
 
 	for(i=0; i<l; i++) {
 		int c = text[i];
@@ -139,11 +144,11 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 		w += cd->advance;
 	}
 
-	x -= w/2;
+	x -= w * 0.5;
+	y -= (STB_SOMEFONT_LINE_SPACING * lines) * 0.5;
 
 	for(i=0; i<l; i++) {
-		int c = text[i];
-		x = draw_char(g, x, y, c);
+		x = draw_char(g, x, y, text[i]);
 	}
 }
 
@@ -156,7 +161,6 @@ static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *te
 	double y = _y - g->cy - STB_SOMEFONT_LINE_SPACING;
 		
 	glDisableVertexAttribArray(bd->loc_color);
-	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	char *p1 = text;
@@ -167,7 +171,15 @@ static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *te
 			p2++;
 		}
 
-		draw_text_line(g, x, y, size, p1, p2-p1);
+		glVertexAttrib4f(bd->loc_color, 1, 1, 1, 0);
+		draw_text_line(g, x-1.0, y-1.0, size, p1, p2-p1);
+		draw_text_line(g, x+1.0, y-1.0, size, p1, p2-p1);
+		draw_text_line(g, x+1.0, y+1.0, size, p1, p2-p1);
+		draw_text_line(g, x-1.0, y+1.0, size, p1, p2-p1);
+
+		glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
+		draw_text_line(g, x+0, y, size, p1, p2-p1);
+		draw_text_line(g, x+0, y, size, p1, p2-p1);
 
 		if(!*p2) break;
 
@@ -338,12 +350,12 @@ duc_graph *duc_graph_new_opengl(duc *duc)
 	bd->loc_sampler = glGetUniformLocation(bd->sp, "Texture");
 	bd->loc_matrix  = glGetUniformLocation(bd->sp, "matrix");
 
-	unsigned char fontpixels[STB_SOMEFONT_BITMAP_HEIGHT_POW2][STB_SOMEFONT_BITMAP_WIDTH];
-	STB_SOMEFONT_CREATE(bd->fontdata, fontpixels, STB_SOMEFONT_BITMAP_HEIGHT_POW2);
+	unsigned char fontpixels[STB_SOMEFONT_BITMAP_HEIGHT][STB_SOMEFONT_BITMAP_WIDTH];
+	STB_SOMEFONT_CREATE(bd->fontdata, fontpixels, STB_SOMEFONT_BITMAP_HEIGHT);
 
 	glGenTextures(1, &bd->font_texid);
 	glBindTexture(GL_TEXTURE_2D, bd->font_texid);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, STB_SOMEFONT_BITMAP_WIDTH, STB_SOMEFONT_BITMAP_HEIGHT_POW2, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fontpixels );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, STB_SOMEFONT_BITMAP_WIDTH, STB_SOMEFONT_BITMAP_HEIGHT, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fontpixels );
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
