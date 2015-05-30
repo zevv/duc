@@ -90,6 +90,43 @@ void br_opengl_start(duc_graph *g)
 }
 
 
+static double draw_char(duc_graph *g, double x, double y, int c)
+{
+	struct opengl_backend_data *bd = g->backend_data;
+
+	if(c < STB_SOMEFONT_FIRST_CHAR ||
+	   c >= STB_SOMEFONT_FIRST_CHAR + STB_SOMEFONT_NUM_CHARS)
+		return x;
+
+	stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
+
+	GLfloat vVertices[] = {
+		x + cd->x0f, y + cd->y0f,   cd->s0f, cd->t0f,
+		x + cd->x1f, y + cd->y0f,   cd->s1f, cd->t0f,
+		x + cd->x1f, y + cd->y1f,   cd->s1f, cd->t1f,
+		x + cd->x0f, y + cd->y1f,   cd->s0f, cd->t1f,
+	};
+	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+
+	glVertexAttribPointer(bd->loc_pos,     2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[0]);
+	glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[2]);
+
+	glEnableVertexAttribArray(bd->loc_pos);
+	glEnableVertexAttribArray(bd->loc_texture);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, bd->font_texid);
+
+	glUniform1i(bd->loc_texture, 0);
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
+
+	x += cd->advance;
+
+	return x;
+}
+
+
 static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
 {
 	struct opengl_backend_data *bd = g->backend_data;
@@ -106,31 +143,7 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 
 	for(i=0; i<l; i++) {
 		int c = text[i];
-		stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
-
-		struct opengl_backend_data *bd = g->backend_data;
-		GLfloat vVertices[] = {
-			x + cd->x0f, y + cd->y0f,   cd->s0f, cd->t0f,
-			x + cd->x1f, y + cd->y0f,   cd->s1f, cd->t0f,
-			x + cd->x1f, y + cd->y1f,   cd->s1f, cd->t1f,
-			x + cd->x0f, y + cd->y1f,   cd->s0f, cd->t1f,
-		};
-		GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
-
-		glVertexAttribPointer(bd->loc_pos,     2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[0]);
-		glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[2]);
-
-		glEnableVertexAttribArray(bd->loc_pos);
-		glEnableVertexAttribArray(bd->loc_texture);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, bd->font_texid);
-
-		glUniform1i(bd->loc_texture, 0);
-
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
-
-		x += cd->advance;
+		x = draw_char(g, x, y, c);
 	}
 }
 
@@ -185,7 +198,7 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 	a1 *= M_PI * 2;
 	a2 *= M_PI * 2;
 
-	int ss = (a2 - a1) * r2 / 20 + 2;
+	int ss = (a2 - a1) * r2 / 10 + 2;
 
 	GLfloat vs_fill[ss * 2][6];
 	GLfloat vs_line[ss * 2][2];
@@ -217,18 +230,22 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 	}
 
 	glDisable(GL_TEXTURE_2D);
-	glEnableVertexAttribArray(bd->loc_pos);
-	glEnableVertexAttribArray(bd->loc_color);
 
-	glVertexAttribPointer(bd->loc_pos,   2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), &vs_fill[0][0]);
-	glVertexAttribPointer(bd->loc_color, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), &vs_fill[0][2]);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, ss*2);
 
-	glLineWidth(1);
+	if(R != 1.0 || G != 1.0 || B != 1.0) {
+		glEnableVertexAttribArray(bd->loc_pos);
+		glEnableVertexAttribArray(bd->loc_color);
+		glVertexAttribPointer(bd->loc_pos,   2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), &vs_fill[0][0]);
+		glVertexAttribPointer(bd->loc_color, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), &vs_fill[0][2]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, ss*2);
+	}
+	
+	glLineWidth(0.8);
 	glDisableVertexAttribArray(bd->loc_color);
 	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
 	glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_line);
 	glDrawArrays(GL_LINE_LOOP, 0, ss*2);
+
 	
 }
 
