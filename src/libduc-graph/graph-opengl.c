@@ -73,7 +73,6 @@ void br_opengl_start(duc_graph *g)
 
 	glUseProgram(sp);
 
-
 	GLfloat mv[] = { 
 		1 / g->width*2, 0,             0, 0,
 		0,              1/g->height*2, 0, 0,
@@ -110,17 +109,15 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 
 		struct opengl_backend_data *bd = g->backend_data;
 		GLfloat vVertices[] = {
-			x + cd->x0f, -y - cd->y0f, 0.0, cd->s0f, cd->t0f,
-			x + cd->x1f, -y - cd->y0f, 0.0, cd->s1f, cd->t0f,
-			x + cd->x1f, -y - cd->y1f, 0.0, cd->s1f, cd->t1f,
-			x + cd->x0f, -y - cd->y1f, 0.0, cd->s0f, cd->t1f,
+			x + cd->x0f, -y - cd->y0f,   cd->s0f, cd->t0f,
+			x + cd->x1f, -y - cd->y0f,   cd->s1f, cd->t0f,
+			x + cd->x1f, -y - cd->y1f,   cd->s1f, cd->t1f,
+			x + cd->x0f, -y - cd->y1f,   cd->s0f, cd->t1f,
 		};
 		GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
-		glUseProgram(bd->sp);
-
-		glVertexAttribPointer(bd->loc_pos,     3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &vVertices[0]);
-		glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &vVertices[3]);
+		glVertexAttribPointer(bd->loc_pos,     2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[0]);
+		glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[2]);
 
 		glEnableVertexAttribArray(bd->loc_pos);
 		glEnableVertexAttribArray(bd->loc_texture);
@@ -314,8 +311,8 @@ duc_graph *duc_graph_new_opengl(duc *duc)
 	glGenTextures(1, &bd->font_texid);
 	glBindTexture(GL_TEXTURE_2D, bd->font_texid);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, STB_SOMEFONT_BITMAP_WIDTH, STB_SOMEFONT_BITMAP_HEIGHT_POW2, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fontpixels );
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 

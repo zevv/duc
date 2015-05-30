@@ -376,7 +376,6 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 
 int duc_graph_draw(duc_graph *g, duc_dir *dir)
 {
-	g->backend->start(g);
 
 	double n = g->width < g->height ? g->width : g->height;
 	g->size = n;
@@ -396,6 +395,7 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	
 	duc_dir_rewind(dir);
 
+	g->backend->start(g);
 	do_dir(g, dir, 0, g->r_start, 0, 1, NULL);
 
 	/* Draw collected labels */
