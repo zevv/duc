@@ -41,13 +41,12 @@ struct opengl_backend_data {
 };
 
 static const GLchar *vshader = 
-	"#version 330 core\n"
 	"uniform mat4 matrix;\n"
-	"in vec4 pos_in;\n"
-	"in vec2 tex_in;\n"
-	"in vec4 color_in;\n"
-	"out vec2 tex_out;\n"
-	"out vec4 color;\n"
+	"attribute vec4 pos_in;\n"
+	"attribute vec2 tex_in;\n"
+	"attribute vec4 color_in;\n"
+	"varying vec2 tex_out;\n"
+	"varying vec4 color;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_Position = matrix * pos_in;\n"
@@ -56,14 +55,12 @@ static const GLchar *vshader =
 	"}\n";
 
 static const GLchar *fshader = 
-	"#version 330 core\n"
 	"uniform sampler2D Texture;\n"
-	"in vec4 color;\n"
-	"in lowp vec2 tex_out;\n"
-	"out vec4 outV;\n"
+	"varying vec4 color;\n"
+	"varying vec2 tex_out;\n"
 	"void main()\n"
 	"{\n"
-	"	outV = color + texture2D(Texture, tex_out);\n"
+	"	gl_FragColor = color + texture2D(Texture, tex_out);\n"
 	"}\n";
 
 
