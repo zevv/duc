@@ -128,7 +128,7 @@ the X11 development libraries, or compile without gui support (--disable-gui)
 fi
 
 
-AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h])
+AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h termios.h])
 AC_CHECK_HEADERS([ncurses.h ncurses/ncurses.h ncursesw/ncurses.h])
 
 AC_TYPE_MODE_T
