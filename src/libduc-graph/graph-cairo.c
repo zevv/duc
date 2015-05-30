@@ -212,11 +212,12 @@ void br_cairo_done(duc_graph *g)
 void br_file_done(duc_graph *g)
 {
 	struct cairo_backend_data *bd = g->backend_data;
-	cairo_t *cr = bd->cr;
 
 	switch(bd->fmt) {
 		case DUC_GRAPH_FORMAT_PNG:
 			cairo_surface_write_to_png_stream(bd->cs, cairo_writer, bd->fout);
+			break;
+		default:
 			break;
 	}
 

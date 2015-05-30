@@ -45,6 +45,7 @@ void duc_graph_set_size_type(duc_graph *g, duc_size_type st);
 void duc_graph_set_exact_bytes(duc_graph *g, int exact);
 void duc_graph_set_ring_gap(duc_graph *g, int gap);
 
+int duc_graph_draw(duc_graph *g, duc_dir *dir);
 duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent *ent);
 
 #endif

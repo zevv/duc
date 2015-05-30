@@ -1,6 +1,6 @@
-// http://stackoverflow.com/questions/6377934/drawing-a-circle-with-a-sector-cut-out-in-opengl-es-1-1
+// http://nothings.org/stb/font/latin_ext/
 
- #include "config.h"
+#include "config.h"
 
 #ifdef ENABLE_GRAPH
 
@@ -19,9 +19,8 @@
 #include <stdint.h>
 #include <libgen.h>
 
-#include <GL/gl.h>
-#include <GLES3/gl3.h>
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 #include "private.h"
 #include "duc.h"
@@ -29,27 +28,41 @@
 #include "graph-private.h"
 #include "utlist.h"
 
+#include "font.c"
+
 struct opengl_backend_data {
 	GLuint sp;
-};
+	stb_fontchar fontdata[STB_SOMEFONT_NUM_CHARS];
+	GLuint font_texid;
 
+	GLuint loc_pos;
+	GLuint loc_texture;
+	GLuint loc_sampler;
+	GLuint loc_matrix;
+	GLuint loc_color;
+};
 
 static const GLchar *vshader = 
 	"#version 330 core\n"
-	"layout (location = 0) in vec4 pos;\n"
-	"uniform mat4 mat;\n"
+	"in vec4 pos;\n"
+	"uniform mat4 matrix;\n"
+	"in vec2 tex_in;\n"
+	"out vec2 tex_out;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = mat * pos;\n"
+	"	gl_Position = matrix * pos;\n"
+	"       tex_out = tex_in;\n"
 	"}";
 
 static const GLchar *fshader = 
 	"#version 330 core\n"
 	"uniform vec4 color = { 0.1, 0.5, 0.5, 1.0 } ;\n"
+	"uniform sampler2D Texture;\n"
+	"in lowp vec2 tex_out;\n"
 	"out vec4 outV;\n"
 	"void main()\n"
 	"{\n"
-	"	outV = color;\n"
+	"	outV = color + texture2D(Texture, tex_out);\n"
 	"}\n";
 
 
@@ -60,26 +73,100 @@ void br_opengl_start(duc_graph *g)
 
 	glUseProgram(sp);
 
-	GLint mat = glGetUniformLocation(sp, "mat");
 
-	printf("%f %f\n", g->width, g->height);
-
-	GLfloat matrix[] = { 
-		1 / g->width*2, 0, 0, 0,
-		0, 1/g->height*2, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1 
+	GLfloat mv[] = { 
+		1 / g->width*2, 0,             0, 0,
+		0,              1/g->height*2, 0, 0,
+		0,              0,             1, 0,
+		0,              0,             0, 1 
 	};
 
-	glUniformMatrix4fv(mat, 1, 0, matrix);
+	glUniformMatrix4fv(bd->loc_matrix, 1, 0, mv);
 
 	glClearColor(1, 1, 1, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
 }
 
 
-static void br_opengl_draw_text(duc_graph *g, int x, int y, int size, char *text)
+static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
 {
+	struct opengl_backend_data *bd = g->backend_data;
+	double w = 0;
+	int i;
+
+	for(i=0; i<l; i++) {
+		int c = text[i];
+		stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
+		w += cd->advance;
+	}
+
+	x -= w/2;
+
+	for(i=0; i<l; i++) {
+		int c = text[i];
+		stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
+
+		struct opengl_backend_data *bd = g->backend_data;
+		GLfloat vVertices[] = {
+			x + cd->x0f, -y - cd->y0f, 0.0, cd->s0f, cd->t0f,
+			x + cd->x1f, -y - cd->y0f, 0.0, cd->s1f, cd->t0f,
+			x + cd->x1f, -y - cd->y1f, 0.0, cd->s1f, cd->t1f,
+			x + cd->x0f, -y - cd->y1f, 0.0, cd->s0f, cd->t1f,
+		};
+		GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+
+		glUseProgram(bd->sp);
+
+		glVertexAttribPointer(bd->loc_pos,     3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &vVertices[0]);
+		glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &vVertices[3]);
+
+		glEnableVertexAttribArray(bd->loc_pos);
+		glEnableVertexAttribArray(bd->loc_texture);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, bd->font_texid);
+
+		glUniform1i(bd->loc_texture, 0);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
+
+		x += cd->advance;
+	}
+}
+
+
+static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *text)
+{
+	struct opengl_backend_data *bd = g->backend_data;
+
+	double x = _x - g->cx;
+	double y = _y - g->cy - STB_SOMEFONT_LINE_SPACING;
+		
+	glUniform4f(bd->loc_color, 0, 0, 0, 0);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	char *p1 = text;
+	char *p2 = text;
+
+	while(*p2) {
+		while(*p2 && *p2 != '\n' && *p2 != '\r') {
+			p2++;
+		}
+
+		draw_text_line(g, x, y, size, p1, p2-p1);
+
+		if(!*p2) break;
+
+		y += STB_SOMEFONT_LINE_SPACING * 1.5;
+		x = _x - g->cx;
+
+		p2 ++;
+		p1 = p2;
+	}
+
+	glBlendFunc(GL_ONE, GL_ZERO);
 }
 
 
@@ -91,18 +178,15 @@ static void br_opengl_draw_tooltip(duc_graph *g, int x, int y, char *text)
 static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double line)
 {
 	struct opengl_backend_data *bd = g->backend_data;
-	GLuint sp = bd->sp;
 	int i;
 
 	double R, G, B;
 	hsv2rgb(H, S, V, &R, &G, &B);
 
-	GLint c = glGetUniformLocation(sp, "color");
-
 	a1 *= M_PI * 2;
 	a2 *= M_PI * 2;
 
-	int ss = (a2 - a1) * 10 + 2;
+	int ss = (a2 - a1) * r2 / 20 + 2;
 
 	GLfloat vs_fill[ss * 2][2];
 	GLfloat vs_line[ss * 2][2];
@@ -121,16 +205,18 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 		vs_line[2*ss-i-1][0] = x2; vs_line[2*ss-i-1][1] = y2;
 	}
 
+	glDisable(GL_TEXTURE_2D);
 	glLineWidth(1);
-	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(bd->loc_pos);
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vs_line);
-	glUniform4f(c, 0, 0, 0, 1.0);
+	glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_fill);
+	glUniform4f(bd->loc_color, R, G, B, 0.5);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, ss*2);
+	
+	glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_line);
+	glUniform4f(bd->loc_color, 0, 0, 0, 0.5);
 	glDrawArrays(GL_LINE_LOOP, 0, ss*2);
 	
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vs_fill);
-	glUniform4f(c, R, G, B, 1.0);
-	glDrawArrays(GL_QUAD_STRIP, 0, ss*2);
 }
 
 
@@ -183,8 +269,65 @@ static GLuint shaders(void)
 }
 
 
+
 void br_opengl_done(duc_graph *g)
 {
+
+	return;
+
+	struct opengl_backend_data *bd = g->backend_data;
+
+	glUniform4f(bd->loc_color, 0.5, 0.5, 0.5, 0.5);
+
+	const GLfloat texices[] = { 
+		0, 0,
+		0, 1,
+		1, 1,
+		1, 0 
+	};
+
+	const GLfloat vertices[] = { 
+		100, 100, 0,
+		100, 200, 0,
+		200, 200, 0,
+		200, 100, 0,
+	};
+
+	const GLubyte indices[] = { 
+		0, 2, 1,
+		0, 3, 2 
+	};
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);    
+
+	glVertexAttribPointer(bd->loc_pos, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), vertices);
+	glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), texices);
+
+	glEnableVertexAttribArray(bd->loc_pos);
+	glEnableVertexAttribArray(bd->loc_texture);
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+
+
+	if(0) {
+	
+		GLfloat vs[4][2];
+		vs[0][0] = 100; vs[0][1] = 100;
+		vs[1][0] = 100; vs[1][1] = 200;
+		vs[2][0] = 200; vs[2][1] = 100;
+		vs[3][0] = 200; vs[3][1] = 200;
+
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, bd->font_texid);
+		glUniform1i(bd->loc_texture, 0);
+
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vs);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	}
+
 }
 
 
@@ -204,6 +347,7 @@ struct duc_graph_backend duc_graph_backend_opengl = {
 };
 
 
+
 duc_graph *duc_graph_new_opengl(duc *duc)
 {
 	duc_graph *g = duc_graph_new(duc);
@@ -214,6 +358,22 @@ duc_graph *duc_graph_new_opengl(duc *duc)
 	g->backend_data = bd;
 	
 	bd->sp = shaders();
+	bd->loc_pos = glGetAttribLocation(bd->sp, "pos");
+	bd->loc_texture = glGetAttribLocation(bd->sp, "tex_in");
+	bd->loc_sampler = glGetUniformLocation(bd->sp, "Texture");
+	bd->loc_matrix = glGetUniformLocation(bd->sp, "matrix");
+	bd->loc_color = glGetUniformLocation(bd->sp, "color");
+	
+	unsigned char fontpixels[STB_SOMEFONT_BITMAP_HEIGHT_POW2][STB_SOMEFONT_BITMAP_WIDTH];
+	STB_SOMEFONT_CREATE(bd->fontdata, fontpixels, STB_SOMEFONT_BITMAP_HEIGHT_POW2);
+
+	glGenTextures(1, &bd->font_texid);
+	glBindTexture(GL_TEXTURE_2D, bd->font_texid);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, STB_SOMEFONT_BITMAP_WIDTH, STB_SOMEFONT_BITMAP_HEIGHT_POW2, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fontpixels );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	return g;
 }

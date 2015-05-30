@@ -17,11 +17,6 @@
 #include <stdint.h>
 #include <libgen.h>
 
-#include <cairo.h>
-#include <cairo-svg.h>
-#include <cairo-pdf.h>
-#include <pango/pangocairo.h>
-
 #include "private.h"
 #include "duc.h"
 #include "duc-graph.h"
@@ -377,13 +372,6 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 	return 0;
 }
 
-
-static cairo_status_t cairo_writer(void *closure, const unsigned char *data, unsigned int length)
-{
-	FILE *f = closure;
-	fwrite(data, length, 1, f);
-	return CAIRO_STATUS_SUCCESS;
-}
 
 
 int duc_graph_draw(duc_graph *g, duc_dir *dir)
