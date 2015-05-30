@@ -7,7 +7,7 @@
 #include "ducrc.h"
 #include "cmd.h"
 
-#ifdef HAVE_LIBX11
+#ifdef HAVE_LIBGLUT
 
 #include <stdio.h>
 #include <ctype.h>
@@ -17,12 +17,9 @@
 #include <string.h>
 
 #include <string.h>
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
 
 #include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
+#include <GL/glut.h>
 
 static int opt_bytes;
 static int opt_dark;
@@ -33,11 +30,10 @@ static int opt_levels = 4;
 static int opt_apparent = 0;
 static int opt_ring_gap = 0;
 
-static int redraw = 1;
+//static int redraw = 1;
 static int tooltip_x = 0;
 static int tooltip_y = 0;
-static int tooltip_moved = 0;
-static struct pollfd pfd;
+//static int tooltip_moved = 0;
 static enum duc_graph_palette palette = 0;
 static int win_w = 600;
 static int win_h = 600;
@@ -45,7 +41,16 @@ static duc_dir *dir;
 static duc_graph *graph;
 static double fuzz;
 
-static void draw(void)
+
+static void cb_reshape(int w, int h)
+{
+	win_w = w;
+	win_h = h;
+	glViewport(0, 0, win_w, win_h);
+}
+
+
+static void cb_draw(void)
 {
 	if(opt_levels < 1) opt_levels = 1;
 	if(opt_levels > 10) opt_levels = 10;
@@ -61,169 +66,72 @@ static void draw(void)
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
 	duc_graph_draw(graph, dir);
+
+	glutSwapBuffers();
 }
-
-
-static int handle_event(XEvent e)
-{
-	KeySym k;
-	int x, y, b;
-
-	switch(e.type) {
-
-		case ConfigureNotify: 
-			win_w = e.xconfigure.width;
-			win_h = e.xconfigure.height;
-			glViewport(0, 0, win_w, win_h);
-			redraw = 1;
-			break;
-			
-
-		case Expose:
-			if(e.xexpose.count < 1) redraw = 1;
-			break;
-
-		case KeyPress: 
-
-			k = XLookupKeysym(&e.xkey, 0);
-
-			if(k == XK_minus) opt_levels--;
-			if(k == XK_equal) opt_levels++;
-			if(k == XK_0) opt_levels = 4;
-			if(k == XK_Escape) return 1;
-			if(k == XK_q) return 1;
-			if(k == XK_a) opt_apparent = !opt_apparent;
-			if(k == XK_b) opt_bytes = !opt_bytes;
-			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
-			if(k == XK_comma) if(opt_ring_gap > 0) opt_ring_gap --;
-			if(k == XK_period) opt_ring_gap ++;
-			if(k == XK_p) {
-				palette = (palette + 1) % 4;
-			}
-			if(k == XK_BackSpace) {
-				duc_dir *dir2 = duc_dir_openat(dir, "..");
-				if(dir2) {
-					duc_dir_close(dir);
-					dir = dir2;
-				}
-			}
-
-			redraw = 1;
-			break;
-
-		case ButtonPress: 
-
-			x = e.xbutton.x;
-			y = e.xbutton.y;
-			b = e.xbutton.button;
-
-			if(b == 1) {
-				duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
-				if(dir2) {
-					duc_dir_close(dir);
-					dir = dir2;
-				}
-			}
-			if(b == 3) {
-				duc_dir *dir2 = duc_dir_openat(dir, "..");
-				if(dir2) {
-					duc_dir_close(dir);
-					dir = dir2;
-				}
-			}
-
-			if(b == 4) opt_levels --;
-			if(b == 5) opt_levels ++;
-
-			redraw = 1;
-			break;
-
-		case MotionNotify: 
-
-			tooltip_x = e.xmotion.x;
-			tooltip_y = e.xmotion.y;
-			tooltip_moved = 1;
-			break;
-	}
-
-	return 0;
-}
-
-
-static void do_gui(duc *duc, duc_dir *dir)
-{
-	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-
-	Display *dpy = XOpenDisplay(NULL);
-	if(dpy == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "ERROR: Could not open display");
-		exit(1);
-	}
-
-	int scr = DefaultScreen(dpy);
-	Window rootwin = RootWindow(dpy, scr);
-
-	Window win = XCreateSimpleWindow(
-			dpy, 
-			rootwin, 
-			1, 1, 
-			win_w, win_h, 0, 
-			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
-
-	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
-	XMapWindow(dpy, win);
-
-	XVisualInfo *vi = glXChooseVisual(dpy, 0, att);
-	if(vi == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "no appropriate visual found");
-		exit(1); 
-	}
-
-	GLXContext glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-	if(glc == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "cannot create gl context");
-		exit(1); 
-	}
-
-	glXMakeCurrent(dpy, win, glc);
-
-	graph = duc_graph_new_opengl(duc);
-
-	pfd.fd = ConnectionNumber(dpy);
-	pfd.events = POLLIN | POLLERR;
-		
-	int quit = 0;
-
-	while(!quit) {
-
-		if(redraw) {
-			draw();
-			glXSwapBuffers(dpy, win); 
-			XFlush(dpy);
-			redraw = 0;
-		}
-
-		int r = poll(&pfd, 1, 10);
-
-		if(r == 0) {
-			if(tooltip_moved) {
-				tooltip_moved = 0;
-				redraw = 1;
-			}
-		}
-
-		while (XEventsQueued(dpy, QueuedAfterReading) > 0) {
-			XEvent e;
-			XNextEvent(dpy, &e);
-
-			quit = handle_event(e);
-		}
-	}
-
-	XCloseDisplay(dpy);
-}
-
 	
+
+void cb_keyboard(unsigned char k, int x, int y)
+{
+	if(k == '-') opt_levels--;
+	if(k == '=') opt_levels++;
+	if(k == '0') opt_levels = 4;
+	if(k == 27) exit(0);
+	if(k == 'q') exit(0);
+	if(k == 'a') opt_apparent = !opt_apparent;
+	if(k == 'b') opt_bytes = !opt_bytes;
+	if(k == 'f') fuzz = (fuzz == 0) ? opt_fuzz : 0;
+	if(k == ',') if(opt_ring_gap > 0) opt_ring_gap --;
+	if(k == '.') opt_ring_gap ++;
+	if(k == 'p') {
+		palette = (palette + 1) % 4;
+	}
+	if(k == 8) {
+		duc_dir *dir2 = duc_dir_openat(dir, "..");
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+		}
+	}
+
+	cb_draw();
+}
+
+
+void cb_mouse_button(int b, int state, int x, int y)
+{
+	if(state != GLUT_DOWN) return;
+
+	if(b == 0) {
+		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+		}
+	}
+	if(b == 3) {
+		duc_dir *dir2 = duc_dir_openat(dir, "..");
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+		}
+	}
+
+	if(b == 4) opt_levels --;
+	if(b == 5) opt_levels ++;
+
+	cb_draw();
+}
+
+
+void cb_mouse_motion(int x, int y)
+{
+	tooltip_x = x;
+	tooltip_y = y;
+	cb_draw();
+}
+
+
 int guigl_main(duc *duc, int argc, char *argv[])
 {
 	char *path = ".";
@@ -250,10 +158,22 @@ int guigl_main(duc *duc, int argc, char *argv[])
 		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
+	
+	glutInit(&argc, argv);
+	glutInitWindowSize(win_w, win_h);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+	glutCreateWindow("duc");
 
-	do_gui(duc, dir);
+	graph = duc_graph_new_opengl(duc);
 
-	duc_dir_close(dir);
+	glutDisplayFunc(cb_draw);
+	glutReshapeFunc(cb_reshape);
+	glutKeyboardFunc(cb_keyboard);
+	glutMouseFunc(cb_mouse_button);
+	glutPassiveMotionFunc(cb_mouse_motion);
+	//glutIdleFunc(cb_idle);
+	glutIgnoreKeyRepeat(1);
+	glutMainLoop();
 
 	return 0;
 }
@@ -287,7 +207,7 @@ static struct ducrc_option options[] = {
 
 struct cmd cmd_guigl = {
 	.name = "guigl",
-	.descr_short = "Interactive X11/OpenGL graphical interface",
+	.descr_short = "Interactive OpenGL graphical interface",
 	.usage = "[options] [PATH]",
 	.main = guigl_main,
 	.options = options,
