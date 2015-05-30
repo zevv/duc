@@ -2,7 +2,7 @@
 
 #include "config.h"
 
-#ifdef ENABLE_GRAPH
+#ifdef ENABLE_OPENGL
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +19,15 @@
 #include <stdint.h>
 #include <libgen.h>
 
+#ifdef HAVE_GLES2_GL2_H
 #include <GLES2/gl2.h>
+#endif
+
+#ifdef HAVE_GL_GL_H
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#endif
+
 
 #include "private.h"
 #include "duc.h"

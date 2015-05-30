@@ -1,4 +1,7 @@
+
 #include "config.h"
+
+#ifdef ENABLE_CAIRO
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -283,6 +286,7 @@ duc_graph *duc_graph_new_file(duc *duc, duc_graph_file_format fmt, FILE *fout)
 	return g;
 }
 
+#endif
 
 /*
  * End

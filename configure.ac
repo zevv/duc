@@ -28,17 +28,21 @@ AC_PROG_CC
 PKG_PROG_PKG_CONFIG
 
 AC_CHECK_LIB([m], [main])
-AC_CHECK_LIB([GL], [main])
-AC_CHECK_LIB([glut], [main])
 
 #
 # Check --disable options
 #
 
 AC_ARG_ENABLE(
-        [graph],
-        [AS_HELP_STRING([--disable-graph], [disable graph drawing @<:@default=yes@:>@])], ,
-        [enable_graph="yes"]
+        [cairo],
+        [AS_HELP_STRING([--disable-cairo], [disable cairo drawing @<:@default=yes@:>@])], ,
+        [enable_cairo="yes"]
+)
+
+AC_ARG_ENABLE(
+        [opengl],
+        [AS_HELP_STRING([--enable-opengl], [disable OpenGL drawing @<:@default=no@:>@])], ,
+        [enable_opengl="no"]
 )
 
 AC_ARG_ENABLE(
@@ -48,9 +52,9 @@ AC_ARG_ENABLE(
 )
 
 AC_ARG_ENABLE(
-        [gui],
-        [AS_HELP_STRING([--disable-gui], [disable X11 gui @<:@default=yes@:>@])], ,
-        [enable_gui="yes"]
+        [x11],
+        [AS_HELP_STRING([--disable-x11], [disable X11 @<:@default=yes@:>@])], ,
+        [enable_x11="yes"]
 )
 
 AC_ARG_WITH(
@@ -84,7 +88,7 @@ esac
 
 AC_DEFINE_UNQUOTED(DB_BACKEND, "${with_db_backend}", [Database backend])
 
-if test "${enable_graph}" = "yes"; then
+if test "${enable_cairo}" = "yes"; then
 
 	PKG_CHECK_MODULES([CAIRO], [cairo],, [AC_MSG_ERROR(
 [The cairo library was not found, which is needed for graph support. Either install
@@ -101,7 +105,21 @@ The pangocairo library was not found, which is needed for graph support. Either 
 the pangocairo development libraries, or compile without graph support (--disable-graph)
 	])])
 
-        AC_DEFINE([ENABLE_GRAPH], [1], [Enable graph])
+        AC_DEFINE([ENABLE_CAIRO], [1], [Enable cairo])
+fi
+
+
+if test "${enable_opengl}" = "yes"; then
+
+	AC_CHECK_LIB([GL], [glBlendFunc],, [
+The OpenGL library was not found, which is needed for ui support.
+	])
+	AC_CHECK_LIB([glut], [glutSwapBuffers],, [
+The glut library was not found, which is needed for opengl support.
+	])
+	AC_CHECK_HEADERS([GL/gl.h GLES2/gl2.h])
+
+        AC_DEFINE([ENABLE_OPENGL], [1], [Enable cairo])
 fi
 
 
@@ -119,14 +137,13 @@ the ncurses development libraries, or compile without ui support (--disable-ui)
 fi
 
 
-if test "${enable_gui}" = "yes"; then
-        test "${enable_graph}" != "yes" && AC_MSG_ERROR([graph must be enabled for gui])
+if test "${enable_x11}" = "yes"; then
+        test "${enable_cairo}" != "yes" && AC_MSG_ERROR([cairo must be enabled for x11])
 
 	AC_CHECK_LIB([X11], [XOpenDisplay],, [AC_MSG_ERROR([
-The X11 library was not found, which is needed for gui support. Either install
-the X11 development libraries, or compile without gui support (--disable-gui)
+The X11 library was not found, which is needed for x11 gui support.
 	])])
-        AC_DEFINE([ENABLE_GUI], [1], [Enable gui])
+        AC_DEFINE([ENABLE_X11], [1], [Enable X11])
 fi
 
 
@@ -147,9 +164,10 @@ AC_CHECK_FUNCS([floor memset strchr strdup strerror gettimeofday lstat])
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
-AM_CONDITIONAL([ENABLE_GRAPH], [test "$enable_graph" = "true"])
+AM_CONDITIONAL([ENABLE_CAIRO], [test "$enable_cairo" = "true"])
+AM_CONDITIONAL([ENABLE_OPENGL], [test "$enable_opengl" = "true"])
 AM_CONDITIONAL([ENABLE_UI], [test "$enable_ui" = "true"])
-AM_CONDITIONAL([ENABLE_GUI], [test "$enable_gui" = "true"])
+AM_CONDITIONAL([ENABLE_X11], [test "$enable_x11" = "true"])
 
 AC_MSG_RESULT([
 
@@ -158,9 +176,10 @@ AC_MSG_RESULT([
    - Package version: $PACKAGE $VERSION
    - Prefix: ${prefix}
    - Database backend: ${with_db_backend}
-   - GUI (X11) support: ${enable_gui}
+   - X11 support: ${enable_x11}
+   - OpenGL support: ${enable_opengl}
    - UI (ncurses) support: ${enable_ui}
-   - Graph drawing support: ${enable_graph}
+   - Graph cairo support: ${enable_cairo}
 
 ])
 

@@ -1,13 +1,11 @@
 #include "config.h"
 
-#ifdef ENABLE_GUI
+#ifdef ENABLE_OPENGL
 
 #include "duc.h"
 #include "duc-graph.h"
 #include "ducrc.h"
 #include "cmd.h"
-
-#ifdef HAVE_LIBGLUT
 
 #include <stdio.h>
 #include <ctype.h>
@@ -15,10 +13,17 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 
-#include <string.h>
+#ifdef HAVE_GLES2_GL2_H
+#include <GLES2/gl2.h>
+#endif
 
+#ifdef HAVE_GL_GL_H
+#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
+#endif
+
 #include <GL/glut.h>
 
 static int opt_bytes;
@@ -190,20 +195,6 @@ static struct ducrc_option options[] = {
 	{ NULL }
 };
 
-
-#else
-
-static int guigl_main(int argc, char *argv[])
-{
-	duc_log(NULL, DUC_LOG_FTL, "'duc gui' is not supported on this platform");
-	return -1;
-}
-
-static struct ducrc_option options[] = {
-	{ NULL }
-};
-
-#endif
 
 struct cmd cmd_guigl = {
 	.name = "guigl",

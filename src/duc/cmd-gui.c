@@ -1,13 +1,11 @@
 #include "config.h"
 
-#ifdef ENABLE_GUI
+#ifdef ENABLE_X11
 
 #include "duc.h"
 #include "duc-graph.h"
 #include "ducrc.h"
 #include "cmd.h"
-
-#ifdef HAVE_LIBX11
 
 #include <stdio.h>
 #include <ctype.h>
@@ -273,20 +271,6 @@ static struct ducrc_option options[] = {
 	{ NULL }
 };
 
-
-#else
-
-int gui_main(int argc, char *argv[])
-{
-	duc_log(NULL, DUC_LOG_FTL, "'duc gui' is not supported on this platform");
-	return -1;
-}
-
-static struct ducrc_option options[] = {
-	{ NULL }
-};
-
-#endif
 
 struct cmd cmd_gui = {
 	.name = "gui",

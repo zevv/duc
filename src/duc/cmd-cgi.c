@@ -1,6 +1,6 @@
 #include "config.h"
 
-#ifdef ENABLE_GRAPH
+#ifdef ENABLE_CAIRO
 
 #include <limits.h>
 #include <stdlib.h>
