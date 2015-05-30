@@ -186,7 +186,6 @@ static void do_gui(duc *duc, duc_dir *dir)
 	}
 
 	glXMakeCurrent(dpy, win, glc);
-	glEnable(GL_DEPTH_TEST);
 
 	graph = duc_graph_new_opengl(duc);
 

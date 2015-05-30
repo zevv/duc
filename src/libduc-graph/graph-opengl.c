@@ -42,21 +42,24 @@ struct opengl_backend_data {
 
 static const GLchar *vshader = 
 	"#version 330 core\n"
-	"in vec4 pos;\n"
-	"uniform mat4 matrix;\n"
+	"in vec4 pos_in;\n"
 	"in vec2 tex_in;\n"
+	"in vec4 color_in;\n"
+	"uniform mat4 matrix;\n"
 	"out vec2 tex_out;\n"
+	"out vec4 color;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = matrix * pos;\n"
+	"	gl_Position = matrix * pos_in;\n"
 	"       tex_out = tex_in;\n"
+	"       color = color_in;\n"
 	"}\n";
 
 static const GLchar *fshader = 
 	"#version 330 core\n"
-	"uniform vec4 color = { 0.1, 0.5, 0.5, 1.0 } ;\n"
-	"uniform sampler2D Texture;\n"
+	"in vec4 color;\n"
 	"in lowp vec2 tex_out;\n"
+	"uniform sampler2D Texture;\n"
 	"out vec4 outV;\n"
 	"void main()\n"
 	"{\n"
@@ -139,7 +142,8 @@ static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *te
 	double x = _x - g->cx;
 	double y = _y - g->cy - STB_SOMEFONT_LINE_SPACING;
 		
-	glUniform4f(bd->loc_color, 0, 0, 0, 0);
+	glDisableVertexAttribArray(bd->loc_color);
+	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	char *p1 = text;
@@ -183,7 +187,7 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 
 	int ss = (a2 - a1) * r2 / 20 + 2;
 
-	GLfloat vs_fill[ss * 2][2];
+	GLfloat vs_fill[ss * 2][6];
 	GLfloat vs_line[ss * 2][2];
 
 	double da = (a2-a1) / (ss-1);
@@ -193,23 +197,37 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 		x1 = r1 * sin(a1 + da * i); y1 = -r1 * cos(a1 + da * i);
 		x2 = r2 * sin(a1 + da * i); y2 = -r2 * cos(a1 + da * i);
 
-		vs_fill[i*2 + 0][0] = x1; vs_fill[i*2 + 0][1] = y1;
-		vs_fill[i*2 + 1][0] = x2; vs_fill[i*2 + 1][1] = y2;
+		vs_fill[i*2 + 0][0] = x1; 
+		vs_fill[i*2 + 0][1] = y1;
+		vs_fill[i*2 + 0][2] = R * 0.7;
+		vs_fill[i*2 + 0][3] = G * 0.7;
+		vs_fill[i*2 + 0][4] = B * 0.7;
+		vs_fill[i*2 + 0][5] = 0;
+		vs_fill[i*2 + 1][0] = x2; 
+		vs_fill[i*2 + 1][1] = y2;
+		vs_fill[i*2 + 1][2] = R;
+		vs_fill[i*2 + 1][3] = G;
+		vs_fill[i*2 + 1][4] = B;
+		vs_fill[i*2 + 1][5] = 0;
 		
-		vs_line[i][0] = x1; vs_line[i][1] = y1;
-		vs_line[2*ss-i-1][0] = x2; vs_line[2*ss-i-1][1] = y2;
+		vs_line[i][0] = x1;
+		vs_line[i][1] = y1;
+		vs_line[2*ss-i-1][0] = x2; 
+		vs_line[2*ss-i-1][1] = y2;
 	}
 
 	glDisable(GL_TEXTURE_2D);
-	glLineWidth(1);
 	glEnableVertexAttribArray(bd->loc_pos);
+	glEnableVertexAttribArray(bd->loc_color);
 
-	glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_fill);
-	glUniform4f(bd->loc_color, R, G, B, 0.5);
+	glVertexAttribPointer(bd->loc_pos,   2, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), &vs_fill[0][0]);
+	glVertexAttribPointer(bd->loc_color, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), &vs_fill[0][2]);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, ss*2);
-	
+
+	glLineWidth(1);
+	glDisableVertexAttribArray(bd->loc_color);
+	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
 	glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_line);
-	glUniform4f(bd->loc_color, 0, 0, 0, 0.5);
 	glDrawArrays(GL_LINE_LOOP, 0, ss*2);
 	
 }
@@ -297,12 +315,12 @@ duc_graph *duc_graph_new_opengl(duc *duc)
 	g->backend_data = bd;
 	
 	bd->sp = shaders();
-	bd->loc_pos = glGetAttribLocation(bd->sp, "pos");
+	bd->loc_pos     = glGetAttribLocation(bd->sp, "pos_in");
 	bd->loc_texture = glGetAttribLocation(bd->sp, "tex_in");
+	bd->loc_color   = glGetAttribLocation(bd->sp, "color_in");
 	bd->loc_sampler = glGetUniformLocation(bd->sp, "Texture");
-	bd->loc_matrix = glGetUniformLocation(bd->sp, "matrix");
-	bd->loc_color = glGetUniformLocation(bd->sp, "color");
-	
+	bd->loc_matrix  = glGetUniformLocation(bd->sp, "matrix");
+
 	unsigned char fontpixels[STB_SOMEFONT_BITMAP_HEIGHT_POW2][STB_SOMEFONT_BITMAP_WIDTH];
 	STB_SOMEFONT_CREATE(bd->fontdata, fontpixels, STB_SOMEFONT_BITMAP_HEIGHT_POW2);
 
