@@ -12,6 +12,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <locale.h>
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>
+#endif
 
 #include "cmd.h"
 #include "duc.h"

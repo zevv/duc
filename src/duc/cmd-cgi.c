@@ -376,24 +376,26 @@ void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 		int x = atoi(xs);
 		int y = atoi(ys);
 
-		struct duc_dirent ent;
-		ent.name[0] = '\0';
+		struct duc_dirent *ent = NULL;
 		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, &ent);
 		if(dir2) duc_dir_close(dir2);
 
-		if(ent.name[0]) {
+		if(ent) {
 
 			char siz[16];
-			duc_human_size(&ent.size, st, opt_bytes, siz, sizeof siz);
-			char *typ = duc_file_type_name(ent.type);
+			duc_human_size(&ent->size, st, opt_bytes, siz, sizeof siz);
+			char *typ = duc_file_type_name(ent->type);
 			if(typ == NULL) typ = "unknown";
 
 			printf( "name: %s<br>\n"
 				"type: %s<br>\n"
 				"size: %s<br>\n",
-				ent.name,
+				ent->name,
 				typ,
 				siz);
+
+			free(ent->name);
+			free(ent);
 		}
 	}
 }

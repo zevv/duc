@@ -28,7 +28,6 @@
 
 extern struct duc_graph_backend duc_graph_backend_cairo;
 
-
 duc_graph *duc_graph_new(duc *duc)
 {
 	duc_graph *g;
@@ -316,7 +315,9 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 			double r = g->spot_r;
 
 			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-				g->spot_ent = *e;
+				g->spot_ent = duc_malloc(sizeof *g->spot_ent);
+				*g->spot_ent = *e;
+				g->spot_ent->name = duc_strdup(e->name);
 				if(e->type == DUC_FILE_TYPE_DIR)
 					g->spot_dir = duc_dir_openent(dir, e);
 			}
@@ -429,7 +430,7 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 }
 
 
-duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent *ent)
+duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent **ent)
 {
 	duc_dir *dir2 = NULL;
 
