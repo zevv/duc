@@ -434,6 +434,9 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct du
 {
 	duc_dir *dir2 = NULL;
 
+	g->cx = g->width / 2;
+	g->cy = g->height / 2;
+
 	x -= g->pos_x;
 	y -= g->pos_y;
 
@@ -453,7 +456,9 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct du
 		g->spot_dir = NULL;
 
 		duc_dir_rewind(dir);
+		g->backend->start(g);
 		do_dir(g, dir, 0, g->r_start, 0, 1, NULL);
+		g->backend->done(g);
 
 		g->spot_a = 0;
 		g->spot_r = 0;

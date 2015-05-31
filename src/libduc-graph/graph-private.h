@@ -55,7 +55,7 @@ struct duc_graph {
 	double spot_a;
 	double spot_r;
 	duc_dir *spot_dir;
-	struct duc_dirent spot_ent;
+	struct duc_dirent *spot_ent;
 
 	struct duc_graph_backend *backend;
 	void *backend_data;
