@@ -434,16 +434,18 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct du
 {
 	duc_dir *dir2 = NULL;
 
+	double n = g->width < g->height ? g->width : g->height;
+	g->size = n;
 	g->cx = g->width / 2;
 	g->cy = g->height / 2;
+	g->r_start = g->size / 10;
 
 	x -= g->pos_x;
 	y -= g->pos_y;
 
 	car2pol(g, x, y, &g->spot_a, &g->spot_r);
-	double r = hypot(x - g->cx, y - g->cy);
 
-	if(r < g->r_start) {
+	if(g->spot_r < g->r_start) {
 	
 		/* If clicked in the center, go up one directory */
 
@@ -456,9 +458,10 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct du
 		g->spot_dir = NULL;
 
 		duc_dir_rewind(dir);
-		g->backend->start(g);
+		struct duc_graph_backend *be = g->backend;
+		g->backend = NULL;
 		do_dir(g, dir, 0, g->r_start, 0, 1, NULL);
-		g->backend->done(g);
+		g->backend = be;
 
 		g->spot_a = 0;
 		g->spot_r = 0;
