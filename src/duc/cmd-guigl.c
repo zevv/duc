@@ -49,11 +49,22 @@ static duc_graph *graph;
 static double fuzz;
 
 
+static void sc2fb(GLFWwindow* window, double *x, double *y)
+{
+	int w1, h1, w2, h2;
+	glfwGetFramebufferSize(window, &w1, &h1);
+	glfwGetWindowSize(window, &w2, &h2);
+	*x *= (double)w1 / (double)w2;
+	*y *= (double)h1 / (double)h2;
+}
+
+
 void cb_winsize(GLFWwindow* window, int w, int h)
 {
 	win_w = w;
 	win_h = h;
 	glViewport(0, 0, win_w, win_h);
+	printf("%d %d\n", win_w, win_h);
 }
 
 
@@ -105,11 +116,11 @@ static void cb_keyboard(GLFWwindow* window, int k, int scancode, int action, int
 
 void cb_mouse_button(GLFWwindow* window, int b, int action, int mods)
 {
-
 	if(action != 1) return;
 
 	double x, y;
 	glfwGetCursorPos(window, &x, &y);
+	sc2fb(window, &x, &y);
 
 	if(b == 0) {
 		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
@@ -133,6 +144,7 @@ void cb_mouse_button(GLFWwindow* window, int b, int action, int mods)
 
 void cb_mouse_motion(GLFWwindow* window, double x, double y)
 {
+	sc2fb(window, &x, &y);
 	tooltip_x = x;
 	tooltip_y = y;
 }
@@ -171,7 +183,6 @@ int guigl_main(duc *duc, int argc, char *argv[])
 	}
 	
 	GLFWwindow* window = window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);;
-
 	if(window == NULL)
 	{
 		duc_log(duc, DUC_LOG_FTL, "Error creating glfw window");
@@ -180,11 +191,12 @@ int guigl_main(duc *duc, int argc, char *argv[])
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwGetFramebufferSize(window, &win_w, &win_h);
 
 	graph = duc_graph_new_opengl(duc);
 	
 	glfwSetKeyCallback(window, cb_keyboard);
-	glfwSetWindowSizeCallback(window, cb_winsize);
+	glfwSetFramebufferSizeCallback(window, cb_winsize);
 	glfwSetMouseButtonCallback(window, cb_mouse_button);
 	glfwSetCursorPosCallback(window, cb_mouse_motion);
 
