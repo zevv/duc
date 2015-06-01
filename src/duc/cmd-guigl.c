@@ -24,11 +24,8 @@
 #include <GL/gl.h>
 #endif
 
-#ifdef HAVE_GL_GLUT_H
-#include <GL/glut.h>
-#endif
-#ifdef HAVE_GLUT_GLUT_H
-#include <GLUT/glut.h>
+#ifdef HAVE_GLFW_GLFW3_H
+#include <GLFW/glfw3.h>
 #endif
 
 static int opt_bytes;
@@ -52,7 +49,7 @@ static duc_graph *graph;
 static double fuzz;
 
 
-static void cb_reshape(int w, int h)
+void cb_winsize(GLFWwindow* window, int w, int h)
 {
 	win_w = w;
 	win_h = h;
@@ -60,7 +57,7 @@ static void cb_reshape(int w, int h)
 }
 
 
-static void cb_draw(void)
+static void draw(GLFWwindow *window)
 {
 	if(opt_levels < 1) opt_levels = 1;
 	if(opt_levels > 10) opt_levels = 10;
@@ -77,25 +74,25 @@ static void cb_draw(void)
 
 	duc_graph_draw(graph, dir);
 
-	glutSwapBuffers();
+	glfwSwapBuffers(window);
 }
 	
 
-void cb_keyboard(unsigned char k, int x, int y)
+static void cb_keyboard(GLFWwindow* window, int k, int scancode, int action, int mods)
 {
+	if(action != 1) return;
+
 	if(k == '-') opt_levels--;
 	if(k == '=') opt_levels++;
 	if(k == '0') opt_levels = 4;
 	if(k == 27) exit(0);
-	if(k == 'q') exit(0);
-	if(k == 'a') opt_apparent = !opt_apparent;
-	if(k == 'b') opt_bytes = !opt_bytes;
-	if(k == 'f') fuzz = (fuzz == 0) ? opt_fuzz : 0;
+	if(k == 'Q') exit(0);
+	if(k == 'A') opt_apparent = !opt_apparent;
+	if(k == 'B') opt_bytes = !opt_bytes;
+	if(k == 'F') fuzz = (fuzz == 0) ? opt_fuzz : 0;
 	if(k == ',') if(opt_ring_gap > 0) opt_ring_gap --;
 	if(k == '.') opt_ring_gap ++;
-	if(k == 'p') {
-		palette = (palette + 1) % 4;
-	}
+	if(k == 'P') palette = (palette + 1) % 4;
 	if(k == 8) {
 		duc_dir *dir2 = duc_dir_openat(dir, "..");
 		if(dir2) {
@@ -103,14 +100,16 @@ void cb_keyboard(unsigned char k, int x, int y)
 			dir = dir2;
 		}
 	}
-
-	cb_draw();
 }
 
 
-void cb_mouse_button(int b, int state, int x, int y)
+void cb_mouse_button(GLFWwindow* window, int b, int action, int mods)
 {
-	if(state != GLUT_DOWN) return;
+
+	if(action != 1) return;
+
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
 
 	if(b == 0) {
 		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
@@ -129,22 +128,13 @@ void cb_mouse_button(int b, int state, int x, int y)
 
 	if(b == 4) opt_levels --;
 	if(b == 5) opt_levels ++;
-
-	cb_draw();
 }
 
 
-void cb_mouse_motion(int x, int y)
+void cb_mouse_motion(GLFWwindow* window, double x, double y)
 {
 	tooltip_x = x;
 	tooltip_y = y;
-}
-
-
-void cb_idle(void)
-{
-	usleep(30000);
-	cb_draw();
 }
 
 
@@ -174,22 +164,36 @@ int guigl_main(duc *duc, int argc, char *argv[])
 		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
+
+	if(!glfwInit()) {
+		duc_log(duc, DUC_LOG_FTL, "Error initializen glfw");
+		return -1;
+	}
 	
-	glutInit(&argc, argv);
-	glutInitWindowSize(win_w, win_h);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutCreateWindow("duc");
+	GLFWwindow* window = window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);;
+
+	if(window == NULL)
+	{
+		duc_log(duc, DUC_LOG_FTL, "Error creating glfw window");
+		glfwTerminate();
+		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
 
 	graph = duc_graph_new_opengl(duc);
+	
+	glfwSetKeyCallback(window, cb_keyboard);
+	glfwSetWindowSizeCallback(window, cb_winsize);
+	glfwSetMouseButtonCallback(window, cb_mouse_button);
+	glfwSetCursorPosCallback(window, cb_mouse_motion);
 
-	glutDisplayFunc(cb_draw);
-	glutReshapeFunc(cb_reshape);
-	glutKeyboardFunc(cb_keyboard);
-	glutMouseFunc(cb_mouse_button);
-	glutPassiveMotionFunc(cb_mouse_motion);
-	glutIdleFunc(cb_idle);
-	glutIgnoreKeyRepeat(1);
-	glutMainLoop();
+	while (!glfwWindowShouldClose(window)) {
+		draw(window);
+		glfwPollEvents();
+	}
+
+	glfwTerminate();
 
 	return 0;
 }
