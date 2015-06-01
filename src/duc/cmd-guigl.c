@@ -190,7 +190,7 @@ int guigl_main(duc *duc, int argc, char *argv[])
 
 	while (!glfwWindowShouldClose(window)) {
 		draw(window);
-		glfwPollEvents();
+		glfwWaitEvents();
 	}
 
 	glfwTerminate();
