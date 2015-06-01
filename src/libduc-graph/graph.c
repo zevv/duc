@@ -47,7 +47,8 @@ duc_graph *duc_graph_new(duc *duc)
 
 void duc_graph_free(duc_graph *g)
 {
-	g->backend->free(g);
+	if(g->backend)
+		g->backend->free(g);
 	free(g);
 }
 
@@ -334,7 +335,8 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 				do_dir(g, dir_child, level + 1, r2, a1, a2, &e->size);
 				duc_dir_close(dir_child);
 			} else {
-				g->backend->draw_section(g, a1, a2, r2+2, r2+8, H, S/2, V/2, L);
+				if(g->backend) 
+					g->backend->draw_section(g, a1, a2, r2+2, r2+8, H, S/2, V/2, L);
 			}
 		}
 
@@ -394,7 +396,8 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	
 	duc_dir_rewind(dir);
 
-	g->backend->start(g);
+	if(g->backend)
+		g->backend->start(g);
 	do_dir(g, dir, 0, g->r_start, 0, 1, NULL);
 
 	/* Draw collected labels */
@@ -402,20 +405,23 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	struct label *l, *ln;
 
 	LL_FOREACH_SAFE(g->label_list, l, ln) {
-		g->backend->draw_text(g, l->x, l->y, FONT_SIZE_LABEL, l->text);
+		if(g->backend)
+			g->backend->draw_text(g, l->x, l->y, FONT_SIZE_LABEL, l->text);
 		free(l->text);
 		free(l);
 	}
 	
 	char *p = duc_dir_get_path(dir);
-	g->backend->draw_text(g, g->cx, 10, FONT_SIZE_LABEL, p);
+	if(g->backend)
+		g->backend->draw_text(g, g->cx, 10, FONT_SIZE_LABEL, p);
 	free(p);
 
 	struct duc_size size;
 	duc_dir_get_size(dir, &size);
 	char siz[16];
 	duc_human_size(&size, g->size_type, g->bytes, siz, sizeof siz);
-	g->backend->draw_text(g, g->cx, g->cy, 14, siz);
+	if(g->backend)
+		g->backend->draw_text(g, g->cx, g->cy, 14, siz);
 
 	/* Draw tooltip */
 
@@ -424,7 +430,8 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	}
 
 	g->label_list = NULL;
-	g->backend->done(g);
+	if(g->backend)
+		g->backend->done(g);
 
 	return 0;
 }
