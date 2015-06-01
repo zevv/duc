@@ -197,6 +197,7 @@ static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *te
 
 static void br_opengl_draw_tooltip(duc_graph *g, int x, int y, char *text)
 {
+	br_opengl_draw_text(g, x, y, 0, text);
 }
 
 
