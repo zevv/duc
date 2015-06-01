@@ -28,6 +28,9 @@
 #include <GL/gl.h>
 #endif
 
+#ifdef HAVE_OPENGL_GL_H
+#include <OpenGL/gl.h>
+#endif
 
 #include "private.h"
 #include "duc.h"

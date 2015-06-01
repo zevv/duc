@@ -117,7 +117,7 @@ The OpenGL library was not found, which is needed for ui support.
 	AC_CHECK_LIB([glut], [glutSwapBuffers],, [
 The glut library was not found, which is needed for opengl support.
 	])
-	AC_CHECK_HEADERS([GL/gl.h GLES2/gl2.h])
+	AC_CHECK_HEADERS([GL/gl.h GLES2/gl2.h OpenGL/gl.h GL/glut.h GLUT/glut.h])
 
         AC_DEFINE([ENABLE_OPENGL], [1], [Enable cairo])
 fi
