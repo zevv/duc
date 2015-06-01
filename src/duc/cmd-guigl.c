@@ -96,7 +96,7 @@ static void cb_keyboard(GLFWwindow* window, int k, int scancode, int action, int
 	if(k == '-') opt_levels--;
 	if(k == '=') opt_levels++;
 	if(k == '0') opt_levels = 4;
-	if(k == 27) exit(0);
+	if(k == GLFW_KEY_ESCAPE) exit(0);
 	if(k == 'Q') exit(0);
 	if(k == 'A') opt_apparent = !opt_apparent;
 	if(k == 'B') opt_bytes = !opt_bytes;
@@ -136,9 +136,14 @@ void cb_mouse_button(GLFWwindow* window, int b, int action, int mods)
 			dir = dir2;
 		}
 	}
+}
 
-	if(b == 4) opt_levels --;
-	if(b == 5) opt_levels ++;
+void cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+	static double scroll = 0;
+	scroll += yoffset;
+	if(scroll < -1) { opt_levels --; scroll += 1; }
+	if(scroll > +1) { opt_levels ++; scroll -= 1; }
 }
 
 
@@ -199,6 +204,7 @@ int guigl_main(duc *duc, int argc, char *argv[])
 	glfwSetFramebufferSizeCallback(window, cb_winsize);
 	glfwSetMouseButtonCallback(window, cb_mouse_button);
 	glfwSetCursorPosCallback(window, cb_mouse_motion);
+	glfwSetScrollCallback(window, cb_scroll);
 
 	while (!glfwWindowShouldClose(window)) {
 		draw(window);
