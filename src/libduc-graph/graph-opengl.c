@@ -180,6 +180,11 @@ static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *te
 		}
 
 		glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
+		draw_text_line(g, x-1, y+0, size, p1, p2-p1);
+		draw_text_line(g, x+1, y-0, size, p1, p2-p1);
+		draw_text_line(g, x-0, y+1, size, p1, p2-p1);
+		draw_text_line(g, x+0, y-1, size, p1, p2-p1);
+		glVertexAttrib4f(bd->loc_color, 1, 1, 1, 0);
 		draw_text_line(g, x+0, y, size, p1, p2-p1);
 
 		if(!*p2) break;
