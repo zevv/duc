@@ -27,7 +27,7 @@ static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
 static int opt_levels = 4;
 static int opt_apparent = 0;
-static int opt_ring_gap = 0;
+static int opt_ring_gap = 4;
 
 static Display *dpy;
 static Window rootwin;

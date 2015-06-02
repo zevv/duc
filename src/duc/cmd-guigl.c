@@ -35,7 +35,7 @@ static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
 static int opt_levels = 4;
 static int opt_apparent = 0;
-static int opt_ring_gap = 0;
+static int opt_ring_gap = 4;
 
 //static int redraw = 1;
 static int tooltip_x = 0;
@@ -104,7 +104,7 @@ static void cb_keyboard(GLFWwindow* window, int k, int scancode, int action, int
 	if(k == ',') if(opt_ring_gap > 0) opt_ring_gap --;
 	if(k == '.') opt_ring_gap ++;
 	if(k == 'P') palette = (palette + 1) % 4;
-	if(k == 8) {
+	if(k == GLFW_KEY_BACKSPACE) {
 		duc_dir *dir2 = duc_dir_openat(dir, "..");
 		if(dir2) {
 			duc_dir_close(dir);
@@ -186,7 +186,7 @@ int guigl_main(duc *duc, int argc, char *argv[])
 		duc_log(duc, DUC_LOG_FTL, "Error initializen glfw");
 		return -1;
 	}
-	
+
 	GLFWwindow* window = window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);;
 	if(window == NULL)
 	{
