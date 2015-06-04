@@ -117,7 +117,12 @@ The OpenGL library was not found, which is needed for ui support.
 	AC_CHECK_LIB([glfw], [glfwInit],, [
 The glfwInit library was not found, which is needed for opengl support.
 	])
-	AC_CHECK_HEADERS([GL/gl.h GLES2/gl2.h OpenGL/gl.h GLFW/glfw3.h])
+	AC_CHECK_HEADERS([GL/gl.h GLES2/gl2.h OpenGL/gl.h])
+
+	AC_CHECK_HEADER([GLFW/glfw3.h], [], [AC_MSG_ERROR([GLFW/glfw3.h is required
+The glfw3 library was not found, which is needed for opengl support. Either install
+the glfw3 development libraries, or compile without opengl support (--disable-opengl)
+	 ])])
 
         AC_DEFINE([ENABLE_OPENGL], [1], [Enable cairo])
 fi
