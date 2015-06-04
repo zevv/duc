@@ -1,6 +1,6 @@
 #include "config.h"
 
-#ifdef ENABLE_GRAPH
+#ifdef ENABLE_CAIRO
 
 #include <stdio.h>
 #include <ctype.h>
@@ -34,7 +34,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 	char *path_out = opt_output;
 	char *path_out_default = "duc.png";
 
-	enum duc_graph_file_format format = DUC_GRAPH_FORMAT_PNG;
+	duc_graph_file_format format = DUC_GRAPH_FORMAT_PNG;
 
 	if(strcasecmp(opt_format, "svg") == 0) {
 		format = DUC_GRAPH_FORMAT_SVG;
@@ -71,14 +71,6 @@ static int graph_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_graph *graph = duc_graph_new(duc);
-	duc_graph_set_size(graph, opt_size);
-	duc_graph_set_fuzz(graph, opt_fuzz);
-	duc_graph_set_max_level(graph, opt_levels);
-	duc_graph_set_palette(graph, palette);
-	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
-	duc_graph_set_ring_gap(graph, opt_ring_gap);
-
 	FILE *f = NULL;
 	if(strcmp(path_out, "-") == 0) {
 		f = stdout;
@@ -91,7 +83,15 @@ static int graph_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_graph_draw_file(graph, dir, format, f);
+	duc_graph *graph = duc_graph_new_file(duc, format, f);
+	duc_graph_set_size(graph, opt_size, opt_size);
+	duc_graph_set_fuzz(graph, opt_fuzz);
+	duc_graph_set_max_level(graph, opt_levels);
+	duc_graph_set_palette(graph, palette);
+	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_ring_gap(graph, opt_ring_gap);
+
+	duc_graph_draw(graph, dir);
 
 	duc_graph_free(graph);
 	duc_dir_close(dir);

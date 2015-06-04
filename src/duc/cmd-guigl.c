@@ -1,6 +1,6 @@
 #include "config.h"
 
-#ifdef ENABLE_X11
+#ifdef ENABLE_OPENGL
 
 #include "duc.h"
 #include "duc-graph.h"
@@ -13,12 +13,20 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 
-#include <cairo.h>
-#include <string.h>
-#include <cairo-xlib.h>
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
+#ifdef HAVE_GLES2_GL2_H
+#include <GLES2/gl2.h>
+#endif
+
+#ifdef HAVE_GL_GL_H
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#endif
+
+#ifdef HAVE_GLFW_GLFW3_H
+#include <GLFW/glfw3.h>
+#endif
 
 static int opt_bytes;
 static int opt_dark;
@@ -29,29 +37,43 @@ static int opt_levels = 4;
 static int opt_apparent = 0;
 static int opt_ring_gap = 4;
 
-static Display *dpy;
-static Window rootwin;
-static int redraw = 1;
+//static int redraw = 1;
 static int tooltip_x = 0;
 static int tooltip_y = 0;
-static int tooltip_moved = 0;
-static struct pollfd pfd;
+//static int tooltip_moved = 0;
 static enum duc_graph_palette palette = 0;
 static int win_w = 600;
 static int win_h = 600;
-static cairo_surface_t *cs;
-static cairo_t *cr;
 static duc_dir *dir;
 static duc_graph *graph;
 static double fuzz;
 
-static void draw(void)
+
+static void sc2fb(GLFWwindow* window, double *x, double *y)
+{
+	int w1, h1, w2, h2;
+	glfwGetFramebufferSize(window, &w1, &h1);
+	glfwGetWindowSize(window, &w2, &h2);
+	*x *= (double)w1 / (double)w2;
+	*y *= (double)h1 / (double)h2;
+}
+
+
+void cb_winsize(GLFWwindow* window, int w, int h)
+{
+	win_w = w;
+	win_h = h;
+	glViewport(0, 0, win_w, win_h);
+	printf("%d %d\n", win_w, win_h);
+}
+
+
+static void draw(GLFWwindow *window)
 {
 	if(opt_levels < 1) opt_levels = 1;
 	if(opt_levels > 10) opt_levels = 10;
 
 	duc_graph_set_size(graph, win_w, win_h);
-	duc_graph_set_position(graph, 0, 0);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, fuzz);
 	duc_graph_set_palette(graph, palette);
@@ -61,145 +83,79 @@ static void draw(void)
 	duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
-	cairo_push_group(cr);
-	if(opt_dark) {
-		cairo_set_source_rgb(cr, 0, 0, 0);
-	} else {
-		cairo_set_source_rgb(cr, 1, 1, 1);
-	}
-	cairo_paint(cr);
 	duc_graph_draw(graph, dir);
-	cairo_pop_group_to_source(cr);
-	cairo_paint(cr);
-	cairo_surface_flush(cs);
+
+	glfwSwapBuffers(window);
 }
-
-
-static int handle_event(XEvent e)
-{
-	KeySym k;
-	int x, y, b;
-
-	switch(e.type) {
-
-		case ConfigureNotify: 
-			win_w = e.xconfigure.width;
-			win_h = e.xconfigure.height;
-			cairo_xlib_surface_set_size(cs, win_w, win_h);
-			redraw = 1;
-			break;
-			
-
-		case Expose:
-			if(e.xexpose.count < 1) redraw = 1;
-			break;
-
-		case KeyPress: 
-
-			k = XLookupKeysym(&e.xkey, 0);
-
-			if(k == XK_minus) opt_levels--;
-			if(k == XK_equal) opt_levels++;
-			if(k == XK_0) opt_levels = 4;
-			if(k == XK_Escape) return 1;
-			if(k == XK_q) return 1;
-			if(k == XK_a) opt_apparent = !opt_apparent;
-			if(k == XK_b) opt_bytes = !opt_bytes;
-			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
-			if(k == XK_comma) if(opt_ring_gap > 0) opt_ring_gap --;
-			if(k == XK_period) opt_ring_gap ++;
-			if(k == XK_p) {
-				palette = (palette + 1) % 4;
-			}
-			if(k == XK_BackSpace) {
-				duc_dir *dir2 = duc_dir_openat(dir, "..");
-				if(dir2) {
-					duc_dir_close(dir);
-					dir = dir2;
-				}
-			}
-
-			redraw = 1;
-			break;
-
-		case ButtonPress: 
-
-			x = e.xbutton.x;
-			y = e.xbutton.y;
-			b = e.xbutton.button;
-
-			if(b == 1) {
-				duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
-				if(dir2) {
-					duc_dir_close(dir);
-					dir = dir2;
-				}
-			}
-			if(b == 3) {
-				duc_dir *dir2 = duc_dir_openat(dir, "..");
-				if(dir2) {
-					duc_dir_close(dir);
-					dir = dir2;
-				}
-			}
-
-			if(b == 4) opt_levels --;
-			if(b == 5) opt_levels ++;
-
-			redraw = 1;
-			break;
-
-		case MotionNotify: 
-
-			tooltip_x = e.xmotion.x;
-			tooltip_y = e.xmotion.y;
-			tooltip_moved = 1;
-			break;
-	}
-
-	return 0;
-}
-
-
-static void do_gui(duc *duc, duc_graph *graph, duc_dir *dir)
-{
-
-	pfd.fd = ConnectionNumber(dpy);
-	pfd.events = POLLIN | POLLERR;
-		
-	int quit = 0;
-
-	while(!quit) {
-
-		if(redraw) {
-			draw();
-			XFlush(dpy);
-			redraw = 0;
-		}
-
-		int r = poll(&pfd, 1, 10);
-
-		if(r == 0) {
-			if(tooltip_moved) {
-				tooltip_moved = 0;
-				redraw = 1;
-			}
-		}
-
-		while (XEventsQueued(dpy, QueuedAfterReading) > 0) {
-			XEvent e;
-			XNextEvent(dpy, &e);
-
-			quit = handle_event(e);
-		}
-	}
-
-	cairo_surface_destroy(cs);
-	XCloseDisplay(dpy);
-}
-
 	
-int gui_main(duc *duc, int argc, char *argv[])
+
+static void cb_keyboard(GLFWwindow* window, int k, int scancode, int action, int mods)
+{
+	if(action != 1) return;
+
+	if(k == '-') opt_levels--;
+	if(k == '=') opt_levels++;
+	if(k == '0') opt_levels = 4;
+	if(k == GLFW_KEY_ESCAPE) exit(0);
+	if(k == 'Q') exit(0);
+	if(k == 'A') opt_apparent = !opt_apparent;
+	if(k == 'B') opt_bytes = !opt_bytes;
+	if(k == 'F') fuzz = (fuzz == 0) ? opt_fuzz : 0;
+	if(k == ',') if(opt_ring_gap > 0) opt_ring_gap --;
+	if(k == '.') opt_ring_gap ++;
+	if(k == 'P') palette = (palette + 1) % 4;
+	if(k == GLFW_KEY_BACKSPACE) {
+		duc_dir *dir2 = duc_dir_openat(dir, "..");
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+		}
+	}
+}
+
+
+void cb_mouse_button(GLFWwindow* window, int b, int action, int mods)
+{
+	if(action != 1) return;
+
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
+	sc2fb(window, &x, &y);
+
+	if(b == 0) {
+		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+		}
+	}
+	if(b == 3) {
+		duc_dir *dir2 = duc_dir_openat(dir, "..");
+		if(dir2) {
+			duc_dir_close(dir);
+			dir = dir2;
+		}
+	}
+}
+
+void cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+	static double scroll = 0;
+	scroll += yoffset;
+	if(scroll < -1) { opt_levels --; scroll += 1; }
+	if(scroll > +1) { opt_levels ++; scroll -= 1; }
+}
+
+
+void cb_mouse_motion(GLFWwindow* window, double x, double y)
+{
+	sc2fb(window, &x, &y);
+	tooltip_x = x;
+	tooltip_y = y;
+}
+
+
+int guigl_main(duc *duc, int argc, char *argv[])
 {
 	char *path = ".";
 	if(argc > 0) path = argv[0];
@@ -225,36 +181,37 @@ int gui_main(duc *duc, int argc, char *argv[])
 		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
-	
-	dpy = XOpenDisplay(NULL);
-	if(dpy == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "ERROR: Could not open display");
-		exit(1);
+
+	if(!glfwInit()) {
+		duc_log(duc, DUC_LOG_FTL, "Error initializen glfw");
+		return -1;
 	}
 
-	int scr = DefaultScreen(dpy);
-	rootwin = RootWindow(dpy, scr);
+	GLFWwindow* window = window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);;
+	if(window == NULL)
+	{
+		duc_log(duc, DUC_LOG_FTL, "Error creating glfw window");
+		glfwTerminate();
+		return -1;
+	}
 
-	Window win = XCreateSimpleWindow(
-			dpy, 
-			rootwin, 
-			1, 1, 
-			win_w, win_h, 0, 
-			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
+	glfwMakeContextCurrent(window);
+	glfwGetFramebufferSize(window, &win_w, &win_h);
 
-	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
-	XMapWindow(dpy, win);
+	graph = duc_graph_new_opengl(duc);
 	
-	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
-	cr = cairo_create(cs);
+	glfwSetKeyCallback(window, cb_keyboard);
+	glfwSetFramebufferSizeCallback(window, cb_winsize);
+	glfwSetMouseButtonCallback(window, cb_mouse_button);
+	glfwSetCursorPosCallback(window, cb_mouse_motion);
+	glfwSetScrollCallback(window, cb_scroll);
 
+	while (!glfwWindowShouldClose(window)) {
+		draw(window);
+		glfwWaitEvents();
+	}
 
-
-	graph = duc_graph_new_cairo(duc, cr);
-
-	do_gui(duc, graph, dir);
-
-	duc_dir_close(dir);
+	glfwTerminate();
 
 	return 0;
 }
@@ -272,11 +229,11 @@ static struct ducrc_option options[] = {
 };
 
 
-struct cmd cmd_gui = {
-	.name = "gui",
-	.descr_short = "Interactive X11 graphical interface",
+struct cmd cmd_guigl = {
+	.name = "guigl",
+	.descr_short = "Interactive OpenGL graphical interface",
 	.usage = "[options] [PATH]",
-	.main = gui_main,
+	.main = guigl_main,
 	.options = options,
 	.descr_long = 
 		"The 'gui' subcommand queries the duc database and runs an interactive graphical\n"

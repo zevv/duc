@@ -22,12 +22,15 @@ duc_SOURCES := \
 
 duc_SOURCES += \
 	src/libduc-graph/graph.c \
+	src/libduc-graph/graph-cairo.c \
+	src/libduc-graph/graph-opengl.c \
 	src/libduc-graph/duc-graph.h 
 
 duc_SOURCES  += \
 	src/duc/cmd-cgi.c \
 	src/duc/cmd-graph.c \
 	src/duc/cmd-gui.c \
+	src/duc/cmd-guigl.c \
 	src/duc/cmd.h \
 	src/duc/cmd.h  \
 	src/duc/cmd-index.c \

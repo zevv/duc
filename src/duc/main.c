@@ -30,6 +30,7 @@ struct cmd cmd_index;
 struct cmd cmd_manual;
 struct cmd cmd_ls;
 struct cmd cmd_gui;
+struct cmd cmd_guigl;
 struct cmd cmd_graph;
 struct cmd cmd_xml;
 struct cmd cmd_cgi;
@@ -43,16 +44,16 @@ struct cmd *cmd_list[] = {
 	&cmd_manual,
 	&cmd_ls,
 	&cmd_xml,
-
-#ifdef ENABLE_GRAPH
+#ifdef ENABLE_CAIRO
 	&cmd_cgi,
 	&cmd_graph,
 #endif
-
-#ifdef ENABLE_GUI
+#ifdef ENABLE_X11
 	&cmd_gui,
 #endif
-
+#ifdef ENABLE_OPENGL
+	&cmd_guigl,
+#endif
 #ifdef ENABLE_UI
 	&cmd_ui,
 #endif
@@ -401,11 +402,14 @@ static void show_version(void)
 {
 	printf("duc version: %s\n", PACKAGE_VERSION);
 	printf("options: ");
-#ifdef ENABLE_GRAPH
-	printf("graph ");
+#ifdef ENABLE_CAIRO
+	printf("cairo ");
 #endif
-#ifdef ENABLE_GUI
-	printf("gui ");
+#ifdef ENABLE_OPENGL
+	printf("opengl ");
+#endif
+#ifdef ENABLE_X11
+	printf("x11 ");
 #endif
 #ifdef ENABLE_UI
 	printf("ui ");
