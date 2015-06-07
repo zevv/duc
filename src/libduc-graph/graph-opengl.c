@@ -129,7 +129,28 @@ static double draw_char(duc_graph *g, double x, double y, int c)
 }
 
 
-static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
+static void text_size(duc_graph *g, char *text, int *w, int *h)
+{
+	struct opengl_backend_data *bd = g->backend_data;
+	char *p = text;
+	double wmax = 0;
+	*w = *h = 0;
+
+	while(*p) {
+		int c = *p++;
+		if(c == '\r' || c == '\n') {
+			*h += STB_SOMEFONT_LINE_SPACING * 1.5;
+			wmax = 0;
+		} else {
+			stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
+			wmax += cd->advance;
+			if(wmax > *w) *w = wmax;
+		}
+	}
+}
+
+
+static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l, int center)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 	int lines = 1;
@@ -145,8 +166,10 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 		w += cd->advance;
 	}
 
-	x -= w * 0.5;
-	y -= (STB_SOMEFONT_LINE_SPACING * lines) * 0.5;
+	if(center) {
+		x -= w * 0.5;
+		y -= (STB_SOMEFONT_LINE_SPACING * lines) * 0.5;
+	}
 
 	for(i=0; i<l; i++) {
 		x = draw_char(g, x, y, text[i]);
@@ -154,7 +177,7 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 }
 
 
-static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *text)
+static void draw_text(duc_graph *g, int _x, int _y, int size, char *text, int center)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 
@@ -172,13 +195,13 @@ static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *te
 			p2++;
 		}
 
-		glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
-		draw_text_line(g, x-1, y+0, size, p1, p2-p1);
-		draw_text_line(g, x+1, y-0, size, p1, p2-p1);
-		draw_text_line(g, x-0, y+1, size, p1, p2-p1);
-		draw_text_line(g, x+0, y-1, size, p1, p2-p1);
 		glVertexAttrib4f(bd->loc_color, 1, 1, 1, 0);
-		draw_text_line(g, x+0, y, size, p1, p2-p1);
+		draw_text_line(g, x-1, y+0, size, p1, p2-p1, center);
+		draw_text_line(g, x+1, y-0, size, p1, p2-p1, center);
+		draw_text_line(g, x-0, y+1, size, p1, p2-p1, center);
+		draw_text_line(g, x+0, y-1, size, p1, p2-p1, center);
+		glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
+		draw_text_line(g, x+0, y, size, p1, p2-p1, center);
 
 		if(!*p2) break;
 
@@ -193,9 +216,39 @@ static void br_opengl_draw_text(duc_graph *g, int _x, int _y, int size, char *te
 }
 
 
+static void br_opengl_draw_text(duc_graph *g, int x, int y, int size, char *text)
+{
+	draw_text(g, x, y, size, text, 1);
+}
+
+
 static void br_opengl_draw_tooltip(duc_graph *g, int x, int y, char *text)
 {
-	br_opengl_draw_text(g, x, y, 0, text);
+	struct opengl_backend_data *bd = g->backend_data;
+	int w, h;
+
+	text_size(g, text, &w, &h);
+
+	GLfloat vVertices[] = {
+		x - g->cx - w - 10, y - g->cy - h - 15,
+		x - g->cx         , y - g->cy - h - 15,
+		x - g->cx         , y - g->cy         ,
+		x - g->cx - w - 10, y - g->cy         ,
+	};
+
+
+	glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), &vVertices[0]);
+	glDisableVertexAttribArray(bd->loc_color);
+	glDisableVertexAttribArray(bd->loc_texture);
+
+	glVertexAttrib4f(bd->loc_color, 1, 1, 1, 0);
+	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
+	
+	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
+	glDrawArrays(GL_LINE_LOOP, 0, 4);
+	
+	draw_text(g, x - w - 5, y - h - 5, 0, text, 0);
 }
 
 
