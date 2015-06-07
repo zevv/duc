@@ -16,17 +16,10 @@
 #include <unistd.h>
 
 #ifdef HAVE_GLES2_GL2_H
-#include <GLES2/gl2.h>
+#define GLFW_INCLUDE_ES2
 #endif
-
-#ifdef HAVE_GL_GL_H
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#endif
-
-#ifdef HAVE_GLFW_GLFW3_H
+#define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
-#endif
 
 static int opt_bytes;
 static int opt_dark;
