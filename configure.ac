@@ -41,7 +41,7 @@ AC_ARG_ENABLE(
 
 AC_ARG_ENABLE(
         [opengl],
-        [AS_HELP_STRING([--enable-opengl], [disable OpenGL drawing @<:@default=no@:>@])], ,
+        [AS_HELP_STRING([--enable-opengl], [enable OpenGL drawing @<:@default=no@:>@])], ,
         [enable_opengl="no"]
 )
 
@@ -72,26 +72,26 @@ AC_MSG_RESULT([Selected backend ${with_db_backend}])
 case "${with_db_backend}" in
 	tokyocabinet)
 		PKG_CHECK_MODULES([TC], [tokyocabinet])
-		AC_DEFINE([ENABLE_TOKYOCABINET], [1], "Enable tokyocabinet db backend")
+		AC_DEFINE([ENABLE_TOKYOCABINET], [1], [Enable tokyocabinet db backend])
 		;;
 	leveldb)
 		AC_CHECK_LIB([leveldb], [leveldb_open])
-		AC_DEFINE([ENABLE_LEVELDB], [1], "Enable leveldb db backend")
+		AC_DEFINE([ENABLE_LEVELDB], [1], [Enable leveldb db backend])
 		;;
 	sqlite3)
 		PKG_CHECK_MODULES([SQLITE3], [sqlite3])
-		AC_DEFINE([ENABLE_SQLITE], [1], "Enable sqlite3 db backend")
+		AC_DEFINE([ENABLE_SQLITE], [1], [Enable sqlite3 db backend])
 		;;
 	*)
 		AC_MSG_ERROR([Unsupported db-backend])
 esac
 
-AC_DEFINE_UNQUOTED(DB_BACKEND, "${with_db_backend}", [Database backend])
+AC_DEFINE_UNQUOTED(DB_BACKEND, ["${with_db_backend}"], [Database backend])
 
 if test "${enable_cairo}" = "yes"; then
 
-	PKG_CHECK_MODULES([CAIRO], [cairo],, [AC_MSG_ERROR(
-[The cairo library was not found, which is needed for graph support. Either install
+	PKG_CHECK_MODULES([CAIRO], [cairo],, [AC_MSG_ERROR([
+The cairo library was not found, which is needed for graph support. Either install
 the cairo development libraries, or compile without graph support (--disable-graph)
 	])])
 
@@ -108,23 +108,21 @@ the pangocairo development libraries, or compile without graph support (--disabl
         AC_DEFINE([ENABLE_CAIRO], [1], [Enable cairo])
 fi
 
-
 if test "${enable_opengl}" = "yes"; then
 
-	AC_CHECK_LIB([GL], [glBlendFunc],, [
-The OpenGL library was not found, which is needed for ui support.
-	])
-	AC_CHECK_LIB([glfw], [glfwInit],, [
-The glfwInit library was not found, which is needed for opengl support.
-	])
-	AC_CHECK_HEADERS([GL/gl.h GLES2/gl2.h OpenGL/gl.h])
-
-	AC_CHECK_HEADER([GLFW/glfw3.h], [], [AC_MSG_ERROR([GLFW/glfw3.h is required
+	PKG_CHECK_MODULES([GLFW3], [glfw3],, [AC_MSG_ERROR([
 The glfw3 library was not found, which is needed for opengl support. Either install
 the glfw3 development libraries, or compile without opengl support (--disable-opengl)
 	 ])])
 
-        AC_DEFINE([ENABLE_OPENGL], [1], [Enable cairo])
+	PKG_CHECK_MODULES([GL], [gl],, [AC_MSG_ERROR([
+The opengl library was not found, which is needed for opengl support. Either install
+the opengl development libraries, or compile without opengl support (--disable-opengl)
+	 ])])
+
+	AC_CHECK_HEADERS([GLES2/gl2.h])
+
+        AC_DEFINE([ENABLE_OPENGL], [1], [Enable opengl])
 fi
 
 
