@@ -229,7 +229,7 @@ struct cmd cmd_guigl = {
 	.main = guigl_main,
 	.options = options,
 	.descr_long = 
-		"The 'gui' subcommand queries the duc database and runs an interactive graphical\n"
+		"The 'guigl' subcommand queries the duc database and runs an interactive graphical\n"
 		"utility for exploring the disk usage of the given path. If no path is given the\n"
 		"current working directory is explored.\n"
 		"\n"

@@ -31,11 +31,19 @@ certain features of duc by passing any of the below switches to ./configure:
     --disable-graph         disable graph drawing [default=yes]
     --disable-ui            disable ncursesw ui [default=yes]
     --disable-gui           disable X11 gui [default=yes]
+
+An experimental GUI based on OpenGL is available, mainly targeted at Mac OS X
+because this platform lacks a native X11 server:
+
+    --enable-opengl         enable OpenGL gui [default=no]
+
+The database engine is configurable at build time:
+
     --with-db-backend=ARG   choose db backend (tokyocabinet,leveldb,sqlite3) [tokyocabinet]
 
-The database engine is configurable at build time, at this time Tokyocabinet,
-Leveldb and Sqlite3 are supported. Duc uses Tokyocabinet by default: the
-performance is acceptable and generates in the smallest database size.
+At this time Tokyocabinet, Leveldb and Sqlite3 are supported. Duc uses
+Tokyocabinet by default: the performance is acceptable and generates in the
+smallest database size.
 
 To get the required dependencies on Debian or Ubuntu, run:
 
