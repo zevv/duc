@@ -1,5 +1,5 @@
 
-	- new: added opengl graph backend for better portability
+	- new: added OpenGL/GLFW graph driver for better portability
 	- new: added tooltip to CGI, enable with --tooltip option
 	- new: duc database is now portable between endianess and
 	       architectures for sqlite3 databases
