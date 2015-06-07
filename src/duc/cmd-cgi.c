@@ -34,7 +34,7 @@ static double opt_fuzz = 0.7;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
 static int opt_tooltip = 0;
-static int opt_ring_gap = 0;
+static int opt_ring_gap = 4;
 
 static struct param *param_list = NULL;
 
