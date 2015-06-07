@@ -339,50 +339,6 @@ Options for command `duc gui [options] [PATH]`:
   * `--ring-gap=VAL`:
     leave a gap of VAL pixels between rings
 
-### duc guigl
-
-The 'gui' subcommand queries the duc database and runs an interactive graphical
-utility for exploring the disk usage of the given path. If no path is given the
-current working directory is explored.
-
-The following keys can be used to navigate and alter the graph:
-
-    +           increase maximum graph depth
-    -           decrease maximum graph depth
-    0           Set default graph depth
-    a           Toggle between apparent and actual disk usage
-    b           Toggle between exact byte count and abbreviated sizes
-    p           toggle palettes
-    f           toggle graph fuzz
-    backspace   go up one directory
-
-
-Options for command `duc guigl [options] [PATH]`:
-
-  * `-a`, `--apparent`:
-    show apparent instead of actual file size
-
-  * `-b`, `--bytes`:
-    show file size in exact number of bytes
-
-  * `--dark`:
-    use dark background color
-
-  * `-d`, `--database=VAL`:
-    select database file to use [~/.duc.db]
-
-  * `--fuzz=VAL`:
-    use radius fuzz factor when drawing graph
-
-  * `-l`, `--levels=VAL`:
-    draw up to VAL levels deep [4]
-
-  * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
-
-  * `--ring-gap=VAL`:
-    leave a gap of VAL pixels between rings
-
 ### duc ui
 
 The 'gui' subcommand queries the duc database and runs an interactive ncurses

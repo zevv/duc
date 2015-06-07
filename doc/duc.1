@@ -373,64 +373,6 @@ select palette \fIsize|rainbow|greyscale|monochrome\fR
 \fB\-\-ring\-gap=VAL\fR
 leave a gap of VAL pixels between rings
 .
-.SS "duc guigl"
-The \'gui\' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
-.
-.P
-The following keys can be used to navigate and alter the graph:
-.
-.IP "" 4
-.
-.nf
-
-+           increase maximum graph depth
-\-           decrease maximum graph depth
-0           Set default graph depth
-a           Toggle between apparent and actual disk usage
-b           Toggle between exact byte count and abbreviated sizes
-p           toggle palettes
-f           toggle graph fuzz
-backspace   go up one directory
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Options for command \fBduc guigl [options] [PATH]\fR:
-.
-.TP
-\fB\-a\fR, \fB\-\-apparent\fR
-show apparent instead of actual file size
-.
-.TP
-\fB\-b\fR, \fB\-\-bytes\fR
-show file size in exact number of bytes
-.
-.TP
-\fB\-\-dark\fR
-use dark background color
-.
-.TP
-\fB\-d\fR, \fB\-\-database=VAL\fR
-select database file to use [~/\.duc\.db]
-.
-.TP
-\fB\-\-fuzz=VAL\fR
-use radius fuzz factor when drawing graph
-.
-.TP
-\fB\-l\fR, \fB\-\-levels=VAL\fR
-draw up to VAL levels deep [4]
-.
-.TP
-\fB\-\-palette=VAL\fR
-select palette \fIsize|rainbow|greyscale|monochrome\fR
-.
-.TP
-\fB\-\-ring\-gap=VAL\fR
-leave a gap of VAL pixels between rings
-.
 .SS "duc ui"
 The \'gui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .
