@@ -27,7 +27,7 @@ static int opt_levels = 4;
 static char *opt_output = NULL;
 static char *opt_palette = NULL;
 static enum duc_graph_palette palette = 0;
-static int opt_ring_gap = 0;
+static int opt_ring_gap = 4;
 
 static int graph_main(duc *duc, int argc, char **argv)
 {
