@@ -251,14 +251,14 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 		glVertexAttribPointer(bd->loc_color, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), &vs_fill[0][2]);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, ss*2);
 	}
-	
-	glLineWidth(0.8);
-	glDisableVertexAttribArray(bd->loc_color);
-	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
-	glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_line);
-	glDrawArrays(GL_LINE_LOOP, 0, ss*2);
 
-	
+	if(line) {
+		glLineWidth(0.8);
+		glDisableVertexAttribArray(bd->loc_color);
+		glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
+		glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_line);
+		glDrawArrays(GL_LINE_LOOP, 0, ss*2);
+	}
 }
 
 

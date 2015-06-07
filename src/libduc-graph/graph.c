@@ -275,17 +275,19 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 				H = 0;
 				S = 0;
 				V = 1.0 - 0.5 * size_nrel;
-				L = 1;
+				L = 0;
 				break;
 
 			case DUC_GRAPH_PALETTE_MONOCHROME:
 				H = 0;
 				S = 0;
 				V = 1;
-				L = 0;
+				L = 1;
 				break;
 		}
 		
+		if(e->type != DUC_FILE_TYPE_DIR) S *= 0.5;
+
 		/* Check if the tooltip lies within this section */
 
 		{

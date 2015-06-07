@@ -197,9 +197,11 @@ static void br_cairo_draw_section(duc_graph *g, double a1, double a2, double r1,
 		cairo_pattern_destroy(pat);
 	}
 
-	cairo_set_line_width(cr, 0.5);
-	cairo_set_source_rgba(cr, line, line, line, 0.9);
-	cairo_stroke(cr);
+	if(line) {
+		cairo_set_line_width(cr, 0.5);
+		cairo_set_source_rgba(cr, 0, 0, 0, 0.9);
+		cairo_stroke(cr);
+	}
 }
 
 
