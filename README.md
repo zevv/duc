@@ -8,6 +8,6 @@ graphs showing you where your bytes are.
 
 Check the [Duc homepage](http://duc.zevv.nl) for more information, documentation and news.
 
-![duc gui](/img/example.png) 
+![duc gui](/img/palette-rainbow.png) 
 
 
