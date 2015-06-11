@@ -34,7 +34,7 @@ duc_graph *duc_graph_new_cairo_file(duc *duc, duc_graph_file_format fmt, FILE *f
 duc_graph *duc_graph_new_opengl(duc *duc);
 #endif
 duc_graph *duc_graph_new_svg(duc *duc, FILE *fout);
-duc_graph *duc_graph_new_html(duc *duc, FILE *fout);
+duc_graph *duc_graph_new_html(duc *duc, FILE *fout, int write_body);
 
 void duc_graph_free(duc_graph *g);
 

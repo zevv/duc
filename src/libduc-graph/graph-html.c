@@ -24,6 +24,7 @@
 
 struct html_backend_data {
 	FILE *fout;
+	int write_body;
 };
 
 
@@ -32,18 +33,20 @@ void br_html_start(duc_graph *g)
 	struct html_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
 
-	fprintf(f, "<?xml version='1.0' standalone='no'?>\n");
-	fprintf(f, "<!DOCTYPE html PUBLIC '-//W3C//DTD SVG 1.1//EN' \n");
-	fprintf(f, " 'http://www.w3.org/Graphics/SVG/1.1/DTD/html11.dtd'>\n");
-	fprintf(f, "<html xmlns='http://www.w3.org/2000/html' xmlns:xlink= 'http://www.w3.org/1999/xlink'>\n");
+	if(bd->write_body) {
+		fprintf(f, "<?xml version='1.0' standalone='no'?>\n");
+		fprintf(f, "<!DOCTYPE html PUBLIC '-//W3C//DTD SVG 1.1//EN' \n");
+		fprintf(f, " 'http://www.w3.org/Graphics/SVG/1.1/DTD/html11.dtd'>\n");
+		fprintf(f, "<html xmlns='http://www.w3.org/2000/html' xmlns:xlink= 'http://www.w3.org/1999/xlink'>\n");
+	}
 
-	fprintf(f, "<canvas id='myCanvas' width='%.0f' height='%.0f'>\n", g->width, g->height);
+	fprintf(f, "<canvas id='duc_canvas' width='%.0f' height='%.0f'>\n", g->width, g->height);
 	fprintf(f, "Your browser does not support the HTML5 canvas tag.\n");
 	fprintf(f, "</canvas>\n");
 
 
 	fprintf(f, "<script type='text/javascript'>\n");
-	fprintf(f, "  var canvas = document.getElementById('myCanvas');\n");
+	fprintf(f, "  var canvas = document.getElementById('duc_canvas');\n");
 	fprintf(f, "  var c = canvas.getContext('2d');\n");
 	fprintf(f, "  c.textAlign = 'center'\n");
 	fprintf(f, "  c.textBaseline = 'middle'\n");
@@ -124,7 +127,9 @@ void br_html_done(duc_graph *g)
 	struct html_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
 	fprintf(f, "</script>\n");
-	fprintf(f, "</html>\n");
+	if(bd->write_body) {
+		fprintf(f, "</html>\n");
+	}
 }
 
 
@@ -145,7 +150,7 @@ struct duc_graph_backend duc_graph_backend_html = {
 
 
 
-duc_graph *duc_graph_new_html(duc *duc, FILE *fout)
+duc_graph *duc_graph_new_html(duc *duc, FILE *fout, int write_body)
 {
 	duc_graph *g = duc_graph_new(duc);
 	g->backend = &duc_graph_backend_html;
@@ -155,6 +160,7 @@ duc_graph *duc_graph_new_html(duc *duc, FILE *fout)
 	g->backend_data = bd;
 
 	bd->fout = fout;
+	bd->write_body = write_body;
 
 	return g;
 }

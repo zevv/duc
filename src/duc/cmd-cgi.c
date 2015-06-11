@@ -154,20 +154,14 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	char url[DUC_PATH_MAX];
 	snprintf(url, sizeof url, "%s?cmd=index", script);
 
-	char *qs = getenv("QUERY_STRING");
-	int x = 0, y = 0;
-	if(qs) {
-		char *p1 = strchr(qs, '?');
-		if(p1) {
-			char *p2 = strchr(p1, ',');
-			if(p2) {
-				x = atoi(p1+1);
-				y = atoi(p2+1);
-			}
-		}
-	}
+	char *xs = cgi_get("x");
+	char *ys = cgi_get("y");
 
-	if(x || y) {
+	if(dir && xs && ys) {
+
+		int x = atoi(xs);
+		int y = atoi(ys);
+
 		duc_dir *dir2 = duc_graph_find_spot(graph, dir, x, y, NULL);
 		if(dir2) {
 			dir = dir2;
@@ -211,11 +205,19 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf(
 			"<script>\n"
 			"  window.onload = function() {\n"
-			"    var img = document.getElementById('img');\n"
+			"    var img = document.getElementById('duc_canvas');\n"
 			"    var rect = img.getBoundingClientRect(img);\n"
 			"    var tt = document.getElementById('tooltip');\n"
 			"    var timer;\n"
 			"    img.onmouseout = function() { tt.style.display = \"none\"; };\n"
+			"    img.onmousedown = function(e) {\n"
+			"        var x = e.clientX - rect.left;\n"
+			"        var y = e.clientY - rect.top;\n"
+			"        window.location = '?x=' + x + '&y=' + y + '&path=");
+
+		print_html(path);
+		printf("';\n"
+			"    }\n"
 			"    img.onmousemove = function(e) {\n"
 			"      if(timer) clearTimeout(timer);\n"
 			"      timer = setTimeout(function() {\n"
@@ -291,13 +293,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	if(path) {
 		printf("<div id=graph>\n");
-		printf(" <a href=\"%s?cmd=index&path=", script);
-		print_cgi(path);
-		printf("&\">\n");
-		printf("  <img id=\"img\" src=\"%s?cmd=image&path=", script);
-		print_cgi(path);
-		printf("\" ismap=\"ismap\">\n");
-		printf(" </a>\n");
+		duc_graph_draw(graph, dir);
 		printf("</div>\n");
 	}
 
@@ -347,17 +343,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 
 	fflush(stdout);
-}
-
-
-void do_image(duc *duc, duc_graph *graph, duc_dir *dir)
-{
-	printf("Content-Type: image/png\n");
-	printf("\n");
-
-	if(dir) {
-		duc_graph_draw(graph, dir);
-	}
 }
 
 
@@ -447,7 +432,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
 	}
 
-	duc_graph *graph = duc_graph_new_cairo_file(duc, DUC_GRAPH_FORMAT_PNG, stdout);
+	duc_graph *graph = duc_graph_new_html(duc, stdout, 0);
 	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);
@@ -457,7 +442,6 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
-	if(strcmp(cmd, "image") == 0) do_image(duc, graph, dir);
 	if(strcmp(cmd, "lookup") == 0) do_lookup(duc, graph, dir);
 
 	duc_close(duc);

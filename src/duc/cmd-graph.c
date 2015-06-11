@@ -98,7 +98,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 			graph = duc_graph_new_svg(duc, f);
 			break;
 		case DUC_GRAPH_FORMAT_HTML:
-			graph = duc_graph_new_html(duc, f);
+			graph = duc_graph_new_html(duc, f, 1);
 			break;
 #ifdef ENABLE_CAIRO
 		case DUC_GRAPH_FORMAT_PNG:
@@ -132,7 +132,12 @@ static int graph_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
-	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, "select output format <png|svg|pdf> [png]" },
+	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, 
+#ifdef ENABLE_CAIRO
+	                                                        "select output format <png|svg|pdf|html> [png]" },
+#else
+	                                                        "select output format <svg|html> [svg]" },
+#endif
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
