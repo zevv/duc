@@ -447,7 +447,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
 	}
 
-	duc_graph *graph = duc_graph_new_file(duc, DUC_GRAPH_FORMAT_PNG, stdout);
+	duc_graph *graph = duc_graph_new_cairo_file(duc, DUC_GRAPH_FORMAT_PNG, stdout);
 	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);

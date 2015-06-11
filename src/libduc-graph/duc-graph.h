@@ -27,11 +27,12 @@ typedef enum {
 #ifdef ENABLE_CAIRO
 #include <cairo.h>
 duc_graph *duc_graph_new_cairo(duc *duc, cairo_t *cr);
-duc_graph *duc_graph_new_file(duc *duc, duc_graph_file_format fmt, FILE *fout);
+duc_graph *duc_graph_new_cairo_file(duc *duc, duc_graph_file_format fmt, FILE *fout);
 #endif
 #ifdef ENABLE_OPENGL
 duc_graph *duc_graph_new_opengl(duc *duc);
 #endif
+duc_graph *duc_graph_new_svg(duc *duc, FILE *fout);
 
 void duc_graph_free(duc_graph *g);
 

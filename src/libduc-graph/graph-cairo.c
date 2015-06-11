@@ -273,7 +273,7 @@ duc_graph *duc_graph_new_cairo(duc *duc, cairo_t *cr)
 }
 
 
-duc_graph *duc_graph_new_file(duc *duc, duc_graph_file_format fmt, FILE *fout)
+duc_graph *duc_graph_new_cairo_file(duc *duc, duc_graph_file_format fmt, FILE *fout)
 {
 	duc_graph *g = duc_graph_new(duc);
 	g->backend = &duc_graph_backend_file;

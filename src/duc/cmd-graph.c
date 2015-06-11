@@ -1,7 +1,5 @@
 #include "config.h"
 
-#ifdef ENABLE_CAIRO
-
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -20,7 +18,6 @@
 
 static char *opt_database = NULL;
 static int opt_apparent = 0;
-static char *opt_format = "png";
 static int opt_size = 800;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
@@ -28,6 +25,12 @@ static char *opt_output = NULL;
 static char *opt_palette = NULL;
 static enum duc_graph_palette palette = 0;
 static int opt_ring_gap = 4;
+
+#ifdef ENABLE_CAIRO
+static char *opt_format = "png";
+#else
+static char *opt_format = "svg";
+#endif
 
 static int graph_main(duc *duc, int argc, char **argv)
 {
@@ -83,7 +86,18 @@ static int graph_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_graph *graph = duc_graph_new_file(duc, format, f);
+	duc_graph *graph;
+
+#ifdef ENABLE_CAIRO
+	graph = duc_graph_new_cairo_file(duc, format, f);
+#else
+	if(format != DUC_GRAPH_FORMAT_SVG) {
+		duc_log(duc, DUC_LOG_FTL, "Requested image format is not supported");
+		exit(1);
+	}
+	graph = duc_graph_new_svg(duc, f);
+#endif
+
 	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_max_level(graph, opt_levels);
@@ -104,7 +118,9 @@ static int graph_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+#ifdef ENABLE_CAIRO
 	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, "select output format <png|svg|pdf> [png]" },
+#endif
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
@@ -129,8 +145,6 @@ struct cmd cmd_graph = {
 		"using the -o/--output option. The output can be sent to stdout by using the special\n"
 		"file name '-'.\n"
 };
-
-#endif
 
 /*
  * End

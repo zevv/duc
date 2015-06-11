@@ -24,6 +24,7 @@ duc_SOURCES += \
 	src/libduc-graph/graph.c \
 	src/libduc-graph/graph-cairo.c \
 	src/libduc-graph/graph-opengl.c \
+	src/libduc-graph/graph-svg.c \
 	src/libduc-graph/duc-graph.h 
 
 duc_SOURCES  += \

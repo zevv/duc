@@ -44,9 +44,9 @@ struct cmd *cmd_list[] = {
 	&cmd_manual,
 	&cmd_ls,
 	&cmd_xml,
+	&cmd_graph,
 #ifdef ENABLE_CAIRO
 	&cmd_cgi,
-	&cmd_graph,
 #endif
 #ifdef ENABLE_X11
 	&cmd_gui,
