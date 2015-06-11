@@ -65,7 +65,7 @@ void br_html_start(duc_graph *g)
 
 	fprintf(f, "function t(text, s, x, y) {\n");
 	fprintf(f, "  c.font = s + 'pt Arial'\n");
-	fprintf(f, "  c.lineWidth = 1.5\n");
+	fprintf(f, "  c.lineWidth = 2;\n");
 	fprintf(f, "  c.strokeStyle = '#ffffff';\n");
 	fprintf(f, "  c.fillStyle = '#000000';\n");
 	fprintf(f, "  c.strokeText(text, x, y);\n");
