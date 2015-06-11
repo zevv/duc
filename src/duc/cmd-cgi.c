@@ -1,7 +1,5 @@
 #include "config.h"
 
-#ifdef ENABLE_CAIRO
-
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -475,9 +473,6 @@ struct cmd cmd_cgi = {
 	.options = options,
 		
 };
-
-
-#endif
 
 /*
  * End
