@@ -20,7 +20,7 @@ On RHEL or CentOS systems, you need to do:
     $ sudo yum install pango-devel cairo-devel tokyocabinet-devel 
 
 
-Duc comes with various user interfaces and a number of backends for database
+Duc comes with various user interfaces and a number of back ends for database
 access and graph drawing. You can choose which options should be used with the
 ./configure script to build Duc to fit best in your environment.
 
@@ -55,31 +55,35 @@ Duc comes with the following user interfaces:
     --enable-opengl         enable OpenGL drawing [default=no]
 
 
-Database backend
+Database back end
 ----------------
 
-Duc supports various key-value database backends, at this time Tokyocabinet,
+Duc supports various key-value database back ends, at this time Tokyocabinet,
 Leveldb and Sqlite3 are supported. Duc uses Tokyocabinet by default: the
 performance is acceptable and generates in the smallest database size.
 
-    --with-db-backend=ARG   choose db backend (tokyocabinet,leveldb,sqlite3)
+    --with-db-back end=ARG   choose db back end (tokyocabinet,leveldb,sqlite3)
 
 If your system supports none of the above, contact the author to see if we can
-add your favourite backend.
+add your favourite back end.
 
 
 Graphics
 --------
 
-Duc supports various backends for creating graphics, but some have dependencies
+Duc supports various back ends for creating graphics, but some have dependencies
 which can not be met on all systems. Especially on headless server systems or
 embedded systems not all graphics libraries are available.
 
-- SVG: duc has native SVG support, which can be used by the 'duc graph' command
-  to create static images of disk usage. The SVG backend has no external
+- SVG: Duc has native SVG support, which can be used by the 'duc graph' command
+  to create static images of disk usage. The SVG back end has no external
   dependencies and is always enabled.
 
-- Cairo/pango: The cairo/pango backend is required for the X11 user interface,
+- HTML canvas: Duc has native support for generating graphs in HTML5 using
+  JavaScript and the canvas object. The HTML back end has not external
+  dependencies and is always enabled.
+
+- Cairo/pango: The cairo/pango back end is required for the X11 user interface,
   and also adds an option to the duc-graph command to generate images in .PNG
   or .PDF file format. If your systems does not have cairo and pango available,
   add the following flag to ./configure:
@@ -87,7 +91,7 @@ embedded systems not all graphics libraries are available.
     --disable-cairo         disable cairo drawing [default=yes]
 
 - OpenGL: Duc can draw to OpenGL contexts, which is used by the 'duc guigl'
-  command. To enable the OpenGL backend and 'guigl' command, run ./configure
+  command. To enable the OpenGL back end and 'guigl' command, run ./configure
   with:
 
     --enable-opengl         enable OpenGL drawing [default=no]

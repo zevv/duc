@@ -71,6 +71,9 @@ void br_file_start(duc_graph *g)
 		case DUC_GRAPH_FORMAT_PDF:
 			bd->cs = cairo_pdf_surface_create_for_stream(cairo_writer, bd->fout, g->size, g->size);
 			break;
+		default:
+			duc_log(g->duc, DUC_LOG_FTL, "Image format not handled by cairo backend");
+			exit(1);
 	}
 			
 	bd->cr = cairo_create(bd->cs);

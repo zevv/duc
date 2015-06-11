@@ -38,6 +38,11 @@ static int graph_main(duc *duc, int argc, char **argv)
 	char *path_out_default = "duc.png";
 
 	duc_graph_file_format format = DUC_GRAPH_FORMAT_PNG;
+	
+	if(strcasecmp(opt_format, "html") == 0) {
+		format = DUC_GRAPH_FORMAT_HTML;
+		path_out_default = "duc.html";
+	}
 
 	if(strcasecmp(opt_format, "svg") == 0) {
 		format = DUC_GRAPH_FORMAT_SVG;
@@ -88,15 +93,24 @@ static int graph_main(duc *duc, int argc, char **argv)
 
 	duc_graph *graph;
 
+	switch(format) {
+		case DUC_GRAPH_FORMAT_SVG:
+			graph = duc_graph_new_svg(duc, f);
+			break;
+		case DUC_GRAPH_FORMAT_HTML:
+			graph = duc_graph_new_html(duc, f);
+			break;
 #ifdef ENABLE_CAIRO
-	graph = duc_graph_new_cairo_file(duc, format, f);
-#else
-	if(format != DUC_GRAPH_FORMAT_SVG) {
-		duc_log(duc, DUC_LOG_FTL, "Requested image format is not supported");
-		exit(1);
-	}
-	graph = duc_graph_new_svg(duc, f);
+		case DUC_GRAPH_FORMAT_PNG:
+		case DUC_GRAPH_FORMAT_PDF:
+			graph = duc_graph_new_cairo_file(duc, format, f);
+			break;
 #endif
+		default:
+			duc_log(duc, DUC_LOG_FTL, "Requested image format is not supported");
+			exit(1);
+			break;
+	}
 
 	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_fuzz(graph, opt_fuzz);
@@ -118,9 +132,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
-#ifdef ENABLE_CAIRO
 	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, "select output format <png|svg|pdf> [png]" },
-#endif
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },

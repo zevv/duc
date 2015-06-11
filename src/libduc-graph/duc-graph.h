@@ -21,7 +21,8 @@ enum duc_graph_palette {
 typedef enum {
 	DUC_GRAPH_FORMAT_PNG,
 	DUC_GRAPH_FORMAT_SVG,
-	DUC_GRAPH_FORMAT_PDF
+	DUC_GRAPH_FORMAT_PDF,
+	DUC_GRAPH_FORMAT_HTML,
 } duc_graph_file_format;
 
 #ifdef ENABLE_CAIRO
@@ -33,6 +34,7 @@ duc_graph *duc_graph_new_cairo_file(duc *duc, duc_graph_file_format fmt, FILE *f
 duc_graph *duc_graph_new_opengl(duc *duc);
 #endif
 duc_graph *duc_graph_new_svg(duc *duc, FILE *fout);
+duc_graph *duc_graph_new_html(duc *duc, FILE *fout);
 
 void duc_graph_free(duc_graph *g);
 
