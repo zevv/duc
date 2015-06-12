@@ -52,6 +52,7 @@ void br_html_start(duc_graph *g)
 	fprintf(f, "var c = canvas.getContext('2d');\n");
 	fprintf(f, "c.textAlign = 'center'\n");
 	fprintf(f, "c.textBaseline = 'middle'\n");
+	fprintf(f, "c.lineJoin = 'round'\n");
 
 	fprintf(f, "function g(a1, a2, r1, r2, r, g, b) {\n");
 	fprintf(f, "  a1 = a1*1e-3 * pi * 2 - pi / 2;\n");
