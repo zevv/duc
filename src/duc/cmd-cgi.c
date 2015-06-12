@@ -306,8 +306,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("</div>\n");
 	}
 
-	duc_dir_rewind(dir);
-
 	if(path && dir && opt_list) {
 
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
@@ -318,6 +316,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("   <th class=name>Filename</th>\n");
 		printf("   <th class=size>Size</th>\n");
 		printf("  </tr>\n");
+
+		duc_dir_rewind(dir);
 
 		struct duc_dirent *e;
 		int n = 0;
