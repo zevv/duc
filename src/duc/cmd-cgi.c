@@ -306,6 +306,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("</div>\n");
 	}
 
+	duc_dir_rewind(dir);
+
 	if(path && dir && opt_list) {
 
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
