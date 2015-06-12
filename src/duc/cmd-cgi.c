@@ -246,7 +246,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		print_css();
 	}
 
-	if(opt_tooltip) {
+	if(path && opt_tooltip) {
 		print_tooltip(path);
 	}
 
