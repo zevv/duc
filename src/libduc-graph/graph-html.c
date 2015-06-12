@@ -46,15 +46,21 @@ void br_html_start(duc_graph *g)
 
 
 	fprintf(f, "<script type='text/javascript'>\n");
-	fprintf(f, "  var canvas = document.getElementById('duc_canvas');\n");
-	fprintf(f, "  var c = canvas.getContext('2d');\n");
-	fprintf(f, "  c.textAlign = 'center'\n");
-	fprintf(f, "  c.textBaseline = 'middle'\n");
+	fprintf(f, "var canvas = document.getElementById('duc_canvas');\n");
+	fprintf(f, "var f = Math.floor;\n");
+	fprintf(f, "var pi = Math.PI;\n");
+	fprintf(f, "var c = canvas.getContext('2d');\n");
+	fprintf(f, "c.textAlign = 'center'\n");
+	fprintf(f, "c.textBaseline = 'middle'\n");
 
-	fprintf(f, "function g(a1, a2, r1, r2, sgc, bgc) {\n");
+	fprintf(f, "function g(a1, a2, r1, r2, r, g, b) {\n");
+	fprintf(f, "  a1 = a1*1e-3 * pi * 2 - pi / 2;\n");
+	fprintf(f, "  a2 = a2*1e-3 * pi * 2 - pi / 2;\n");
+	fprintf(f, "  var c1 = 'rgb(' + f(r*0.6) + ',' + f(g*0.6) + ',' + f(b*0.6) + ')';\n");
+	fprintf(f, "  var c2 = 'rgb(' + f(r*1.0) + ',' + f(g*1.0) + ',' + f(b*1.0) + ')';\n");
 	fprintf(f, "  var g = c.createRadialGradient(%.0f, %.0f, r1, %.0f, %.0f, r2);\n", g->cx, g->cy, g->cx, g->cy);
-	fprintf(f, "  g.addColorStop(0,sgc);\n");
-	fprintf(f, "  g.addColorStop(1,bgc);\n");
+	fprintf(f, "  g.addColorStop(0, c1);\n");
+	fprintf(f, "  g.addColorStop(1, c2);\n");
 	fprintf(f, "  c.fillStyle = g;\n");
 	fprintf(f, "  c.beginPath();\n");
 	fprintf(f, "  c.arc(%.0f, %.0f, r1, a1, a2, false);\n",  g->cx,  g->cy);
@@ -111,13 +117,12 @@ static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, 
 	double R, G, B;
 	hsv2rgb(H, S, V, &R, &G, &B);
 
-	a1 = a1 * M_PI * 2 - M_PI / 2;
-	a2 = a2 * M_PI * 2 - M_PI / 2;
+//	a1 = a1 * M_PI * 2 - M_PI / 2;
+//	a2 = a2 * M_PI * 2 - M_PI / 2;
 
-	fprintf(f, "g(%.3f,%.3f,%.0f,%.0f,'#%02x%02x%02x','#%02x%02x%02x');\n", 
-			a1, a2,
+	fprintf(f, "g(%.0f,%.0f,%.0f,%.0f,%d,%d,%d);\n", 
+			a1 * 1000, a2 * 1000,
 			r1, r2,
-			(int)(R*156), (int)(G*156), (int)(B*156),
 			(int)(R*255), (int)(G*255), (int)(B*255));
 }
 
