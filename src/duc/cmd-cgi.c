@@ -162,7 +162,7 @@ static void print_css(void)
 }
 
 
-static void print_tooltip(const char *path)
+static void print_script(const char *path)
 {
 	printf(
 		"<script>\n"
@@ -171,14 +171,17 @@ static void print_tooltip(const char *path)
 		"    var rect = img.getBoundingClientRect(img);\n"
 		"    var tt = document.getElementById('tooltip');\n"
 		"    var timer;\n"
-		"    img.onmouseout = function() { tt.style.display = \"none\"; };\n"
 		"    img.onmousedown = function(e) {\n"
 		"        var x = e.clientX - rect.left;\n"
 		"        var y = e.clientY - rect.top;\n"
 		"        window.location = '?x=' + x + '&y=' + y + '&path=");
 	print_html(path);
 	printf( "';\n"
-		"    }\n"
+		"    }\n");
+
+	if(opt_tooltip) {
+		printf(
+		"    img.onmouseout = function() { tt.style.display = \"none\"; };\n"
 		"    img.onmousemove = function(e) {\n"
 		"      if(timer) clearTimeout(timer);\n"
 		"      timer = setTimeout(function() {\n"
@@ -196,10 +199,13 @@ static void print_tooltip(const char *path)
 		"        req.open(\"GET\", \"?cmd=lookup&path=%s&x=\"+x+\"&y=\"+y , true);\n"
 		"        req.send()\n"
 		"      }, 100);\n"
-		"    };\n"
+		"    };\n");
+	}
+
+	printf(
 		"  };\n"
 		"</script>\n", path
-		);
+	      );
 }
 
 
@@ -246,8 +252,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		print_css();
 	}
 
-	if(path && opt_tooltip) {
-		print_tooltip(path);
+	if(path) {
+		print_script(path);
 	}
 
 	printf(
