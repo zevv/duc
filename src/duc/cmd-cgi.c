@@ -199,12 +199,12 @@ static void print_script(const char *path)
 		"        req.open(\"GET\", \"?cmd=lookup&path=%s&x=\"+x+\"&y=\"+y , true);\n"
 		"        req.send()\n"
 		"      }, 100);\n"
-		"    };\n");
+		"    };\n", path);
 	}
 
 	printf(
 		"  };\n"
-		"</script>\n", path
+		"</script>\n"
 	      );
 }
 
