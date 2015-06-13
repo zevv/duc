@@ -186,6 +186,7 @@ static int ls_main(duc *duc, int argc, char **argv)
 
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
 		return -1;
 	}
 
