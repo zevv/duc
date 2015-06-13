@@ -66,7 +66,7 @@ void db_close(struct db *db)
 duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
 {
 	sqlite3_stmt *pStmt;
-	char *q = "insert into blobs(key, value) values(?, ?)";
+	char *q = "insert or replace into blobs(key, value) values(?, ?)";
 
 	sqlite3_prepare(db->s, q, -1, &pStmt, 0);
 	sqlite3_bind_text(pStmt, 1, key, key_len, SQLITE_STATIC);
