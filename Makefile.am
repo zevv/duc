@@ -27,6 +27,7 @@ duc_SOURCES += \
 	src/libduc-graph/graph-svg.c \
 	src/libduc-graph/graph-html.c \
 	src/libduc-graph/graph-private.h \
+	src/libduc-graph/font.c \
 	src/libduc-graph/duc-graph.h 
 
 duc_SOURCES  += \
