@@ -57,7 +57,6 @@ void cb_winsize(GLFWwindow* window, int w, int h)
 	win_w = w;
 	win_h = h;
 	glViewport(0, 0, win_w, win_h);
-	printf("%d %d\n", win_w, win_h);
 }
 
 
