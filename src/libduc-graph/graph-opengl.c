@@ -19,10 +19,7 @@
 #include <stdint.h>
 #include <libgen.h>
 
-#ifdef HAVE_GLES2_GL2_H
 #define GLFW_INCLUDE_ES2
-#endif
-#define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
 
 #include "private.h"
@@ -104,6 +101,8 @@ static double draw_char(duc_graph *g, double x, double y, int size, int c)
 
 	double f = size * bd->font_scale;
 
+	y += f * STB_SOMEFONT_LINE_SPACING * 0.2;
+
 	GLfloat vVertices[] = {
 		x + cd->x0f * f, y + cd->y0f * f,   cd->s0f, cd->t0f,
 		x + cd->x1f * f, y + cd->y0f * f,   cd->s1f, cd->t0f,
@@ -126,9 +125,7 @@ static double draw_char(duc_graph *g, double x, double y, int size, int c)
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
 
-	x += cd->advance * size * bd->font_scale;
-
-	return x;
+	return cd->advance * size * bd->font_scale;
 }
 
 
@@ -153,34 +150,18 @@ static void text_size(duc_graph *g, char *text, int *w, int *h, int size)
 }
 
 
-static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l, int center)
+static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
 {
 	struct opengl_backend_data *bd = g->backend_data;
-	int lines = 1;
-	double w = 0;
 	int i;
 	
-	for(i=0; i<l; i++) 
-		if(text[i] == '\n' || text[i] == '\r') lines ++;
-
 	for(i=0; i<l; i++) {
-		int c = text[i];
-		stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
-		w += size * bd->font_scale * cd->advance;
-	}
-
-	if(center) {
-		x -= w * 0.5;
-		y -= (size * bd->font_scale * STB_SOMEFONT_LINE_SPACING * lines) * 0.5;
-	}
-
-	for(i=0; i<l; i++) {
-		x = draw_char(g, x, y, size, text[i]);
+		x += draw_char(g, x, y, size, text[i]);
 	}
 }
 
 
-static void draw_text(duc_graph *g, int _x, int _y, int size, char *text, int center)
+static void draw_text(duc_graph *g, int _x, int _y, int size, char *text)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 
@@ -199,12 +180,12 @@ static void draw_text(duc_graph *g, int _x, int _y, int size, char *text, int ce
 		}
 
 		glVertexAttrib4f(bd->loc_color, 1, 1, 1, 0);
-		draw_text_line(g, x-1, y+0, size, p1, p2-p1, center);
-		draw_text_line(g, x+1, y-0, size, p1, p2-p1, center);
-		draw_text_line(g, x-0, y+1, size, p1, p2-p1, center);
-		draw_text_line(g, x+0, y-1, size, p1, p2-p1, center);
+		draw_text_line(g, x-1, y+0, size, p1, p2-p1);
+		draw_text_line(g, x+1, y-0, size, p1, p2-p1);
+		draw_text_line(g, x-0, y+1, size, p1, p2-p1);
+		draw_text_line(g, x+0, y-1, size, p1, p2-p1);
 		glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
-		draw_text_line(g, x+0, y, size, p1, p2-p1, center);
+		draw_text_line(g, x+0, y, size, p1, p2-p1);
 
 		if(!*p2) break;
 
@@ -221,7 +202,9 @@ static void draw_text(duc_graph *g, int _x, int _y, int size, char *text, int ce
 
 static void br_opengl_draw_text(duc_graph *g, int x, int y, int size, char *text)
 {
-	draw_text(g, x, y, size, text, 1);
+	int w, h;
+	text_size(g, text, &w, &h, size);
+	draw_text(g, x - w/2, y - h/2, size, text);
 }
 
 
@@ -251,7 +234,7 @@ static void br_opengl_draw_tooltip(duc_graph *g, int x, int y, char *text)
 	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 	
-	draw_text(g, x - w - 5, y - h - 5, FONT_SIZE_TOOLTIP, text, 0);
+	draw_text(g, x - w - 5, y - h - 5, FONT_SIZE_TOOLTIP, text);
 }
 
 
@@ -413,10 +396,11 @@ duc_graph *duc_graph_new_opengl(duc *duc, double font_scale)
 	glGenTextures(1, &bd->font_texid);
 	glBindTexture(GL_TEXTURE_2D, bd->font_texid);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, STB_SOMEFONT_BITMAP_WIDTH, STB_SOMEFONT_BITMAP_HEIGHT, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fontpixels );
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	return g;
 }

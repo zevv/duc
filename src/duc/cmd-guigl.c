@@ -15,10 +15,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef HAVE_GLES2_GL2_H
 #define GLFW_INCLUDE_ES2
-#endif
-#define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
 
 static int opt_bytes;
@@ -178,6 +175,8 @@ int guigl_main(duc *duc, int argc, char *argv[])
 		duc_log(duc, DUC_LOG_FTL, "Error initializen glfw");
 		return -1;
 	}
+	
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWwindow* window = window = glfwCreateWindow(640, 480, "Duc", NULL, NULL);;
 	if(window == NULL)
