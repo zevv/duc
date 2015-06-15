@@ -179,7 +179,7 @@ int guigl_main(duc *duc, int argc, char *argv[])
 		return -1;
 	}
 
-	GLFWwindow* window = window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);;
+	GLFWwindow* window = window = glfwCreateWindow(640, 480, "Duc", NULL, NULL);;
 	if(window == NULL)
 	{
 		duc_log(duc, DUC_LOG_FTL, "Error creating glfw window");
