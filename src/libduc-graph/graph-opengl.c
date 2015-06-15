@@ -36,6 +36,7 @@ struct opengl_backend_data {
 	GLuint sp;
 	stb_fontchar fontdata[STB_SOMEFONT_NUM_CHARS];
 	GLuint font_texid;
+	double font_scale;
 
 	GLuint loc_pos;
 	GLuint loc_texture;
@@ -91,7 +92,7 @@ void br_opengl_start(duc_graph *g)
 }
 
 
-static double draw_char(duc_graph *g, double x, double y, int c)
+static double draw_char(duc_graph *g, double x, double y, int size, int c)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 
@@ -101,11 +102,13 @@ static double draw_char(duc_graph *g, double x, double y, int c)
 
 	stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
 
+	double f = size * bd->font_scale;
+
 	GLfloat vVertices[] = {
-		x + cd->x0f, y + cd->y0f,   cd->s0f, cd->t0f,
-		x + cd->x1f, y + cd->y0f,   cd->s1f, cd->t0f,
-		x + cd->x1f, y + cd->y1f,   cd->s1f, cd->t1f,
-		x + cd->x0f, y + cd->y1f,   cd->s0f, cd->t1f,
+		x + cd->x0f * f, y + cd->y0f * f,   cd->s0f, cd->t0f,
+		x + cd->x1f * f, y + cd->y0f * f,   cd->s1f, cd->t0f,
+		x + cd->x1f * f, y + cd->y1f * f,   cd->s1f, cd->t1f,
+		x + cd->x0f * f, y + cd->y1f * f,   cd->s0f, cd->t1f,
 	};
 
 	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
@@ -123,13 +126,13 @@ static double draw_char(duc_graph *g, double x, double y, int c)
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
 
-	x += cd->advance;
+	x += cd->advance * size * bd->font_scale;
 
 	return x;
 }
 
 
-static void text_size(duc_graph *g, char *text, int *w, int *h)
+static void text_size(duc_graph *g, char *text, int *w, int *h, int size)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 	char *p = text;
@@ -139,11 +142,11 @@ static void text_size(duc_graph *g, char *text, int *w, int *h)
 	while(*p) {
 		int c = *p++;
 		if(c == '\r' || c == '\n') {
-			*h += STB_SOMEFONT_LINE_SPACING * 1.5;
+			*h += size * bd->font_scale * STB_SOMEFONT_LINE_SPACING * 1.5;
 			wmax = 0;
 		} else {
 			stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
-			wmax += cd->advance;
+			wmax += size * bd->font_scale * cd->advance;
 			if(wmax > *w) *w = wmax;
 		}
 	}
@@ -163,16 +166,16 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 	for(i=0; i<l; i++) {
 		int c = text[i];
 		stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
-		w += cd->advance;
+		w += size * bd->font_scale * cd->advance;
 	}
 
 	if(center) {
 		x -= w * 0.5;
-		y -= (STB_SOMEFONT_LINE_SPACING * lines) * 0.5;
+		y -= (size * bd->font_scale * STB_SOMEFONT_LINE_SPACING * lines) * 0.5;
 	}
 
 	for(i=0; i<l; i++) {
-		x = draw_char(g, x, y, text[i]);
+		x = draw_char(g, x, y, size, text[i]);
 	}
 }
 
@@ -182,7 +185,7 @@ static void draw_text(duc_graph *g, int _x, int _y, int size, char *text, int ce
 	struct opengl_backend_data *bd = g->backend_data;
 
 	double x = _x - g->cx;
-	double y = _y - g->cy - STB_SOMEFONT_LINE_SPACING;
+	double y = _y - g->cy - size * bd->font_scale * STB_SOMEFONT_LINE_SPACING;
 		
 	glDisableVertexAttribArray(bd->loc_color);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -205,7 +208,7 @@ static void draw_text(duc_graph *g, int _x, int _y, int size, char *text, int ce
 
 		if(!*p2) break;
 
-		y += STB_SOMEFONT_LINE_SPACING * 1.5;
+		y += size * bd->font_scale * STB_SOMEFONT_LINE_SPACING * 1.5;
 		x = _x - g->cx;
 
 		p2 ++;
@@ -227,7 +230,7 @@ static void br_opengl_draw_tooltip(duc_graph *g, int x, int y, char *text)
 	struct opengl_backend_data *bd = g->backend_data;
 	int w, h;
 
-	text_size(g, text, &w, &h);
+	text_size(g, text, &w, &h, FONT_SIZE_TOOLTIP);
 
 	GLfloat vVertices[] = {
 		x - g->cx - w - 10, y - g->cy - h - 15,
@@ -248,7 +251,7 @@ static void br_opengl_draw_tooltip(duc_graph *g, int x, int y, char *text)
 	glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 	
-	draw_text(g, x - w - 5, y - h - 5, 0, text, 0);
+	draw_text(g, x - w - 5, y - h - 5, FONT_SIZE_TOOLTIP, text, 0);
 }
 
 
@@ -387,7 +390,7 @@ struct duc_graph_backend duc_graph_backend_opengl = {
 
 
 
-duc_graph *duc_graph_new_opengl(duc *duc)
+duc_graph *duc_graph_new_opengl(duc *duc, double font_scale)
 {
 	duc_graph *g = duc_graph_new(duc);
 	g->backend = &duc_graph_backend_opengl;
@@ -402,6 +405,7 @@ duc_graph *duc_graph_new_opengl(duc *duc)
 	bd->loc_color   = glGetAttribLocation(bd->sp, "color_in");
 	bd->loc_sampler = glGetUniformLocation(bd->sp, "Texture");
 	bd->loc_matrix  = glGetUniformLocation(bd->sp, "matrix");
+	bd->font_scale  = font_scale / STB_SOMEFONT_LINE_SPACING;
 
 	unsigned char fontpixels[STB_SOMEFONT_BITMAP_HEIGHT][STB_SOMEFONT_BITMAP_WIDTH];
 	STB_SOMEFONT_CREATE(bd->fontdata, fontpixels, STB_SOMEFONT_BITMAP_HEIGHT);

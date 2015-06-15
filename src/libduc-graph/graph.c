@@ -423,7 +423,7 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	char siz[16];
 	duc_human_size(&size, g->size_type, g->bytes, siz, sizeof siz);
 	if(g->backend)
-		g->backend->draw_text(g, g->cx, g->cy, 14, siz);
+		g->backend->draw_text(g, g->cx, g->cy, FONT_SIZE_CENTER, siz);
 
 	/* Draw tooltip */
 

@@ -47,8 +47,8 @@ static void sc2fb(GLFWwindow* window, double *x, double *y)
 	int w1, h1, w2, h2;
 	glfwGetFramebufferSize(window, &w1, &h1);
 	glfwGetWindowSize(window, &w2, &h2);
-	*x *= (double)w1 / (double)w2;
-	*y *= (double)h1 / (double)h2;
+	if(x) *x *= (double)w1 / (double)w2;
+	if(y) *y *= (double)h1 / (double)h2;
 }
 
 
@@ -190,7 +190,9 @@ int guigl_main(duc *duc, int argc, char *argv[])
 	glfwMakeContextCurrent(window);
 	glfwGetFramebufferSize(window, &win_w, &win_h);
 
-	graph = duc_graph_new_opengl(duc);
+	double font_scale = 1.0;
+	sc2fb(window, &font_scale, NULL);
+	graph = duc_graph_new_opengl(duc, font_scale);
 	
 	glfwSetKeyCallback(window, cb_keyboard);
 	glfwSetFramebufferSizeCallback(window, cb_winsize);

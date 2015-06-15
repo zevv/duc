@@ -31,7 +31,7 @@ duc_graph *duc_graph_new_cairo(duc *duc, cairo_t *cr);
 duc_graph *duc_graph_new_cairo_file(duc *duc, duc_graph_file_format fmt, FILE *fout);
 #endif
 #ifdef ENABLE_OPENGL
-duc_graph *duc_graph_new_opengl(duc *duc);
+duc_graph *duc_graph_new_opengl(duc *duc, double font_scale);
 #endif
 duc_graph *duc_graph_new_svg(duc *duc, FILE *fout);
 duc_graph *duc_graph_new_html(duc *duc, FILE *fout, int write_body);
