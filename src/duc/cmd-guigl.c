@@ -223,7 +223,7 @@ static struct ducrc_option options[] = {
 
 
 struct cmd cmd_guigl = {
-	.name = "guigl",
+	.name = "gui",
 	.descr_short = "Interactive OpenGL graphical interface",
 	.usage = "[options] [PATH]",
 	.main = guigl_main,

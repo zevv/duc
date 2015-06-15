@@ -120,6 +120,12 @@ The opengl library was not found, which is needed for opengl support. Either ins
 the opengl development libraries, or compile without opengl support (--disable-opengl)
 	 ])])
 
+	if test "${enable_x11}" = "yes"; then
+		AC_MSG_ERROR([
+Only one graphical user interface can be configured, use --disable-x11 when 
+using --enable-opengl])
+	fi
+
 	AC_CHECK_HEADERS([GLES2/gl2.h])
 
         AC_DEFINE([ENABLE_OPENGL], [1], [Enable opengl])

@@ -40,19 +40,19 @@ Duc comes with the following user interfaces:
   depends on ncurses or ncursesw. This user interface is enabled by default. If
   your system does not provide ncurses, you can disable this with
 
-    --disable-ui            disable ncurses ui [default=yes]
+    --disable-ui
 
 - X11 GUI (duc gui): This is the default interface for Linux and other Unix
   systems. This user interface depends on the cairo library (see below). If
   your system has no X11 or cairo available, disable this user interface with:
 
-    --disable-x11           disable X11 [default=yes]
+    --disable-x11
 
-- OpenGL GUI (duc guigl): an OpenGL/GLFW user interface which should be
-  portable on a large range of operating systems. The OpenGL gui is disabled by
-  default. If you want to enable OpenGL, run ./configure with:
+- OpenGL GUI (duc gui): an OpenGL/GLFW user interface which should be portable
+  on a large range of operating systems. The OpenGL gui is disabled by default.
+  If you want to enable OpenGL, run ./configure with:
 
-    --enable-opengl         enable OpenGL drawing [default=no]
+    --enable-opengl --disable-x11
 
 
 Database back end
@@ -62,7 +62,7 @@ Duc supports various key-value database back ends, at this time Tokyocabinet,
 Leveldb and Sqlite3 are supported. Duc uses Tokyocabinet by default: the
 performance is acceptable and generates in the smallest database size.
 
-    --with-db-back end=ARG   choose db back end (tokyocabinet,leveldb,sqlite3)
+    --with-db-back end=ARG
 
 If your system supports none of the above, contact the author to see if we can
 add your favourite back end.
@@ -88,12 +88,12 @@ embedded systems not all graphics libraries are available.
   or .PDF file format. If your systems does not have cairo and pango available,
   add the following flag to ./configure:
 
-    --disable-cairo         disable cairo drawing [default=yes]
+    --disable-cairo
 
-- OpenGL: Duc can draw to OpenGL contexts, which is used by the 'duc guigl'
-  command. To enable the OpenGL back end and 'guigl' command, run ./configure
-  with:
+- OpenGL: Duc can draw to OpenGL contexts and can be used by the 'duc gui'
+  command. To enable the OpenGL back end for the 'duc gui' command, run 
+  ./configure with:
 
-    --enable-opengl         enable OpenGL drawing [default=no]
+    --enable-opengl --disable-x11
 
 
