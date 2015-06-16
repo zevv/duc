@@ -261,13 +261,13 @@ static struct {
 
 char duc_file_type_char(duc_file_type t)
 {
-	return (t >= 0 && t <= DUC_FILE_TYPE_UNKNOWN) ? duc_file_type_list[t].c : ' ';
+	return (t <= DUC_FILE_TYPE_UNKNOWN) ? duc_file_type_list[t].c : ' ';
 }
 
 
 char *duc_file_type_name(duc_file_type t)
 {
-	return (t >= 0 && t <= DUC_FILE_TYPE_UNKNOWN) ? duc_file_type_list[t].s : " ";
+	return (t <= DUC_FILE_TYPE_UNKNOWN) ? duc_file_type_list[t].s : " ";
 }
 
 /*
