@@ -14,6 +14,7 @@ struct duc {
 };
 
 void *duc_malloc(size_t s);
+void *duc_malloc0(size_t s);
 void *duc_realloc(void *p, size_t s);
 char *duc_strdup(const char *s);
 void duc_free(void *p);

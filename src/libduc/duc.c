@@ -216,6 +216,17 @@ void *duc_malloc(size_t s)
 }
 
 
+void *duc_malloc0(size_t s)
+{
+	void *p = calloc(s, 1);
+	if(p == NULL) {
+		duc_log(NULL, DUC_LOG_FTL, "out of memory");
+		exit(1);
+	}
+	return p;
+}
+
+
 void *duc_realloc(void *p, size_t s)
 {
 	void *p2 = realloc(p, s);

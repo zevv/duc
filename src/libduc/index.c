@@ -62,8 +62,11 @@ struct scanner {
 	char *path;
 	int fd;
 	DIR *d;
+	char db_key[32];
+	time_t mtime;
+	size_t db_key_len;
 	struct buffer *buffer;
-	struct stat st;
+	struct buffer *buffer_prev;
 	struct duc_devino devino;
 	struct duc_size size;
 	struct duc *duc;
@@ -71,10 +74,22 @@ struct scanner {
 	struct duc_index_report *rep;
 };
 
-static void size_from_st(struct duc_size *s1, struct stat *st)
+
+static void index_dir(struct scanner *scanner_dir);
+
+
+
+static void st_to_size(struct stat *st, struct duc_size *s1)
 {
 	s1->apparent = st->st_size;
 	s1->actual = st->st_blocks * 512;
+}
+
+
+static void st_to_devino(struct stat *st, struct duc_devino *devino)
+{
+	devino->dev = st->st_dev;
+	devino->ino = st->st_ino;
 }
 
 
@@ -220,10 +235,15 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
  * Open dir and read file status 
  */
 
-static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_parent, const char *path, struct stat *st)
+static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_parent, const char *path, time_t mtime, struct duc_size *size, struct duc_devino *devino)
 {
 	struct scanner *scanner;
-	scanner = duc_malloc(sizeof *scanner);
+	scanner = duc_malloc0(sizeof *scanner);
+
+	scanner->duc = duc;
+	scanner->buffer_prev = NULL;
+	scanner->parent = scanner_parent;
+	scanner->path = duc_strdup(path);
 
 	int fd_parent = scanner_parent ? scanner_parent->fd : 0;
 
@@ -233,31 +253,68 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		goto err;
 	}
 
-	if(st) {
-		scanner->st = *st;
-	} else {
 
-		int r = fstat(scanner->fd, &scanner->st);
+	/* If a stat for this directory was already done it is passed in *st
+	 * and we use this. If not, we do a fstat here */
+
+	if(mtime && devino && size) {
+		scanner->mtime = mtime;
+		scanner->devino = *devino;
+		scanner->size = *size;
+	} else {
+		struct stat st;
+		int r = fstat(scanner->fd, &st);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
 			goto err;
 		}
+		scanner->mtime = st.st_mtime;
+		st_to_devino(&st, &scanner->devino);
+		st_to_size(&st, &scanner->size);
 	}
-	
-	scanner->d = fdopendir(scanner->fd);
-	if(scanner->d == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
-		goto err;
+
+
+	/* Generate database key for this dir */
+
+	scanner->db_key_len = snprintf(scanner->db_key, sizeof(scanner->db_key), 
+			"%jx/%jx", (uintmax_t)scanner->devino.dev, (uintmax_t)scanner->devino.ino);
+
+
+	/* Check if this directory is already in the database and if the mtime
+	 * is unchanged. If so, we do not have to opendir() / readdir() /
+	 * closedir(), but we can iterate the directory from the info from the
+	 * database */
+
+	size_t vall;
+	void *val = db_get(duc->db, scanner->db_key, scanner->db_key_len, &vall);
+	if(val) {
+		uint64_t v;
+		struct buffer *b = buffer_new(val, vall);
+		buffer_get_varint(b, &v); time_t mtime = v;
+		buffer_get_varint(b, &v); /* discard parent dev */
+		buffer_get_varint(b, &v); /* discard parent ino */
+
+		if(mtime == scanner->mtime) {
+			scanner->buffer_prev = b;
+		} else {
+			buffer_free(b);
+
+		}
 	}
-	
-	scanner->parent = scanner_parent;
-	scanner->path = duc_strdup(path);
-	scanner->duc = duc;
-	scanner->devino.dev = scanner->st.st_dev;
-	scanner->devino.ino = scanner->st.st_ino;
-	size_from_st(&scanner->size, &scanner->st);
+
+	if(scanner->buffer_prev == NULL) {
+		scanner->d = fdopendir(scanner->fd);
+		if(scanner->d == NULL) {
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
+			goto err;
+		}
+	}
+
+
+	/* Write dir header to database */
 
 	scanner->buffer = buffer_new(NULL, 0);
+	buffer_put_varint(scanner->buffer, scanner->mtime);
 
 	if(scanner_parent) {
 		scanner->depth = scanner_parent->depth + 1;
@@ -270,8 +327,6 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		buffer_put_varint(scanner->buffer, 0);
 		buffer_put_varint(scanner->buffer, 0);
 	}
-
-	buffer_put_varint(scanner->buffer, scanner->st.st_mtime);
 		
 	duc_log(duc, DUC_LOG_DMP, ">> %s", scanner->path);
 
@@ -319,33 +374,81 @@ static void scanner_free(struct scanner *scanner)
 
 	}
 
-	char key[32];
-	size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)scanner->devino.dev, (uintmax_t)scanner->devino.ino);
-	int r = db_put(duc->db, key, keyl, scanner->buffer->data, scanner->buffer->len);
+	int r = db_put(duc->db, scanner->db_key, scanner->db_key_len, scanner->buffer->data, scanner->buffer->len);
 	if(r != 0) {
 		duc->err = r;
 	}
 
 	buffer_free(scanner->buffer);
-	closedir(scanner->d);
+	if(scanner->buffer_prev) {
+		buffer_free(scanner->buffer_prev);
+	}
+	if(scanner->d) {
+		closedir(scanner->d);
+	}
 	duc_free(scanner->path);
 	duc_free(scanner);
 }
 
 
-static void index_dir(struct scanner *scanner_dir)
+static void index_dirent(struct scanner *scanner_dir, const char *name, duc_file_type type, time_t mtime, struct duc_size *size, struct duc_devino *devino)
 {
 	struct duc *duc = scanner_dir->duc;
 	struct duc_index_req *req = scanner_dir->req;
 	struct duc_index_report *report = scanner_dir->rep; 	
 
-	report->dir_count ++;
-	size_accum(&report->size, &scanner_dir->size);
+	/* Calculate size of this dirent */
 
-	/* Iterate directory entries */
+	if(type == DUC_FILE_TYPE_DIR) {
+
+		/* Open and scan child directory */
+
+		struct scanner *scanner_ent = scanner_new(duc, scanner_dir, name, mtime, size, devino);
+
+		if(scanner_ent) {
+			index_dir(scanner_ent);
+			scanner_free(scanner_ent);
+		}
+
+	} else {
+
+		size_accum(&scanner_dir->size, size);
+		size_accum(&report->size, size);
+
+		report->file_count ++;
+
+		duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
+				duc_file_type_char(type), size->apparent, size->actual, name);
+
+
+		/* Optionally hide file names */
+
+		if(req->flags & DUC_INDEX_HIDE_FILE_NAMES) name = "<FILE>";
+
+
+		/* Store record */
+
+		if(req->maxdepth == 0 || scanner_dir->depth < req->maxdepth) 
+			add_ent(scanner_dir, name, size, type, devino);
+	}
+
+
+}
+
+
+/*
+ * Index a directory from the filesystem
+ */
+
+static void index_dir_filesystem(struct scanner *scanner)
+{
+	struct duc *duc = scanner->duc;
+	struct duc_index_req *req = scanner->req;
+	//struct duc_index_report *report = scanner->rep; 	
 
 	struct dirent *e;
-	while( (e = readdir(scanner_dir->d)) != NULL) {
+
+	while( (e = readdir(scanner->d)) != NULL) {
 
 		/* Skip . and .. */
 
@@ -367,12 +470,12 @@ static void index_dir(struct scanner *scanner_dir)
 		 * See the readdir() man page for more details */
 
 		struct stat st_ent;
-		int r = fstatat(scanner_dir->fd, name, &st_ent, AT_SYMLINK_NOFOLLOW);
+		int r = fstatat(scanner->fd, name, &st_ent, AT_SYMLINK_NOFOLLOW);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", name, strerror(errno));
 			continue;
 		}
-		 
+
 		duc_file_type type = st_to_type(st_ent.st_mode);
 		struct duc_devino devino = { .dev = st_ent.st_dev, .ino = st_ent.st_ino };
 
@@ -380,7 +483,7 @@ static void index_dir(struct scanner *scanner_dir)
 		/* Skip hard link duplicates for any files with more then one hard link */
 
 		if(type != DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_CHECK_HARD_LINKS && 
-	 	   st_ent.st_nlink > 1 && is_duplicate(req, &devino)) {
+				st_ent.st_nlink > 1 && is_duplicate(req, &devino)) {
 			continue;
 		}
 
@@ -392,45 +495,72 @@ static void index_dir(struct scanner *scanner_dir)
 			continue;
 		}
 
+		struct duc_size size_ent;
+		struct duc_devino devino_ent;
 
-		/* Calculate size of this dirent */
-		
-		if(type == DUC_FILE_TYPE_DIR) {
+		st_to_size(&st_ent, &size_ent);
+		st_to_devino(&st_ent, &devino_ent);
 
-			/* Open and scan child directory */
+		index_dirent(scanner, name, type, st_ent.st_mtime, &size_ent, &devino_ent);
 
-			struct scanner *scanner_ent = scanner_new(duc, scanner_dir, name, &st_ent);
-			if(scanner_ent == NULL)
-				continue;
-
-			index_dir(scanner_ent);
-			scanner_free(scanner_ent);
-
-		} else {
-
-			struct duc_size ent_size;
-			size_from_st(&ent_size, &st_ent);
-			size_accum(&scanner_dir->size, &ent_size);
-			size_accum(&report->size, &ent_size);
-
-			report->file_count ++;
-
-			duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
-					duc_file_type_char(type), ent_size.apparent, ent_size.actual, name);
-
-
-			/* Optionally hide file names */
-
-			if(req->flags & DUC_INDEX_HIDE_FILE_NAMES) name = "<FILE>";
-		
-
-			/* Store record */
-
-			if(req->maxdepth == 0 || scanner_dir->depth < req->maxdepth) 
-				add_ent(scanner_dir, name, &ent_size, type, &devino);
-		}
 	}
 }	
+
+
+/*
+ * Index a directory from an earlier indexed directory we found in the database
+ * with a matching mtime
+ */
+
+static void index_dir_cached(struct scanner *scanner)
+{
+	uint64_t v;
+
+	struct buffer *b = scanner->buffer_prev;
+	char *name;
+	duc_file_type type;
+	struct duc_size size;
+	struct duc_devino devino;
+
+	while(b->ptr < b->len) {
+
+		buffer_get_string(b, &name);
+		buffer_get_varint(b, &v); size.apparent = v;
+		buffer_get_varint(b, &v); size.actual = v;
+		buffer_get_varint(b, &v); type = v;
+
+		if(type == DUC_FILE_TYPE_DIR) {
+			buffer_get_varint(b, &v); devino.dev = v;
+			buffer_get_varint(b, &v); devino.ino = v;
+		}
+
+		index_dirent(scanner, name, type, 0, &size, &devino);
+	}
+}
+
+
+/*
+ * Index a directory, called recursively
+ */
+
+static void index_dir(struct scanner *scanner)
+{
+	struct duc_index_report *report = scanner->rep; 	
+
+	report->dir_count ++;
+	size_accum(&report->size, &scanner->size);
+
+	/* Iterate directory entries. If this directory is available in the
+	 * database with unchanged mtime we can iterate the database instead of
+	 * the directory with a nice performance gain */
+
+	if(scanner->buffer_prev) {
+		index_dir_cached(scanner);
+	} else {
+		index_dir_filesystem(scanner);
+	}
+}
+
 
 
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags)
@@ -459,15 +589,14 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	/* Recursively index subdirectories */
 
-	struct scanner *scanner = scanner_new(duc, NULL, path_canon, NULL);
+	struct scanner *scanner = scanner_new(duc, NULL, path_canon, 0, NULL, NULL);
 
 	if(scanner) {
 		scanner->req = req;
 		scanner->rep = report;
 	
-		req->dev = scanner->st.st_dev;
-		report->devino.dev = scanner->st.st_dev;
-		report->devino.ino = scanner->st.st_ino;
+		req->dev = scanner->devino.dev;
+		report->devino = scanner->devino;
 
 		index_dir(scanner);
 		gettimeofday(&report->time_stop, NULL);

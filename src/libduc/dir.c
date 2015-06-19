@@ -65,9 +65,9 @@ struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 	/* Read dir header */
 
 	uint64_t v;
+	buffer_get_varint(b, &v); dir->mtime = v;
 	buffer_get_varint(b, &v); dir->devino_parent.dev = v;
 	buffer_get_varint(b, &v); dir->devino_parent.ino = v;
-	buffer_get_varint(b, &v); dir->mtime = v;
 
 	/* Read all dirents */
 
