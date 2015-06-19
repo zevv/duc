@@ -95,7 +95,7 @@ static double draw_char(duc_graph *g, double x, double y, int size, int c)
 
 	if(c < STB_SOMEFONT_FIRST_CHAR ||
 	   c >= STB_SOMEFONT_FIRST_CHAR + STB_SOMEFONT_NUM_CHARS)
-		return x;
+		return 0;
 
 	stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
 
