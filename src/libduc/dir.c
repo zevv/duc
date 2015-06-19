@@ -11,10 +11,29 @@
 
 #include "duc.h"
 #include "db.h"
+#include "buffer.h"
 #include "private.h"
 
 
-struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
+struct duc_dir {
+	struct duc *duc;
+	struct duc_devino devino;
+	struct duc_devino devino_parent;
+	char *path;
+	struct duc_dirent *ent_list;
+	struct duc_size size;
+	size_t ent_cur;
+	size_t ent_count;
+	size_t ent_pool;
+	duc_size_type size_type;
+};
+
+
+/*
+ * Read database record and deserialize into duc_dir
+ */
+
+struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
 {
 	struct duc_dir *dir = duc_malloc(sizeof(struct duc_dir));
 	memset(dir, 0, sizeof *dir);
@@ -27,27 +46,66 @@ struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 	dir->ent_list = duc_malloc(dir->ent_pool);
 	dir->size_type = -1;
 
+	char key[32];
+	size_t vall;
+
+	size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)devino->dev, (uintmax_t)devino->ino);
+	char *val = db_get(duc->db, key, keyl, &vall);
+	if(val == NULL) {
+		duc->err = DUC_E_PATH_NOT_FOUND;
+		return NULL;
+	}
+
+	struct buffer *b = buffer_new(val, vall);
+
+	struct duc_size size_total = { 0, 0 };
+
+	/* Read dir header */
+
+	uint64_t v;
+	buffer_get_varint(b, &v); dir->devino_parent.dev = v;
+	buffer_get_varint(b, &v); dir->devino_parent.ino = v;
+
+	/* Read all dirents */
+
+	while(b->ptr < b->len) {
+
+		/* Make sure there's enough room in the ent pool, realloc if needed */
+
+		if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
+			dir->ent_pool *= 2;
+			dir->ent_list = duc_realloc(dir->ent_list, dir->ent_pool);
+		}
+
+		struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
+
+		/* Read dirent data */
+
+		uint64_t v;
+
+		buffer_get_string(b, &ent->name);
+		buffer_get_varint(b, &v); ent->size.apparent = v;
+		buffer_get_varint(b, &v); ent->size.actual = v;
+		buffer_get_varint(b, &v); ent->type = v;
+
+		if(ent->type == DUC_FILE_TYPE_DIR) {
+			buffer_get_varint(b, &v); ent->devino.dev = v;
+			buffer_get_varint(b, &v); ent->devino.ino = v;
+		}
+
+		size_total.apparent += ent->size.apparent;
+		size_total.actual += ent->size.actual;
+	
+		dir->ent_count ++;
+	}
+
+	dir->size = size_total;
+
+	buffer_free(b);
+
 	return dir;
 }
 
-
-int duc_dir_add_ent(struct duc_dir *dir, const char *name, struct duc_size *size, uint8_t type, struct duc_devino *devino)
-{
-	if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
-		dir->ent_pool *= 2;
-		dir->ent_list = duc_realloc(dir->ent_list, dir->ent_pool);
-	}
-
-	struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
-	dir->ent_count ++;
-
-	ent->name = duc_strdup(name);
-	ent->type = type;
-	ent->size = *size;
-	ent->devino = *devino;
-
-	return 0;
-}
 
 
 void duc_dir_get_size(duc_dir *dir, struct duc_size *size)
@@ -58,7 +116,7 @@ void duc_dir_get_size(duc_dir *dir, struct duc_size *size)
 
 size_t duc_dir_get_count(duc_dir *dir)
 {
-	return dir->file_count + dir->dir_count;
+	return dir->ent_count;
 }
 
 
@@ -147,7 +205,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 	while(l > 0) {
 		path_try[l] = '\0';
 		struct duc_index_report *report;
-		report = db_read_report(duc, path_try);
+		report = report_read(duc, path_try);
 		if(report) {
 			devino = report->devino;
 			free(report);

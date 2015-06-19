@@ -21,10 +21,16 @@
 #endif
 
 #include "db.h"
+#include "report.h"
 #include "duc.h"
 #include "private.h"
 #include "uthash.h"
 #include "utlist.h"
+#include "buffer.h"
+
+#ifndef HAVE_LSTAT
+#define lstat stat
+#endif
 
 struct hard_link {
 	struct duc_devino devino;
@@ -56,7 +62,7 @@ struct scanner {
 	char *path;
 	int fd;
 	DIR *d;
-	duc_dir *dir;
+	struct buffer *buffer;
 	struct stat st;
 	struct duc_devino devino;
 	struct duc_size size;
@@ -90,6 +96,22 @@ duc_index_req *duc_index_req_new(duc *duc)
 	req->hard_link_map = NULL;
 
 	return req;
+}
+
+
+static void add_ent(struct scanner *scanner, const char *name, struct duc_size *size, uint8_t type, struct duc_devino *devino)
+{
+	struct buffer *b = scanner->buffer;
+
+	buffer_put_string(b, name);
+	buffer_put_varint(b, size->apparent);
+	buffer_put_varint(b, size->actual);
+	buffer_put_varint(b, type);
+
+	if(type == DUC_FILE_TYPE_DIR) {
+		buffer_put_varint(b, devino->dev);
+		buffer_put_varint(b, devino->ino);
+	}
 }
 
 
@@ -164,9 +186,13 @@ duc_file_type st_to_type(mode_t mode)
 	if(S_ISCHR(mode))  type = DUC_FILE_TYPE_CHR;
 	if(S_ISDIR(mode))  type = DUC_FILE_TYPE_DIR;
 	if(S_ISFIFO(mode)) type = DUC_FILE_TYPE_FIFO;
+#ifndef S_ISLNK
 	if(S_ISLNK(mode))  type = DUC_FILE_TYPE_LNK;
+#endif
 	if(S_ISREG(mode )) type = DUC_FILE_TYPE_REG;
+#ifndef S_ISSOCK
 	if(S_ISSOCK(mode)) type = DUC_FILE_TYPE_SOCK;
+#endif
 
 	return type;
 }
@@ -231,14 +257,18 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	scanner->devino.ino = scanner->st.st_ino;
 	size_from_st(&scanner->size, &scanner->st);
 
-	scanner->dir = duc_dir_new(duc, &scanner->devino);
+	scanner->buffer = buffer_new(NULL, 0);
 
 	if(scanner_parent) {
 		scanner->depth = scanner_parent->depth + 1;
 		scanner->duc = scanner_parent->duc;
 		scanner->req = scanner_parent->req;
 		scanner->rep = scanner_parent->rep;
-		scanner->dir->devino_parent = scanner_parent->devino;
+		buffer_put_varint(scanner->buffer, scanner_parent->devino.dev);
+		buffer_put_varint(scanner->buffer, scanner_parent->devino.ino);
+	} else {
+		buffer_put_varint(scanner->buffer, 0);
+		buffer_put_varint(scanner->buffer, 0);
 	}
 		
 	duc_log(duc, DUC_LOG_DMP, ">> %s", scanner->path);
@@ -265,7 +295,7 @@ static void scanner_free(struct scanner *scanner)
 		size_accum(&scanner->parent->size, &scanner->size);
 
 		if(req->maxdepth == 0 || scanner->depth < req->maxdepth) 
-			duc_dir_add_ent(scanner->parent->dir, scanner->path, &scanner->size, DUC_FILE_TYPE_DIR, &scanner->devino);
+			add_ent(scanner->parent, scanner->path, &scanner->size, DUC_FILE_TYPE_DIR, &scanner->devino);
 
 	}
 	
@@ -287,8 +317,14 @@ static void scanner_free(struct scanner *scanner)
 
 	}
 
-	db_write_dir(scanner->dir);
-	duc_dir_close(scanner->dir);
+	char key[32];
+	size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)scanner->devino.dev, (uintmax_t)scanner->devino.ino);
+	int r = db_put(duc->db, key, keyl, scanner->buffer->data, scanner->buffer->len);
+	if(r != 0) {
+		duc->err = r;
+	}
+
+	buffer_free(scanner->buffer);
 	closedir(scanner->d);
 	duc_free(scanner->path);
 	duc_free(scanner);
@@ -389,7 +425,7 @@ static void index_dir(struct scanner *scanner_dir)
 			/* Store record */
 
 			if(req->maxdepth == 0 || scanner_dir->depth < req->maxdepth) 
-				duc_dir_add_ent(scanner_dir->dir, name, &ent_size, type, &devino);
+				add_ent(scanner_dir, name, &ent_size, type, &devino);
 		}
 	}
 }	
@@ -439,7 +475,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Store report */
 
 	gettimeofday(&report->time_stop, NULL);
-	db_write_report(duc, report);
+	report_write(duc, report);
 
 	free(path_canon);
 
@@ -467,7 +503,7 @@ struct duc_index_report *duc_get_report(duc *duc, size_t id)
 
 	char *path = index + id * DUC_PATH_MAX;
 
-	struct duc_index_report *r = db_read_report(duc, path);
+	struct duc_index_report *r = report_read(duc, path);
 
 	free(index);
 

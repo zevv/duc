@@ -4,7 +4,8 @@ bin_PROGRAMS := duc
 duc_SOURCES := \
 	src/libduc/buffer.c \
 	src/libduc/buffer.h \
-	src/libduc/db.c \
+	src/libduc/report.c \
+	src/libduc/report.h \
 	src/libduc/db.h \
 	src/libduc/db-tokyo.c \
 	src/libduc/db-leveldb.c \
