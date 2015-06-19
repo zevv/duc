@@ -19,6 +19,7 @@
 struct duc_dir {
 	struct duc *duc;
 	struct duc_devino devino;
+	time_t mtime;
 	struct duc_devino devino_parent;
 	char *path;
 	struct duc_dirent *ent_list;
@@ -66,6 +67,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 	uint64_t v;
 	buffer_get_varint(b, &v); dir->devino_parent.dev = v;
 	buffer_get_varint(b, &v); dir->devino_parent.ino = v;
+	buffer_get_varint(b, &v); dir->mtime = v;
 
 	/* Read all dirents */
 

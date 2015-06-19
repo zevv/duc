@@ -270,6 +270,8 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		buffer_put_varint(scanner->buffer, 0);
 		buffer_put_varint(scanner->buffer, 0);
 	}
+
+	buffer_put_varint(scanner->buffer, scanner->st.st_mtime);
 		
 	duc_log(duc, DUC_LOG_DMP, ">> %s", scanner->path);
 
