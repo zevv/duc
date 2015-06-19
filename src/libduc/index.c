@@ -385,6 +385,8 @@ static void scanner_free(struct scanner *scanner)
 	}
 	if(scanner->d) {
 		closedir(scanner->d);
+	} else {
+		close(scanner->fd);
 	}
 	duc_free(scanner->path);
 	duc_free(scanner);
