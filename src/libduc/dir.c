@@ -13,6 +13,7 @@
 #include "db.h"
 #include "buffer.h"
 #include "private.h"
+#include "report.h"
 
 
 struct duc_dir {
@@ -33,7 +34,7 @@ struct duc_dir {
  * Read database record and deserialize into duc_dir
  */
 
-struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
+struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 {
 	struct duc_dir *dir = duc_malloc(sizeof(struct duc_dir));
 	memset(dir, 0, sizeof *dir);
@@ -107,7 +108,6 @@ struct duc_dir *db_read_dir(struct duc *duc, struct duc_devino *devino)
 }
 
 
-
 void duc_dir_get_size(duc_dir *dir, struct duc_size *size)
 {
 	*size = dir->size;
@@ -126,10 +126,9 @@ char *duc_dir_get_path(duc_dir *dir)
 }
 
 
-
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
 {
-	duc_dir *dir2 = db_read_dir(dir->duc, &e->devino);
+	duc_dir *dir2 = duc_dir_new(dir->duc, &e->devino);
 	if(dir2) {
 		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
 	}
@@ -144,7 +143,7 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 		/* Special case: go up one directory */
 
 		if(dir->devino_parent.dev && dir->devino_parent.ino) {
-			duc_dir *pdir = db_read_dir(dir->duc, &dir->devino_parent);
+			duc_dir *pdir = duc_dir_new(dir->duc, &dir->devino_parent);
 			if(pdir == NULL) return NULL;
 			pdir->path = duc_strdup(dir->path);
 			dirname(pdir->path);
@@ -186,7 +185,6 @@ struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name)
 }
 
 
-
 duc_dir *duc_dir_open(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
@@ -225,7 +223,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
-	dir = db_read_dir(duc, &devino);
+	dir = duc_dir_new(duc, &devino);
 
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
