@@ -19,6 +19,7 @@ struct duc_dir {
 	struct duc *duc;
 	struct duc_devino devino;
 	struct duc_devino devino_parent;
+	time_t mtime;
 	char *path;
 	struct duc_dirent *ent_list;
 	struct duc_size size;
@@ -54,7 +55,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 
 	/* Read dir header */
 
-	buffer_get_dir(b, &dir->devino_parent);
+	buffer_get_dir(b, &dir->devino_parent, &dir->mtime);
 
 	/* Read all dirents */
 

@@ -3,7 +3,7 @@
 
 #include "duc.h"
 
-#define DUC_DB_VERSION "15"
+#define DUC_DB_VERSION "16"
 
 struct duc {
 	struct db *db;

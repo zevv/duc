@@ -215,8 +215,16 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	}
 		
 	struct stat st2;
+	
+	struct duc_devino devino_parent = { 0, 0 };
 
-	if(st == NULL) {
+	if(scanner_parent) {
+		scanner->depth = scanner_parent->depth + 1;
+		scanner->duc = scanner_parent->duc;
+		scanner->req = scanner_parent->req;
+		scanner->rep = scanner_parent->rep;
+		devino_parent = scanner_parent->ent.devino;
+	} else {
 		int r = fstat(scanner->fd, &st2);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
@@ -240,17 +248,9 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	st_to_devino(st, &scanner->ent.devino);
 	st_to_size(st, &scanner->ent.size);
 
-	if(scanner_parent) {
-		scanner->depth = scanner_parent->depth + 1;
-		scanner->duc = scanner_parent->duc;
-		scanner->req = scanner_parent->req;
-		scanner->rep = scanner_parent->rep;
-		buffer_put_dir(scanner->buffer, &scanner_parent->ent.devino);
-	} else {
-		struct duc_devino d = { 0, 0 };
-		buffer_put_dir(scanner->buffer, &d);
-	}
 		
+	buffer_put_dir(scanner->buffer, &devino_parent, st->st_mtime);
+
 	duc_log(duc, DUC_LOG_DMP, ">> %s", scanner->ent.name);
 
 	return scanner;

@@ -157,19 +157,21 @@ int buffer_get_string(struct buffer *b, char **sout)
  * Serialize data from structs into buffer
  */
 
-void buffer_put_dir(struct buffer *b, struct duc_devino *devino)
+void buffer_put_dir(struct buffer *b, struct duc_devino *devino, time_t mtime)
 {
 	buffer_put_varint(b, devino->dev);
 	buffer_put_varint(b, devino->ino);
+	buffer_put_varint(b, mtime);
 }
 
 
-void buffer_get_dir(struct buffer *b, struct duc_devino *devino)
+void buffer_get_dir(struct buffer *b, struct duc_devino *devino, time_t *mtime)
 {
 	uint64_t v;
 
 	buffer_get_varint(b, &v); devino->dev = v;
 	buffer_get_varint(b, &v); devino->ino = v;
+	buffer_get_varint(b, &v); *mtime = v;
 }
 
 void buffer_put_dirent(struct buffer *b, struct duc_dirent *ent)
