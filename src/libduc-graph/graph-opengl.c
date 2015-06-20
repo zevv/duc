@@ -152,7 +152,6 @@ static void text_size(duc_graph *g, char *text, int *w, int *h, int size)
 
 static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
 {
-	struct opengl_backend_data *bd = g->backend_data;
 	int i;
 	
 	for(i=0; i<l; i++) {
