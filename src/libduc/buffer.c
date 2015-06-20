@@ -39,16 +39,6 @@ struct buffer *buffer_new(void *data, size_t len)
 }
 
 
-static int buffer_prep(struct buffer *b, size_t n)
-{
-	if(b->ptr + n > b->max) {
-		while(b->len + n > b->max) {
-			b->max *= 2;
-		}
-		b->data = duc_realloc(b->data, b->max);
-	}
-	return 0;
-}
 
 
 void buffer_free(struct buffer *b)
@@ -58,15 +48,15 @@ void buffer_free(struct buffer *b)
 }
 
 
-void buffer_seek(struct buffer *b, size_t off)
+static int buffer_put(struct buffer *b, const void *data, size_t len)
 {
-	b->ptr = off;
-}
+	if(b->ptr + len > b->max) {
+		while(b->len + len > b->max) {
+			b->max *= 2;
+		}
+		b->data = duc_realloc(b->data, b->max);
+	}
 
-
-int buffer_put(struct buffer *b, const void *data, size_t len)
-{
-	buffer_prep(b, len); 
 	memcpy(b->data + b->ptr, data, len);
 	b->ptr += len;
 	if(b->ptr > b->len) b->len = b->ptr;
@@ -74,7 +64,7 @@ int buffer_put(struct buffer *b, const void *data, size_t len)
 }
 
 
-int buffer_get(struct buffer *b, void *data, size_t len)
+static int buffer_get(struct buffer *b, void *data, size_t len)
 {
 	if(b->ptr <= b->len - len) {
 		memcpy(data, b->data + b->ptr, len);
@@ -86,7 +76,7 @@ int buffer_get(struct buffer *b, void *data, size_t len)
 }
 
 
-int buffer_put_varint(struct buffer *b, uint64_t v)
+static int buffer_put_varint(struct buffer *b, uint64_t v)
 {
 	uint8_t buf[9];
 	int l = PutVarint64(buf, v);
@@ -95,18 +85,7 @@ int buffer_put_varint(struct buffer *b, uint64_t v)
 } 
 
 
-void buffer_dump(struct buffer *b)
-{
-	uint8_t *p = b->data;
-	size_t i;
-	for(i=0; i<b->len; i++) {
-		printf("%02x ", *p++);
-	}
-	printf("\n");
-}
-
-
-int buffer_get_varint(struct buffer *b, uint64_t *v)
+static int buffer_get_varint(struct buffer *b, uint64_t *v)
 {
 	uint8_t buf[9];
 	int r = buffer_get(b, buf, 1);
@@ -124,7 +103,7 @@ int buffer_get_varint(struct buffer *b, uint64_t *v)
 }
 
 
-int buffer_put_string(struct buffer *b, const char *s)
+static int buffer_put_string(struct buffer *b, const char *s)
 {
 	size_t len = strlen(s);
 	if(len < 256) {
@@ -138,7 +117,7 @@ int buffer_put_string(struct buffer *b, const char *s)
 }
 
 
-int buffer_get_string(struct buffer *b, char **sout)
+static int buffer_get_string(struct buffer *b, char **sout)
 {
 	uint8_t len;
 	buffer_get(b, &len, sizeof len);
