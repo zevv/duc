@@ -2,7 +2,6 @@
 #ifndef db_h
 #define db_h
 
-#include "private.h"
 #include "duc.h"
 
 struct db;

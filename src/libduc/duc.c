@@ -216,6 +216,17 @@ void *duc_malloc(size_t s)
 }
 
 
+void *duc_malloc0(size_t s)
+{
+	void *p = calloc(s, 1);
+	if(p == NULL) {
+		duc_log(NULL, DUC_LOG_FTL, "out of memory");
+		exit(1);
+	}
+	return p;
+}
+
+
 void *duc_realloc(void *p, size_t s)
 {
 	void *p2 = realloc(p, s);
@@ -269,6 +280,15 @@ char *duc_file_type_name(duc_file_type t)
 {
 	return (t <= DUC_FILE_TYPE_UNKNOWN) ? duc_file_type_list[t].s : " ";
 }
+
+
+void duc_size_accum(struct duc_size *s1, struct duc_size *s2)
+{
+	s1->actual += s2->actual;
+	s1->apparent += s2->apparent;
+}
+
+
 
 /*
  * End

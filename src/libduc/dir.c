@@ -11,13 +11,36 @@
 
 #include "duc.h"
 #include "db.h"
+#include "buffer.h"
 #include "private.h"
+
+
+struct duc_dir {
+	struct duc *duc;
+	struct duc_devino devino;
+	struct duc_devino devino_parent;
+	char *path;
+	struct duc_dirent *ent_list;
+	struct duc_size size;
+	size_t ent_cur;
+	size_t ent_count;
+	size_t ent_pool;
+	duc_size_type size_type;
+};
 
 
 struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 {
-	struct duc_dir *dir = duc_malloc(sizeof(struct duc_dir));
-	memset(dir, 0, sizeof *dir);
+	size_t vall;
+	char key[32];
+	size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)devino->dev, (uintmax_t)devino->ino);
+	char *val = db_get(duc->db, key, keyl, &vall);
+	if(val == NULL) {
+		duc->err = DUC_E_PATH_NOT_FOUND;
+		return NULL;
+	}
+
+	struct duc_dir *dir = duc_malloc0(sizeof(struct duc_dir));
 
 	dir->duc = duc;
 	dir->devino.dev = devino->dev;
@@ -27,26 +50,31 @@ struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 	dir->ent_list = duc_malloc(dir->ent_pool);
 	dir->size_type = -1;
 
-	return dir;
-}
+	struct buffer *b = buffer_new(val, vall);
 
+	/* Read dir header */
 
-int duc_dir_add_ent(struct duc_dir *dir, const char *name, struct duc_size *size, uint8_t type, struct duc_devino *devino)
-{
-	if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
-		dir->ent_pool *= 2;
-		dir->ent_list = duc_realloc(dir->ent_list, dir->ent_pool);
+	buffer_get_dir(b, &dir->devino_parent);
+
+	/* Read all dirents */
+
+	while(b->ptr < b->len) {
+
+		if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
+			dir->ent_pool *= 2;
+			dir->ent_list = duc_realloc(dir->ent_list, dir->ent_pool);
+		}
+
+		struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
+		buffer_get_dirent(b, ent);
+
+		duc_size_accum(&dir->size, &ent->size);
+		dir->ent_count ++;
 	}
 
-	struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
-	dir->ent_count ++;
+	buffer_free(b);
 
-	ent->name = duc_strdup(name);
-	ent->type = type;
-	ent->size = *size;
-	ent->devino = *devino;
-
-	return 0;
+	return dir;
 }
 
 
@@ -58,7 +86,7 @@ void duc_dir_get_size(duc_dir *dir, struct duc_size *size)
 
 size_t duc_dir_get_count(duc_dir *dir)
 {
-	return dir->file_count + dir->dir_count;
+	return dir->ent_count;
 }
 
 
@@ -68,10 +96,9 @@ char *duc_dir_get_path(duc_dir *dir)
 }
 
 
-
 duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
 {
-	duc_dir *dir2 = db_read_dir(dir->duc, &e->devino);
+	duc_dir *dir2 = duc_dir_new(dir->duc, &e->devino);
 	if(dir2) {
 		asprintf(&dir2->path, "%s/%s", dir->path, e->name);
 	}
@@ -86,7 +113,7 @@ duc_dir *duc_dir_openat(duc_dir *dir, const char *name)
 		/* Special case: go up one directory */
 
 		if(dir->devino_parent.dev && dir->devino_parent.ino) {
-			duc_dir *pdir = db_read_dir(dir->duc, &dir->devino_parent);
+			duc_dir *pdir = duc_dir_new(dir->duc, &dir->devino_parent);
 			if(pdir == NULL) return NULL;
 			pdir->path = duc_strdup(dir->path);
 			dirname(pdir->path);
@@ -128,7 +155,6 @@ struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name)
 }
 
 
-
 duc_dir *duc_dir_open(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
@@ -167,7 +193,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
-	dir = db_read_dir(duc, &devino);
+	dir = duc_dir_new(duc, &devino);
 
 	if(dir == NULL) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
@@ -283,6 +309,27 @@ int duc_dir_close(duc_dir *dir)
 	free(dir);
 	return 0;
 }
+
+
+struct duc_index_report *duc_get_report(duc *duc, size_t id)
+{
+	size_t indexl;
+
+	char *index = db_get(duc->db, "duc_index_reports", 17, &indexl);
+	if(index == NULL) return NULL;
+
+	int report_count = indexl / DUC_PATH_MAX;
+	if(id >= report_count) return NULL;
+
+	char *path = index + id * DUC_PATH_MAX;
+
+	struct duc_index_report *r = db_read_report(duc, path);
+
+	free(index);
+
+	return r;
+} 
+
 
 /*
  * End

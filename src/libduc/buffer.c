@@ -152,6 +152,94 @@ int buffer_get_string(struct buffer *b, char **sout)
 	return 0;
 }
 
+
+/*
+ * Serialize data from structs into buffer
+ */
+
+void buffer_put_dir(struct buffer *b, struct duc_devino *devino)
+{
+	buffer_put_varint(b, devino->dev);
+	buffer_put_varint(b, devino->ino);
+}
+
+
+void buffer_get_dir(struct buffer *b, struct duc_devino *devino)
+{
+	uint64_t v;
+
+	buffer_get_varint(b, &v); devino->dev = v;
+	buffer_get_varint(b, &v); devino->ino = v;
+}
+
+void buffer_put_dirent(struct buffer *b, struct duc_dirent *ent)
+{
+	buffer_put_string(b, ent->name);
+	buffer_put_varint(b, ent->size.apparent);
+	buffer_put_varint(b, ent->size.actual);
+	buffer_put_varint(b, ent->type);
+
+	if(ent->type == DUC_FILE_TYPE_DIR) {
+		buffer_put_varint(b, ent->devino.dev);
+		buffer_put_varint(b, ent->devino.ino);
+	}
+}
+
+void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
+{
+	uint64_t v;
+
+	buffer_get_string(b, &ent->name);
+	buffer_get_varint(b, &v); ent->size.apparent = v;
+	buffer_get_varint(b, &v); ent->size.actual = v;
+	buffer_get_varint(b, &v); ent->type = v;
+	
+	if(ent->type == DUC_FILE_TYPE_DIR) {
+		buffer_get_varint(b, &v); ent->devino.dev = v;
+		buffer_get_varint(b, &v); ent->devino.ino = v;
+	}
+}
+
+
+void buffer_put_index_report(struct buffer *b, struct duc_index_report *report)
+{
+	buffer_put_string(b, report->path);
+	buffer_put_varint(b, report->devino.dev);
+	buffer_put_varint(b, report->devino.ino);
+	buffer_put_varint(b, report->time_start.tv_sec);
+	buffer_put_varint(b, report->time_start.tv_usec);
+	buffer_put_varint(b, report->time_stop.tv_sec);
+	buffer_put_varint(b, report->time_stop.tv_usec);
+	buffer_put_varint(b, report->file_count);
+	buffer_put_varint(b, report->dir_count);
+	buffer_put_varint(b, report->size.apparent);
+	buffer_put_varint(b, report->size.actual);
+}
+
+
+void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
+{
+	char *vs = NULL;
+	buffer_get_string(b, &vs);
+	if(vs == NULL) return
+	assert(vs);
+	snprintf(report->path, sizeof(report->path), "%s", vs);
+	free(vs);
+
+	uint64_t vi;
+	buffer_get_varint(b, &vi); report->devino.dev = vi;
+	buffer_get_varint(b, &vi); report->devino.ino = vi;
+	buffer_get_varint(b, &vi); report->time_start.tv_sec = vi;
+	buffer_get_varint(b, &vi); report->time_start.tv_usec = vi;
+	buffer_get_varint(b, &vi); report->time_stop.tv_sec = vi;
+	buffer_get_varint(b, &vi); report->time_stop.tv_usec = vi;
+	buffer_get_varint(b, &vi); report->file_count = vi;
+	buffer_get_varint(b, &vi); report->dir_count = vi;
+	buffer_get_varint(b, &vi); report->size.apparent = vi;
+	buffer_get_varint(b, &vi); report->size.actual = vi;
+}
+
+
 /*
  * End
  */
