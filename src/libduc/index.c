@@ -70,7 +70,7 @@ struct exclude {
 struct duc_index_req {
 	duc *duc;
 	struct exclude *exclude_list;
-	dev_t dev;
+	duc_dev_t dev;
 	duc_index_flags flags;
 	int maxdepth;
 	duc_index_progress_cb progress_fn;

@@ -30,6 +30,12 @@ struct duc_dir {
 };
 
 
+static int is_sep(char c)
+{
+	return c == '/' || c == '\\';
+}
+
+
 struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 {
 	size_t vall;
@@ -181,7 +187,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 			break;
 		}
 		l--;
-		while(l > 1 && path_try[l] != '/') l--;
+		while(l > 1 && !is_sep(path_try[l])) l--;
 	}
 	free(path_try);
 

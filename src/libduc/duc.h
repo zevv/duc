@@ -12,6 +12,14 @@
 
 #define DUC_PATH_MAX 16384
 
+#ifdef WIN32
+typedef int64_t duc_dev_t;
+typedef int64_t duc_ino_t;
+#else
+typedef dev_t duc_dev_t;
+typedef ino_t duc_ino_t;
+#endif
+
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;
 typedef struct duc_index_req duc_index_req;
@@ -68,8 +76,8 @@ typedef enum {
 } duc_file_type;
 
 struct duc_devino {
-	dev_t dev;
-	ino_t ino;
+	duc_dev_t dev;
+	duc_ino_t ino;
 };
 
 struct duc_size {
