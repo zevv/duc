@@ -276,7 +276,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 		char ts_date[32];
 		char ts_time[32];
-		struct tm *tm = localtime(&report->time_start.tv_sec);
+		time_t t = report->time_start.tv_sec;
+		struct tm *tm = localtime(&t);
 		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 

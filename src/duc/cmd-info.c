@@ -34,7 +34,8 @@ static int info_db(duc *duc, char *file)
 	while(( report = duc_get_report(duc, i)) != NULL) {
 
 		char ts[32];
-		struct tm *tm = localtime(&report->time_start.tv_sec);
+		time_t t = report->time_start.tv_sec;
+		struct tm *tm = localtime(&t);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
 		char siz[16], fs[16], ds[16];
