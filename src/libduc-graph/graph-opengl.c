@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <libgen.h>
 
-#define GLFW_INCLUDE_ES2
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "private.h"
@@ -152,7 +152,6 @@ static void text_size(duc_graph *g, char *text, int *w, int *h, int size)
 
 static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
 {
-	struct opengl_backend_data *bd = g->backend_data;
 	int i;
 	
 	for(i=0; i<l; i++) {
@@ -301,7 +300,7 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 }
 
 
-static GLuint load_shader(const GLchar * const *txt, GLenum type)
+static GLuint load_shader(const GLchar **txt, GLenum type)
 {
 	GLuint s;
 	s = glCreateShader(type);

@@ -9,13 +9,12 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/poll.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
 
-#define GLFW_INCLUDE_ES2
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 static int opt_bytes;
@@ -27,10 +26,8 @@ static int opt_levels = 4;
 static int opt_apparent = 0;
 static int opt_ring_gap = 4;
 
-//static int redraw = 1;
 static int tooltip_x = 0;
 static int tooltip_y = 0;
-//static int tooltip_moved = 0;
 static enum duc_graph_palette palette = 0;
 static int win_w = 600;
 static int win_h = 600;
@@ -187,6 +184,8 @@ int guigl_main(duc *duc, int argc, char *argv[])
 	}
 
 	glfwMakeContextCurrent(window);
+	gladLoadGLES2Loader((GLADloadproc) glfwGetProcAddress);
+
 	glfwGetFramebufferSize(window, &win_w, &win_h);
 
 	double font_scale = 1.0;
