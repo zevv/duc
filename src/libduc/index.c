@@ -28,6 +28,28 @@
 #define S_ISSOCK(v) 0
 #endif
 
+#ifdef WIN32
+#define O_NOCTTY 0
+#define O_DIRECTORY 0
+#define O_NOFOLLOW 0
+#define AT_SYMLINK_NOFOLLOW 0
+int openat(int dirfd, const char *pathname, int flags) { return 0; }
+DIR *fdopendir(int fd) { return NULL; }
+int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags) { return 0; }
+#ifndef timeradd
+# define timeradd(a, b, result)			      \
+  do {							      \
+   (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;	      \
+   (result)->tv_usec = (a)->tv_usec + (b)->tv_usec;	      \
+   if ((result)->tv_usec >= 1000000)			      \
+     {							      \
+       ++(result)->tv_sec;				      \
+       (result)->tv_usec -= 1000000;			      \
+     }							      \
+  } while (0)
+#endif
+#endif
+
 #include "db.h"
 #include "duc.h"
 #include "private.h"
@@ -168,7 +190,9 @@ duc_file_type st_to_type(mode_t mode)
 static void st_to_size(struct stat *st, struct duc_size *s)
 {
 	s->apparent = st->st_size;
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
 	s->actual = st->st_blocks * 512;
+#endif
 }
 
 
