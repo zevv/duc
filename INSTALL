@@ -67,6 +67,11 @@ performance is acceptable and generates in the smallest database size.
 If your system supports none of the above, contact the author to see if we can
 add your favourite back end.
 
+Please note: Not all database formats can be shared between machines with
+different architectures. If you are planning to share databases between different
+platforms (index machine A, display on machine B) we recommend using the
+sqlite3 backend.
+
 
 Graphics
 --------

@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <libgen.h>
 
-#define GLFW_INCLUDE_ES2
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "private.h"
@@ -300,7 +300,7 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 }
 
 
-static GLuint load_shader(const GLchar * const *txt, GLenum type)
+static GLuint load_shader(const GLchar **txt, GLenum type)
 {
 	GLuint s;
 	s = glCreateShader(type);
