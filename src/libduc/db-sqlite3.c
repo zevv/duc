@@ -59,6 +59,7 @@ err1:
 void db_close(struct db *db)
 {
 	sqlite3_exec(db->s, "commit", 0, 0, 0);
+	sqlite3_close(db->s);
 	free(db);
 }
 
