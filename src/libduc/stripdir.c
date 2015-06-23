@@ -46,6 +46,7 @@ char *test[][2] = {
 	
 	{ "C:\\Windows\\System32",   "C:/Windows/System32" },
 	{ "c:/",                     "C:/" },
+	{ "c:\\..\\..\\..",          "C:/" },
 	{ "c:\\",                    "C:/" },
 	{ "c:\\users\\ico",          "C:/users/ico" },
 	{ "c:\\users\\ico\\..",      "C:/users" },
@@ -200,11 +201,7 @@ char *stripdir(const char *in)
 					break;
 				}
 			}
-			if(j<0) {
-				duc_free(s.cs);
-				return duc_strdup("/");
-			}
-			s.cs[j].len = 0;
+			if(j>=0) s.cs[j].len = 0;
 		}
 	}
 
