@@ -20,36 +20,6 @@
 #include <fnmatch.h>
 #endif
 
-#ifndef S_ISLNK
-#define S_ISLNK(v) 0
-#endif
-
-#ifndef S_ISSOCK
-#define S_ISSOCK(v) 0
-#endif
-
-#ifdef WIN32
-#define O_NOCTTY 0
-#define O_DIRECTORY 0
-#define O_NOFOLLOW 0
-#define AT_SYMLINK_NOFOLLOW 0
-int openat(int dirfd, const char *pathname, int flags) { return 0; }
-DIR *fdopendir(int fd) { return NULL; }
-int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags) { return 0; }
-#ifndef timeradd
-# define timeradd(a, b, result)			      \
-  do {							      \
-   (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;	      \
-   (result)->tv_usec = (a)->tv_usec + (b)->tv_usec;	      \
-   if ((result)->tv_usec >= 1000000)			      \
-     {							      \
-       ++(result)->tv_sec;				      \
-       (result)->tv_usec -= 1000000;			      \
-     }							      \
-  } while (0)
-#endif
-#endif
-
 #include "db.h"
 #include "duc.h"
 #include "private.h"
@@ -84,7 +54,6 @@ struct duc_index_req {
 struct scanner {
 	struct scanner *parent;
 	int depth;
-	int fd;
 	DIR *d;
 	struct buffer *buffer;
 	struct duc *duc;
@@ -230,16 +199,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	struct scanner *scanner;
 	scanner = duc_malloc(sizeof *scanner);
 
-	int fd_parent = scanner_parent ? scanner_parent->fd : 0;
-
-	scanner->fd = openat(fd_parent, path, O_RDONLY | O_NOCTTY | O_DIRECTORY | O_NOFOLLOW);
-	if(scanner->fd == -1) {
-		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
-		goto err;
-	}
-		
 	struct stat st2;
-	
 	struct duc_devino devino_parent = { 0, 0 };
 
 	if(scanner_parent) {
@@ -249,7 +209,8 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		scanner->rep = scanner_parent->rep;
 		devino_parent = scanner_parent->ent.devino;
 	} else {
-		int r = fstat(scanner->fd, &st2);
+		printf("'%s'\n", path);
+		int r = lstat(path, &st2);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
 			goto err;
@@ -257,7 +218,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		st = &st2;
 	}
 	
-	scanner->d = fdopendir(scanner->fd);
+	scanner->d = opendir(path);
 	if(scanner->d == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
 		goto err;
@@ -280,7 +241,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	return scanner;
 
 err:
-	if(scanner->fd > 0) close(scanner->fd);
+	if(scanner->d > 0) closedir(scanner->d);
 	if(scanner) free(scanner);
 	return NULL;
 }
@@ -294,6 +255,12 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 	report->dir_count ++;
 	duc_size_accum(&report->size, &scanner_dir->ent.size);
+
+	int r = chdir(scanner_dir->ent.name);
+	if(r != 0) {
+		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", scanner_dir->ent.name, strerror(errno));
+		return;
+	}
 
 	/* Iterate directory entries */
 
@@ -320,7 +287,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 		 * See the readdir() man page for more details */
 
 		struct stat st_ent;
-		int r = fstatat(scanner_dir->fd, name, &st_ent, AT_SYMLINK_NOFOLLOW);
+		int r = lstat(name, &st_ent);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", name, strerror(errno));
 			continue;
@@ -386,7 +353,9 @@ static void scanner_scan(struct scanner *scanner_dir)
 			}
 		}
 	}
-}	
+
+	chdir("..");
+}
 
 
 static void scanner_free(struct scanner *scanner)
