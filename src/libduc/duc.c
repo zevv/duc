@@ -61,11 +61,14 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		path_db = getenv("DUC_DATABASE");
 	}
 
-	/* If the path is still empty, default to ~/.duc.db */
+	/* If the path is still empty, default to ~/.duc.db on unix, or
+	 * %APPDATA%/duc.db for windows */
+
 	if(path_db == NULL) {
 		char *home = getenv("HOME");
+		if(home == NULL) home = getenv("APPDATA");
 		if(home) {
-			snprintf(tmp, sizeof tmp, "%s/.duc.db", home);
+			snprintf(tmp, sizeof tmp, "%s/" FNAME_DUC_DB, home);
 			path_db = tmp;
 		}
 	}
