@@ -16,6 +16,14 @@
 #include <unistd.h>
 #include "private.h"
 
+#ifdef WIN32
+
+char *stripdir(const char *dir)
+{
+	return duc_strdup(dir);
+}
+
+#else
 
 static int is_sep(char c)
 {
@@ -96,6 +104,7 @@ char *stripdir(const char *dir)
 	return buf;
 }
 
+#endif
 
 /*
  * End

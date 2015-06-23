@@ -225,7 +225,6 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 		scanner->rep = scanner_parent->rep;
 		devino_parent = scanner_parent->ent.devino;
 	} else {
-		printf("'%s'\n", path);
 		int r = lstat(path, &st2);
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", path, strerror(errno));
