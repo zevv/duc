@@ -30,12 +30,6 @@ struct duc_dir {
 };
 
 
-static int is_sep(char c)
-{
-	return c == '/' || c == '\\';
-}
-
-
 struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
 {
 	size_t vall;
