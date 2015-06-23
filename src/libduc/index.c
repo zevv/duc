@@ -213,7 +213,7 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_parent, const char *path, struct stat *st)
 {
 	struct scanner *scanner;
-	scanner = duc_malloc(sizeof *scanner);
+	scanner = duc_malloc0(sizeof *scanner);
 
 	struct stat st2;
 	struct duc_devino devino_parent = { 0, 0 };
