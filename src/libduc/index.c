@@ -161,14 +161,30 @@ static void st_to_size(struct stat *st, struct duc_size *s)
 	s->apparent = st->st_size;
 #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
 	s->actual = st->st_blocks * 512;
+#else
+	s->actual = s->apparent;
 #endif
 }
 
 
+/*
+ * Conver struct stat to duc_devino. Windows does not support inodes
+ * and will always put 0 in st_ino. We fake inodes here by simply using
+ * a incrementing counter. This *will* cause problems when re-indexing
+ * existing databases. If anyone knows a better method to simulate
+ * inodes on windows, please tell me
+ */
+
 static void st_to_devino(struct stat *st, struct duc_devino *devino)
 {
+#ifdef WIN32
+	static duc_ino_t ino_seq = 0;
+	devino->dev = st->st_dev;
+	devino->ino = ++ino_seq;
+#else
 	devino->dev = st->st_dev;
 	devino->ino = st->st_ino;
+#endif
 }
 
 
