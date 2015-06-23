@@ -14,7 +14,7 @@ duc_SOURCES := \
 	src/libduc/duc.h \
 	src/libduc/index.c \
 	src/libduc/private.h \
-	src/libduc/stripdir.c \
+	src/libduc/canonicalize.c \
 	src/libduc/varint.c \
 	src/libduc/varint.h \
 	src/libduc/uthash.h \

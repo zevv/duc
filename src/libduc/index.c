@@ -430,7 +430,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	/* Canonalize index path */
 
-	char *path_canon = stripdir(path);
+	char *path_canon = duc_canonicalize_path(path);
 	if(path_canon == NULL) {
 		duc_log(duc, DUC_LOG_WRN, "Error converting path %s: %s", path, strerror(errno));
 		duc->err = DUC_E_UNKNOWN;

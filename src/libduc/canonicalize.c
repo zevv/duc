@@ -19,8 +19,8 @@
 #ifdef TEST
 
 /*
-   gcc -Wall -Werror -I. -DTEST -g src/libduc/stripdir.c  && valgrind --quiet --leak-check=full ./a.out 
-   x86_64-w64-mingw32-gcc -Wall -Werror -I. -DTEST -g src/libduc/stripdir.c && wine64 ./a.exe 
+   gcc -Wall -Werror -I. -DTEST -g src/libduc/canonicalize.c  && valgrind --quiet --leak-check=full ./a.out 
+   x86_64-w64-mingw32-gcc -Wall -Werror -I. -DTEST -g src/libduc/canonicalize.c && wine64 ./a.exe 
 */
 
 #define duc_malloc malloc
@@ -30,7 +30,7 @@
 
 char *test[][2] = {
 
-	/* absolute */
+	/* absolute unix paths */
 
 	{ "/",                       "/" },
 	{ "//",                      "/" },
@@ -43,6 +43,9 @@ char *test[][2] = {
 	{ "/home/ico/../..",         "/" },
 	{ "/home/./ico",             "/home/ico" },
 	{ "/../..",                  "/" },
+	{ "//d/./e/.././o/f/g/./h/../../..//./n/././e/./i/..///", "/d/o/n/e" },
+
+	/* absolute windows paths */
 	
 	{ "C:\\Windows\\System32",   "C:/Windows/System32" },
 	{ "c:/",                     "C:/" },
@@ -52,21 +55,24 @@ char *test[][2] = {
 	{ "c:\\users\\ico\\..",      "C:/users" },
 
 #ifdef WIN32
+
+	/* relative windows paths */
+
 	{ ".",                       "Z:/home/ico/sandbox/prjs/duc" },
 	{ "./..",                    "Z:/home/ico/sandbox/prjs" },
 	{ "..",                      "Z:/home/ico/sandbox/prjs" },
 	{ "foo/bar",                 "Z:/home/ico/sandbox/prjs/duc/foo/bar" },
 	{ "foo/bar/woo/../..",       "Z:/home/ico/sandbox/prjs/duc/foo" },
 #else
+
+	/* relative unix paths */
+	 
 	{ ".",                       "/home/ico/sandbox/prjs/duc" },
 	{ "./..",                    "/home/ico/sandbox/prjs" },
 	{ "..",                      "/home/ico/sandbox/prjs" },
 	{ "foo/bar",                 "/home/ico/sandbox/prjs/duc/foo/bar" },
 	{ "foo/bar/woo/../..",       "/home/ico/sandbox/prjs/duc/foo" },
 #endif
-
-
-	{ "//d/./e/.././o/f/g/./h/../../..//./n/././e/./i/..///", "/d/o/n/e" },
 
 	{ NULL },
 };
@@ -76,7 +82,7 @@ int main(void)
 {
 	int i = 0;
 	while(test[i][0]) {
-		char *o = stripdir(test[i][0]);
+		char *o = duc_canonicalize_path(test[i][0]);
 		printf("%-40.40s  %-40.40s %s\n", o, test[i][1], strcmp(test[i][1], o) ? "ERR" : "ok");
 		duc_free(o);
 		i++;
@@ -139,7 +145,7 @@ static void split(struct splitter *s, const char *path)
 }
 
 
-char *stripdir(const char *in)
+char *duc_canonicalize_path(const char *in)
 {
 	char cwd[DUC_PATH_MAX] = "";
 	char drive = '\0';
@@ -228,80 +234,6 @@ char *stripdir(const char *in)
 
 	free(s.cs);
 	return utstring_body(&out);	
-}
-
-
-char *stripdir2(const char *dir)
-{
-	const char * in;
-	char * out;
-	char * last;
-	int ldots;
-
-	int maxlen = DUC_PATH_MAX;
-	char *buf = duc_malloc(maxlen);
-	in   = dir;
-	out  = buf;
-	last = buf + maxlen;
-	ldots = 0;
-	*out  = 0;
-
-
-	if (!is_sep(*in)) {
-		if (getcwd(buf, maxlen - 2) ) {
-			out = buf + strlen(buf) - 1;
-			if (!is_sep(*out)) *(++out) = '/';
-			out++;
-		}
-		else {
-			free(buf);
-			return NULL;
-		}
-	}
-
-	while (out < last) {
-		*out = *in;
-
-		if (is_sep(*in))
-		{
-			while (*(++in) == '/') ;
-			in--;
-		}
-
-		if (is_sep(*in) || !*in)
-		{
-			if (ldots == 1 || ldots == 2) {
-				while (ldots > 0 && --out > buf)
-				{
-					if (*out == '/')
-						ldots--;
-				}
-				*(out+1) = 0;
-			}
-			ldots = 0;
-
-		} else if (*in == '.' && ldots > -1) {
-			ldots++;
-		} else {
-			ldots = -1;
-		}
-
-		out++;
-
-		if (!*in)
-			break;
-
-		in++;
-	}
-
-	if (*in) {
-		errno = ENOMEM;
-		free(buf);
-		return NULL;
-	}
-
-	while (--out != buf && (is_sep(*out) || !*out)) *out=0;
-	return buf;
 }
 
 

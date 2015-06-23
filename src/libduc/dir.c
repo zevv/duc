@@ -166,7 +166,7 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 {
 	/* Canonicalized path */
 
-	char *path_canon = stripdir(path);
+	char *path_canon = duc_canonicalize_path(path);
 	if(!path_canon) {
 		duc->err = DUC_E_PATH_NOT_FOUND;
 		return NULL;
