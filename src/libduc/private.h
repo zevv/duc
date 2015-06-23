@@ -5,6 +5,12 @@
 
 #define DUC_DB_VERSION "16"
 
+#ifdef WIN32
+#define FNAME_DUC_DB "duc.db"
+#else
+#define FNAME_DUC_DB ".duc.db"
+#endif
+
 struct duc {
 	struct db *db;
 	struct conf *conf;
