@@ -187,7 +187,6 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 			break;
 		}
 		l--;
-		while(l > 1 && !is_sep(path_try[l])) l--;
 	}
 	free(path_try);
 
