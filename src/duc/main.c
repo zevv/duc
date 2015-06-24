@@ -24,17 +24,17 @@
 #include "ducrc.h"
 
 
-struct cmd cmd_help;
-struct cmd cmd_info;
-struct cmd cmd_index;
-struct cmd cmd_manual;
-struct cmd cmd_ls;
-struct cmd cmd_gui;
-struct cmd cmd_guigl;
-struct cmd cmd_graph;
-struct cmd cmd_xml;
-struct cmd cmd_cgi;
-struct cmd cmd_ui;
+extern struct cmd cmd_help;
+extern struct cmd cmd_info;
+extern struct cmd cmd_index;
+extern struct cmd cmd_manual;
+extern struct cmd cmd_ls;
+extern struct cmd cmd_gui;
+extern struct cmd cmd_guigl;
+extern struct cmd cmd_graph;
+extern struct cmd cmd_xml;
+extern struct cmd cmd_cgi;
+extern struct cmd cmd_ui;
 
 
 struct cmd *cmd_list[] = {
@@ -45,9 +45,7 @@ struct cmd *cmd_list[] = {
 	&cmd_ls,
 	&cmd_xml,
 	&cmd_graph,
-#ifdef ENABLE_CAIRO
 	&cmd_cgi,
-#endif
 #ifdef ENABLE_X11
 	&cmd_gui,
 #endif

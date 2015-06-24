@@ -2,7 +2,7 @@
 #define buffer_h
 
 struct buffer {
-	void *data;
+	uint8_t *data;
 	size_t max;
 	size_t len;
 	size_t ptr;

@@ -256,7 +256,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	return scanner;
 
 err:
-	if(scanner->d > 0) closedir(scanner->d);
+	if(scanner->d) closedir(scanner->d);
 	if(scanner) free(scanner);
 	return NULL;
 }

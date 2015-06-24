@@ -202,8 +202,7 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 {
 	char *vs = NULL;
 	buffer_get_string(b, &vs);
-	if(vs == NULL) return
-	assert(vs);
+	if(vs == NULL) return;
 	snprintf(report->path, sizeof(report->path), "%s", vs);
 	free(vs);
 
