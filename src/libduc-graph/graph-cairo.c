@@ -63,13 +63,13 @@ void br_file_start(duc_graph *g)
 	switch(bd->fmt) {
 
 		case DUC_GRAPH_FORMAT_PNG:
-			bd->cs = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, g->size, g->size);
+			bd->cs = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)g->size, (int)g->size);
 			break;
 		case DUC_GRAPH_FORMAT_SVG:
-			bd->cs = cairo_svg_surface_create_for_stream(cairo_writer, bd->fout, g->size, g->size);
+			bd->cs = cairo_svg_surface_create_for_stream(cairo_writer, bd->fout, (int)g->size, (int)g->size);
 			break;
 		case DUC_GRAPH_FORMAT_PDF:
-			bd->cs = cairo_pdf_surface_create_for_stream(cairo_writer, bd->fout, g->size, g->size);
+			bd->cs = cairo_pdf_surface_create_for_stream(cairo_writer, bd->fout, (int)g->size, (int)g->size);
 			break;
 		default:
 			duc_log(g->duc, DUC_LOG_FTL, "Image format not handled by cairo backend");
@@ -101,8 +101,8 @@ static void br_cairo_draw_text(duc_graph *g, double x, double y, double size, ch
 	int w,h;
 	pango_layout_get_size(layout, &w, &h);
 
-	x -= (w/PANGO_SCALE/2);
-	y -= (h/PANGO_SCALE/2);
+	x -= ((double)w / PANGO_SCALE / 2);
+	y -= ((double)h / PANGO_SCALE / 2);
 
 	cairo_move_to(cr, x, y);
 	pango_cairo_layout_path(cr, layout);
