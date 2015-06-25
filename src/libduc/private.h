@@ -38,7 +38,6 @@
 
 struct duc {
 	struct db *db;
-	struct conf *conf;
 	duc_errno err;
 	duc_log_level log_level;
 	duc_log_callback log_callback;

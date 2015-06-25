@@ -8,8 +8,6 @@
 #define FONT_SIZE_TOOLTIP 8
 #define FONT_SIZE_CENTER 14
 
-#define MAX_DEPTH 32
-
 struct label {
 	double x, y;
 	char *text;

@@ -21,7 +21,6 @@
 #include "utlist.h"
 #include "graph-private.h"
 
-extern struct duc_graph_backend duc_graph_backend_cairo;
 
 duc_graph *duc_graph_new(duc *duc)
 {

@@ -298,10 +298,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("   <td>%s</td>\n", ts_time);
 		printf("  </tr>\n");
 
-		if(path == NULL && report->path) {
-			//path = duc_strdup(report->path);
-		}
-
 		duc_index_report_free(report);
 		i++;
 	}

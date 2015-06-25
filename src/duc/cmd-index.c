@@ -42,7 +42,8 @@ void progress_cb(struct duc_index_report *rep, void *ptr)
 {
 	static int n = 0;
 	char meter[] = "--------";
-	meter[7 - abs(n-7)] = '#';
+	int i = 7 - abs(n-7);
+	meter[i] = '#';
 	n = (n+1) % 14;
 
 	char siz[16], fs[16], ds[16];

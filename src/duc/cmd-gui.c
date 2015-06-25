@@ -155,6 +155,9 @@ static int handle_event(XEvent e)
 			tooltip_y = e.xmotion.y;
 			tooltip_moved = 1;
 			break;
+
+		default:
+			break;
 	}
 
 	return 0;
