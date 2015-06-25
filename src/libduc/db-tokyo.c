@@ -33,9 +33,8 @@ duc_errno tcdb_to_errno(TCBDB *hdb)
 		case TCERHEAD:   return DUC_E_DB_CORRUPT;
 		case TCEREAD:    return DUC_E_DB_CORRUPT;
 		case TCESEEK:    return DUC_E_DB_CORRUPT;
+		default:         return DUC_E_UNKNOWN;
 	}
-
-	return DUC_E_UNKNOWN;
 }
 
 

@@ -19,7 +19,7 @@
  * previously indexed 
  */
 
-duc_errno db_write_report(duc *duc, struct duc_index_report *report)
+duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 {
 	size_t tmpl;
 	char *tmp = db_get(duc->db, report->path, strlen(report->path), &tmpl);

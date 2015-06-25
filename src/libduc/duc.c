@@ -164,7 +164,7 @@ int duc_human_number(double v, int exact, char *buf, size_t maxlen)
 }
 
 
-int duc_human_size(struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen)
+int duc_human_size(const struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen)
 {
 	double v = (st == DUC_SIZE_TYPE_APPARENT) ? size->apparent : size->actual;
 	return humanize(v, exact, 1024, buf, maxlen);
@@ -282,7 +282,7 @@ char *duc_file_type_name(duc_file_type t)
 }
 
 
-void duc_size_accum(struct duc_size *s1, struct duc_size *s2)
+void duc_size_accum(struct duc_size *s1, const struct duc_size *s2)
 {
 	s1->actual += s2->actual;
 	s1->apparent += s2->apparent;

@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 #include <assert.h>
 #include <stdint.h>
 #include <libgen.h>
@@ -30,7 +29,7 @@ struct duc_dir {
 };
 
 
-struct duc_dir *duc_dir_new(struct duc *duc, struct duc_devino *devino)
+struct duc_dir *duc_dir_new(struct duc *duc, const struct duc_devino *devino)
 {
 	size_t vall;
 	char key[32];
@@ -97,7 +96,7 @@ char *duc_dir_get_path(duc_dir *dir)
 }
 
 
-duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e)
+duc_dir *duc_dir_openent(duc_dir *dir, const struct duc_dirent *e)
 {
 	duc_dir *dir2 = duc_dir_new(dir->duc, &e->devino);
 	if(dir2) {

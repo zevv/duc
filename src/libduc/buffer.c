@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 #include <assert.h>
 #include <stdint.h>
 
@@ -136,7 +135,7 @@ static int buffer_get_string(struct buffer *b, char **sout)
  * Serialize data from structs into buffer
  */
 
-void buffer_put_dir(struct buffer *b, struct duc_devino *devino, time_t mtime)
+void buffer_put_dir(struct buffer *b, const struct duc_devino *devino, time_t mtime)
 {
 	buffer_put_varint(b, devino->dev);
 	buffer_put_varint(b, devino->ino);
@@ -153,7 +152,7 @@ void buffer_get_dir(struct buffer *b, struct duc_devino *devino, time_t *mtime)
 	buffer_get_varint(b, &v); *mtime = v;
 }
 
-void buffer_put_dirent(struct buffer *b, struct duc_dirent *ent)
+void buffer_put_dirent(struct buffer *b, const struct duc_dirent *ent)
 {
 	buffer_put_string(b, ent->name);
 	buffer_put_varint(b, ent->size.apparent);
@@ -182,7 +181,7 @@ void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 }
 
 
-void buffer_put_index_report(struct buffer *b, struct duc_index_report *report)
+void buffer_put_index_report(struct buffer *b, const struct duc_index_report *report)
 {
 	buffer_put_string(b, report->path);
 	buffer_put_varint(b, report->devino.dev);

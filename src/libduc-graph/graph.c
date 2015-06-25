@@ -21,11 +21,6 @@
 #include "utlist.h"
 #include "graph-private.h"
 
-#define FONT_SIZE_LABEL 8
-#define FONT_SIZE_TOOLTIP 8
-
-#define MAX_DEPTH 32
-
 extern struct duc_graph_backend duc_graph_backend_cairo;
 
 duc_graph *duc_graph_new(duc *duc)

@@ -51,7 +51,7 @@ char *duc_strdup(const char *s);
 void duc_free(void *p);
 
 
-void duc_size_accum(struct duc_size *s1, struct duc_size *s2);
+void duc_size_accum(struct duc_size *s1, const struct duc_size *s2);
 char *duc_canonicalize_path(const char *dir);
 
 #endif

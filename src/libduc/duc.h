@@ -149,7 +149,7 @@ struct duc_index_report *duc_get_report(duc *duc, size_t id);
 
 duc_dir *duc_dir_open(duc *duc, const char *path);
 duc_dir *duc_dir_openat(duc_dir *dir, const char *name);
-duc_dir *duc_dir_openent(duc_dir *dir, struct duc_dirent *e);
+duc_dir *duc_dir_openent(duc_dir *dir, const struct duc_dirent *e);
 struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st);
 char *duc_dir_get_path(duc_dir *dir);
 void duc_dir_get_size(duc_dir *dir, struct duc_size *size);
@@ -164,7 +164,7 @@ int duc_dir_close(duc_dir *dir);
  */
 
 int duc_human_number(double v, int exact, char *buf, size_t maxlen);
-int duc_human_size(struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen);
+int duc_human_size(const struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen);
 int duc_human_duration(struct timeval start, struct timeval end, char *buf, size_t maxlen);
 void duc_log(struct duc *duc, duc_log_level lvl, const char *fmt, ...);
 char duc_file_type_char(duc_file_type t);
