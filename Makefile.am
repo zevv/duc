@@ -18,7 +18,8 @@ duc_SOURCES := \
 	src/libduc/varint.c \
 	src/libduc/varint.h \
 	src/libduc/uthash.h \
-	src/libduc/utlist.h 
+	src/libduc/utlist.h \
+	src/libduc/utstring.h
 
 duc_SOURCES += \
 	src/glad/glad.c \
@@ -32,7 +33,7 @@ duc_SOURCES += \
 	src/libduc-graph/graph-svg.c \
 	src/libduc-graph/graph-html.c \
 	src/libduc-graph/graph-private.h \
-	src/libduc-graph/duc-graph.h 
+	src/libduc-graph/duc-graph.h
 
 duc_SOURCES  += \
 	src/duc/cmd-cgi.c \
@@ -48,14 +49,14 @@ duc_SOURCES  += \
 	src/duc/cmd-xml.c \
 	src/duc/ducrc.c \
 	src/duc/ducrc.h \
-	src/duc/main.c 
+	src/duc/main.c
 
 
-AM_CFLAGS := @CAIRO_CFLAGS@ @PANGO_CFLAGS@ @PANGOCAIRO_CFLAGS@ 
+AM_CFLAGS := @CAIRO_CFLAGS@ @PANGO_CFLAGS@ @PANGOCAIRO_CFLAGS@
 AM_CFLAGS += @TC_CFLAGS@ @SQLITE3_CFLAGS@ @GLFW3_CFLAGS@
 AM_CFLAGS += -Isrc/libduc -Isrc/libduc-graph -Isrc/glad
 
-duc_LDADD := @CAIRO_LIBS@ @PANGO_LIBS@ @PANGOCAIRO_LIBS@ 
+duc_LDADD := @CAIRO_LIBS@ @PANGO_LIBS@ @PANGOCAIRO_LIBS@
 duc_LDADD += @TC_LIBS@ @SQLITE3_LIBS@ @GLFW3_LIBS@
 
 man1_MANS = \
@@ -72,7 +73,7 @@ install-exec-hook:
 
 .PHONY: lint
 lint:
-	lint lint/duc \
+	@lint lint/duc \
 		src/libduc/buffer.c \
 		src/libduc/db.c \
 		src/libduc/db-tokyo.c \
@@ -83,7 +84,6 @@ lint:
 		src/libduc/index.c \
 		src/libduc/canonicalize.c \
 		src/libduc/varint.c \
-		src/glad/glad.c \
 		src/libduc-graph/graph.c \
 		src/libduc-graph/graph-cairo.c \
 		src/libduc-graph/graph-opengl.c \
@@ -99,4 +99,5 @@ lint:
 		src/duc/cmd-ui.c \
 		src/duc/cmd-xml.c \
 		src/duc/ducrc.c \
-		src/duc/main.c 
+		src/duc/main.c
+

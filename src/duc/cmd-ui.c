@@ -241,8 +241,6 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		}
 
 	}
-
-	return NULL;
 }
 
 

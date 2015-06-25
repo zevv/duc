@@ -94,18 +94,18 @@ static void print_html(const char *s, FILE *f)
 	}
 }
 
-static void br_html_draw_text(duc_graph *g, int x, int y, int size, char *text)
+static void br_html_draw_text(duc_graph *g, double x, double y, double size, char *text)
 {
 	struct html_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
 
 	fprintf(f, "t('"); 
 	print_html(text, f); 
-	fprintf(f, "',%d,%d,%d);\n", size, x, y);
+	fprintf(f, "',%.0f,%.0f,%.0f);\n", size, x, y);
 }
 
 
-static void br_html_draw_tooltip(duc_graph *g, int x, int y, char *text)
+static void br_html_draw_tooltip(duc_graph *g, double x, double y, char *text)
 {
 }
 

@@ -281,9 +281,9 @@ struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st)
 }
 
 
-int duc_dir_seek(duc_dir *dir, off_t offset)
+int duc_dir_seek(duc_dir *dir, size_t offset)
 {
-	if(offset >= 0 && offset < dir->ent_count) {
+	if(offset < dir->ent_count) {
 		dir->ent_cur = offset;
 		return 0;
 	} else {
@@ -301,7 +301,7 @@ int duc_dir_rewind(duc_dir *dir)
 int duc_dir_close(duc_dir *dir)
 {
 	if(dir->path) free(dir->path);
-	int i;
+	size_t i;
 	for(i=0; i<dir->ent_count; i++) {
 		free(dir->ent_list[i].name);
 	}
@@ -318,7 +318,7 @@ struct duc_index_report *duc_get_report(duc *duc, size_t id)
 	char *index = db_get(duc->db, "duc_index_reports", 17, &indexl);
 	if(index == NULL) return NULL;
 
-	int report_count = indexl / DUC_PATH_MAX;
+	size_t report_count = indexl / DUC_PATH_MAX;
 	if(id >= report_count) return NULL;
 
 	char *path = index + id * DUC_PATH_MAX;

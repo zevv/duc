@@ -41,8 +41,8 @@ void duc_graph_free(duc_graph *g);
 void duc_graph_set_max_level(duc_graph *g, int max_level);
 void duc_graph_set_geometry(duc_graph *g, int x, int y, int w, int h);
 void duc_graph_set_size(duc_graph *g, int w, int h);
-void duc_graph_set_position(duc_graph *g, int x, int y);
-void duc_graph_set_tooltip(duc_graph *g, int x, int y);
+void duc_graph_set_position(duc_graph *g, double x, double y);
+void duc_graph_set_tooltip(duc_graph *g, double x, double y);
 void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p);
 void duc_graph_set_fuzz(duc_graph *g, double fuzz);
 void duc_graph_set_max_name_len(duc_graph *g, size_t len);
@@ -51,6 +51,6 @@ void duc_graph_set_exact_bytes(duc_graph *g, int exact);
 void duc_graph_set_ring_gap(duc_graph *g, int gap);
 
 int duc_graph_draw(duc_graph *g, duc_dir *dir);
-duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent **ent);
+duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, double x, double y, struct duc_dirent **ent);
 
 #endif

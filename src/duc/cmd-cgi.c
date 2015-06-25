@@ -65,8 +65,8 @@ static void print_cgi(const char *s)
 
 static int decode_uri(char *src, char *dst) 
 {
-	int len;
-	for (len = 0; *src; len++) {
+	int len = 0;
+	while(*src) {
 		if (*src == '%' && src[1] && src[2] && isxdigit(src[1]) && isxdigit(src[2])) {
 			src[1] -= src[1] <= '9' ? '0' : (src[1] <= 'F' ? 'A' : 'a')-10;
 			src[2] -= src[2] <= '9' ? '0' : (src[2] <= 'F' ? 'A' : 'a')-10;

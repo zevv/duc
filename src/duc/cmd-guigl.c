@@ -26,8 +26,8 @@ static int opt_levels = 4;
 static int opt_apparent = 0;
 static int opt_ring_gap = 4;
 
-static int tooltip_x = 0;
-static int tooltip_y = 0;
+static double tooltip_x = 0;
+static double tooltip_y = 0;
 static enum duc_graph_palette palette = 0;
 static int win_w = 600;
 static int win_h = 600;

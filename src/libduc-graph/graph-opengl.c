@@ -89,7 +89,7 @@ void br_opengl_start(duc_graph *g)
 }
 
 
-static double draw_char(duc_graph *g, double x, double y, int size, int c)
+static double draw_char(duc_graph *g, double x, double y, double size, int c)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 
@@ -129,7 +129,7 @@ static double draw_char(duc_graph *g, double x, double y, int size, int c)
 }
 
 
-static void text_size(duc_graph *g, char *text, int *w, int *h, int size)
+static void text_size(duc_graph *g, char *text, double *w, double *h, double size)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 	char *p = text;
@@ -139,7 +139,7 @@ static void text_size(duc_graph *g, char *text, int *w, int *h, int size)
 	while(*p) {
 		int c = *p++;
 		if(c == '\r' || c == '\n') {
-			*h += size * bd->font_scale * STB_SOMEFONT_LINE_SPACING * 1.5;
+			*h += (int)(size * bd->font_scale * STB_SOMEFONT_LINE_SPACING * 1.5);
 			wmax = 0;
 		} else {
 			stb_fontchar *cd = &bd->fontdata[c - STB_SOMEFONT_FIRST_CHAR];
@@ -150,7 +150,7 @@ static void text_size(duc_graph *g, char *text, int *w, int *h, int size)
 }
 
 
-static void draw_text_line(duc_graph *g, double x, double y, int size, char *text, int l)
+static void draw_text_line(duc_graph *g, double x, double y, double size, char *text, int l)
 {
 	int i;
 	
@@ -160,7 +160,7 @@ static void draw_text_line(duc_graph *g, double x, double y, int size, char *tex
 }
 
 
-static void draw_text(duc_graph *g, int _x, int _y, int size, char *text)
+static void draw_text(duc_graph *g, double _x, double _y, double size, char *text)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 
@@ -199,18 +199,18 @@ static void draw_text(duc_graph *g, int _x, int _y, int size, char *text)
 }
 
 
-static void br_opengl_draw_text(duc_graph *g, int x, int y, int size, char *text)
+static void br_opengl_draw_text(duc_graph *g, double x, double y, double size, char *text)
 {
-	int w, h;
+	double w, h;
 	text_size(g, text, &w, &h, size);
 	draw_text(g, x - w/2, y - h/2, size, text);
 }
 
 
-static void br_opengl_draw_tooltip(duc_graph *g, int x, int y, char *text)
+static void br_opengl_draw_tooltip(duc_graph *g, double x, double y, char *text)
 {
 	struct opengl_backend_data *bd = g->backend_data;
-	int w, h;
+	double w, h;
 
 	text_size(g, text, &w, &h, FONT_SIZE_TOOLTIP);
 
@@ -248,7 +248,7 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 	a1 *= M_PI * 2;
 	a2 *= M_PI * 2;
 
-	int ss = (a2 - a1) * r2 / 10 + 2;
+	int ss = (int)((a2 - a1) * r2 / 10 + 2);
 
 	GLfloat vs_fill[ss * 2][6];
 	GLfloat vs_line[ss * 2][2];

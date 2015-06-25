@@ -128,19 +128,16 @@ duc_errno duc_error(duc *duc)
 const char *duc_strerror(duc *duc)
 {
 	switch(duc->err) {
-
-	case DUC_OK:                     return "No error: success"; break;
-	case DUC_E_DB_NOT_FOUND:         return "Database not found"; break;
-	case DUC_E_DB_CORRUPT:           return "Database corrupt and not usable"; break;
-	case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch"; break;
-	case DUC_E_PATH_NOT_FOUND:       return "Requested path not found"; break;
-	case DUC_E_PERMISSION_DENIED:    return "Permission denied"; break;
-	case DUC_E_OUT_OF_MEMORY:        return "Out of memory"; break;
-	case DUC_E_DB_BACKEND:           return "An error occured in the database backend"; break;
-	case DUC_E_UNKNOWN:              break;
+		case DUC_OK:                     return "No error: success";
+		case DUC_E_DB_NOT_FOUND:         return "Database not found";
+		case DUC_E_DB_CORRUPT:           return "Database corrupt and not usable";
+		case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch";
+		case DUC_E_PATH_NOT_FOUND:       return "Requested path not found";
+		case DUC_E_PERMISSION_DENIED:    return "Permission denied";
+		case DUC_E_OUT_OF_MEMORY:        return "Out of memory";
+		case DUC_E_DB_BACKEND:           return "An error occured in the database backend";
+		default:                         return "Unknown error, contact the author";
 	}
-
-	return "Unknown error, contact the author";
 }
 
 
@@ -174,15 +171,15 @@ int duc_human_size(struct duc_size *size, duc_size_type st, int exact, char *buf
 }
 
 
-int duc_human_duration(struct timeval start, struct timeval stop, char *buf, size_t maxlen) 
+int duc_human_duration(struct timeval start, struct timeval stop, char *buf, size_t maxlen)
 {
 	double start_secs, stop_secs, secs;
-	unsigned int days, hours, mins; 
+	double days, hours, mins;
 
 	/* fixme: use timersub here */
 
-	start_secs =start.tv_sec + (start.tv_usec / 1000000.0);  
-	stop_secs = stop.tv_sec + (stop.tv_usec / 1000000.0);  
+	start_secs =start.tv_sec + (start.tv_usec / 1000000.0);
+	stop_secs = stop.tv_sec + (stop.tv_usec / 1000000.0);
 	secs = stop_secs - start_secs;
 
 	days = secs / 86400;
@@ -195,11 +192,11 @@ int duc_human_duration(struct timeval start, struct timeval stop, char *buf, siz
 	int l;
 
 	if (days) {
-		l = snprintf(buf, maxlen, "%d days, %02d hours, %02d minutes, and %.2f seconds.", days, hours, mins, secs); 
+		l = snprintf(buf, maxlen, "%.0fd, %.0f hours, %.0f minutes, and %.2f seconds.", days, hours, mins, secs);
 	} else if (hours) {
-		l = snprintf(buf, maxlen, "%02d hours, %02d minutes, and %.2f seconds.", hours, mins, secs);
+		l = snprintf(buf, maxlen, "%.0f hours, %.0f minutes, and %.2f seconds.", hours, mins, secs);
 	} else if (mins) {
-		l = snprintf(buf, maxlen, "%02d minutes, and %.2f seconds.", mins, secs);
+		l = snprintf(buf, maxlen, "%.0f minutes, and %.2f seconds.", mins, secs);
 	} else {
 		l = snprintf(buf, maxlen, "%f secs.", secs);
 	}
@@ -207,7 +204,7 @@ int duc_human_duration(struct timeval start, struct timeval stop, char *buf, siz
 	return l;
 }
 
-						 
+
 void *duc_malloc(size_t s)
 {
 	void *p = malloc(s);

@@ -56,9 +56,8 @@ static int opt_levels = 4;
 
 static void ls_one(duc_dir *dir, int level, int *prefix)
 {
-	off_t size_total = 0;
 	off_t max_size = 0;
-	int max_name_len = 0;
+	size_t max_name_len = 0;
 	int max_size_len = 6;
 	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
@@ -76,7 +75,6 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		if(size > max_size) max_size = size;
 		size_t l = strlen(e->name);
 		if(l > max_name_len) max_name_len = l;
-		size_total += size;
 	}
 
 	if(opt_bytes) max_size_len = 12;
@@ -119,7 +117,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		int *p = prefix;
 		while(*p) printf("%s", tree[*p++]);
 
-		int l = printf(" %s", e->name);
+		size_t l = printf(" %s", e->name);
 		if(opt_classify) {
 			putchar(duc_file_type_char(e->type));
 			l++;
@@ -127,7 +125,8 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 		if(opt_graph) {
 			for(;l<=max_name_len; l++) putchar(' ');
-			int w = width - max_name_len - max_size_len - 5 - (level +1 ) * 4;
+			int w = width - max_name_len - max_size_len - 5;
+			w -= (level + 1) * 4;
 			int l = max_size ? (w * size / max_size) : 0;
 			int j;
 			printf(" [%s", color_on);

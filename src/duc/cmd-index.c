@@ -96,7 +96,7 @@ static int index_main(duc *duc, int argc, char **argv)
 		duc_human_size(&report->size, DUC_SIZE_TYPE_ACTUAL,   opt_bytes, siz_actual,   sizeof siz_actual);
 
 		if(r == DUC_OK) {
-			char dur[32];
+			char dur[64];
 			duc_human_duration(report->time_start, report->time_stop, dur, sizeof dur);
 			duc_log(duc, DUC_LOG_INF, 
 					"Indexed %zu files and %zu directories, (%sB apparent, %sB actual) in %s", 
@@ -128,7 +128,7 @@ static void fn_exclude(const char *val)
 static struct ducrc_option options[] = {
 	{ &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file ARG" },
-	{ &fn_exclude,          "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching ARG"  },
+	{ fn_exclude,           "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching ARG"  },
 	{ &opt_check_hard_links,"check-hard-links",'H', DUCRC_TYPE_BOOL,   "count hard links only once",
           "if two or more hard links point to the same file, only one of the hard links is displayed and counted" },
 	{ &opt_force,           "force",           'f', DUCRC_TYPE_BOOL,   "force writing in case of corrupted db" },

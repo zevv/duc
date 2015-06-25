@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 
 static struct cmd *find_cmd_by_name(const char *name)
 {
-	int i;
+	size_t i;
 
 	for(i=0; i<SUBCOMMAND_COUNT; i++) {
 		struct cmd *cmd = cmd_list[i];
@@ -307,7 +307,7 @@ static int help_main(duc *duc, int argc, char **argv)
 			"\n"
 		);
 
-		int i;
+		size_t i;
 		for(i=0; i<SUBCOMMAND_COUNT; i++) {
 			struct cmd *c = cmd_list[i];
 			if(c->hidden) continue;
@@ -369,7 +369,7 @@ static void show_options_manual(struct ducrc_option *o)
 
 static int manual_main(duc *duc, int argc, char **argv)
 {
-	int i;
+	size_t i;
 
 	printf("### Global options\n");
 	printf("\n");

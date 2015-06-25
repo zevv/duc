@@ -27,7 +27,7 @@ duc_errno db_write_report(duc *duc, struct duc_index_report *report)
 	if(tmp == NULL) {
 		char *tmp = db_get(duc->db, "duc_index_reports", 17, &tmpl);
 		if(tmp) {
-			tmp = realloc(tmp, tmpl + sizeof(report->path));
+			tmp = duc_realloc(tmp, tmpl + sizeof(report->path));
 			memcpy(tmp + tmpl, report->path, sizeof(report->path));
 			db_put(duc->db, "duc_index_reports", 17, tmp, tmpl + sizeof(report->path));
 		} else {

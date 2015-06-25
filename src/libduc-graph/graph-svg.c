@@ -66,22 +66,22 @@ static void print_html(const char *s, FILE *f)
 	}
 }
 
-static void br_svg_draw_text(duc_graph *g, int x, int y, int size, char *text)
+static void br_svg_draw_text(duc_graph *g, double x, double y, double size, char *text)
 {
 	struct svg_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
 
-	fprintf(f, "<text x='%d' y='%d' font-size='%dpt' stroke='white' stroke-width='2'>", x, y, size);
+	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' stroke='white' stroke-width='2'>", x, y, size);
 	print_html(text, f);
 	fprintf(f, "</text>\n");
 	
-	fprintf(f, "<text x='%d' y='%d' font-size='%dpt' fill='black' stroke-width='2'>", x, y, size);
+	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' fill='black' stroke-width='2'>", x, y, size);
 	print_html(text, f);
 	fprintf(f, "</text>\n");
 }
 
 
-static void br_svg_draw_tooltip(duc_graph *g, int x, int y, char *text)
+static void br_svg_draw_tooltip(duc_graph *g, double x, double y, char *text)
 {
 }
 
@@ -90,7 +90,7 @@ static void br_svg_draw_section(duc_graph *g, double a1, double a2, double r1, d
 {
 	struct svg_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
-	
+
 	double R, G, B;
 	hsv2rgb(H, S, V, &R, &G, &B);
 
@@ -100,31 +100,31 @@ static void br_svg_draw_section(duc_graph *g, double a1, double a2, double r1, d
 	fprintf(f, "  <stop offset='100%%' style='stop-color:#%02x%02x%02x;'/>\n", (int)(R*255), (int)(G*255), (int)(B*255));
 	fprintf(f, " </radialGradient>\n");
 	fprintf(f, "</defs>\n");
-			
+
 	int large = (a2 - a1) > 0.5;
 
 	fprintf(f, "<path fill='url(#g%d)' d='", bd->gid);
 
-	fprintf(f, "M%.0f,%0.f ", 
-			g->cx + r1 * sin(a1 * M_PI*2), 
+	fprintf(f, "M%.0f,%.0f ",
+			g->cx + r1 * sin(a1 * M_PI*2),
 			g->cy - r1 * cos(a1 * M_PI*2));
 
-	fprintf(f, "L%.0f,%0.f ", 
-			g->cx + r2 * sin(a1 * M_PI*2), 
+	fprintf(f, "L%.0f,%.0f ",
+			g->cx + r2 * sin(a1 * M_PI*2),
 			g->cy - r2 * cos(a1 * M_PI*2));
 
 	fprintf(f, "A %.0f %.0f 0 %d 1 %.0f %.0f ", r2, r2, large,
-			g->cx + r2 * sin(a2 * M_PI*2), 
+			g->cx + r2 * sin(a2 * M_PI*2),
 			g->cy - r2 * cos(a2 * M_PI*2));
-	
-	fprintf(f, "L%.0f,%0.f ", 
-			g->cx + r1 * sin(a2 * M_PI*2), 
+
+	fprintf(f, "L%.0f,%.0f ",
+			g->cx + r1 * sin(a2 * M_PI*2),
 			g->cy - r1 * cos(a2 * M_PI*2));
-	
+
 	fprintf(f, "A %.0f %.0f 0 %d 0 %.0f %.0f ", r1, r1, large,
-			g->cx + r1 * sin(a1 * M_PI*2), 
+			g->cx + r1 * sin(a1 * M_PI*2),
 			g->cy - r1 * cos(a1 * M_PI*2));
-			
+
 	fprintf(f, "'/>\n");
 
 	bd->gid++;

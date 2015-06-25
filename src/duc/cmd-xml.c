@@ -104,7 +104,7 @@ static int xml_main(duc *duc, int argc, char **argv)
 	printf("<duc root=\"%s\" size_apparent=\"%jd\" size_actual=\"%jd\">\n", 
 			path, (uintmax_t)size.apparent, (uintmax_t)size.actual);
 
-	dump(duc, dir, 1, opt_min_size, opt_exclude_files);
+	dump(duc, dir, 1, (off_t)opt_min_size, opt_exclude_files);
 
 	printf("</duc>\n");
 

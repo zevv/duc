@@ -32,8 +32,7 @@ duc_graph *duc_graph_new(duc *duc)
 {
 	duc_graph *g;
 	
-	g = malloc(sizeof *g);
-	memset(g, 0, sizeof *g);
+	g = duc_malloc0(sizeof *g);
 
 	g->duc = duc;
 	g->r_start = 100;
@@ -72,14 +71,14 @@ void duc_graph_set_size(duc_graph *g, int w, int h)
 }
 
 
-void duc_graph_set_position(duc_graph *g, int pos_x, int pos_y)
+void duc_graph_set_position(duc_graph *g, double pos_x, double pos_y)
 {
 	g->pos_x = pos_x;
 	g->pos_y = pos_y;
 }
 
 
-void duc_graph_set_tooltip(duc_graph *g, int x, int y)
+void duc_graph_set_tooltip(duc_graph *g, double x, double y)
 {
 	g->tooltip_x = x;
 	g->tooltip_y = y;
@@ -116,14 +115,14 @@ void duc_graph_set_ring_gap(duc_graph *g, int gap)
 }
 
 
-void pol2car(duc_graph *g, double a, double r, int *x, int *y)
+void pol2car(duc_graph *g, double a, double r, double *x, double *y)
 {
 	*x = cos(a) * r + g->cx;
 	*y = sin(a) * r + g->cy;
 }
 
 
-void car2pol(duc_graph *g, int x, int y, double *a, double *r)
+void car2pol(duc_graph *g, double x, double y, double *a, double *r)
 {
 	x -= g->cx;
 	y -= g->cy;
@@ -133,7 +132,7 @@ void car2pol(duc_graph *g, int x, int y, double *a, double *r)
 }
 
 
-void shorten_name(char *label, int maxlen)
+void shorten_name(char *label, size_t maxlen)
 {
 	if(maxlen == 0) return;
 
@@ -164,7 +163,7 @@ void hsv2rgb(double h, double s, double v, double *r, double *g, double *b)
 	int i;
 	
 	h *= 6.0;
-	i = floor(h);
+	i = (int)floor(h);
 	f = (h) - i;
 	if (!(i & 1)) f = 1 - f;
 	m = v * (1 - s);
@@ -241,7 +240,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size.apparent : e->size.actual;
 
 		double size_rel = (double)size / size_total;
-		double size_nrel = (size_max == size_min) ? 1 : ((double)size - size_min) / (size_max - size_min);
+		double size_nrel = (size_max - size_min) ? ((double)size - size_min) / (size_max - size_min) : 1;
 
 		double r2 = r1 + ring_width * (1 - (1 - size_nrel) * g->fuzz);
 		a2 += a_range * size_rel;
@@ -253,7 +252,10 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 
 		/* Determine section color */
 
-		double H, S, V, L;
+		double H = 0;
+		double S = 0;
+		double V = 0;
+		double L = 0;
 
 		switch(g->palette) {
 
@@ -348,7 +350,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 		if(g->backend) {
 			double area = (r2 - r1) * (a2 - a1);
 			if(area > 1.5) {
-				struct label *label = malloc(sizeof *label);
+				struct label *label = duc_malloc(sizeof *label);
 			
 				char siz[16];
 				duc_human_size(&e->size, g->size_type, g->bytes, siz, sizeof siz);
@@ -388,8 +390,8 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 
 	/* Convert tooltip xy to polar coords */
 
-	int tooltip_x = g->tooltip_x - g->pos_x;
-	int tooltip_y = g->tooltip_y - g->pos_y;
+	double tooltip_x = g->tooltip_x - g->pos_x;
+	double tooltip_y = g->tooltip_y - g->pos_y;
 	g->tooltip_msg[0] = '\0';
 
 	car2pol(g, tooltip_x, tooltip_y, &g->tooltip_a, &g->tooltip_r);
@@ -408,14 +410,14 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 
 	LL_FOREACH_SAFE(g->label_list, l, ln) {
 		if(g->backend)
-			g->backend->draw_text(g, l->x, l->y, FONT_SIZE_LABEL, l->text);
+			g->backend->draw_text(g, (int)l->x, (int)l->y, FONT_SIZE_LABEL, l->text);
 		free(l->text);
 		free(l);
 	}
 	
 	char *p = duc_dir_get_path(dir);
 	if(g->backend)
-		g->backend->draw_text(g, g->cx, 10, FONT_SIZE_LABEL, p);
+		g->backend->draw_text(g, (int)g->cx, 10, FONT_SIZE_LABEL, p);
 	free(p);
 
 	struct duc_size size;
@@ -423,12 +425,12 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	char siz[16];
 	duc_human_size(&size, g->size_type, g->bytes, siz, sizeof siz);
 	if(g->backend)
-		g->backend->draw_text(g, g->cx, g->cy, FONT_SIZE_CENTER, siz);
+		g->backend->draw_text(g, (int)g->cx, (int)g->cy, FONT_SIZE_CENTER, siz);
 		
 	/* Draw tooltip */
 
 	if(g->tooltip_msg[0]) {
-		g->backend->draw_tooltip(g, tooltip_x, tooltip_y, g->tooltip_msg);
+		g->backend->draw_tooltip(g, (int)tooltip_x, (int)tooltip_y, g->tooltip_msg);
 	}
 
 	g->label_list = NULL;
@@ -439,7 +441,7 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 }
 
 
-duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct duc_dirent **ent)
+duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, double x, double y, struct duc_dirent **ent)
 {
 	duc_dir *dir2 = NULL;
 
@@ -449,8 +451,8 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, int x, int y, struct du
 	g->cy = g->height / 2;
 	g->r_start = g->size / 10;
 
-	x -= g->pos_x;
-	y -= g->pos_y;
+	x -= (int)g->pos_x;
+	y -= (int)g->pos_y;
 
 	car2pol(g, x, y, &g->spot_a, &g->spot_r);
 
