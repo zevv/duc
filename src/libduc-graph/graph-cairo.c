@@ -81,13 +81,13 @@ void br_file_start(duc_graph *g)
 }
 
 
-static void br_cairo_draw_text(duc_graph *g, int x, int y, int size, char *text)
+static void br_cairo_draw_text(duc_graph *g, double x, double y, double size, char *text)
 {
 	struct cairo_backend_data *bd = g->backend_data;
 	cairo_t *cr = bd->cr;
 
 	char font[32];
-	snprintf(font, sizeof font, "Arial, Sans, %d", size);
+	snprintf(font, sizeof font, "Arial, Sans, %.0f", size);
 	PangoLayout *layout = pango_cairo_create_layout(cr);
 	PangoFontDescription *desc = pango_font_description_from_string(font);
 
@@ -123,7 +123,7 @@ static void br_cairo_draw_text(duc_graph *g, int x, int y, int size, char *text)
 }
 
 
-static void br_cairo_draw_tooltip(duc_graph *g, int x, int y, char *text)
+static void br_cairo_draw_tooltip(duc_graph *g, double x, double y, char *text)
 {
 	struct cairo_backend_data *bd = g->backend_data;
 	cairo_t *cr = bd->cr;
