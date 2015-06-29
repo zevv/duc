@@ -1,5 +1,5 @@
 %global name duc
-%global version 1.0
+%global version 1.3.3
 %global release 1
 
 Name:           %{name}
@@ -13,7 +13,7 @@ Source0:        https://github.com/zevv/duc/archive/master.tar.gz
 
 BuildArch:      x86_64
 BuildRequires:  libtool autoconf
-BuildRequires:  pango-devel cairo-devel tokyocabinet-devel
+BuildRequires:  pango-devel cairo-devel tokyocabinet-devel ncurses-devel
 
 %description
 Duc is a small library and a collection of tools for inspecting and visualizing
@@ -42,23 +42,30 @@ make
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
+# added for %files fix
+echo "%%defattr(-, root, root)" >MANIFEST
+(cd $RPM_BUILD_ROOT; find . -type f -or -type l | sed -e s/^.// -e /^$/d) >>MANIFEST
 
 %post
-ldconfig
+/sbin/ldconfig
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files
-%defattr(-,root,root)
-%{_libdir}/*.so*
-%{_bindir}/%{name}
+%files -f MANIFEST
+# old code breaks build, files not found
+#%defattr(-,root,root)
+#%{_libdir}/*.so*
+#%{_bindir}/%{name}
 
-%files devel
-%defattr(-,root,root)
-%{_libdir}/*.*a
-%{_bindir}/%{name}.debug
+#%files devel
+#%defattr(-,root,root)
+#%{_libdir}/*.*a
+#%{_bindir}/%{name}.debug
 
 %changelog
+* Mon Jun 29 2015 James Chang - 1.3.3
+- added ncurses-devel package requirement
+- fixed file not found for libs
 * Wed Feb 11 2015 Edoardo Spadoni <edoardo.spadoni@nethesis.it> - 1.0
 - first version
