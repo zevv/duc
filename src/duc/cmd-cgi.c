@@ -75,6 +75,7 @@ static int decode_uri(char *src, char *dst)
 			continue;
 		}
 		dst[len] = *src++;
+		len ++;
 	}
 	dst[len] = '\0';
 	return len;

@@ -109,6 +109,18 @@ static void br_html_draw_tooltip(duc_graph *g, double x, double y, char *text)
 {
 }
 
+char base62[] = "01234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+static void write_base62(FILE *f, int v, int l)
+{
+	char buf[l];
+	int i = l-1;
+	for(i=0; i<l; i++) {
+		buf[l-i-1] = base62[v%62];
+		v /= 62;
+	}
+	fwrite(buf, 1, sizeof(buf), f);
+}
 
 static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double line)
 {
@@ -125,6 +137,12 @@ static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, 
 			a1 * 1000, a2 * 1000,
 			r1, r2,
 			(int)(R*255), (int)(G*255), (int)(B*255));
+
+	fprintf(f, "// ");
+	write_base62(f, a1 * 1000, 2);
+	write_base62(f, a2 * 1000, 2);
+	fprintf(f, "\n");
+
 }
 
 
