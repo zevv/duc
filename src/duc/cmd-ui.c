@@ -117,7 +117,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 		struct duc_size size;
 		duc_dir_get_size(dir, &size);
-		char siz[16], cnt[16];
+		char siz[32], cnt[32];
 		duc_human_size(&size, st, opt_bytes, siz, sizeof siz);
 		duc_human_number(count, opt_bytes, cnt, sizeof cnt);
 		attrset(attr_bar);
@@ -147,7 +147,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 				char class = duc_file_type_char(e->type);
 
-				char siz[16];
+				char siz[32];
 				duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 				if(cur != i) attrset(attr_size);
 				printw("%*s", max_size_len, siz);

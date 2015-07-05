@@ -38,7 +38,7 @@ static int info_db(duc *duc, char *file)
 		struct tm *tm = localtime(&t);
 		strftime(ts, sizeof ts, "%Y-%m-%d %H:%M:%S",tm);
 
-		char siz[16], fs[16], ds[16];
+		char siz[32], fs[32], ds[32];
 		duc_human_size(&report->size, st, opt_bytes, siz, sizeof siz);
 		duc_human_number(report->file_count, opt_bytes, fs, sizeof fs);
 		duc_human_number(report->dir_count, opt_bytes, ds, sizeof ds);

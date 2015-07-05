@@ -109,7 +109,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		}
 
 		printf("%s", color_on);
-		char siz[16];
+		char siz[32];
 		duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 		printf("%*s", max_size_len, siz);
 		printf("%s", color_off);

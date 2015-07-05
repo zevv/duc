@@ -283,7 +283,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
-		char siz[16];
+		char siz[32];
 		duc_human_size(&report->size, st, 0, siz, sizeof siz);
 
 		printf("  <tr>\n");
@@ -326,7 +326,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		struct duc_dirent *e;
 		int n = 0;
 		while((n++ < 40) && (e = duc_dir_read(dir, st)) != NULL) {
-			char siz[16];
+			char siz[32];
 			duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 			printf("  <tr><td class=name>");
 
@@ -382,7 +382,7 @@ void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 
 		if(ent) {
 
-			char siz[16];
+			char siz[32];
 			duc_human_size(&ent->size, st, opt_bytes, siz, sizeof siz);
 			char *typ = duc_file_type_name(ent->type);
 			if(typ == NULL) typ = "unknown";
