@@ -29,6 +29,7 @@ duc_errno tcdb_to_errno(TCBDB *hdb)
 		case TCESUCCESS: return DUC_OK;
 		case TCENOFILE:  return DUC_E_DB_NOT_FOUND;
 		case TCENOPERM:  return DUC_E_PERMISSION_DENIED;
+		case TCEOPEN:    return DUC_E_PERMISSION_DENIED;
 		case TCEMETA:    return DUC_E_DB_CORRUPT;
 		case TCERHEAD:   return DUC_E_DB_CORRUPT;
 		case TCEREAD:    return DUC_E_DB_CORRUPT;
