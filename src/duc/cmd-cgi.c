@@ -85,7 +85,7 @@ static int decode_uri(char *src, char *dst)
 static int cgi_parse(void)
 {
 	char *qs = getenv("QUERY_STRING");
-	if(qs == NULL) return -1;
+	if(qs == NULL) qs = "";
 
 	char *p = qs;
 
@@ -404,16 +404,16 @@ void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 static int cgi_main(duc *duc, int argc, char **argv)
 {
 	int r;
-	
-	r = cgi_parse();
-	if(r != 0) {
+
+	if(getenv("GATEWAY_INTERFACE") == NULL) {
 		fprintf(stderr, 
 			"The 'cgi' subcommand is used for integrating Duc into a web server.\n"
 			"Please refer to the documentation for instructions how to install and configure.\n"
 		);
 		return(-1);
 	}
-
+	
+	cgi_parse();
 
 	char *cmd = cgi_get("cmd");
 	if(cmd == NULL) cmd = "index";

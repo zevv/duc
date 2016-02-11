@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	}
 
 	if(cmd == NULL) {
-		if(getenv("QUERY_STRING")) {
+		if(getenv("GATEWAY_INTERFACE")) {
 			cmd = &cmd_cgi;
 		} else {
 			cmd = &cmd_help;
