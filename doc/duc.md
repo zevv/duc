@@ -189,6 +189,9 @@ Options for command `duc ls [options] [PATH]`:
   * `-c`, `--color`:
     colorize output (only on ttys)
 
+  * `--count`:
+    show number of files instead of file size
+
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
 
@@ -217,6 +220,49 @@ Options for command `duc xml [options] [PATH]`:
   * `-s`, `--min_size=VAL`:
     specify min size for files or directories
 
+### duc graph
+
+The 'graph' subcommand queries the duc database and generates a sunburst graph
+showing the disk usage of the given path. If no path is given a graph is created
+for the current working directory.
+
+By default the graph is written to the file 'duc.png', which can be overridden by
+using the -o/--output option. The output can be sent to stdout by using the special
+file name '-'.
+
+
+Options for command `duc graph [options] [PATH]`:
+
+  * `-a`, `--apparent`:
+    Show apparent instead of actual file size
+
+  * `-d`, `--database=VAL`:
+    select database file to use [~/.duc.db]
+
+  * `--count`:
+    show number of files instead of file size
+
+  * `-f`, `--format=VAL`:
+    select output format <png|svg|pdf|html> [png]
+
+  * `--fuzz=VAL`:
+    use radius fuzz factor when drawing graph [0.7]
+
+  * `-l`, `--levels=VAL`:
+    draw up to ARG levels deep [4]
+
+  * `-o`, `--output=VAL`:
+    output file name [duc.png]
+
+  * `--palette=VAL`:
+    select palette <size|rainbow|greyscale|monochrome>
+
+  * `--ring-gap=VAL`:
+    leave a gap of VAL pixels between rings
+
+  * `-s`, `--size=VAL`:
+    image size [800]
+
 ### duc cgi
 
 Options for command `duc cgi [options] [PATH]`:
@@ -226,6 +272,9 @@ Options for command `duc cgi [options] [PATH]`:
 
   * `-b`, `--bytes`:
     show file size in exact number of bytes
+
+  * `--count`:
+    show number of files instead of file size
 
   * `--css-url=VAL`:
     url of CSS style sheet to use instead of default CSS
@@ -255,46 +304,6 @@ Options for command `duc cgi [options] [PATH]`:
     enable tooltip when hovering over the graph. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increas the HTTP traffic to the web server
 
 
-### duc graph
-
-The 'graph' subcommand queries the duc database and generates a sunburst graph
-showing the disk usage of the given path. If no path is given a graph is created
-for the current working directory.
-
-By default the graph is written to the file 'duc.png', which can be overridden by
-using the -o/--output option. The output can be sent to stdout by using the special
-file name '-'.
-
-
-Options for command `duc graph [options] [PATH]`:
-
-  * `-a`, `--apparent`:
-    Show apparent instead of actual file size
-
-  * `-d`, `--database=VAL`:
-    select database file to use [~/.duc.db]
-
-  * `-f`, `--format=VAL`:
-    select output format <png|svg|pdf> [png]
-
-  * `--fuzz=VAL`:
-    use radius fuzz factor when drawing graph [0.7]
-
-  * `-l`, `--levels=VAL`:
-    draw up to ARG levels deep [4]
-
-  * `-o`, `--output=VAL`:
-    output file name [duc.png]
-
-  * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
-
-  * `--ring-gap=VAL`:
-    leave a gap of VAL pixels between rings
-
-  * `-s`, `--size=VAL`:
-    image size [800]
-
 ### duc gui
 
 The 'gui' subcommand queries the duc database and runs an interactive graphical
@@ -308,6 +317,7 @@ The following keys can be used to navigate and alter the graph:
     0           Set default graph depth
     a           Toggle between apparent and actual disk usage
     b           Toggle between exact byte count and abbreviated sizes
+    c           Toggle between file size and file count
     p           toggle palettes
     f           toggle graph fuzz
     backspace   go up one directory
@@ -320,6 +330,9 @@ Options for command `duc gui [options] [PATH]`:
 
   * `-b`, `--bytes`:
     show file size in exact number of bytes
+
+  * `--count`:
+    show number of files instead of file size
 
   * `--dark`:
     use dark background color
@@ -353,7 +366,7 @@ The following keys can be used to navigate and alter the file system:
     right, enter:    descent into selected directory
     a:               toggle between actual and apparent disk usage
     b:               toggle between exact and abbreviated sizes
-    c:               toggle between color and monochrome display
+    c:               Toggle between file size and file count
     g:               toggle graph
     h:               show help. press 'q' to return to the main screen
     q, escape:       quit
@@ -367,8 +380,11 @@ Options for command `duc ui [options] [PATH]`:
   * `-b`, `--bytes`:
     show file size in exact number of bytes
 
-  * `-c`, `--color`:
-    colorize output
+  * `--count`:
+    show number of files instead of file size
+
+  * `--no-color`:
+    do not use colors on terminal output
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]

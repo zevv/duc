@@ -45,7 +45,7 @@ static int opt_apparent = 0;
 static int opt_count = 0;
 static int opt_bytes = 0;
 static int opt_graph = 1;
-static int opt_color = 0;
+static int opt_nocolor = 0;
 static char *opt_database = NULL;
 
 
@@ -62,7 +62,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 		int attr_size, attr_name, attr_class, attr_graph, attr_bar, attr_cursor;
 
-		if(opt_color) {
+		if(!opt_nocolor) {
 			attr_size = COLOR_PAIR(PAIR_SIZE);
 			attr_name = COLOR_PAIR(PAIR_NAME);
 			attr_bar = COLOR_PAIR(PAIR_BAR);
@@ -309,7 +309,7 @@ static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
-	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output" },
+	{ &opt_nocolor,   "no-color",   0 , DUCRC_TYPE_BOOL,   "do not use colors on terminal output" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
 };
