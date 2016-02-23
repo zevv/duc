@@ -23,6 +23,7 @@ struct param {
 
 
 static int opt_apparent = 0;
+static int opt_count = 0;
 static char *opt_css_url = NULL;
 static char *opt_database = NULL;
 static int opt_bytes = 0;
@@ -281,8 +282,10 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		struct tm *tm = localtime(&t);
 		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
+	
+		duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+	                           opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
-		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 		char siz[32];
 		duc_human_size(&report->size, st, 0, siz, sizeof siz);
 
@@ -312,7 +315,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	if(path && dir && opt_list) {
 
-		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+		duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+	                           opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 		printf("<div id=list>\n");
 		printf(" <table>\n");
@@ -363,7 +367,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+			   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 	printf("Content-Type: text/html\n");
 	printf("\n");
@@ -447,13 +452,16 @@ static int cgi_main(duc *duc, int argc, char **argv)
 		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
 	}
 
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+			   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
 	duc_graph *graph = duc_graph_new_html(duc, stdout, 0);
 	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_exact_bytes(graph, opt_bytes);
-	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_size_type(graph, st);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
@@ -468,6 +476,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_css_url,   "css-url",     0, DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },

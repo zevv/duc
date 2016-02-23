@@ -41,6 +41,7 @@ typedef enum {
 typedef enum {
 	DUC_SIZE_TYPE_APPARENT,
 	DUC_SIZE_TYPE_ACTUAL,
+	DUC_SIZE_TYPE_COUNT,
 } duc_size_type;
 
 typedef enum {
@@ -83,6 +84,7 @@ struct duc_devino {
 struct duc_size {
 	off_t actual;
 	off_t apparent;
+	off_t count;
 };
 
 struct duc_index_report {

@@ -42,6 +42,7 @@ enum {
 static void help(void);
 
 static int opt_apparent = 0;
+static int opt_count = 0;
 static int opt_bytes = 0;
 static int opt_graph = 1;
 static int opt_color = 0;
@@ -78,7 +79,8 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			use_default_colors();
 		}
 	
-		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+		duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+				   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 		/* Iterate all dirents to find largest size */
 
@@ -87,7 +89,10 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		off_t size_max = 1;
 		struct duc_dirent *e;
 		while( (e = duc_dir_read(dir, st)) != NULL) {
-			off_t size = opt_apparent ? e->size.apparent : e->size.actual;
+			off_t size;
+			if(st == DUC_SIZE_TYPE_COUNT) size = e->size.count;
+			if(st == DUC_SIZE_TYPE_APPARENT) size = e->size.apparent;
+			if(st == DUC_SIZE_TYPE_ACTUAL) size = e->size.actual;
 			if(size > size_max) size_max = size;
 		}
 
@@ -141,7 +146,10 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 			if(e) {
 
-				off_t size = opt_apparent ? e->size.apparent : e->size.actual;
+				off_t size;
+				if(st == DUC_SIZE_TYPE_COUNT) size = e->size.count;
+				if(st == DUC_SIZE_TYPE_APPARENT) size = e->size.apparent;
+				if(st == DUC_SIZE_TYPE_ACTUAL) size = e->size.actual;
 		
 				size_t max_size_len = opt_bytes ? 12 : 7;
 
@@ -204,7 +212,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case KEY_RESIZE: getmaxyx(stdscr, rows, cols); break;
 			case 'a': opt_apparent ^= 1; break;
 			case 'b': opt_bytes ^= 1; break;
-			case 'c': opt_color ^= 1; break;
+			case 'c': opt_count ^= 1; break;
 			case 'g': opt_graph ^= 1; break;
 			case 'h': help(); break;
 
@@ -300,6 +308,7 @@ static int ui_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
@@ -325,7 +334,7 @@ struct cmd cmd_ui = {
 		"    right, enter:    descent into selected directory\n"
 		"    a:               toggle between actual and apparent disk usage\n"
 		"    b:               toggle between exact and abbreviated sizes\n"
-		"    c:               toggle between color and monochrome display\n"
+		"    c:               Toggle between file size and file count\n"
 		"    g:               toggle graph\n"
 		"    h:               show help. press 'q' to return to the main screen\n"
 		"    q, escape:       quit\n"

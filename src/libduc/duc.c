@@ -166,8 +166,22 @@ int duc_human_number(double v, int exact, char *buf, size_t maxlen)
 
 int duc_human_size(const struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen)
 {
-	double v = (st == DUC_SIZE_TYPE_APPARENT) ? size->apparent : size->actual;
-	return humanize(v, exact, 1024, buf, maxlen);
+	double v;
+	int base;
+
+	if(st == DUC_SIZE_TYPE_COUNT) {
+		v = size->count;
+		base = 1000;
+	}
+	if(st == DUC_SIZE_TYPE_APPARENT) {
+		v = size->apparent;
+		base = 1024;
+	}
+	if(st == DUC_SIZE_TYPE_ACTUAL) {
+		v = size->actual;
+		base = 1024;
+	}
+	return humanize(v, exact, base, buf, maxlen);
 }
 
 
@@ -286,6 +300,7 @@ void duc_size_accum(struct duc_size *s1, const struct duc_size *s2)
 {
 	s1->actual += s2->actual;
 	s1->apparent += s2->apparent;
+	s1->count += s2->count;
 }
 
 

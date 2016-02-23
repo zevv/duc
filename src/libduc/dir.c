@@ -258,6 +258,17 @@ static int fn_comp_actual(const void *a, const void *b)
 }
 
 
+static int fn_comp_count(const void *a, const void *b)
+{
+	const struct duc_dirent *ea = a;
+	const struct duc_dirent *eb = b;
+	const struct duc_size *sa = &ea->size;
+	const struct duc_size *sb = &eb->size;
+	if(sa->count < sb->count) return +1;
+	if(sa->count > sb->count) return -1;
+	return strcmp(ea->name, eb->name);
+}
+
 struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st)
 {
 	int (*fn_comp)(const void *, const void *);
@@ -265,7 +276,11 @@ struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st)
 	dir->duc->err = 0;
 		
 	if(dir->size_type != st) {
-		fn_comp = (st == DUC_SIZE_TYPE_APPARENT) ? fn_comp_apparent : fn_comp_actual;
+		switch(st) {
+			case DUC_SIZE_TYPE_APPARENT: fn_comp = fn_comp_apparent; break;
+			case DUC_SIZE_TYPE_ACTUAL: fn_comp = fn_comp_actual; break;
+			case DUC_SIZE_TYPE_COUNT: fn_comp = fn_comp_count; break;
+		}
 		qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp);
 		dir->size_type = st;
 	}

@@ -164,6 +164,7 @@ static void st_to_size(struct stat *st, struct duc_size *s)
 #else
 	s->actual = s->apparent;
 #endif
+	s->count = 1;
 }
 
 

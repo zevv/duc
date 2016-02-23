@@ -43,6 +43,7 @@ static char *tree_utf8[] = {
 };
 
 static int opt_apparent = 0;
+static int opt_count = 0;
 static int opt_ascii = 0;
 static int opt_bytes = 0;
 static int opt_classify = 0;
@@ -59,7 +60,8 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	off_t max_size = 0;
 	size_t max_name_len = 0;
 	int max_size_len = 6;
-	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+	                   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 	if(level > opt_levels) return;
 
@@ -206,6 +208,7 @@ static struct ducrc_option options[] = {
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_classify,  "classify",  'F', DUCRC_TYPE_BOOL,   "append file type indicator (one of */) to entries" },
 	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output (only on ttys)" },
+	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_dirs_only, "dirs-only",   0, DUCRC_TYPE_BOOL,   "list only directories, skip individual files" },
 	{ &opt_graph,     "graph",     'g', DUCRC_TYPE_BOOL,   "draw graph with relative size for each entry" },
