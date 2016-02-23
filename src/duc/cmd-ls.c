@@ -72,7 +72,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	struct duc_dirent *e;
 	while( (e = duc_dir_read(dir, st)) != NULL) {
 
-		off_t size = opt_apparent ? e->size.apparent : e->size.actual;
+		off_t size = duc_get_size(&e->size, st);
 
 		if(size > max_size) max_size = size;
 		size_t l = strlen(e->name);
@@ -93,7 +93,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 
 		if(opt_dirs_only && e->type != DUC_FILE_TYPE_DIR) continue;
 
-		off_t size = opt_apparent ? e->size.apparent : e->size.actual;
+		off_t size = duc_get_size(&e->size, st);
 
 		if(opt_recursive) {
 			if(n == 0)       prefix[level] = 1;

@@ -219,6 +219,20 @@ int duc_human_duration(struct timeval start, struct timeval stop, char *buf, siz
 }
 
 
+off_t duc_get_size(struct duc_size *size, duc_size_type st)
+{
+	switch(st) {
+		case DUC_SIZE_TYPE_APPARENT:
+			return size->apparent;
+		case DUC_SIZE_TYPE_ACTUAL:
+			return size->actual;
+		case DUC_SIZE_TYPE_COUNT:
+			return size->count;
+	}
+	return 0;
+}
+
+
 void *duc_malloc(size_t s)
 {
 	void *p = malloc(s);

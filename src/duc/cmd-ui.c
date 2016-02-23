@@ -89,10 +89,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		off_t size_max = 1;
 		struct duc_dirent *e;
 		while( (e = duc_dir_read(dir, st)) != NULL) {
-			off_t size;
-			if(st == DUC_SIZE_TYPE_COUNT) size = e->size.count;
-			if(st == DUC_SIZE_TYPE_APPARENT) size = e->size.apparent;
-			if(st == DUC_SIZE_TYPE_ACTUAL) size = e->size.actual;
+			off_t size = duc_get_size(&e->size, st);
 			if(size > size_max) size_max = size;
 		}
 
@@ -127,7 +124,13 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		duc_human_number(count, opt_bytes, cnt, sizeof cnt);
 		attrset(attr_bar);
 		mvhline(rows-1, 0, ' ', cols);
-		mvprintw(rows-1, 0, " Total %sB in %s files/directories", siz, cnt);
+		mvprintw(rows-1, 0, " Total %sB in %s files/directories (", siz, cnt);
+		switch(st) {
+			case DUC_SIZE_TYPE_APPARENT: printw("apparent size"); break;
+			case DUC_SIZE_TYPE_ACTUAL: printw("actual size"); break;
+			case DUC_SIZE_TYPE_COUNT: printw("file count"); break;
+		}
+		printw(")");
 		attrset(0);
 
 		/* Draw dirents */
@@ -146,10 +149,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 			if(e) {
 
-				off_t size;
-				if(st == DUC_SIZE_TYPE_COUNT) size = e->size.count;
-				if(st == DUC_SIZE_TYPE_APPARENT) size = e->size.apparent;
-				if(st == DUC_SIZE_TYPE_ACTUAL) size = e->size.actual;
+				off_t size = duc_get_size(&e->size, st);;
 		
 				size_t max_size_len = opt_bytes ? 12 : 7;
 

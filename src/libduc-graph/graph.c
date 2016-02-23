@@ -210,7 +210,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 	} else {
 		duc_dir_get_size(dir, &tmp);
 	}
-	size_total = g->size_type == DUC_SIZE_TYPE_APPARENT ? tmp.apparent : tmp.actual;
+	size_total = duc_get_size(&tmp, g->size_type);
 	if(size_total == 0) return 0;
 
 	struct duc_dirent *e;
@@ -219,7 +219,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 	off_t size_max = 0;
 
 	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
-		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size.apparent : e->size.actual;
+		off_t size = duc_get_size(&e->size, g->size_type);
 		if(size < size_min) size_min = size;
 		if(size > size_max) size_max = size;
 	}
@@ -231,7 +231,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 
-		off_t size = (g->size_type == DUC_SIZE_TYPE_APPARENT) ? e->size.apparent : e->size.actual;
+		off_t size = duc_get_size(&e->size, g->size_type);
 
 		double size_rel = (double)size / size_total;
 		double size_nrel = (size_max - size_min) ? ((double)size - size_min) / (size_max - size_min) : 1;

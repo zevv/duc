@@ -165,6 +165,7 @@ int duc_dir_close(duc_dir *dir);
  * Helper functions
  */
 
+off_t duc_get_size(struct duc_size *size, duc_size_type st);
 int duc_human_number(double v, int exact, char *buf, size_t maxlen);
 int duc_human_size(const struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen);
 int duc_human_duration(struct timeval start, struct timeval end, char *buf, size_t maxlen);
