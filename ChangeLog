@@ -1,4 +1,6 @@
 
+	- fix: fixed handling of filenames with spaces in 'duc cgi'
+
 1.4.0   (2016-02-24)
 
         - new: added --count option
