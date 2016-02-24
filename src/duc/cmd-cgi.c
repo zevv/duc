@@ -64,22 +64,34 @@ static void print_cgi(const char *s)
 }
 
 
-static int decode_uri(char *src, char *dst) 
+static int hexdigit(char a)
 {
-	int len = 0;
-	while(*src) {
-		if (*src == '%' && src[1] && src[2] && isxdigit(src[1]) && isxdigit(src[2])) {
-			src[1] -= src[1] <= '9' ? '0' : (src[1] <= 'F' ? 'A' : 'a')-10;
-			src[2] -= src[2] <= '9' ? '0' : (src[2] <= 'F' ? 'A' : 'a')-10;
-			dst[len] = 16 * src[1] + src[2];
-			src += 3;
-			continue;
-		}
-		dst[len] = *src++;
-		len ++;
+	if (a >= 'a') {
+		a -= 'a'-'A';
+	} else if (a >= 'A') {
+		a -= ('A' - 10);
+	} else {
+		a -= '0';
 	}
-	dst[len] = '\0';
-	return len;
+	return a;
+}
+
+
+void decode_uri(char *src, char *dst)
+{       
+	char a, b;
+	while (*src) {
+		if((*src == '%') && ((a = src[1]) && (b = src[2])) && (isxdigit(a) && isxdigit(b))) {
+			*dst++ = 16 * hexdigit(a) + hexdigit(b);
+			src+=3;
+		} else if (*src == '+') {
+			*dst++ = ' ';
+			src++;
+		} else {
+			*dst++ = *src++;
+		}
+	}
+	*dst++ = '\0';
 }
 
 
