@@ -3,7 +3,7 @@
 
 #include "duc.h"
 
-#define DUC_DB_VERSION "16"
+#define DUC_DB_VERSION "17"
 
 #ifndef S_ISLNK
 #define S_ISLNK(v) 0

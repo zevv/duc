@@ -521,6 +521,22 @@ path which is used by all subcommands
     [ui]
     color
 
+## FREQUENTLY ASKED QUESTIONS
+
+* What does the error 'Database version mismatch mean?'
+ 
+  The layout of the index database sometimes changes when new features are
+  implemented. When you get this error you have probably upgraded to a newer
+  version. Just remove the old database file and rebuild the index.
+
+* Duc crashes with a segmentation fault, is it that buggy?
+
+  By default Duc uses the Tokyocabinet database backend. Tokyocabinet is pretty
+  fast, stores the database in a single file and has nice compression support
+  to keep the database small. Unfortunately, it is not always robust and
+  sometimes chokes on corrupt database files. Try to remove the database
+  and rebuild the index. If the error persists contact the authors.
+
 ## FILES
 
 At startup duc tries to read its configuration from three locations in this
