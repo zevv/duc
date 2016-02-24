@@ -1,7 +1,11 @@
 
+1.4.0   (2016-02-24)
+
+        - new: added --count option
 	- new: added support for windows
 	- cha: renamed guigl to gui, only one gui (X11/OpenGL) can now be enabled
 	- cha: improved font handling on OpenGL backend
+	- cha: changed CGI environment detection to work around bug in Lighttpd
 
 1.3.2	(2015-06-14)
 
