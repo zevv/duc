@@ -295,8 +295,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
 	
-		duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
-	                           opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 		char siz[32];
 		duc_human_size(&report->size, st, 0, siz, sizeof siz);
@@ -311,7 +310,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("   <td>%zu</td>\n", report->file_count);
 		printf("   <td>%zu</td>\n", report->dir_count);
 		printf("   <td>%s</td>\n", ts_date);
-		printf("   <td>%s</td>\n", ts_time);
+		printf("   <td>%s%d</td>\n", ts_time, opt_count);
 		printf("  </tr>\n");
 
 		duc_index_report_free(report);
