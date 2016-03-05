@@ -68,7 +68,8 @@ static int hexdigit(char a)
 {
 	if (a >= 'a') {
 		a -= 'a'-'A';
-	} else if (a >= 'A') {
+	}
+	if (a >= 'A') {
 		a -= ('A' - 10);
 	} else {
 		a -= '0';
