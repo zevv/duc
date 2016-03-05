@@ -1,4 +1,6 @@
 
+	- cha: tooltip now shows actual size, apparent size and count
+	- fix: once more fixed cgi parameter decoding
 	- fix: fixed handling of filenames with spaces in 'duc cgi'
 
 1.4.0   (2016-02-24)
