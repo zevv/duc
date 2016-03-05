@@ -210,7 +210,7 @@ static void print_script(const char *path)
 		"            tt.style.top = (e.clientY - tt.offsetHeight - 5) + \"px\";\n"
 		"          }\n"
 		"        };\n"
-		"        req.open(\"GET\", \"?cmd=lookup&path=%s&x=\"+x+\"&y=\"+y , true);\n"
+		"        req.open(\"GET\", \"?cmd=tooltip&path=%s&x=\"+x+\"&y=\"+y , true);\n"
 		"        req.send()\n"
 		"      }, 100);\n"
 		"    };\n", path);
@@ -377,7 +377,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 }
 
 
-void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
+void do_tooltip(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
 			   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
@@ -398,18 +398,17 @@ void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 		if(dir2) duc_dir_close(dir2);
 
 		if(ent) {
-
-			char siz[32];
-			duc_human_size(&ent->size, st, opt_bytes, siz, sizeof siz);
+			char siz_app[32], siz_act[32], siz_cnt[32];
+			duc_human_size(&ent->size, DUC_SIZE_TYPE_APPARENT, opt_bytes, siz_app, sizeof siz_app);
+			duc_human_size(&ent->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes, siz_act, sizeof siz_act);
+			duc_human_size(&ent->size, DUC_SIZE_TYPE_COUNT, opt_bytes, siz_cnt, sizeof siz_cnt);
 			char *typ = duc_file_type_name(ent->type);
-			if(typ == NULL) typ = "unknown";
-
-			printf( "name: %s<br>\n"
-				"type: %s<br>\n"
-				"size: %s<br>\n",
-				ent->name,
-				typ,
-				siz);
+			printf("name: %s<br>\n"
+			       "type: %s<br>\n"
+			       "actual size: %s<br>\n"
+			       "apparent size: %s<br>\n"
+			       "file count: %s",
+			       ent->name, typ, siz_act, siz_app, siz_cnt);
 
 			free(ent->name);
 			free(ent);
@@ -477,7 +476,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
-	if(strcmp(cmd, "lookup") == 0) do_lookup(duc, graph, dir);
+	if(strcmp(cmd, "tooltip") == 0) do_tooltip(duc, graph, dir);
 
 	duc_close(duc);
 

@@ -184,6 +184,26 @@ double ang(double a)
 }
 
 
+static void gen_tooltip(duc_graph *g, struct duc_size *size, const char *name, duc_file_type type)
+{
+	char siz_app[32], siz_act[32], siz_cnt[32];
+	duc_human_size(size, DUC_SIZE_TYPE_APPARENT, g->bytes, siz_app, sizeof siz_app);
+	duc_human_size(size, DUC_SIZE_TYPE_ACTUAL, g->bytes, siz_act, sizeof siz_act);
+	duc_human_size(size, DUC_SIZE_TYPE_COUNT, g->bytes, siz_cnt, sizeof siz_cnt);
+	char *typ = duc_file_type_name(type);
+	char *p = g->tooltip_msg;
+	int l = sizeof(g->tooltip_msg);
+	if(name) {
+		p += snprintf(p, l, "name: %s\n", name);
+	}
+	p += snprintf(p, l, 
+			"type: %s\n"
+			"actual size: %s\n"
+			"apparent size: %s\n"
+			"file count: %s",
+			typ, siz_act, siz_app, siz_cnt);
+}
+
 
 /*
  * This function has two purposes:
@@ -291,18 +311,8 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 			double r = g->tooltip_r;
 
 			if(a >= a1 && a < a2 && r >= r1 && r < r2) {
-
 				V -= 0.7;
-				char siz[16];
-				duc_human_size(&e->size, g->size_type, g->bytes, siz, sizeof siz);
-				char *typ = duc_file_type_name(e->type);
-				snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
-					"name: %s\n"
-					"type: %s\n"
-					"size: %s",
-					e->name, 
-					typ, 
-					siz);
+				gen_tooltip(g, &e->size, e->name, e->type);
 			}
 		}
 
@@ -420,6 +430,10 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	duc_human_size(&size, g->size_type, g->bytes, siz, sizeof siz);
 	if(g->backend)
 		g->backend->draw_text(g, (int)g->cx, (int)g->cy, FONT_SIZE_CENTER, siz);
+
+	if(g->tooltip_r < g->r_start) {
+		gen_tooltip(g, &size, NULL, DUC_FILE_TYPE_DIR);
+	}
 		
 	/* Draw tooltip */
 
