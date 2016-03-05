@@ -193,7 +193,9 @@ static void br_cairo_draw_section(duc_graph *g, double a1, double a2, double r1,
 		double off1 = r2 / g->cx;
 		double off2 = r1 / g->cx;
 		cairo_pattern_add_color_stop_rgb(pat, off1, R, G, B);
-		cairo_pattern_add_color_stop_rgb(pat, off2, R * 0.6, G * 0.6, B * 0.6);
+		if(g->gradient) {
+			cairo_pattern_add_color_stop_rgb(pat, off2, R * 0.6, G * 0.6, B * 0.6);
+		}
 		cairo_set_source(cr, pat);
 
 		cairo_fill_preserve(cr);

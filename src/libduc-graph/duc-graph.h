@@ -48,6 +48,7 @@ void duc_graph_set_max_name_len(duc_graph *g, size_t len);
 void duc_graph_set_size_type(duc_graph *g, duc_size_type st);
 void duc_graph_set_exact_bytes(duc_graph *g, int exact);
 void duc_graph_set_ring_gap(duc_graph *g, int gap);
+void duc_graph_set_gradient(duc_graph *g, int onoff);
 
 int duc_graph_draw(duc_graph *g, duc_dir *dir);
 duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, double x, double y, struct duc_dirent **ent);

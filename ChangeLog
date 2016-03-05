@@ -1,4 +1,6 @@
 
+	- cha: disabled gui gradients by default. use the --gradient option 
+	       for original graph style
 	- cha: tooltip now shows actual size, apparent size and count
 	- fix: once more fixed cgi parameter decoding
 	- fix: fixed handling of filenames with spaces in 'duc cgi'

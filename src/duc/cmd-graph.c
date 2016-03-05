@@ -26,6 +26,7 @@ static char *opt_output = NULL;
 static char *opt_palette = NULL;
 static enum duc_graph_palette palette = 0;
 static int opt_ring_gap = 4;
+static int opt_gradient = 0;
 
 #ifdef ENABLE_CAIRO
 static char *opt_format = "png";
@@ -122,6 +123,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_size_type(graph, st);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
+	duc_graph_set_gradient(graph, opt_gradient);
 
 	duc_graph_draw(graph, dir);
 
@@ -144,6 +146,7 @@ static struct ducrc_option options[] = {
 	                                                        "select output format <svg|html> [svg]" },
 #endif
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
+	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },

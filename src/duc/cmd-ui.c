@@ -212,6 +212,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case KEY_RESIZE: getmaxyx(stdscr, rows, cols); break;
 			case 'a': opt_apparent ^= 1; break;
 			case 'b': opt_bytes ^= 1; break;
+			case 'C': opt_nocolor ^= 1; break;
 			case 'c': opt_count ^= 1; break;
 			case 'g': opt_graph ^= 1; break;
 			case 'h': help(); break;
@@ -335,7 +336,6 @@ struct cmd cmd_ui = {
 		"    a:               toggle between actual and apparent disk usage\n"
 		"    b:               toggle between exact and abbreviated sizes\n"
 		"    c:               Toggle between file size and file count\n"
-		"    g:               toggle graph\n"
 		"    h:               show help. press 'q' to return to the main screen\n"
 		"    q, escape:       quit\n"
 

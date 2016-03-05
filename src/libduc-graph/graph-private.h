@@ -45,6 +45,7 @@ struct duc_graph {
 	duc_size_type size_type;
 	int bytes;
 	int ring_gap;
+	int gradient;
 
 	/* format */
 

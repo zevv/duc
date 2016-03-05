@@ -29,6 +29,7 @@ static char *opt_database = NULL;
 static int opt_bytes = 0;
 static int opt_list = 0;
 static int opt_size = 800;
+static int opt_gradient = 0;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
@@ -474,6 +475,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 	duc_graph_set_exact_bytes(graph, opt_bytes);
 	duc_graph_set_size_type(graph, st);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
+	duc_graph_set_gradient(graph, opt_gradient);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
 	if(strcmp(cmd, "tooltip") == 0) do_tooltip(duc, graph, dir);
@@ -491,6 +493,7 @@ static struct ducrc_option options[] = {
 	{ &opt_css_url,   "css-url",     0, DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
+	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_list,      "list",        0, DUCRC_TYPE_BOOL,   "generate table with file list" },
 	{ &opt_palette,   "palette",     0, DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },

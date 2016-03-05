@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "DUC" "1" "February 2016" "" ""
+.TH "DUC" "1" "March 2016" "" ""
 .
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
@@ -257,6 +257,10 @@ select output format \fIpng|svg|pdf|html\fR [png]
 use radius fuzz factor when drawing graph [0\.7]
 .
 .TP
+\fB\-\-gradient\fR
+draw graph with color gradient
+.
+.TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
 draw up to ARG levels deep [4]
 .
@@ -304,6 +308,10 @@ select database file to use [~/\.duc\.db]
 use radius fuzz factor when drawing graph [0\.7]
 .
 .TP
+\fB\-\-gradient\fR
+draw graph with color gradient
+.
+.TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
 draw up to ARG levels deep [4]
 .
@@ -343,8 +351,9 @@ The following keys can be used to navigate and alter the graph:
 a           Toggle between apparent and actual disk usage
 b           Toggle between exact byte count and abbreviated sizes
 c           Toggle between file size and file count
-p           toggle palettes
 f           toggle graph fuzz
+g           toggle graph gradient
+p           toggle palettes
 backspace   go up one directory
 .
 .fi
@@ -379,6 +388,10 @@ select database file to use [~/\.duc\.db]
 use radius fuzz factor when drawing graph
 .
 .TP
+\fB\-\-gradient\fR
+draw graph with color gradient
+.
+.TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
 draw up to VAL levels deep [4]
 .
@@ -407,7 +420,6 @@ right, enter:    descent into selected directory
 a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
 c:               Toggle between file size and file count
-g:               toggle graph
 h:               show help\. press \'q\' to return to the main screen
 q, escape:       quit
 .

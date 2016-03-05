@@ -276,6 +276,7 @@ file name '-'.</p>
 <dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
 <dt><code>-f</code>, <code>--format=VAL</code></dt><dd><p>select output format <var>png|svg|pdf|html</var> [png]</p></dd>
 <dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
+<dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
 <dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
 <dt><code>-o</code>, <code>--output=VAL</code></dt><dd><p>output file name [duc.png]</p></dd>
 <dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
@@ -295,6 +296,7 @@ file name '-'.</p>
 <dt><code>--css-url=VAL</code></dt><dd><p>url of CSS style sheet to use instead of default CSS</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
 <dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
+<dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
 <dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
 <dt class="flush"><code>--list</code></dt><dd><p>generate table with file list</p></dd>
 <dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
@@ -318,8 +320,9 @@ current working directory is explored.</p>
 a           Toggle between apparent and actual disk usage
 b           Toggle between exact byte count and abbreviated sizes
 c           Toggle between file size and file count
-p           toggle palettes
 f           toggle graph fuzz
+g           toggle graph gradient
+p           toggle palettes
 backspace   go up one directory
 </code></pre>
 
@@ -332,6 +335,7 @@ backspace   go up one directory
 <dt class="flush"><code>--dark</code></dt><dd><p>use dark background color</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
 <dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph</p></dd>
+<dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
 <dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to VAL levels deep [4]</p></dd>
 <dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
 <dt><code>--ring-gap=VAL</code></dt><dd><p>leave a gap of VAL pixels between rings</p></dd>
@@ -353,7 +357,6 @@ right, enter:    descent into selected directory
 a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
 c:               Toggle between file size and file count
-g:               toggle graph
 h:               show help. press 'q' to return to the main screen
 q, escape:       quit
 </code></pre>
@@ -538,8 +541,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#109;&#97;&#105;&#108;&#x74;&#111;&#x3a;&#x64;&#117;&#x63;&#x40;&#x7a;&#x65;&#118;&#118;&#x2e;&#110;&#108;" data-bare-link="true">&#100;&#x75;&#99;&#x40;&#x7a;&#x65;&#x76;&#118;&#46;&#110;&#108;</a></li>
-<li>John Stoffel <a href="&#109;&#97;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x6a;&#x6f;&#x68;&#x6e;&#64;&#115;&#x74;&#x6f;&#x66;&#x66;&#101;&#x6c;&#x2e;&#x6f;&#114;&#103;" data-bare-link="true">&#106;&#111;&#x68;&#x6e;&#64;&#x73;&#x74;&#111;&#x66;&#x66;&#x65;&#x6c;&#46;&#x6f;&#x72;&#103;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#x64;&#117;&#99;&#x40;&#122;&#x65;&#118;&#118;&#46;&#110;&#x6c;" data-bare-link="true">&#100;&#117;&#99;&#x40;&#122;&#x65;&#x76;&#118;&#x2e;&#110;&#108;</a></li>
+<li>John Stoffel <a href="&#109;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#106;&#111;&#x68;&#110;&#64;&#115;&#x74;&#111;&#102;&#x66;&#101;&#108;&#46;&#111;&#114;&#103;" data-bare-link="true">&#x6a;&#x6f;&#x68;&#110;&#x40;&#x73;&#x74;&#111;&#x66;&#x66;&#101;&#x6c;&#x2e;&#x6f;&#114;&#103;</a></li>
 </ul>
 
 
@@ -557,7 +560,7 @@ License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>February 2016</li>
+    <li class='tc'>March 2016</li>
     <li class='tr'>duc(1)</li>
   </ol>
 

@@ -26,6 +26,7 @@ static int opt_levels = 4;
 static int opt_apparent = 0;
 static int opt_count = 0;
 static int opt_ring_gap = 4;
+static int opt_gradient = 0;
 
 static double tooltip_x = 0;
 static double tooltip_y = 0;
@@ -72,6 +73,7 @@ static void draw(GLFWwindow *window)
 	duc_graph_set_exact_bytes(graph, opt_bytes);
 	duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
+	duc_graph_set_gradient(graph, opt_gradient);
 
 	duc_graph_draw(graph, dir);
 
@@ -92,6 +94,7 @@ static void cb_keyboard(GLFWwindow* window, int k, int scancode, int action, int
 	if(k == 'C') opt_count = !opt_count;
 	if(k == 'B') opt_bytes = !opt_bytes;
 	if(k == 'F') fuzz = (fuzz == 0) ? opt_fuzz : 0;
+	if(k == 'G') opt_gradient = !opt_gradient;
 	if(k == ',') if(opt_ring_gap > 0) opt_ring_gap --;
 	if(k == '.') opt_ring_gap ++;
 	if(k == 'P') palette = (palette + 1) % 4;
@@ -220,6 +223,7 @@ static struct ducrc_option options[] = {
 	{ &opt_dark,      "dark",       0,  DUCRC_TYPE_BOOL,   "use dark background color" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
+	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to VAL levels deep [4]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
 	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
@@ -246,8 +250,9 @@ struct cmd cmd_guigl = {
 		"    a           Toggle between apparent and actual disk usage\n"
 		"    b           Toggle between exact byte count and abbreviated sizes\n"
 		"    c           Toggle between file size and file count\n"
-		"    p           toggle palettes\n"
 		"    f           toggle graph fuzz\n"
+		"    g           toggle graph gradient\n"
+		"    p           toggle palettes\n"
 		"    backspace   go up one directory\n"
 
 };

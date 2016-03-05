@@ -109,6 +109,12 @@ void duc_graph_set_ring_gap(duc_graph *g, int gap)
 }
 
 
+void duc_graph_set_gradient(duc_graph *g, int onoff)
+{
+	g->gradient = onoff;
+}
+
+
 void pol2car(duc_graph *g, double a, double r, double *x, double *y)
 {
 	*x = cos(a) * r + g->cx;

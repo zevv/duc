@@ -248,6 +248,9 @@ Options for command `duc graph [options] [PATH]`:
   * `--fuzz=VAL`:
     use radius fuzz factor when drawing graph [0.7]
 
+  * `--gradient`:
+    draw graph with color gradient
+
   * `-l`, `--levels=VAL`:
     draw up to ARG levels deep [4]
 
@@ -285,6 +288,9 @@ Options for command `duc cgi [options] [PATH]`:
   * `--fuzz=VAL`:
     use radius fuzz factor when drawing graph [0.7]
 
+  * `--gradient`:
+    draw graph with color gradient
+
   * `-l`, `--levels=VAL`:
     draw up to ARG levels deep [4]
 
@@ -318,8 +324,9 @@ The following keys can be used to navigate and alter the graph:
     a           Toggle between apparent and actual disk usage
     b           Toggle between exact byte count and abbreviated sizes
     c           Toggle between file size and file count
-    p           toggle palettes
     f           toggle graph fuzz
+    g           toggle graph gradient
+    p           toggle palettes
     backspace   go up one directory
 
 
@@ -342,6 +349,9 @@ Options for command `duc gui [options] [PATH]`:
 
   * `--fuzz=VAL`:
     use radius fuzz factor when drawing graph
+
+  * `--gradient`:
+    draw graph with color gradient
 
   * `-l`, `--levels=VAL`:
     draw up to VAL levels deep [4]
@@ -367,7 +377,6 @@ The following keys can be used to navigate and alter the file system:
     a:               toggle between actual and apparent disk usage
     b:               toggle between exact and abbreviated sizes
     c:               Toggle between file size and file count
-    g:               toggle graph
     h:               show help. press 'q' to return to the main screen
     q, escape:       quit
 

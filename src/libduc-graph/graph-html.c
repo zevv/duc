@@ -59,10 +59,14 @@ void br_html_start(duc_graph *g)
 	fprintf(f, "  a2 = a2*1e-3 * pi * 2 - pi / 2;\n");
 	fprintf(f, "  var c1 = 'rgb(' + f(r*0.6) + ',' + f(g*0.6) + ',' + f(b*0.6) + ')';\n");
 	fprintf(f, "  var c2 = 'rgb(' + f(r*1.0) + ',' + f(g*1.0) + ',' + f(b*1.0) + ')';\n");
-	fprintf(f, "  var g = c.createRadialGradient(%.0f, %.0f, r1, %.0f, %.0f, r2);\n", g->cx, g->cy, g->cx, g->cy);
-	fprintf(f, "  g.addColorStop(0, c1);\n");
-	fprintf(f, "  g.addColorStop(1, c2);\n");
-	fprintf(f, "  c.fillStyle = g;\n");
+	if(g->gradient) {
+		fprintf(f, "  var g = c.createRadialGradient(%.0f, %.0f, r1, %.0f, %.0f, r2);\n", g->cx, g->cy, g->cx, g->cy);
+		fprintf(f, "  g.addColorStop(0, c1);\n");
+		fprintf(f, "  g.addColorStop(1, c2);\n");
+		fprintf(f, "  c.fillStyle = g;\n");
+	} else {
+		fprintf(f, "  c.fillStyle = c2;\n");
+	}
 	fprintf(f, "  c.beginPath();\n");
 	fprintf(f, "  c.arc(%.0f, %.0f, r1, a1, a2, false);\n",  g->cx,  g->cy);
 	fprintf(f, "  c.arc(%.0f, %.0f, r2, a2, a1, true);\n",  g->cx,  g->cy);
