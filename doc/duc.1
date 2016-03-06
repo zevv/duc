@@ -51,6 +51,9 @@ The default location of the database is \fB$HOME/\.duc\.db\fR\. To use a differe
 .P
 You can run \fBduc index\fR at any time later to rebuild the index\.
 .
+.P
+By default Duc indexes all directories it encounters during file system traversal traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
+.
 .SH "QUERYING THE INDEX"
 Duc has various subcommands for querying or exploring the index:
 .
@@ -113,11 +116,11 @@ show file size in exact number of bytes
 .
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
-use database file ARG
+use database file VAL
 .
 .TP
 \fB\-e\fR, \fB\-\-exclude=VAL\fR
-exclude files matching ARG
+exclude files matching VAL
 .
 .TP
 \fB\-H\fR, \fB\-\-check\-hard\-links\fR
@@ -126,6 +129,14 @@ count hard links only once\. if two or more hard links point to the same file, o
 .TP
 \fB\-f\fR, \fB\-\-force\fR
 force writing in case of corrupted db
+.
+.TP
+\fB\-\-fs\-exclude=VAL\fR
+exclude file system type VAL during indexing\. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs
+.
+.TP
+\fB\-\-fs\-include=VAL\fR
+include file system type VAL during indexing\. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs
 .
 .TP
 \fB\-\-hide\-file\-names\fR

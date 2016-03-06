@@ -148,6 +148,13 @@ database location with the --database argument.</p>
 
 <p>You can run <code>duc index</code> at any time later to rebuild the index.</p>
 
+<p>By default Duc indexes all directories it encounters during file system
+traversal traversal, including special file systems like /proc and /sys, and
+network file systems like NFS or Samba mounts. There are a few options to
+select what parts of your filesystem you want to include or exclude from the
+scan, check the documentation below for --exclude, --fs-exclude and
+--fs-include for more details.</p>
+
 <h2 id="QUERYING-THE-INDEX">QUERYING THE INDEX</h2>
 
 <p>Duc has various subcommands for querying or exploring the index:</p>
@@ -201,10 +208,12 @@ are written to the index, and can later be queried by one of the other duc tools
 
 <dl>
 <dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>use database file ARG</p></dd>
-<dt><code>-e</code>, <code>--exclude=VAL</code></dt><dd><p>exclude files matching ARG</p></dd>
+<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>use database file VAL</p></dd>
+<dt><code>-e</code>, <code>--exclude=VAL</code></dt><dd><p>exclude files matching VAL</p></dd>
 <dt><code>-H</code>, <code>--check-hard-links</code></dt><dd><p>count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted</p></dd>
 <dt><code>-f</code>, <code>--force</code></dt><dd><p>force writing in case of corrupted db</p></dd>
+<dt><code>--fs-exclude=VAL</code></dt><dd><p>exclude file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</p></dd>
+<dt><code>--fs-include=VAL</code></dt><dd><p>include file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</p></dd>
 <dt><code>--hide-file-names</code></dt><dd><p>hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden</p></dd>
 <dt><code>-m</code>, <code>--max-depth=VAL</code></dt><dd><p>limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index</p></dd>
 <dt><code>-x</code>, <code>--one-file-system</code></dt><dd><p>skip directories on different file systems</p></dd>
@@ -541,8 +550,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#111;&#x3a;&#x64;&#117;&#99;&#x40;&#122;&#x65;&#118;&#118;&#46;&#110;&#x6c;" data-bare-link="true">&#100;&#117;&#99;&#x40;&#122;&#x65;&#x76;&#118;&#x2e;&#110;&#108;</a></li>
-<li>John Stoffel <a href="&#109;&#97;&#105;&#108;&#116;&#x6f;&#x3a;&#106;&#111;&#x68;&#110;&#64;&#115;&#x74;&#111;&#102;&#x66;&#101;&#108;&#46;&#111;&#114;&#103;" data-bare-link="true">&#x6a;&#x6f;&#x68;&#110;&#x40;&#x73;&#x74;&#111;&#x66;&#x66;&#101;&#x6c;&#x2e;&#x6f;&#114;&#103;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#x69;&#108;&#116;&#111;&#x3a;&#x64;&#117;&#x63;&#x40;&#122;&#x65;&#118;&#x76;&#x2e;&#x6e;&#x6c;" data-bare-link="true">&#x64;&#x75;&#x63;&#x40;&#122;&#101;&#x76;&#x76;&#x2e;&#110;&#x6c;</a></li>
+<li>John Stoffel <a href="&#109;&#x61;&#105;&#108;&#116;&#111;&#x3a;&#106;&#111;&#104;&#110;&#x40;&#x73;&#116;&#111;&#102;&#102;&#x65;&#x6c;&#x2e;&#x6f;&#114;&#103;" data-bare-link="true">&#106;&#x6f;&#x68;&#x6e;&#64;&#115;&#x74;&#x6f;&#x66;&#102;&#x65;&#x6c;&#x2e;&#111;&#114;&#x67;</a></li>
 </ul>
 
 

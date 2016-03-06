@@ -60,6 +60,13 @@ database location with the --database argument.
 
 You can run `duc index` at any time later to rebuild the index.
 
+By default Duc indexes all directories it encounters during file system
+traversal traversal, including special file systems like /proc and /sys, and
+network file systems like NFS or Samba mounts. There are a few options to
+select what parts of your filesystem you want to include or exclude from the
+scan, check the documentation below for --exclude, --fs-exclude and
+--fs-include for more details.
+
 
 ## QUERYING THE INDEX
 

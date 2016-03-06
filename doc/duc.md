@@ -60,6 +60,13 @@ database location with the --database argument.
 
 You can run `duc index` at any time later to rebuild the index.
 
+By default Duc indexes all directories it encounters during file system
+traversal traversal, including special file systems like /proc and /sys, and
+network file systems like NFS or Samba mounts. There are a few options to
+select what parts of your filesystem you want to include or exclude from the
+scan, check the documentation below for --exclude, --fs-exclude and
+--fs-include for more details.
+
 
 ## QUERYING THE INDEX
 
@@ -122,10 +129,10 @@ Options for command `duc index [options] PATH ...`:
     show file size in exact number of bytes
 
   * `-d`, `--database=VAL`:
-    use database file ARG
+    use database file VAL
 
   * `-e`, `--exclude=VAL`:
-    exclude files matching ARG
+    exclude files matching VAL
 
   * `-H`, `--check-hard-links`:
     count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted
@@ -133,6 +140,14 @@ Options for command `duc index [options] PATH ...`:
 
   * `-f`, `--force`:
     force writing in case of corrupted db
+
+  * `--fs-exclude=VAL`:
+    exclude file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs
+
+
+  * `--fs-include=VAL`:
+    include file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs
+
 
   * `--hide-file-names`:
     hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden
