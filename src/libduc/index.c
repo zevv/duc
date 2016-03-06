@@ -143,7 +143,6 @@ static struct fstype *add_fstype(duc_index_req *req, const char *types, struct f
 	char *types_copy = duc_strdup(types);
 	char *type = strtok(types_copy, ",");
 	while(type) {
-		printf("%s\n", type);
 		struct fstype *fstype;
 		fstype = duc_malloc(sizeof *fstype);
 		fstype->type = duc_strdup(type);
