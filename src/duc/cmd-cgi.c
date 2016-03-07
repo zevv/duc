@@ -312,7 +312,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("   <td>%zu</td>\n", report->file_count);
 		printf("   <td>%zu</td>\n", report->dir_count);
 		printf("   <td>%s</td>\n", ts_date);
-		printf("   <td>%s%d</td>\n", ts_time, opt_count);
+		printf("   <td>%s</td>\n", ts_time);
 		printf("  </tr>\n");
 
 		duc_index_report_free(report);
