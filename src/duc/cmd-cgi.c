@@ -52,10 +52,29 @@ static void print_html(const char *s)
 	}
 }
 
+static int isrfc1738(const char c)
+{
+	switch (c) {
+		case '$':
+		case '-':
+		case '_':
+		case '.':
+		case '+':
+		case '!':
+		case '*':
+		case '(':
+		case ')':
+			return 1;
+		default:
+			return 0;
+	}
+	return 0;
+}
+
 static void print_cgi(const char *s)
 {
 	while(*s) {
-		if(*s == '/' || isalnum(*s)) {
+		if(*s == '/' || isrfc1738(*s) || isalnum(*s)) {
 			putchar(*s);
 		} else {
 			printf("%%%02x", *(uint8_t *)s);
