@@ -188,28 +188,24 @@ static void br_cairo_draw_section(duc_graph *g, double a1, double a2, double r1,
 	cairo_close_path(cr);
 
 	if(R != 1.0 || G != 1.0 || B != 1.0) {
+		cairo_pattern_t *pat;
+		pat = cairo_pattern_create_radial(g->cx, g->cy, 0, g->cx, g->cy, g->cx-50);
+		double off1 = r2 / g->cx;
+		double off2 = r1 / g->cx;
+		cairo_pattern_add_color_stop_rgb(pat, off1, R, G, B);
 		if(g->gradient) {
-			cairo_pattern_t *pat;
-			pat = cairo_pattern_create_radial(g->cx, g->cy, 0, g->cx, g->cy, g->cx-50);
-			double off1 = r2 / g->cx;
-			double off2 = r1 / g->cx;
-			cairo_pattern_add_color_stop_rgb(pat, off1, R, G, B);
 			cairo_pattern_add_color_stop_rgb(pat, off2, R * 0.6, G * 0.6, B * 0.6);
-			cairo_set_source(cr, pat);
-			cairo_fill_preserve(cr);
-			cairo_pattern_destroy(pat);
-		} else {
-			cairo_set_source_rgb(cr, R, G, B);
-			cairo_fill_preserve(cr);
 		}
+		cairo_set_source(cr, pat);
+
+		cairo_fill_preserve(cr);
+		cairo_pattern_destroy(pat);
 	}
 
 	if(line) {
 		cairo_set_line_width(cr, 0.5);
 		cairo_set_source_rgba(cr, 0, 0, 0, 0.9);
 		cairo_stroke(cr);
-	} else {
-		cairo_new_path(cr);
 	}
 }
 
