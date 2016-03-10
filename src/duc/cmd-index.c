@@ -126,13 +126,29 @@ static void fn_exclude(const char *val)
 }
 
 
+static void fn_fs_include(const char *val)
+{
+	duc_index_req_add_fstype_include(req, val);
+}
+
+
+static void fn_fs_exclude(const char *val)
+{
+	duc_index_req_add_fstype_exclude(req, val);
+}
+
+
 static struct ducrc_option options[] = {
 	{ &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
-	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file ARG" },
-	{ fn_exclude,           "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching ARG"  },
+	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file VAL" },
+	{ fn_exclude,           "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching VAL"  },
 	{ &opt_check_hard_links,"check-hard-links",'H', DUCRC_TYPE_BOOL,   "count hard links only once",
           "if two or more hard links point to the same file, only one of the hard links is displayed and counted" },
 	{ &opt_force,           "force",           'f', DUCRC_TYPE_BOOL,   "force writing in case of corrupted db" },
+	{ fn_fs_exclude,        "fs-exclude",       0,  DUCRC_TYPE_FUNC,   "exclude file system type VAL during indexing",
+	  "VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs" },
+	{ fn_fs_include,        "fs-include",       0,  DUCRC_TYPE_FUNC,   "include file system type VAL during indexing",
+	  "VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs" },
 	{ &opt_hide_file_names, "hide-file-names",  0 , DUCRC_TYPE_BOOL,   "hide file names in index (privacy)", 
 	  "the names of directories will be preserved, but the names of the individual files will be hidden" },
 	{ &opt_max_depth,       "max-depth",       'm', DUCRC_TYPE_INT,    "limit directory names to given depth" ,

@@ -18,6 +18,7 @@
 
 static char *opt_database = NULL;
 static int opt_apparent = 0;
+static int opt_count = 0;
 static int opt_size = 800;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
@@ -25,6 +26,7 @@ static char *opt_output = NULL;
 static char *opt_palette = NULL;
 static enum duc_graph_palette palette = 0;
 static int opt_ring_gap = 4;
+static int opt_gradient = 0;
 
 #ifdef ENABLE_CAIRO
 static char *opt_format = "png";
@@ -111,13 +113,17 @@ static int graph_main(duc *duc, int argc, char **argv)
 			exit(1);
 			break;
 	}
+	
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+	                   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_palette(graph, palette);
-	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_size_type(graph, st);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
+	duc_graph_set_gradient(graph, opt_gradient);
 
 	duc_graph_draw(graph, dir);
 
@@ -132,6 +138,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, 
 #ifdef ENABLE_CAIRO
 	                                                        "select output format <png|svg|pdf|html> [png]" },
@@ -139,6 +146,7 @@ static struct ducrc_option options[] = {
 	                                                        "select output format <svg|html> [svg]" },
 #endif
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
+	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },

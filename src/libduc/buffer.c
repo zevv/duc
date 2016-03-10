@@ -157,6 +157,7 @@ void buffer_put_dirent(struct buffer *b, const struct duc_dirent *ent)
 	buffer_put_string(b, ent->name);
 	buffer_put_varint(b, ent->size.apparent);
 	buffer_put_varint(b, ent->size.actual);
+	buffer_put_varint(b, ent->size.count);
 	buffer_put_varint(b, ent->type);
 
 	if(ent->type == DUC_FILE_TYPE_DIR) {
@@ -172,6 +173,7 @@ void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 	buffer_get_string(b, &ent->name);
 	buffer_get_varint(b, &v); ent->size.apparent = v;
 	buffer_get_varint(b, &v); ent->size.actual = v;
+	buffer_get_varint(b, &v); ent->size.count = v;
 	buffer_get_varint(b, &v); ent->type = v;
 	
 	if(ent->type == DUC_FILE_TYPE_DIR) {

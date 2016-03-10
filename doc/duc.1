@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "DUC" "1" "June 2015" "" ""
+.TH "DUC" "1" "March 2016" "" ""
 .
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
@@ -50,6 +50,9 @@ The default location of the database is \fB$HOME/\.duc\.db\fR\. To use a differe
 .
 .P
 You can run \fBduc index\fR at any time later to rebuild the index\.
+.
+.P
+By default Duc indexes all directories it encounters during file system traversal traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
 .
 .SH "QUERYING THE INDEX"
 Duc has various subcommands for querying or exploring the index:
@@ -113,11 +116,11 @@ show file size in exact number of bytes
 .
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
-use database file ARG
+use database file VAL
 .
 .TP
 \fB\-e\fR, \fB\-\-exclude=VAL\fR
-exclude files matching ARG
+exclude files matching VAL
 .
 .TP
 \fB\-H\fR, \fB\-\-check\-hard\-links\fR
@@ -126,6 +129,14 @@ count hard links only once\. if two or more hard links point to the same file, o
 .TP
 \fB\-f\fR, \fB\-\-force\fR
 force writing in case of corrupted db
+.
+.TP
+\fB\-\-fs\-exclude=VAL\fR
+exclude file system type VAL during indexing\. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs
+.
+.TP
+\fB\-\-fs\-include=VAL\fR
+include file system type VAL during indexing\. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs
 .
 .TP
 \fB\-\-hide\-file\-names\fR
@@ -189,6 +200,10 @@ append file type indicator (one of */) to entries
 colorize output (only on ttys)
 .
 .TP
+\fB\-\-count\fR
+show number of files instead of file size
+.
+.TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
 select database file to use [~/\.duc\.db]
 .
@@ -223,6 +238,59 @@ exclude file from xml output, only include directories
 \fB\-s\fR, \fB\-\-min_size=VAL\fR
 specify min size for files or directories
 .
+.SS "duc graph"
+The \'graph\' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
+.
+.P
+By default the graph is written to the file \'duc\.png\', which can be overridden by using the \-o/\-\-output option\. The output can be sent to stdout by using the special file name \'\-\'\.
+.
+.P
+Options for command \fBduc graph [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+Show apparent instead of actual file size
+.
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-\-count\fR
+show number of files instead of file size
+.
+.TP
+\fB\-f\fR, \fB\-\-format=VAL\fR
+select output format \fIpng|svg|pdf|html\fR [png]
+.
+.TP
+\fB\-\-fuzz=VAL\fR
+use radius fuzz factor when drawing graph [0\.7]
+.
+.TP
+\fB\-\-gradient\fR
+draw graph with color gradient
+.
+.TP
+\fB\-l\fR, \fB\-\-levels=VAL\fR
+draw up to ARG levels deep [4]
+.
+.TP
+\fB\-o\fR, \fB\-\-output=VAL\fR
+output file name [duc\.png]
+.
+.TP
+\fB\-\-palette=VAL\fR
+select palette \fIsize|rainbow|greyscale|monochrome\fR
+.
+.TP
+\fB\-\-ring\-gap=VAL\fR
+leave a gap of VAL pixels between rings
+.
+.TP
+\fB\-s\fR, \fB\-\-size=VAL\fR
+image size [800]
+.
 .SS "duc cgi"
 Options for command \fBduc cgi [options] [PATH]\fR:
 .
@@ -235,6 +303,10 @@ Show apparent instead of actual file size
 show file size in exact number of bytes
 .
 .TP
+\fB\-\-count\fR
+show number of files instead of file size
+.
+.TP
 \fB\-\-css\-url=VAL\fR
 url of CSS style sheet to use instead of default CSS
 .
@@ -245,6 +317,10 @@ select database file to use [~/\.duc\.db]
 .TP
 \fB\-\-fuzz=VAL\fR
 use radius fuzz factor when drawing graph [0\.7]
+.
+.TP
+\fB\-\-gradient\fR
+draw graph with color gradient
 .
 .TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
@@ -270,51 +346,6 @@ image size [800]
 \fB\-\-tooltip\fR
 enable tooltip when hovering over the graph\. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increas the HTTP traffic to the web server
 .
-.SS "duc graph"
-The \'graph\' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
-.
-.P
-By default the graph is written to the file \'duc\.png\', which can be overridden by using the \-o/\-\-output option\. The output can be sent to stdout by using the special file name \'\-\'\.
-.
-.P
-Options for command \fBduc graph [options] [PATH]\fR:
-.
-.TP
-\fB\-a\fR, \fB\-\-apparent\fR
-Show apparent instead of actual file size
-.
-.TP
-\fB\-d\fR, \fB\-\-database=VAL\fR
-select database file to use [~/\.duc\.db]
-.
-.TP
-\fB\-f\fR, \fB\-\-format=VAL\fR
-select output format \fIpng|svg|pdf\fR [png]
-.
-.TP
-\fB\-\-fuzz=VAL\fR
-use radius fuzz factor when drawing graph [0\.7]
-.
-.TP
-\fB\-l\fR, \fB\-\-levels=VAL\fR
-draw up to ARG levels deep [4]
-.
-.TP
-\fB\-o\fR, \fB\-\-output=VAL\fR
-output file name [duc\.png]
-.
-.TP
-\fB\-\-palette=VAL\fR
-select palette \fIsize|rainbow|greyscale|monochrome\fR
-.
-.TP
-\fB\-\-ring\-gap=VAL\fR
-leave a gap of VAL pixels between rings
-.
-.TP
-\fB\-s\fR, \fB\-\-size=VAL\fR
-image size [800]
-.
 .SS "duc gui"
 The \'gui\' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .
@@ -330,8 +361,10 @@ The following keys can be used to navigate and alter the graph:
 0           Set default graph depth
 a           Toggle between apparent and actual disk usage
 b           Toggle between exact byte count and abbreviated sizes
-p           toggle palettes
+c           Toggle between file size and file count
 f           toggle graph fuzz
+g           toggle graph gradient
+p           toggle palettes
 backspace   go up one directory
 .
 .fi
@@ -350,6 +383,10 @@ show apparent instead of actual file size
 show file size in exact number of bytes
 .
 .TP
+\fB\-\-count\fR
+show number of files instead of file size
+.
+.TP
 \fB\-\-dark\fR
 use dark background color
 .
@@ -360,6 +397,10 @@ select database file to use [~/\.duc\.db]
 .TP
 \fB\-\-fuzz=VAL\fR
 use radius fuzz factor when drawing graph
+.
+.TP
+\fB\-\-gradient\fR
+draw graph with color gradient
 .
 .TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
@@ -389,8 +430,7 @@ left, backspace: go up to parent directory (\.\.)
 right, enter:    descent into selected directory
 a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
-c:               toggle between color and monochrome display
-g:               toggle graph
+c:               Toggle between file size and file count
 h:               show help\. press \'q\' to return to the main screen
 q, escape:       quit
 .
@@ -410,8 +450,12 @@ show apparent instead of actual file size
 show file size in exact number of bytes
 .
 .TP
-\fB\-c\fR, \fB\-\-color\fR
-colorize output
+\fB\-\-count\fR
+show number of files instead of file size
+.
+.TP
+\fB\-\-no\-color\fR
+do not use colors on terminal output
 .
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
@@ -589,6 +633,22 @@ levels 4
 color
 .
 .fi
+.
+.IP "" 0
+.
+.SH "FREQUENTLY ASKED QUESTIONS"
+.
+.IP "\(bu" 4
+What does the error \'Database version mismatch mean?\'
+.
+.IP
+The layout of the index database sometimes changes when new features are implemented\. When you get this error you have probably upgraded to a newer version\. Just remove the old database file and rebuild the index\.
+.
+.IP "\(bu" 4
+Duc crashes with a segmentation fault, is it that buggy?
+.
+.IP
+By default Duc uses the Tokyocabinet database backend\. Tokyocabinet is pretty fast, stores the database in a single file and has nice compression support to keep the database small\. Unfortunately, it is not always robust and sometimes chokes on corrupt database files\. Try to remove the database and rebuild the index\. If the error persists contact the authors\.
 .
 .IP "" 0
 .

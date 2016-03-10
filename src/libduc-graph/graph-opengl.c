@@ -262,9 +262,9 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 
 		vs_fill[i*2 + 0][0] = x1; 
 		vs_fill[i*2 + 0][1] = y1;
-		vs_fill[i*2 + 0][2] = R * 0.7;
-		vs_fill[i*2 + 0][3] = G * 0.7;
-		vs_fill[i*2 + 0][4] = B * 0.7;
+		vs_fill[i*2 + 0][2] = R * (g->gradient ? 0.7 : 1.0);
+		vs_fill[i*2 + 0][3] = G * (g->gradient ? 0.7 : 1.0);
+		vs_fill[i*2 + 0][4] = B * (g->gradient ? 0.7 : 1.0);
 		vs_fill[i*2 + 0][5] = 0;
 		vs_fill[i*2 + 1][0] = x2; 
 		vs_fill[i*2 + 1][1] = y2;

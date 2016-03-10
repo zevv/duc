@@ -59,10 +59,14 @@ void br_html_start(duc_graph *g)
 	fprintf(f, "  a2 = a2*1e-3 * pi * 2 - pi / 2;\n");
 	fprintf(f, "  var c1 = 'rgb(' + f(r*0.6) + ',' + f(g*0.6) + ',' + f(b*0.6) + ')';\n");
 	fprintf(f, "  var c2 = 'rgb(' + f(r*1.0) + ',' + f(g*1.0) + ',' + f(b*1.0) + ')';\n");
-	fprintf(f, "  var g = c.createRadialGradient(%.0f, %.0f, r1, %.0f, %.0f, r2);\n", g->cx, g->cy, g->cx, g->cy);
-	fprintf(f, "  g.addColorStop(0, c1);\n");
-	fprintf(f, "  g.addColorStop(1, c2);\n");
-	fprintf(f, "  c.fillStyle = g;\n");
+	if(g->gradient) {
+		fprintf(f, "  var g = c.createRadialGradient(%.0f, %.0f, r1, %.0f, %.0f, r2);\n", g->cx, g->cy, g->cx, g->cy);
+		fprintf(f, "  g.addColorStop(0, c1);\n");
+		fprintf(f, "  g.addColorStop(1, c2);\n");
+		fprintf(f, "  c.fillStyle = g;\n");
+	} else {
+		fprintf(f, "  c.fillStyle = c2;\n");
+	}
 	fprintf(f, "  c.beginPath();\n");
 	fprintf(f, "  c.arc(%.0f, %.0f, r1, a1, a2, false);\n",  g->cx,  g->cy);
 	fprintf(f, "  c.arc(%.0f, %.0f, r2, a2, a1, true);\n",  g->cx,  g->cy);
@@ -109,18 +113,6 @@ static void br_html_draw_tooltip(duc_graph *g, double x, double y, char *text)
 {
 }
 
-char base62[] = "01234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-static void write_base62(FILE *f, int v, int l)
-{
-	char buf[l];
-	int i = l-1;
-	for(i=0; i<l; i++) {
-		buf[l-i-1] = base62[v%62];
-		v /= 62;
-	}
-	fwrite(buf, 1, sizeof(buf), f);
-}
 
 static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double line)
 {
@@ -130,19 +122,10 @@ static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, 
 	double R, G, B;
 	hsv2rgb(H, S, V, &R, &G, &B);
 
-//	a1 = a1 * M_PI * 2 - M_PI / 2;
-//	a2 = a2 * M_PI * 2 - M_PI / 2;
-
 	fprintf(f, "g(%.0f,%.0f,%.0f,%.0f,%d,%d,%d);\n", 
 			a1 * 1000, a2 * 1000,
 			r1, r2,
 			(int)(R*255), (int)(G*255), (int)(B*255));
-
-	fprintf(f, "// ");
-	write_base62(f, a1 * 1000, 2);
-	write_base62(f, a2 * 1000, 2);
-	fprintf(f, "\n");
-
 }
 
 

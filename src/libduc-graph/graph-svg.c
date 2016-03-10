@@ -94,16 +94,22 @@ static void br_svg_draw_section(duc_graph *g, double a1, double a2, double r1, d
 	double R, G, B;
 	hsv2rgb(H, S, V, &R, &G, &B);
 
-	fprintf(f, "<defs>\n");
-	fprintf(f, " <radialGradient gradientUnits='userSpaceOnUse' id='g%d' cx='%.0f' cy='%.0f' r='%.0f'>\n", bd->gid, g->cx, g->cy, r2);
-	fprintf(f, "  <stop offset='%.1f%%' style='stop-color:#%02x%02x%02x;'/>\n", 100*r1/r2, (int)(R*156), (int)(G*156), (int)(B*156));
-	fprintf(f, "  <stop offset='100%%' style='stop-color:#%02x%02x%02x;'/>\n", (int)(R*255), (int)(G*255), (int)(B*255));
-	fprintf(f, " </radialGradient>\n");
-	fprintf(f, "</defs>\n");
+	if(g->gradient) {
+		fprintf(f, "<defs>\n");
+		fprintf(f, " <radialGradient gradientUnits='userSpaceOnUse' id='g%d' cx='%.0f' cy='%.0f' r='%.0f'>\n", bd->gid, g->cx, g->cy, r2);
+		fprintf(f, "  <stop offset='%.1f%%' style='stop-color:#%02x%02x%02x;'/>\n", 100*r1/r2, (int)(R*156), (int)(G*156), (int)(B*156));
+		fprintf(f, "  <stop offset='100%%' style='stop-color:#%02x%02x%02x;'/>\n", (int)(R*255), (int)(G*255), (int)(B*255));
+		fprintf(f, " </radialGradient>\n");
+		fprintf(f, "</defs>\n");
+		fprintf(f, "<path fill='url(#g%d)' ", bd->gid);
+		bd->gid++;
+	} else {
+		fprintf(f, "<path fill='#%02x%02x%02x' ", (int)(R*255), (int)(G*255), (int)(B*255));
+	}
 
 	int large = (a2 - a1) > 0.5;
 
-	fprintf(f, "<path fill='url(#g%d)' d='", bd->gid);
+	fprintf(f, "d='");
 
 	fprintf(f, "M%.0f,%.0f ",
 			g->cx + r1 * sin(a1 * M_PI*2),
@@ -127,7 +133,6 @@ static void br_svg_draw_section(duc_graph *g, double a1, double a2, double r1, d
 
 	fprintf(f, "'/>\n");
 
-	bd->gid++;
 }
 
 

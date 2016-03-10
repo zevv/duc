@@ -27,7 +27,9 @@ static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
 static int opt_levels = 4;
 static int opt_apparent = 0;
+static int opt_count = 0;
 static int opt_ring_gap = 4;
+static int opt_gradient = 0;
 
 static Display *dpy;
 static Window rootwin;
@@ -50,16 +52,20 @@ static void draw(void)
 	if(opt_levels < 1) opt_levels = 1;
 	if(opt_levels > 10) opt_levels = 10;
 
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+	                   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
 	duc_graph_set_size(graph, win_w, win_h);
 	duc_graph_set_position(graph, 0, 0);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, fuzz);
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_max_name_len(graph, 30);
-	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_size_type(graph, st);
 	duc_graph_set_exact_bytes(graph, opt_bytes);
 	duc_graph_set_tooltip(graph, tooltip_x, tooltip_y);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
+	duc_graph_set_gradient(graph, opt_gradient);
 
 	cairo_push_group(cr);
 	if(opt_dark) {
@@ -104,8 +110,10 @@ static int handle_event(XEvent e)
 			if(k == XK_Escape) return 1;
 			if(k == XK_q) return 1;
 			if(k == XK_a) opt_apparent = !opt_apparent;
+			if(k == XK_c) opt_count = !opt_count;
 			if(k == XK_b) opt_bytes = !opt_bytes;
 			if(k == XK_f) fuzz = (fuzz == 0) ? opt_fuzz : 0;
+			if(k == XK_g) opt_gradient = !opt_gradient;
 			if(k == XK_comma) if(opt_ring_gap > 0) opt_ring_gap --;
 			if(k == XK_period) opt_ring_gap ++;
 			if(k == XK_p) {
@@ -265,9 +273,11 @@ int gui_main(duc *duc, int argc, char *argv[])
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_dark,      "dark",       0,  DUCRC_TYPE_BOOL,   "use dark background color" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
+	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to VAL levels deep [4]" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
 	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
@@ -293,8 +303,10 @@ struct cmd cmd_gui = {
 		"    0           Set default graph depth\n"
 		"    a           Toggle between apparent and actual disk usage\n"
 		"    b           Toggle between exact byte count and abbreviated sizes\n"
-		"    p           toggle palettes\n"
+		"    c           Toggle between file size and file count\n"
 		"    f           toggle graph fuzz\n"
+		"    g           toggle graph gradient\n"
+		"    p           toggle palettes\n"
 		"    backspace   go up one directory\n"
 
 };

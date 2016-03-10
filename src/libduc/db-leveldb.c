@@ -38,7 +38,8 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 
 	db->db = leveldb_open(db->options, path_db, &err);
 	if (err != NULL) {
-		*e = DUC_E_UNKNOWN;
+		fprintf(stderr, "%s\n", err);
+		*e = DUC_E_DB_BACKEND;
 		return(NULL);
 	}
 

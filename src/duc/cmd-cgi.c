@@ -23,11 +23,13 @@ struct param {
 
 
 static int opt_apparent = 0;
+static int opt_count = 0;
 static char *opt_css_url = NULL;
 static char *opt_database = NULL;
 static int opt_bytes = 0;
 static int opt_list = 0;
 static int opt_size = 800;
+static int opt_gradient = 0;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
@@ -63,29 +65,42 @@ static void print_cgi(const char *s)
 }
 
 
-static int decode_uri(char *src, char *dst) 
+static int hexdigit(char a)
 {
-	int len = 0;
-	while(*src) {
-		if (*src == '%' && src[1] && src[2] && isxdigit(src[1]) && isxdigit(src[2])) {
-			src[1] -= src[1] <= '9' ? '0' : (src[1] <= 'F' ? 'A' : 'a')-10;
-			src[2] -= src[2] <= '9' ? '0' : (src[2] <= 'F' ? 'A' : 'a')-10;
-			dst[len] = 16 * src[1] + src[2];
-			src += 3;
-			continue;
-		}
-		dst[len] = *src++;
-		len ++;
+	if (a >= 'a') {
+		a -= 'a'-'A';
 	}
-	dst[len] = '\0';
-	return len;
+	if (a >= 'A') {
+		a -= ('A' - 10);
+	} else {
+		a -= '0';
+	}
+	return a;
+}
+
+
+void decode_uri(char *src, char *dst)
+{       
+	char a, b;
+	while (*src) {
+		if((*src == '%') && ((a = src[1]) && (b = src[2])) && (isxdigit(a) && isxdigit(b))) {
+			*dst++ = 16 * hexdigit(a) + hexdigit(b);
+			src+=3;
+		} else if (*src == '+') {
+			*dst++ = ' ';
+			src++;
+		} else {
+			*dst++ = *src++;
+		}
+	}
+	*dst++ = '\0';
 }
 
 
 static int cgi_parse(void)
 {
 	char *qs = getenv("QUERY_STRING");
-	if(qs == NULL) return -1;
+	if(qs == NULL) qs = "";
 
 	char *p = qs;
 
@@ -197,7 +212,7 @@ static void print_script(const char *path)
 		"            tt.style.top = (e.clientY - tt.offsetHeight - 5) + \"px\";\n"
 		"          }\n"
 		"        };\n"
-		"        req.open(\"GET\", \"?cmd=lookup&path=%s&x=\"+x+\"&y=\"+y , true);\n"
+		"        req.open(\"GET\", \"?cmd=tooltip&path=%s&x=\"+x+\"&y=\"+y , true);\n"
 		"        req.send()\n"
 		"      }, 100);\n"
 		"    };\n", path);
@@ -281,8 +296,9 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		struct tm *tm = localtime(&t);
 		strftime(ts_date, sizeof ts_date, "%Y-%m-%d",tm);
 		strftime(ts_time, sizeof ts_time, "%H:%M:%S",tm);
-
+	
 		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
 		char siz[32];
 		duc_human_size(&report->size, st, 0, siz, sizeof siz);
 
@@ -312,7 +328,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	if(path && dir && opt_list) {
 
-		duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+		duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+	                           opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 		printf("<div id=list>\n");
 		printf(" <table>\n");
@@ -361,9 +378,10 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 }
 
 
-void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
+void do_tooltip(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+			   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 	printf("Content-Type: text/html\n");
 	printf("\n");
@@ -381,18 +399,17 @@ void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 		if(dir2) duc_dir_close(dir2);
 
 		if(ent) {
-
-			char siz[32];
-			duc_human_size(&ent->size, st, opt_bytes, siz, sizeof siz);
+			char siz_app[32], siz_act[32], siz_cnt[32];
+			duc_human_size(&ent->size, DUC_SIZE_TYPE_APPARENT, opt_bytes, siz_app, sizeof siz_app);
+			duc_human_size(&ent->size, DUC_SIZE_TYPE_ACTUAL, opt_bytes, siz_act, sizeof siz_act);
+			duc_human_size(&ent->size, DUC_SIZE_TYPE_COUNT, opt_bytes, siz_cnt, sizeof siz_cnt);
 			char *typ = duc_file_type_name(ent->type);
-			if(typ == NULL) typ = "unknown";
-
-			printf( "name: %s<br>\n"
-				"type: %s<br>\n"
-				"size: %s<br>\n",
-				ent->name,
-				typ,
-				siz);
+			printf("name: %s<br>\n"
+			       "type: %s<br>\n"
+			       "actual size: %s<br>\n"
+			       "apparent size: %s<br>\n"
+			       "file count: %s",
+			       ent->name, typ, siz_act, siz_app, siz_cnt);
 
 			free(ent->name);
 			free(ent);
@@ -404,16 +421,16 @@ void do_lookup(duc *duc, duc_graph *graph, duc_dir *dir)
 static int cgi_main(duc *duc, int argc, char **argv)
 {
 	int r;
-	
-	r = cgi_parse();
-	if(r != 0) {
+
+	if(getenv("GATEWAY_INTERFACE") == NULL) {
 		fprintf(stderr, 
 			"The 'cgi' subcommand is used for integrating Duc into a web server.\n"
 			"Please refer to the documentation for instructions how to install and configure.\n"
 		);
 		return(-1);
 	}
-
+	
+	cgi_parse();
 
 	char *cmd = cgi_get("cmd");
 	if(cmd == NULL) cmd = "index";
@@ -447,17 +464,21 @@ static int cgi_main(duc *duc, int argc, char **argv)
 		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
 	}
 
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+			   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
 	duc_graph *graph = duc_graph_new_html(duc, stdout, 0);
 	duc_graph_set_size(graph, opt_size, opt_size);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_palette(graph, palette);
 	duc_graph_set_exact_bytes(graph, opt_bytes);
-	duc_graph_set_size_type(graph, opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL);
+	duc_graph_set_size_type(graph, st);
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
+	duc_graph_set_gradient(graph, opt_gradient);
 
 	if(strcmp(cmd, "index") == 0) do_index(duc, graph, dir);
-	if(strcmp(cmd, "lookup") == 0) do_lookup(duc, graph, dir);
+	if(strcmp(cmd, "tooltip") == 0) do_tooltip(duc, graph, dir);
 
 	duc_close(duc);
 
@@ -468,15 +489,17 @@ static int cgi_main(duc *duc, int argc, char **argv)
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
-	{ &opt_css_url,   "css-url",     0, DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
+	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
+	{ &opt_css_url,   "css-url",    0,  DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
+	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
-	{ &opt_list,      "list",        0, DUCRC_TYPE_BOOL,   "generate table with file list" },
-	{ &opt_palette,   "palette",     0, DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_list,      "list",       0,  DUCRC_TYPE_BOOL,   "generate table with file list" },
+	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
 	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
-	{ &opt_tooltip,   "tooltip",     0, DUCRC_TYPE_BOOL,   "enable tooltip when hovering over the graph",
+	{ &opt_tooltip,   "tooltip",    0,  DUCRC_TYPE_BOOL,   "enable tooltip when hovering over the graph",
 		"enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and "
 		"can greatly increas the HTTP traffic to the web server" },
 	{ NULL }

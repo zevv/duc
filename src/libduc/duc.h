@@ -41,6 +41,7 @@ typedef enum {
 typedef enum {
 	DUC_SIZE_TYPE_APPARENT,
 	DUC_SIZE_TYPE_ACTUAL,
+	DUC_SIZE_TYPE_COUNT,
 } duc_size_type;
 
 typedef enum {
@@ -83,6 +84,7 @@ struct duc_devino {
 struct duc_size {
 	off_t actual;
 	off_t apparent;
+	off_t count;
 };
 
 struct duc_index_report {
@@ -134,6 +136,8 @@ typedef void (*duc_index_progress_cb)(struct duc_index_report *report, void *ptr
 
 duc_index_req *duc_index_req_new(duc *duc);
 int duc_index_req_add_exclude(duc_index_req *req, const char *pattern);
+int duc_index_req_add_fstype_include(duc_index_req *req, const char *types);
+int duc_index_req_add_fstype_exclude(duc_index_req *req, const char *types);
 int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
 int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr);
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
@@ -163,6 +167,7 @@ int duc_dir_close(duc_dir *dir);
  * Helper functions
  */
 
+off_t duc_get_size(struct duc_size *size, duc_size_type st);
 int duc_human_number(double v, int exact, char *buf, size_t maxlen);
 int duc_human_size(const struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen);
 int duc_human_duration(struct timeval start, struct timeval end, char *buf, size_t maxlen);

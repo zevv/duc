@@ -32,6 +32,12 @@ struct hard_link {
 	UT_hash_handle hh;
 };
 
+struct fstype {
+	char *path;
+	char *type;
+	UT_hash_handle hh;
+};
+
 struct exclude {
 	char *name;
 	struct exclude *next;
@@ -49,6 +55,9 @@ struct duc_index_req {
 	struct timeval progress_interval;
 	struct timeval progress_time;
 	struct hard_link *hard_link_map;
+	struct fstype *fstypes_mounted;
+	struct fstype *fstypes_include;
+	struct fstype *fstypes_exclude;
 };
 
 struct scanner {
@@ -82,11 +91,31 @@ duc_index_req *duc_index_req_new(duc *duc)
 int duc_index_req_free(duc_index_req *req)
 {
 	struct hard_link *h, *hn;
+	struct fstype *f, *fn;
 	struct exclude *e, *en;
 
 	HASH_ITER(hh, req->hard_link_map, h, hn) {
 		HASH_DEL(req->hard_link_map, h);
 		free(h);
+	}
+	
+	HASH_ITER(hh, req->fstypes_mounted, f, fn) {
+		duc_free(f->type);
+		duc_free(f->path);
+		HASH_DEL(req->fstypes_mounted, f);
+		free(f);
+	}
+	
+	HASH_ITER(hh, req->fstypes_include, f, fn) {
+		duc_free(f->type);
+		HASH_DEL(req->fstypes_include, f);
+		free(f);
+	}
+	
+	HASH_ITER(hh, req->fstypes_exclude, f, fn) {
+		duc_free(f->type);
+		HASH_DEL(req->fstypes_exclude, f);
+		free(f);
 	}
 
 	LL_FOREACH_SAFE(req->exclude_list, e, en) {
@@ -105,6 +134,36 @@ int duc_index_req_add_exclude(duc_index_req *req, const char *patt)
 	struct exclude *e = duc_malloc(sizeof(struct exclude));
 	e->name = duc_strdup(patt);
 	LL_APPEND(req->exclude_list, e);
+	return 0;
+}
+
+
+static struct fstype *add_fstype(duc_index_req *req, const char *types, struct fstype *list)
+{
+	char *types_copy = duc_strdup(types);
+	char *type = strtok(types_copy, ",");
+	while(type) {
+		struct fstype *fstype;
+		fstype = duc_malloc(sizeof *fstype);
+		fstype->type = duc_strdup(type);
+		HASH_ADD_KEYPTR(hh, list, fstype->type, strlen(fstype->type), fstype);
+		type = strtok(NULL, ",");
+	}
+	duc_free(types_copy);
+	return list;
+}
+
+
+int duc_index_req_add_fstype_include(duc_index_req *req, const char *types)
+{
+	req->fstypes_include = add_fstype(req, types, req->fstypes_include);
+	return 0;
+}
+
+
+int duc_index_req_add_fstype_exclude(duc_index_req *req, const char *types)
+{
+	req->fstypes_exclude = add_fstype(req, types, req->fstypes_exclude);
 	return 0;
 }
 
@@ -164,6 +223,7 @@ static void st_to_size(struct stat *st, struct duc_size *s)
 #else
 	s->actual = s->apparent;
 #endif
+	s->count = 1;
 }
 
 
@@ -203,6 +263,56 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 	h->devino = *devino;
 	HASH_ADD(hh, req->hard_link_map, devino, sizeof(h->devino), h);
 	return 0;
+}
+
+
+/*
+ * Check if this file system type should be scanned, depending on the
+ * fstypes_include and fstypes_exclude lists. If neither has any entries, all
+ * fs types are allowed. return 0 to skip, or 1 to scan
+ */
+
+static int is_fstype_allowed(struct duc_index_req *req, const char *name)
+{
+	struct duc *duc = req->duc;
+
+	if(req->fstypes_include == NULL && req->fstypes_exclude == NULL) {
+		return 1;
+	}
+
+	/* Find file system type */
+
+	char path_full[PATH_MAX];
+	realpath(name, path_full);
+	struct fstype *fstype = NULL;
+	HASH_FIND_STR(req->fstypes_mounted, path_full, fstype);
+	if(fstype == NULL) {
+		duc_log(duc, DUC_LOG_WRN, "Skipping %s: unable to determine fs type", name);
+		return 0;
+	}
+	const char *type = fstype->type;
+
+	/* Check if excluded */
+
+	if(req->fstypes_exclude) {
+		HASH_FIND_STR(req->fstypes_exclude, type, fstype);
+		if(fstype) {
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: file system type '%s' is excluded", name, type);
+			return 0;
+		}
+	}
+
+	/* Check if included */
+
+	if(req->fstypes_include) {
+		HASH_FIND_STR(req->fstypes_include, type, fstype);
+		if(!fstype) {
+			duc_log(duc, DUC_LOG_WRN, "Skipping %s: file system type '%s' is not included", name, type);
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 	
@@ -306,6 +416,15 @@ static void scanner_scan(struct scanner *scanner_dir)
 		if(r == -1) {
 			duc_log(duc, DUC_LOG_WRN, "Error statting %s: %s", name, strerror(errno));
 			continue;
+		}
+
+		/* If this dirent lies on a different device, check the file system type of the new
+		 * device and skip if it is not on the list of approved types */
+
+		if(st_ent.st_dev != scanner_dir->ent.devino.dev) {
+			if(!is_fstype_allowed(req, name)) {
+				continue;
+			}
 		}
 
 		/* Create duc_dirent from readdir() and fstatat() results */
@@ -422,6 +541,40 @@ static void scanner_free(struct scanner *scanner)
 }
 
 
+static void read_mounts(duc_index_req *req)
+{
+	FILE *f;
+
+	f = fopen("/proc/mounts", "r");
+
+	if(f == NULL) {
+		f = fopen("/etc/mtab", "r");
+	}
+
+	if(f == NULL) {
+		duc_log(req->duc, DUC_LOG_FTL, "Unable to get list of mounted file systems");
+	}
+
+	char buf[PATH_MAX];
+	char *type = buf;
+	char *path;
+
+	while(fgets(buf, sizeof(buf)-1, f) != NULL) {
+		char *spec = strtok(buf, " ");
+		char *path = strtok(NULL, " ");
+		char *type = strtok(NULL, " ");
+		if(path && type) {
+			struct fstype *fstype;
+			fstype = duc_malloc(sizeof *fstype);
+			fstype->type = duc_strdup(type);
+			fstype->path = duc_strdup(path);
+			HASH_ADD_KEYPTR(hh, req->fstypes_mounted, fstype->path, strlen(fstype->path), fstype);
+		}
+	}
+	fclose(f);
+}
+
+
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags)
 {
 	duc *duc = req->duc;
@@ -444,6 +597,12 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	struct duc_index_report *report = duc_malloc0(sizeof(struct duc_index_report));
 	gettimeofday(&report->time_start, NULL);
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
+
+	/* Read mounted file systems to find fs types */
+
+	if(req->fstypes_include || req->fstypes_exclude) {
+		read_mounts(req);
+	}
 
 	/* Recursively index subdirectories */
 
