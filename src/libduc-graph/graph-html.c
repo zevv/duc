@@ -80,8 +80,8 @@ void br_html_start(duc_graph *g)
 	fprintf(f, "  c.strokeStyle = '#ffffff';\n");
 	fprintf(f, "  c.fillStyle = '#000000';\n");
 	fprintf(f, "  var h = Math.floor(c.measureText('M').width * 1.6);\n");
-	fprintf(f, "  var y = Math.floor(y-h/2);\n");
 	fprintf(f, "  var ls = text.split('\\n');\n");
+	fprintf(f, "  var y = Math.floor(y-((ls.length-1)*h)/2);\n");
 	fprintf(f, "  for(var i=0; i<ls.length; i++) {\n");
 	fprintf(f, "    c.strokeText(ls[i], x, y+i*h);\n");
 	fprintf(f, "    c.fillText(ls[i], x, y+i*h);\n");
