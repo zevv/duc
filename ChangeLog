@@ -1,4 +1,7 @@
 
+	- cha: warnings in during indexing now show full path
+	- fix: fixed multiline label printing in CGI graph
+
 1.4.1	(2016-03-12)
 
 	- new: added --fs-include and --fs-exclude options
