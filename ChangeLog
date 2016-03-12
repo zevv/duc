@@ -1,4 +1,6 @@
 
+1.4.1	(2016-03-12)
+
 	- cha: disabled gui gradients by default. use the --gradient option 
 	       for original graph style
 	- cha: tooltip now shows actual size, apparent size and count
