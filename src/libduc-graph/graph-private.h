@@ -36,7 +36,7 @@ struct duc_graph {
 	double width, height;
 	double tooltip_a, tooltip_r;
 	double tooltip_x, tooltip_y;
-	char tooltip_msg[PATH_MAX+256];
+	char tooltip_msg[DUC_PATH_MAX+256];
 	double r_start;
 	double fuzz;
 	int max_level;

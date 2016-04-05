@@ -268,8 +268,8 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 
 static void report_skip(struct duc *duc, const char *name, const char *fmt, ...)
 {
-	char path_full[PATH_MAX];
-	char msg[PATH_MAX + 128];
+	char path_full[DUC_PATH_MAX];
+	char msg[DUC_PATH_MAX + 128];
 	realpath(name, path_full);
 	va_list va;
 	va_start(va, fmt);
@@ -295,7 +295,7 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 
 	/* Find file system type */
 
-	char path_full[PATH_MAX];
+	char path_full[DUC_PATH_MAX];
 	realpath(name, path_full);
 	struct fstype *fstype = NULL;
 	HASH_FIND_STR(req->fstypes_mounted, path_full, fstype);
@@ -568,7 +568,7 @@ static void read_mounts(duc_index_req *req)
 		duc_log(req->duc, DUC_LOG_FTL, "Unable to get list of mounted file systems");
 	}
 
-	char buf[PATH_MAX];
+	char buf[DUC_PATH_MAX];
 	char *type = buf;
 	char *path;
 
