@@ -1,6 +1,7 @@
 
 	- cha: warnings in during indexing now show full path
 	- fix: fixed multiline label printing in CGI graph
+	- fix: removed PATH_MAX references which broke build on GNU Hurd
 
 1.4.1	(2016-03-12)
 
