@@ -93,17 +93,17 @@ if test "${enable_cairo}" = "yes"; then
 
 	PKG_CHECK_MODULES([CAIRO], [cairo],, [AC_MSG_ERROR([
 The cairo library was not found, which is needed for graph support. Either install
-the cairo development libraries, or compile without graph support (--disable-graph)
+the cairo development libraries, or compile without graph support (--disable-cairo)
 	])])
 
 	PKG_CHECK_MODULES([PANGO], [pango],, [AC_MSG_ERROR([
 The pango library was not found, which is needed for graph support. Either install
-the pango development libraries, or compile without graph support (--disable-graph)
+the pango development libraries, or compile without graph support (--disable-cairo)
 	])])
 
 	PKG_CHECK_MODULES([PANGOCAIRO], [pangocairo],, [AC_MSG_ERROR([
 The pangocairo library was not found, which is needed for graph support. Either install
-the pangocairo development libraries, or compile without graph support (--disable-graph)
+the pangocairo development libraries, or compile without graph support (--disable-cairo)
 	])])
 
         AC_DEFINE([ENABLE_CAIRO], [1], [Enable cairo])
