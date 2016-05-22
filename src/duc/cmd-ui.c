@@ -210,6 +210,8 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case 4: cur += pgsize/2; break;
 			case KEY_NPAGE: cur += pgsize; break;
 			case KEY_RESIZE: getmaxyx(stdscr, rows, cols); break;
+			case KEY_HOME: cur = 0; break;
+			case KEY_END: cur = count-1; break;
 			case 'a': opt_apparent ^= 1; break;
 			case 'b': opt_bytes ^= 1; break;
 			case 'C': opt_nocolor ^= 1; break;
