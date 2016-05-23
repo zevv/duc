@@ -87,13 +87,20 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		duc_dir_seek(dir, 0);
 
 		off_t size_max = 1;
+		int dir_count = 0;
+		int file_count = 0;
 		struct duc_dirent *e;
 		while( (e = duc_dir_read(dir, st)) != NULL) {
+			if(e->type == DUC_FILE_TYPE_DIR) {
+				dir_count ++;
+			} else {
+				file_count ++;
+			}
 			off_t size = duc_get_size(&e->size, st);
 			if(size > size_max) size_max = size;
 		}
 
-		int count = duc_dir_get_count(dir);
+		int count = dir_count + file_count;
 		int pgsize = rows - 2;
 		
 		/* Check boundaries */
@@ -119,12 +126,13 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 		struct duc_size size;
 		duc_dir_get_size(dir, &size);
-		char siz[32], cnt[32];
+		char siz[32], fcnt[32], dcnt[32];
 		duc_human_size(&size, st, opt_bytes, siz, sizeof siz);
-		duc_human_number(count, opt_bytes, cnt, sizeof cnt);
+		duc_human_number(file_count, opt_bytes, fcnt, sizeof fcnt);
+		duc_human_number(dir_count, opt_bytes, dcnt, sizeof dcnt);
 		attrset(attr_bar);
 		mvhline(rows-1, 0, ' ', cols);
-		mvprintw(rows-1, 0, " Total %sB in %s files/directories (", siz, cnt);
+		mvprintw(rows-1, 0, " Total %sB in %s files and %s directories (", siz, fcnt, dcnt);
 		switch(st) {
 			case DUC_SIZE_TYPE_APPARENT: printw("apparent size"); break;
 			case DUC_SIZE_TYPE_ACTUAL: printw("actual size"); break;
@@ -210,6 +218,10 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case 4: cur += pgsize/2; break;
 			case KEY_NPAGE: cur += pgsize; break;
 			case KEY_RESIZE: getmaxyx(stdscr, rows, cols); break;
+			case '0': cur = 0; break;
+			case KEY_HOME: cur = 0; break;
+			case '$': cur = count-1; break;
+			case KEY_END: cur = count-1; break;
 			case 'a': opt_apparent ^= 1; break;
 			case 'b': opt_bytes ^= 1; break;
 			case 'C': opt_nocolor ^= 1; break;
@@ -331,6 +343,8 @@ struct cmd cmd_ui = {
 		"\n"
 		"    up, pgup, j:     move cursor up\n"
 		"    down, pgdn, k:   move cursor down\n"
+		"    home, 0:         move cursor to top\n"
+		"    end, $:          move cursor to bottom\n"
 		"    left, backspace: go up to parent directory (..)\n"
 		"    right, enter:    descent into selected directory\n"
 		"    a:               toggle between actual and apparent disk usage\n"

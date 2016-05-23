@@ -266,6 +266,19 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 }
 
 
+static void report_skip(struct duc *duc, const char *name, const char *fmt, ...)
+{
+	char path_full[DUC_PATH_MAX];
+	char msg[DUC_PATH_MAX + 128];
+	realpath(name, path_full);
+	va_list va;
+	va_start(va, fmt);
+	vsnprintf(msg, sizeof(msg), fmt, va);
+	duc_log(duc, DUC_LOG_WRN, "skipping %s: %s", path_full, msg);
+	va_end(va);
+}
+
+
 /*
  * Check if this file system type should be scanned, depending on the
  * fstypes_include and fstypes_exclude lists. If neither has any entries, all
@@ -282,12 +295,12 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 
 	/* Find file system type */
 
-	char path_full[PATH_MAX];
+	char path_full[DUC_PATH_MAX];
 	realpath(name, path_full);
 	struct fstype *fstype = NULL;
 	HASH_FIND_STR(req->fstypes_mounted, path_full, fstype);
 	if(fstype == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Skipping %s: unable to determine fs type", name);
+		report_skip(duc, name, "Unable to determine fs type");
 		return 0;
 	}
 	const char *type = fstype->type;
@@ -297,7 +310,7 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 	if(req->fstypes_exclude) {
 		HASH_FIND_STR(req->fstypes_exclude, type, fstype);
 		if(fstype) {
-			duc_log(duc, DUC_LOG_WRN, "Skipping %s: file system type '%s' is excluded", name, type);
+			report_skip(duc, name, "File system type '%s' is excluded", type);
 			return 0;
 		}
 	}
@@ -307,7 +320,7 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 	if(req->fstypes_include) {
 		HASH_FIND_STR(req->fstypes_include, type, fstype);
 		if(!fstype) {
-			duc_log(duc, DUC_LOG_WRN, "Skipping %s: file system type '%s' is not included", name, type);
+			report_skip(duc, name, "File system type '%s' is not included", type);
 			return 0;
 		}
 	}
@@ -315,7 +328,7 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 	return 1;
 }
 
-	
+
 /* 
  * Open dir and read file status 
  */
@@ -345,7 +358,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	
 	scanner->d = opendir(path);
 	if(scanner->d == NULL) {
-		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", path, strerror(errno));
+		report_skip(duc, path, strerror(errno));
 		goto err;
 	}
 	
@@ -383,7 +396,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 	int r = chdir(scanner_dir->ent.name);
 	if(r != 0) {
-		duc_log(duc, DUC_LOG_WRN, "Skipping %s: %s", scanner_dir->ent.name, strerror(errno));
+		report_skip(duc, scanner_dir->ent.name, strerror(errno));
 		return;
 	}
 
@@ -402,7 +415,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 		}
 
 		if(match_exclude(name, req->exclude_list)) {
-			duc_log(duc, DUC_LOG_WRN, "Skipping %s: excluded by user", name);
+			report_skip(duc, name, "Excluded by user");
 			continue;
 		}
 
@@ -446,7 +459,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 		/* Check if we can cross file system boundaries */
 
 		if(ent.type == DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_XDEV && st_ent.st_dev != req->dev) {
-			duc_log(duc, DUC_LOG_WRN, "Skipping %s: not crossing file system boundaries", name);
+			report_skip(duc, name, "Not crossing file system boundaries");
 			continue;
 		}
 
@@ -555,7 +568,7 @@ static void read_mounts(duc_index_req *req)
 		duc_log(req->duc, DUC_LOG_FTL, "Unable to get list of mounted file systems");
 	}
 
-	char buf[PATH_MAX];
+	char buf[DUC_PATH_MAX];
 	char *type = buf;
 	char *path;
 
