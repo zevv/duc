@@ -379,7 +379,7 @@ Options for command `duc gui [options] [PATH]`:
 
 ### duc ui
 
-The 'gui' subcommand queries the duc database and runs an interactive ncurses
+The 'ui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 
