@@ -230,7 +230,7 @@ static void st_to_size(struct stat *st, struct duc_size *s)
 /*
  * Conver struct stat to duc_devino. Windows does not support inodes
  * and will always put 0 in st_ino. We fake inodes here by simply using
- * a incrementing counter. This *will* cause problems when re-indexing
+ * an incrementing counter. This *will* cause problems when re-indexing
  * existing databases. If anyone knows a better method to simulate
  * inodes on windows, please tell me
  */
@@ -420,7 +420,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 		}
 
 		/* Get file info. Derive the file type from st.st_mode. It
-		 * seems that we can not trust e->d_type because it is not
+		 * seems that we cannot trust e->d_type because it is not
 		 * guaranteed to contain a sane value on all file system types.
 		 * See the readdir() man page for more details */
 
@@ -594,7 +594,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 	req->flags = flags;
 
-	/* Canonalize index path */
+	/* Canonicalize index path */
 
 	char *path_canon = duc_canonicalize_path(path);
 	if(path_canon == NULL) {

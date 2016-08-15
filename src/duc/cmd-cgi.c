@@ -520,7 +520,7 @@ static struct ducrc_option options[] = {
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
 	{ &opt_tooltip,   "tooltip",    0,  DUCRC_TYPE_BOOL,   "enable tooltip when hovering over the graph",
 		"enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and "
-		"can greatly increas the HTTP traffic to the web server" },
+		"can greatly increase the HTTP traffic to the web server" },
 	{ NULL }
 };
 
