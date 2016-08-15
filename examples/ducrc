@@ -5,7 +5,7 @@
 # which are passed to all subcommands.
 #
 # This example configuration file does not list all available options, but is
-# only ment as a starting point. For a list of available options and their
+# only meant as a starting point. For a list of available options and their
 # meaning, run 'duc help --all'.
 #
 
