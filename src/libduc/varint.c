@@ -51,7 +51,7 @@
 ** 
 ** If A0 is 254 then the result is A1..A7 as a 7-byte big-ending integer.
 ** 
-** If A0 is 255 then the result is A1..A8 as a 8-byte big-ending integer.
+** If A0 is 255 then the result is A1..A8 as an 8-byte big-ending integer.
 ** 
 ** ENCODE
 ** 

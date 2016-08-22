@@ -80,7 +80,7 @@ Graphics
 --------
 
 Duc supports various back ends for creating graphics, but some have dependencies
-which can not be met on all systems. Especially on headless server systems or
+which cannot be met on all systems. Especially on headless server systems or
 embedded systems not all graphics libraries are available.
 
 - SVG: Duc has native SVG support, which can be used by the 'duc graph' command

@@ -135,7 +135,7 @@ const char *duc_strerror(duc *duc)
 		case DUC_E_PATH_NOT_FOUND:       return "Requested path not found";
 		case DUC_E_PERMISSION_DENIED:    return "Permission denied";
 		case DUC_E_OUT_OF_MEMORY:        return "Out of memory";
-		case DUC_E_DB_BACKEND:           return "An error occured in the database backend";
+		case DUC_E_DB_BACKEND:           return "An error occurred in the database backend";
 		default:                         return "Unknown error, contact the author";
 	}
 }
