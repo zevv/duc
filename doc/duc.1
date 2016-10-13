@@ -28,7 +28,7 @@ Duc allows any option to be placed either on the command line or in a configurat
 At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
 .
 .P
-A configuration file consists of sections and parameters\. The section names correspond to the duc subcommands for which the parameters in that section apply\. A section begins with the name of the section in square brackets and continues until the next section begins\.Sections contain parameters, one per line, which consist of a single option name for boolean flags, or a option name and a value for options which take a value\. See the EXAMPLES section for an example of the configuration file format\.
+A configuration file consists of sections and parameters\. The section names correspond to the duc subcommands for which the parameters in that section apply\. A section begins with the name of the section in square brackets and continues until the next section begins\.Sections contain parameters, one per line, which consist of a single option name for boolean flags, or an option name and a value for options which take a value\. See the EXAMPLES section for an example of the configuration file format\.
 .
 .SH "CREATING THE INDEX"
 Duc needs an index file of the file system before it is able to show any information\. To create the index, run the \fBduc index\fR command\. For example, to create an index of your home directory run \fBduc index ~\fR
@@ -52,7 +52,7 @@ The default location of the database is \fB$HOME/\.duc\.db\fR\. To use a differe
 You can run \fBduc index\fR at any time later to rebuild the index\.
 .
 .P
-By default Duc indexes all directories it encounters during file system traversal traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
+By default Duc indexes all directories it encounters during file system traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
 .
 .SH "QUERYING THE INDEX"
 Duc has various subcommands for querying or exploring the index:
@@ -344,7 +344,7 @@ image size [800]
 .
 .TP
 \fB\-\-tooltip\fR
-enable tooltip when hovering over the graph\. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increas the HTTP traffic to the web server
+enable tooltip when hovering over the graph\. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increase the HTTP traffic to the web server
 .
 .SS "duc gui"
 The \'gui\' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
@@ -415,7 +415,7 @@ select palette \fIsize|rainbow|greyscale|monochrome\fR
 leave a gap of VAL pixels between rings
 .
 .SS "duc ui"
-The \'gui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+The \'ui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .
 .P
 The following keys can be used to navigate and alter the file system:
@@ -669,7 +669,7 @@ John Stoffel \fIjohn@stoffel\.org\fR
 .IP "" 0
 .
 .P
-Other contributers can be found in the Git log at GitHub\.
+Other contributors can be found in the Git log at GitHub\.
 .
 .SH "LICENSE"
 Duc is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; version 2 dated June, 1991\. Duc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\. See the GNU General Public License for more details\.

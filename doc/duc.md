@@ -39,7 +39,7 @@ A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
 apply. A section begins with the name of the section in square brackets and
 continues until the next section begins.Sections contain parameters, one per
-line, which consist of a single option name for boolean flags, or a option name
+line, which consist of a single option name for boolean flags, or an option name
 and a value for options which take a value. See the EXAMPLES section for an
 example of the configuration file format.
 
@@ -61,7 +61,7 @@ database location with the --database argument.
 You can run `duc index` at any time later to rebuild the index.
 
 By default Duc indexes all directories it encounters during file system
-traversal traversal, including special file systems like /proc and /sys, and
+traversal, including special file systems like /proc and /sys, and
 network file systems like NFS or Samba mounts. There are a few options to
 select what parts of your filesystem you want to include or exclude from the
 scan, check the documentation below for --exclude, --fs-exclude and
@@ -322,7 +322,7 @@ Options for command `duc cgi [options] [PATH]`:
     image size [800]
 
   * `--tooltip`:
-    enable tooltip when hovering over the graph. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increas the HTTP traffic to the web server
+    enable tooltip when hovering over the graph. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increase the HTTP traffic to the web server
 
 
 ### duc gui
@@ -379,7 +379,7 @@ Options for command `duc gui [options] [PATH]`:
 
 ### duc ui
 
-The 'gui' subcommand queries the duc database and runs an interactive ncurses
+The 'ui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 
@@ -575,7 +575,7 @@ take the -d/--database option to override the database path.
 * Ico Doornekamp <duc@zevv.nl>
 * John Stoffel <john@stoffel.org>
 
-Other contributers can be found in the Git log at GitHub.
+Other contributors can be found in the Git log at GitHub.
 
 
 ## LICENSE

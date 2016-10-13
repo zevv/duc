@@ -107,7 +107,7 @@ static int index_main(duc *duc, int argc, char **argv)
 					siz_actual,
 					dur);
 		} else {
-			duc_log(duc, DUC_LOG_WRN, "An error occured while indexing: %s", duc_strerror(duc));
+			duc_log(duc, DUC_LOG_WRN, "An error occurred while indexing: %s", duc_strerror(duc));
 		}
 
 		duc_index_report_free(report);
