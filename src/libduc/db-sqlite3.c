@@ -33,7 +33,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	int r = sqlite3_open_v2(path_db, &db->s, sflags, NULL);
 	if(r != SQLITE_OK) goto err1;
 
-	/* sqlite3_open() does not always notice corrupt database files. We do a bugus query
+	/* sqlite3_open() does not always notice corrupt database files. We do a bogus query
 	 * here to catch this error case */
 
 	r = sqlite3_exec(db->s, "select bogus from bogus", 0, 0, 0);

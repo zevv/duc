@@ -304,7 +304,14 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 				H = 0;
 				S = 0;
 				V = 1;
-				L = 1;
+				L = 0.01;
+				break;
+
+			case DUC_GRAPH_PALETTE_CLASSIC:
+				H = (a1 + a2) / 2 + 0.75; if(H > 1.0) H -= 1.0;
+				S = 1.0 - 0.8 *(double)level / g->max_level;
+				V = 1;
+				L = 0.8;
 				break;
 		}
 		

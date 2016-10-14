@@ -62,6 +62,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 		if(c == 'r') palette = DUC_GRAPH_PALETTE_RAINBOW;
 		if(c == 'g') palette = DUC_GRAPH_PALETTE_GREYSCALE;
 		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
+		if(c == 'c') palette = DUC_GRAPH_PALETTE_CLASSIC;
 	}
 
 	if(path_out == NULL) path_out = path_out_default;
@@ -149,7 +150,8 @@ static struct ducrc_option options[] = {
 	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_output,    "output",    'o', DUCRC_TYPE_STRING, "output file name [duc.png]" },
-	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette",
+		"available palettes are: size, rainbow, greyscale, monochrome, classic" },
 	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
 	{ &opt_size,      "size",      's', DUCRC_TYPE_INT,    "image size [800]" },
 	{ NULL }

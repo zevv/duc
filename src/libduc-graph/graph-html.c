@@ -54,7 +54,7 @@ void br_html_start(duc_graph *g)
 	fprintf(f, "c.textBaseline = 'middle'\n");
 	fprintf(f, "c.lineJoin = 'round'\n");
 
-	fprintf(f, "function g(a1, a2, r1, r2, r, g, b) {\n");
+	fprintf(f, "function g(a1, a2, r1, r2, r, g, b, l) {\n");
 	fprintf(f, "  a1 = a1*1e-3 * pi * 2 - pi / 2;\n");
 	fprintf(f, "  a2 = a2*1e-3 * pi * 2 - pi / 2;\n");
 	fprintf(f, "  var c1 = 'rgb(' + f(r*0.6) + ',' + f(g*0.6) + ',' + f(b*0.6) + ')';\n");
@@ -72,6 +72,11 @@ void br_html_start(duc_graph *g)
 	fprintf(f, "  c.arc(%.0f, %.0f, r2, a2, a1, true);\n",  g->cx,  g->cy);
 	fprintf(f, "  c.closePath();\n");
 	fprintf(f, "  c.fill();\n");
+	fprintf(f, "  if(l) {\n");
+	fprintf(f, "    var c3 = 'rgb(' + f(l) + ',' + f(l) + ',' + f(l) + ')';\n");
+	fprintf(f, "    c.strokeStyle = c3;\n");
+	fprintf(f, "    c.stroke();\n");
+	fprintf(f, "  }\n");
 	fprintf(f, "}\n");
 
 	fprintf(f, "function t(text, s, x, y) {\n");
@@ -119,7 +124,7 @@ static void br_html_draw_tooltip(duc_graph *g, double x, double y, char *text)
 }
 
 
-static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double line)
+static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double L)
 {
 	struct html_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
@@ -127,10 +132,10 @@ static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, 
 	double R, G, B;
 	hsv2rgb(H, S, V, &R, &G, &B);
 
-	fprintf(f, "g(%.0f,%.0f,%.0f,%.0f,%d,%d,%d);\n", 
+	fprintf(f, "g(%.0f,%.0f,%.0f,%.0f,%d,%d,%d,%d);\n", 
 			a1 * 1000, a2 * 1000,
 			r1, r2,
-			(int)(R*255), (int)(G*255), (int)(B*255));
+			(int)(R*255), (int)(G*255), (int)(B*255), (int)(L*255));
 }
 
 

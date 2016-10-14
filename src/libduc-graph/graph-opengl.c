@@ -237,7 +237,7 @@ static void br_opengl_draw_tooltip(duc_graph *g, double x, double y, char *text)
 }
 
 
-static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double line)
+static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double L)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 	int i;
@@ -290,10 +290,10 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, ss*2);
 	}
 
-	if(line) {
+	if(L != 0.0) {
 		glLineWidth(0.8);
 		glDisableVertexAttribArray(bd->loc_color);
-		glVertexAttrib4f(bd->loc_color, 0, 0, 0, 0);
+		glVertexAttrib4f(bd->loc_color, L, L, L, 0);
 		glVertexAttribPointer(bd->loc_pos, 2, GL_FLOAT, GL_FALSE, 0, vs_line);
 		glDrawArrays(GL_LINE_LOOP, 0, ss*2);
 	}
