@@ -335,7 +335,7 @@ struct cmd cmd_ui = {
 	.main = ui_main,
 	.options = options,
 	.descr_long = 
-		"The 'gui' subcommand queries the duc database and runs an interactive ncurses\n"
+		"The 'ui' subcommand queries the duc database and runs an interactive ncurses\n"
 		"utility for exploring the disk usage of the given path. If no path is given the\n"
 		"current working directory is explored.\n"
 		"\n"

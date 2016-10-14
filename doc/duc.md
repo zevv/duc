@@ -273,7 +273,8 @@ Options for command `duc graph [options] [PATH]`:
     output file name [duc.png]
 
   * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
+    select palette. available palettes are: size, rainbow, greyscale, monochrome, classic
+
 
   * `--ring-gap=VAL`:
     leave a gap of VAL pixels between rings
@@ -313,7 +314,8 @@ Options for command `duc cgi [options] [PATH]`:
     generate table with file list
 
   * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
+    select palette. available palettes are: size, rainbow, greyscale, monochrome, classic
+
 
   * `--ring-gap=VAL`:
     leave a gap of VAL pixels between rings
@@ -372,14 +374,15 @@ Options for command `duc gui [options] [PATH]`:
     draw up to VAL levels deep [4]
 
   * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
+    select palette. available palettes are: size, rainbow, greyscale, monochrome, classic
+
 
   * `--ring-gap=VAL`:
     leave a gap of VAL pixels between rings
 
 ### duc ui
 
-The 'ui' subcommand queries the duc database and runs an interactive ncurses
+The 'gui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 
@@ -387,6 +390,8 @@ The following keys can be used to navigate and alter the file system:
 
     up, pgup, j:     move cursor up
     down, pgdn, k:   move cursor down
+    home, 0:         move cursor to top
+    end, $:          move cursor to bottom
     left, backspace: go up to parent directory (..)
     right, enter:    descent into selected directory
     a:               toggle between actual and apparent disk usage

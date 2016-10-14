@@ -97,7 +97,7 @@ static void cb_keyboard(GLFWwindow* window, int k, int scancode, int action, int
 	if(k == 'G') opt_gradient = !opt_gradient;
 	if(k == ',') if(opt_ring_gap > 0) opt_ring_gap --;
 	if(k == '.') opt_ring_gap ++;
-	if(k == 'P') palette = (palette + 1) % 4;
+	if(k == 'P') palette = (palette + 1) % 5;
 	if(k == GLFW_KEY_BACKSPACE) {
 		duc_dir *dir2 = duc_dir_openat(dir, "..");
 		if(dir2) {
@@ -162,6 +162,7 @@ int guigl_main(duc *duc, int argc, char *argv[])
 		if(c == 'r') palette = DUC_GRAPH_PALETTE_RAINBOW;
 		if(c == 'g') palette = DUC_GRAPH_PALETTE_GREYSCALE;
 		if(c == 'm') palette = DUC_GRAPH_PALETTE_MONOCHROME;
+		if(c == 'c') palette = DUC_GRAPH_PALETTE_CLASSIC;
 	}
 
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
@@ -225,7 +226,8 @@ static struct ducrc_option options[] = {
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph" },
 	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to VAL levels deep [4]" },
-	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
+	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette",
+		"available palettes are: size, rainbow, greyscale, monochrome, classic" },
 	{ &opt_ring_gap,  "ring-gap",   0,  DUCRC_TYPE_INT,    "leave a gap of VAL pixels between rings" },
 	{ NULL }
 };
