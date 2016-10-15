@@ -64,8 +64,8 @@ By default Duc indexes all directories it encounters during file system
 traversal, including special file systems like /proc and /sys, and
 network file systems like NFS or Samba mounts. There are a few options to
 select what parts of your filesystem you want to include or exclude from the
-scan, check the documentation below for --exclude, --fs-exclude and
---fs-include for more details.
+scan, check the documentation below for the options --one-file-system, 
+--exclude, --fs-exclude and --fs-include for more details.
 
 
 ## QUERYING THE INDEX
@@ -213,6 +213,9 @@ Options for command `duc ls [options] [PATH]`:
   * `--dirs-only`:
     list only directories, skip individual files
 
+  * `--full-path`:
+    show full path instead of tree in recursive view
+
   * `-g`, `--graph`:
     draw graph with relative size for each entry
 
@@ -220,7 +223,7 @@ Options for command `duc ls [options] [PATH]`:
     traverse up to ARG levels deep [4]
 
   * `-R`, `--recursive`:
-    list subdirectories in a recursive tree view
+    recursively list subdirectories
 
 ### duc xml
 
@@ -382,7 +385,7 @@ Options for command `duc gui [options] [PATH]`:
 
 ### duc ui
 
-The 'gui' subcommand queries the duc database and runs an interactive ncurses
+The 'ui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 

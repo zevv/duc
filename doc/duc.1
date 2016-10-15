@@ -52,7 +52,7 @@ The default location of the database is \fB$HOME/\.duc\.db\fR\. To use a differe
 You can run \fBduc index\fR at any time later to rebuild the index\.
 .
 .P
-By default Duc indexes all directories it encounters during file system traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
+By default Duc indexes all directories it encounters during file system traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for the options \-\-one\-file\-system, \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
 .
 .SH "QUERYING THE INDEX"
 Duc has various subcommands for querying or exploring the index:
@@ -212,6 +212,10 @@ select database file to use [~/\.duc\.db]
 list only directories, skip individual files
 .
 .TP
+\fB\-\-full\-path\fR
+show full path instead of tree in recursive view
+.
+.TP
 \fB\-g\fR, \fB\-\-graph\fR
 draw graph with relative size for each entry
 .
@@ -221,7 +225,7 @@ traverse up to ARG levels deep [4]
 .
 .TP
 \fB\-R\fR, \fB\-\-recursive\fR
-list subdirectories in a recursive tree view
+recursively list subdirectories
 .
 .SS "duc xml"
 Options for command \fBduc xml [options] [PATH]\fR:
@@ -415,7 +419,7 @@ select palette\. available palettes are: size, rainbow, greyscale, monochrome, c
 leave a gap of VAL pixels between rings
 .
 .SS "duc ui"
-The \'gui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+The \'ui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .
 .P
 The following keys can be used to navigate and alter the file system:
