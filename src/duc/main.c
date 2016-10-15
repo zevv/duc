@@ -125,14 +125,16 @@ int main(int argc, char **argv)
 		if(r != 0) exit(r);
 	}
 
-	/* Read configuration files from /etc/ducrc, ~/.ducrc and .ducrc and
-	 * finally from the command line. Newer options will override older
-	 * options */
+	/* Read configuration files from /etc/ducrc, ~/.config/duc/ducrc,
+	 * ~/.ducrc and .ducrc and finally from the command line. Newer options
+	 * will override older options */
 
 	ducrc_read(ducrc, "/etc/ducrc");
 	char *home = getenv("HOME");
 	if(home) {
 		char tmp[DUC_PATH_MAX];
+		snprintf(tmp, sizeof(tmp), "%s/.config/duc/ducrc", home);
+		ducrc_read(ducrc, tmp);
 		snprintf(tmp, sizeof(tmp), "%s/.ducrc", home);
 		ducrc_read(ducrc, tmp);
 	}
