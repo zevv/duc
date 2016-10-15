@@ -304,8 +304,10 @@ file name '-'.</p>
 <dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
 <dt><code>--css-url=VAL</code></dt><dd><p>url of CSS style sheet to use instead of default CSS</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>-0</code>, <code>--footer=VAL</code></dt><dd><p>select html file to include in footer div</p></dd>
 <dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
 <dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
+<dt><code>-0</code>, <code>--header=VAL</code></dt><dd><p>select html file to include in header div</p></dd>
 <dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
 <dt class="flush"><code>--list</code></dt><dd><p>generate table with file list</p></dd>
 <dt><code>--palette=VAL</code></dt><dd><p>select palette <var>size|rainbow|greyscale|monochrome</var></p></dd>
@@ -353,7 +355,7 @@ backspace   go up one directory
 
 <h3 id="duc-ui">duc ui</h3>
 
-<p>The 'ui' subcommand queries the duc database and runs an interactive ncurses
+<p>The 'gui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.</p>
 
@@ -361,6 +363,8 @@ current working directory is explored.</p>
 
 <pre><code>up, pgup, j:     move cursor up
 down, pgdn, k:   move cursor down
+home, 0:         move cursor to top
+end, $:          move cursor to bottom
 left, backspace: go up to parent directory (..)
 right, enter:    descent into selected directory
 a:               toggle between actual and apparent disk usage
@@ -413,9 +417,22 @@ location of the database to navigate.</p>
 <li><p>The HTML page is generated with a simple embedded CSS style sheet. If the
 style is not to your liking you can provide an external CSS url with the
 --css-url option which will then be used instead of the embedded style
-definition.</p></li>
+definition.  See examples/duc.css for a listing of all style elements used.</p></li>
 <li><p>Add the option --list to generate a table of top sized files and directories
 in the HTML page.</p></li>
+<li><p>The options --header and --footer allow you to insert your own div
+to replace the default ones.  You must include the full div block wrappers</p>
+
+<p>  </p><div id="header">
+  </div>
+
+<p>or</p>
+
+<p>  </p><div id="footer">
+  </div>
+
+<p>in your provided file.  If the file cannot be read, it will default
+back to the builtin default div.</p></li>
 </ul>
 
 
@@ -550,8 +567,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#109;&#97;&#x69;&#x6c;&#x74;&#111;&#58;&#x64;&#x75;&#x63;&#64;&#122;&#x65;&#x76;&#118;&#x2e;&#110;&#108;" data-bare-link="true">&#x64;&#x75;&#x63;&#x40;&#122;&#101;&#x76;&#x76;&#46;&#x6e;&#108;</a></li>
-<li>John Stoffel <a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#58;&#106;&#111;&#x68;&#x6e;&#x40;&#115;&#x74;&#111;&#x66;&#102;&#x65;&#108;&#46;&#x6f;&#x72;&#x67;" data-bare-link="true">&#106;&#x6f;&#104;&#110;&#x40;&#115;&#x74;&#x6f;&#x66;&#x66;&#x65;&#108;&#x2e;&#x6f;&#x72;&#103;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#x6f;&#x3a;&#x64;&#x75;&#99;&#64;&#122;&#101;&#x76;&#118;&#46;&#x6e;&#x6c;" data-bare-link="true">&#100;&#x75;&#99;&#x40;&#122;&#101;&#x76;&#118;&#46;&#110;&#108;</a></li>
+<li>John Stoffel <a href="&#x6d;&#97;&#x69;&#x6c;&#x74;&#x6f;&#58;&#106;&#111;&#x68;&#110;&#64;&#115;&#116;&#111;&#x66;&#102;&#101;&#108;&#x2e;&#x6f;&#x72;&#x67;" data-bare-link="true">&#106;&#111;&#x68;&#110;&#64;&#115;&#116;&#111;&#x66;&#102;&#x65;&#108;&#46;&#111;&#114;&#103;</a></li>
 </ul>
 
 
@@ -569,7 +586,7 @@ License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>March 2016</li>
+    <li class='tc'>2016-10-15</li>
     <li class='tr'>duc(1)</li>
   </ol>
 

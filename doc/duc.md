@@ -300,11 +300,17 @@ Options for command `duc cgi [options] [PATH]`:
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
 
+  * `-0`, `--footer=VAL`:
+    select html file to include in footer div
+
   * `--fuzz=VAL`:
     use radius fuzz factor when drawing graph [0.7]
 
   * `--gradient`:
     draw graph with color gradient
+
+  * `-0`, `--header=VAL`:
+    select html file to include in header div
 
   * `-l`, `--levels=VAL`:
     draw up to ARG levels deep [4]
@@ -379,7 +385,7 @@ Options for command `duc gui [options] [PATH]`:
 
 ### duc ui
 
-The 'ui' subcommand queries the duc database and runs an interactive ncurses
+The 'gui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 
@@ -387,6 +393,8 @@ The following keys can be used to navigate and alter the file system:
 
     up, pgup, j:     move cursor up
     down, pgdn, k:   move cursor down
+    home, 0:         move cursor to top
+    end, $:          move cursor to bottom
     left, backspace: go up to parent directory (..)
     right, enter:    descent into selected directory
     a:               toggle between actual and apparent disk usage
@@ -442,10 +450,24 @@ Some notes:
 * The HTML page is generated with a simple embedded CSS style sheet. If the
   style is not to your liking you can provide an external CSS url with the
   --css-url option which will then be used instead of the embedded style
-  definition.
+  definition.  See examples/duc.css for a listing of all style elements used.
 
 * Add the option --list to generate a table of top sized files and directories
   in the HTML page.
+
+* The options --header and --footer allow you to insert your own div
+  to replace the default ones.  You must include the full div block wrappers
+
+    <div id="header">
+    </div>
+
+  or
+
+    <div id="footer">
+    </div>
+
+  in your provided file.  If the file cannot be read, it will default
+  back to the builtin default div.
 
 The current CGI configuration is not very flexible, nor secure. It is not
 advised to run the CGI from public reachable web servers, use at your own risk.
