@@ -207,11 +207,13 @@ static void print_script(const char *path)
 		"    var tt = document.getElementById('tooltip');\n"
 		"    var timer;\n"
 		"    img.onmousedown = function(e) {\n"
+		"      if(e.button == 0) {\n"
 		"        var x = e.clientX - rect.left;\n"
 		"        var y = e.clientY - rect.top;\n"
 		"        window.location = '?x=' + x + '&y=' + y + '&path=");
 	print_html(path);
 	printf( "';\n"
+		"      }\n"
 		"    }\n");
 
 	if(opt_tooltip) {
