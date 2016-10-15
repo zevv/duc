@@ -6,6 +6,7 @@
 #include <string.h>
 #include <time.h>
 #include <assert.h>
+#include <errno.h>
 #include <unistd.h>
 #include <libgen.h>
 #include <ctype.h>
@@ -21,10 +22,14 @@ struct param {
 	struct param *next;
 };
 
+#define DIV_HEADER 1
+#define DIV_FOOTER 2
 
 static int opt_apparent = 0;
 static int opt_count = 0;
 static char *opt_css_url = NULL;
+static char *opt_header = NULL;
+static char *opt_footer = NULL;
 static char *opt_database = NULL;
 static int opt_bytes = 0;
 static int opt_list = 0;
@@ -196,6 +201,52 @@ static void print_css(void)
 	);
 }
 
+/* 
+Read in the header or footer (or other file) and send to STDOUT, return NULL if 
+successful, -1 for errors. 
+*/
+
+int print_html_file(const char *path)
+{
+    FILE *f = fopen(path, "r");
+    if(f == NULL) {
+	duc_log(NULL, DUC_LOG_DBG, "Error reading %s: %s", path, strerror(errno));
+	return -1;
+    }
+    char buf[1024];
+    size_t nbytes;
+
+    while ((nbytes = fread(buf, sizeof(char), sizeof(buf), f)) != 0) {
+	fwrite(buf, sizeof(char), nbytes, stdout);
+    }
+
+    fclose(f);
+    return 0;
+}
+
+static void print_div(const int type, const char *path)
+{
+    int ok;
+    if (path) {
+	ok = print_html_file(path);
+    }
+    
+    if (ok == -1) {
+	if (type == DIV_HEADER) {
+	    printf(
+		"<div id=\"header\">\n"
+		"</div>\n"
+		);
+	}
+	if (type == DIV_FOOTER) {
+	    printf(
+		"<div id=\"footer\">\n"
+		"You can find  duc at <A HREF=\"http://github.com/zevv/duc\">http://github.com/zevv/duc</A>"
+		"</div>\n"
+		);	       
+	}
+    }
+}
 
 static void print_script(const char *path)
 {
@@ -291,12 +342,12 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		print_script(path);
 	}
 
-	printf(
-		"</head>\n"
-		"<div id=main>\n"
-	);
+	printf("</head>\n");
 
-	printf("<div id=index>");
+	print_div(DIV_HEADER, opt_header);
+
+	printf("<div id=main>\n");
+	printf("<div id=index>\n");
 	printf(" <table>\n");
 	printf("  <tr>\n");
 	printf("   <th>Path</th>\n");
@@ -388,6 +439,8 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	}
 
 	printf("</div>\n");
+
+	print_div(DIV_FOOTER,opt_footer);
 
 	if(opt_tooltip) {
 		printf("<div id=\"tooltip\"></div>\n");
@@ -511,8 +564,10 @@ static struct ducrc_option options[] = {
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_css_url,   "css-url",    0,  DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_footer,    "footer",    '0', DUCRC_TYPE_STRING, "select html file to include in footer div" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
+	{ &opt_header,    "header",    '0', DUCRC_TYPE_STRING, "select html file to include in header div" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_list,      "list",       0,  DUCRC_TYPE_BOOL,   "generate table with file list" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette <size|rainbow|greyscale|monochrome>" },
