@@ -33,7 +33,8 @@ double-leading-dash (`--option`), some options have a corresponding short
 option which can be used as well with a single leading dash. (`-o`)
 
 At startup duc tries to read its configuration from three locations in this
-particular order: `/etc/ducrc`, `~/.ducrc` and `./.ducrc`.
+particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
+`./.ducrc`.
 
 A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
@@ -242,7 +243,8 @@ path which is used by all subcommands
 ## FILES
 
 At startup duc tries to read its configuration from three locations in this
-particular order: `/etc/ducrc`, `~/.ducrc` and `./.ducrc`.
+particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
+`./.ducrc`.
 
 Duc mainains an index of scanned directories, which defaults to ~/.duc.db. All tools
 take the -d/--database option to override the database path.

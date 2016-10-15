@@ -25,7 +25,7 @@ Duc comes with a command line tool called \fBduc\fR, which is used to create, ma
 Duc allows any option to be placed either on the command line or in a configuration file\. Options on the command line are preceded by a double\-leading\-dash (\fB\-\-option\fR), some options have a corresponding short option which can be used as well with a single leading dash\. (\fB\-o\fR)
 .
 .P
-At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
+At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.config/duc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
 .
 .P
 A configuration file consists of sections and parameters\. The section names correspond to the duc subcommands for which the parameters in that section apply\. A section begins with the name of the section in square brackets and continues until the next section begins\.Sections contain parameters, one per line, which consist of a single option name for boolean flags, or an option name and a value for options which take a value\. See the EXAMPLES section for an example of the configuration file format\.
@@ -659,7 +659,7 @@ By default Duc uses the Tokyocabinet database backend\. Tokyocabinet is pretty f
 .IP "" 0
 .
 .SH "FILES"
-At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
+At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.config/duc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
 .
 .P
 Duc mainains an index of scanned directories, which defaults to ~/\.duc\.db\. All tools take the \-d/\-\-database option to override the database path\.
