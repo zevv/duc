@@ -487,6 +487,22 @@ report disk usage (`duc ls`, `duc graph`, `duc gui`, etc) have an option to
 change between these two modes (usually the `-a`), in the gui tool use the 'a'
 key to toggle.
 
+## BUILDING from git
+
+If you use git clone to pull down the latest release, you will have to
+do the following:
+
+  git clone https://github.com/zevv/duc
+  cd duc
+  aclocal
+  automake --add-missing -c
+
+Then you can run the regular 
+
+  ./configure [ options ]
+  make
+
+to the regular build of the software.
 
 ## EXAMPLES
 

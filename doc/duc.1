@@ -529,6 +529,21 @@ Duc has two modes for counting file sizes:
 .P
 The default mode used by duc is to use the \'actual size\'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc gui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), in the gui tool use the \'a\' key to toggle\.
 .
+.SH "BUILDING from git"
+If you use git clone to pull down the latest release, you will have to do the following:
+.
+.P
+git clone https://github\.com/zevv/duc cd duc aclocal automake \-\-add\-missing \-c
+.
+.P
+Then you can run the regular
+.
+.P
+\&\./configure [ options ] make
+.
+.P
+to the regular build of the software\.
+.
 .SH "EXAMPLES"
 Index the /usr directory, writing to the default database location ~/\.duc\.db:
 .

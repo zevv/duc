@@ -74,6 +74,7 @@
     <a href="#OPTIONS">OPTIONS</a>
     <a href="#CGI-INTERFACING">CGI INTERFACING</a>
     <a href="#A-NOTE-ON-FILE-SIZE-AND-DISK-USAGE">A NOTE ON FILE SIZE AND DISK USAGE</a>
+    <a href="#BUILDING-from-git">BUILDING from git</a>
     <a href="#EXAMPLES">EXAMPLES</a>
     <a href="#FREQUENTLY-ASKED-QUESTIONS">FREQUENTLY ASKED QUESTIONS</a>
     <a href="#FILES">FILES</a>
@@ -455,6 +456,23 @@ report disk usage (<code>duc ls</code>, <code>duc graph</code>, <code>duc gui</c
 change between these two modes (usually the <code>-a</code>), in the gui tool use the 'a'
 key to toggle.</p>
 
+<h2 id="BUILDING-from-git">BUILDING from git</h2>
+
+<p>If you use git clone to pull down the latest release, you will have to
+do the following:</p>
+
+<p>  git clone https://github.com/zevv/duc
+  cd duc
+  aclocal
+  automake --add-missing -c</p>
+
+<p>Then you can run the regular</p>
+
+<p>  ./configure [ options ]
+  make</p>
+
+<p>to the regular build of the software.</p>
+
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
 <p>Index the /usr directory, writing to the default database location ~/.duc.db:</p>
@@ -555,8 +573,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#x6d;&#97;&#105;&#108;&#x74;&#x6f;&#58;&#100;&#x75;&#99;&#x40;&#x7a;&#x65;&#118;&#x76;&#x2e;&#x6e;&#x6c;" data-bare-link="true">&#100;&#x75;&#99;&#x40;&#x7a;&#x65;&#x76;&#118;&#46;&#x6e;&#108;</a></li>
-<li>John Stoffel <a href="&#x6d;&#x61;&#x69;&#x6c;&#x74;&#x6f;&#58;&#x6a;&#x6f;&#104;&#110;&#x40;&#115;&#x74;&#x6f;&#102;&#102;&#101;&#x6c;&#46;&#111;&#x72;&#103;" data-bare-link="true">&#106;&#111;&#104;&#x6e;&#64;&#115;&#116;&#x6f;&#x66;&#x66;&#101;&#x6c;&#46;&#111;&#x72;&#x67;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#x69;&#108;&#116;&#x6f;&#58;&#x64;&#x75;&#99;&#64;&#122;&#101;&#x76;&#118;&#46;&#110;&#108;" data-bare-link="true">&#x64;&#x75;&#x63;&#x40;&#x7a;&#101;&#x76;&#x76;&#46;&#x6e;&#x6c;</a></li>
+<li>John Stoffel <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#106;&#x6f;&#x68;&#x6e;&#x40;&#115;&#x74;&#111;&#x66;&#x66;&#101;&#x6c;&#x2e;&#x6f;&#x72;&#103;" data-bare-link="true">&#x6a;&#111;&#104;&#110;&#x40;&#x73;&#116;&#x6f;&#102;&#102;&#101;&#108;&#x2e;&#x6f;&#114;&#x67;</a></li>
 </ul>
 
 
