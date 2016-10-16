@@ -1,4 +1,5 @@
 
+	- new: default per-user file path is now ~/.config/duc/ducrc
 	- new: added 'classic' palette for Philesight look
 	- cha: warnings in during indexing now show full path
 	- fix: fixed multiline label printing in CGI graph
