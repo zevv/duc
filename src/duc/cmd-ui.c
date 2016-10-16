@@ -251,7 +251,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case '\n': 
 				  duc_dir_seek(dir, cur);
 				  struct duc_dirent *e = duc_dir_read(dir, st);
-				  if(e->type == DUC_FILE_TYPE_DIR) {
+				  if(e && e->type == DUC_FILE_TYPE_DIR) {
 					dir2 = duc_dir_openent(dir, e);
 					if(dir2) {
 						do_dir(dir2, depth + 1);
