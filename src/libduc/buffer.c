@@ -38,12 +38,10 @@ struct buffer *buffer_new(void *data, size_t len)
 }
 
 
-
-
 void buffer_free(struct buffer *b)
 {
-	free(b->data);
-	free(b);
+	duc_free(b->data);
+	duc_free(b);
 }
 
 
@@ -102,32 +100,27 @@ static int buffer_get_varint(struct buffer *b, uint64_t *v)
 }
 
 
-static int buffer_put_string(struct buffer *b, const char *s)
+static void buffer_put_string(struct buffer *b, const char *s)
 {
 	size_t len = strlen(s);
 	if(len < 256) {
 		uint8_t l = len;
 		buffer_put(b, &l, sizeof l);
 		buffer_put(b, s, l);
-		return l;
-	} else {
-		return 0;
 	}
 }
 
 
-static int buffer_get_string(struct buffer *b, char **sout)
+static void buffer_get_string(struct buffer *b, char **sout)
 {
 	uint8_t len;
 	buffer_get(b, &len, sizeof len);
-	char *s = malloc(len + 1);
+	char *s = duc_malloc(len + 1);
 	if(s) {
 		buffer_get(b, s, len);
 		s[len] = '\0';
 		*sout = s;
-		return len;
 	}
-	return 0;
 }
 
 
@@ -205,7 +198,7 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	buffer_get_string(b, &vs);
 	if(vs == NULL) return;
 	snprintf(report->path, sizeof(report->path), "%s", vs);
-	free(vs);
+	duc_free(vs);
 
 	uint64_t vi;
 	buffer_get_varint(b, &vi); report->devino.dev = vi;
