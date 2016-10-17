@@ -7,10 +7,15 @@
 testdir=/var/tmp/duc-cgi-test
 port=8000
 
+if [ `basename pwd` != "testing" ]; then
+    echo "Please run this script from within the testing directory only."
+    exit 1
+fi
+
 if [ ! -d $testdir ]; then 
   ./rnd-tree.sh $testdir
 
-  cp ./duc ${testdir}/duc
+  cp ../duc ${testdir}/duc
   mkdir ${testdir}/cgi-bin
   cp duc-test.cgi ${testdir}/cgi-bin
   cp footer.txt header.txt index.htm ${testdir}
