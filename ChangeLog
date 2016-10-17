@@ -1,7 +1,10 @@
 
+	- new: default per-user file path is now ~/.config/duc/ducrc
+	- new: added 'classic' palette for Philesight look
 	- cha: warnings in during indexing now show full path
 	- fix: fixed multiline label printing in CGI graph
 	- fix: removed PATH_MAX references which broke build on GNU Hurd
+	- fix: fixed line stroking for HTML drawing backend
 
 1.4.1	(2016-03-12)
 

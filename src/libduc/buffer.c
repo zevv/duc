@@ -38,12 +38,10 @@ struct buffer *buffer_new(void *data, size_t len)
 }
 
 
-
-
 void buffer_free(struct buffer *b)
 {
-	free(b->data);
-	free(b);
+	duc_free(b->data);
+	duc_free(b);
 }
 
 
@@ -102,32 +100,59 @@ static int buffer_get_varint(struct buffer *b, uint64_t *v)
 }
 
 
-static int buffer_put_string(struct buffer *b, const char *s)
+static void buffer_put_string(struct buffer *b, const char *s)
 {
 	size_t len = strlen(s);
 	if(len < 256) {
 		uint8_t l = len;
 		buffer_put(b, &l, sizeof l);
 		buffer_put(b, s, l);
-		return l;
-	} else {
-		return 0;
 	}
 }
 
 
-static int buffer_get_string(struct buffer *b, char **sout)
+static void buffer_get_string(struct buffer *b, char **sout)
 {
 	uint8_t len;
 	buffer_get(b, &len, sizeof len);
-	char *s = malloc(len + 1);
+	char *s = duc_malloc(len + 1);
 	if(s) {
 		buffer_get(b, s, len);
 		s[len] = '\0';
 		*sout = s;
-		return len;
 	}
-	return 0;
+}
+
+
+static void buffer_put_devino(struct buffer *b, const struct duc_devino *devino)
+{
+	buffer_put_varint(b, devino->dev);
+	buffer_put_varint(b, devino->ino);
+}
+
+
+static void buffer_get_devino(struct buffer *b, struct duc_devino *devino)
+{
+	uint64_t v;
+	buffer_get_varint(b, &v); devino->dev = v;
+	buffer_get_varint(b, &v); devino->ino = v;
+}
+
+
+static void buffer_put_size(struct buffer *b, const struct duc_size *size)
+{
+	buffer_put_varint(b, size->apparent);
+	buffer_put_varint(b, size->actual);
+	buffer_put_varint(b, size->count);
+}
+
+
+static void buffer_get_size(struct buffer *b, struct duc_size *size)
+{
+	uint64_t v;
+	buffer_get_varint(b, &v); size->apparent = v;
+	buffer_get_varint(b, &v); size->actual = v;
+	buffer_get_varint(b, &v); size->count = v;
 }
 
 
@@ -137,8 +162,7 @@ static int buffer_get_string(struct buffer *b, char **sout)
 
 void buffer_put_dir(struct buffer *b, const struct duc_devino *devino, time_t mtime)
 {
-	buffer_put_varint(b, devino->dev);
-	buffer_put_varint(b, devino->ino);
+	buffer_put_devino(b, devino);
 	buffer_put_varint(b, mtime);
 }
 
@@ -146,23 +170,18 @@ void buffer_put_dir(struct buffer *b, const struct duc_devino *devino, time_t mt
 void buffer_get_dir(struct buffer *b, struct duc_devino *devino, time_t *mtime)
 {
 	uint64_t v;
-
-	buffer_get_varint(b, &v); devino->dev = v;
-	buffer_get_varint(b, &v); devino->ino = v;
+	buffer_get_devino(b, devino);
 	buffer_get_varint(b, &v); *mtime = v;
 }
 
 void buffer_put_dirent(struct buffer *b, const struct duc_dirent *ent)
 {
 	buffer_put_string(b, ent->name);
-	buffer_put_varint(b, ent->size.apparent);
-	buffer_put_varint(b, ent->size.actual);
-	buffer_put_varint(b, ent->size.count);
+	buffer_put_size(b, &ent->size);
 	buffer_put_varint(b, ent->type);
 
 	if(ent->type == DUC_FILE_TYPE_DIR) {
-		buffer_put_varint(b, ent->devino.dev);
-		buffer_put_varint(b, ent->devino.ino);
+		buffer_put_devino(b, &ent->devino);
 	}
 }
 
@@ -171,14 +190,11 @@ void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 	uint64_t v;
 
 	buffer_get_string(b, &ent->name);
-	buffer_get_varint(b, &v); ent->size.apparent = v;
-	buffer_get_varint(b, &v); ent->size.actual = v;
-	buffer_get_varint(b, &v); ent->size.count = v;
+	buffer_get_size(b, &ent->size);
 	buffer_get_varint(b, &v); ent->type = v;
 	
 	if(ent->type == DUC_FILE_TYPE_DIR) {
-		buffer_get_varint(b, &v); ent->devino.dev = v;
-		buffer_get_varint(b, &v); ent->devino.ino = v;
+		buffer_get_devino(b, &ent->devino);
 	}
 }
 
@@ -186,16 +202,14 @@ void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 void buffer_put_index_report(struct buffer *b, const struct duc_index_report *report)
 {
 	buffer_put_string(b, report->path);
-	buffer_put_varint(b, report->devino.dev);
-	buffer_put_varint(b, report->devino.ino);
+	buffer_put_devino(b, &report->devino);
 	buffer_put_varint(b, report->time_start.tv_sec);
 	buffer_put_varint(b, report->time_start.tv_usec);
 	buffer_put_varint(b, report->time_stop.tv_sec);
 	buffer_put_varint(b, report->time_stop.tv_usec);
 	buffer_put_varint(b, report->file_count);
 	buffer_put_varint(b, report->dir_count);
-	buffer_put_varint(b, report->size.apparent);
-	buffer_put_varint(b, report->size.actual);
+	buffer_put_size(b, &report->size);
 }
 
 
@@ -205,19 +219,17 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	buffer_get_string(b, &vs);
 	if(vs == NULL) return;
 	snprintf(report->path, sizeof(report->path), "%s", vs);
-	free(vs);
+	duc_free(vs);
 
 	uint64_t vi;
-	buffer_get_varint(b, &vi); report->devino.dev = vi;
-	buffer_get_varint(b, &vi); report->devino.ino = vi;
+	buffer_get_devino(b, &report->devino);
 	buffer_get_varint(b, &vi); report->time_start.tv_sec = vi;
 	buffer_get_varint(b, &vi); report->time_start.tv_usec = vi;
 	buffer_get_varint(b, &vi); report->time_stop.tv_sec = vi;
 	buffer_get_varint(b, &vi); report->time_stop.tv_usec = vi;
 	buffer_get_varint(b, &vi); report->file_count = vi;
 	buffer_get_varint(b, &vi); report->dir_count = vi;
-	buffer_get_varint(b, &vi); report->size.apparent = vi;
-	buffer_get_varint(b, &vi); report->size.actual = vi;
+	buffer_get_size(b, &report->size);
 }
 
 

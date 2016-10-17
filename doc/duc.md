@@ -33,7 +33,8 @@ double-leading-dash (`--option`), some options have a corresponding short
 option which can be used as well with a single leading dash. (`-o`)
 
 At startup duc tries to read its configuration from three locations in this
-particular order: `/etc/ducrc`, `~/.ducrc` and `./.ducrc`.
+particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
+`./.ducrc`.
 
 A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
@@ -64,8 +65,8 @@ By default Duc indexes all directories it encounters during file system
 traversal, including special file systems like /proc and /sys, and
 network file systems like NFS or Samba mounts. There are a few options to
 select what parts of your filesystem you want to include or exclude from the
-scan, check the documentation below for --exclude, --fs-exclude and
---fs-include for more details.
+scan, check the documentation below for the options --one-file-system, 
+--exclude, --fs-exclude and --fs-include for more details.
 
 
 ## QUERYING THE INDEX
@@ -213,6 +214,9 @@ Options for command `duc ls [options] [PATH]`:
   * `--dirs-only`:
     list only directories, skip individual files
 
+  * `--full-path`:
+    show full path instead of tree in recursive view
+
   * `-g`, `--graph`:
     draw graph with relative size for each entry
 
@@ -220,7 +224,7 @@ Options for command `duc ls [options] [PATH]`:
     traverse up to ARG levels deep [4]
 
   * `-R`, `--recursive`:
-    list subdirectories in a recursive tree view
+    recursively list subdirectories
 
 ### duc xml
 
@@ -273,7 +277,8 @@ Options for command `duc graph [options] [PATH]`:
     output file name [duc.png]
 
   * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
+    select palette. available palettes are: size, rainbow, greyscale, monochrome, classic
+
 
   * `--ring-gap=VAL`:
     leave a gap of VAL pixels between rings
@@ -313,7 +318,8 @@ Options for command `duc cgi [options] [PATH]`:
     generate table with file list
 
   * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
+    select palette. available palettes are: size, rainbow, greyscale, monochrome, classic
+
 
   * `--ring-gap=VAL`:
     leave a gap of VAL pixels between rings
@@ -372,7 +378,8 @@ Options for command `duc gui [options] [PATH]`:
     draw up to VAL levels deep [4]
 
   * `--palette=VAL`:
-    select palette <size|rainbow|greyscale|monochrome>
+    select palette. available palettes are: size, rainbow, greyscale, monochrome, classic
+
 
   * `--ring-gap=VAL`:
     leave a gap of VAL pixels between rings
@@ -387,6 +394,8 @@ The following keys can be used to navigate and alter the file system:
 
     up, pgup, j:     move cursor up
     down, pgdn, k:   move cursor down
+    home, 0:         move cursor to top
+    end, $:          move cursor to bottom
     left, backspace: go up to parent directory (..)
     right, enter:    descent into selected directory
     a:               toggle between actual and apparent disk usage
@@ -478,6 +487,22 @@ report disk usage (`duc ls`, `duc graph`, `duc gui`, etc) have an option to
 change between these two modes (usually the `-a`), in the gui tool use the 'a'
 key to toggle.
 
+## BUILDING from git
+
+If you use git clone to pull down the latest release, you will have to
+do the following:
+
+  git clone https://github.com/zevv/duc
+  cd duc
+  aclocal
+  automake --add-missing -c
+
+Then you can run the regular 
+
+  ./configure [ options ]
+  make
+
+to the regular build of the software.
 
 ## EXAMPLES
 
@@ -564,7 +589,8 @@ path which is used by all subcommands
 ## FILES
 
 At startup duc tries to read its configuration from three locations in this
-particular order: `/etc/ducrc`, `~/.ducrc` and `./.ducrc`.
+particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
+`./.ducrc`.
 
 Duc mainains an index of scanned directories, which defaults to ~/.duc.db. All tools
 take the -d/--database option to override the database path.

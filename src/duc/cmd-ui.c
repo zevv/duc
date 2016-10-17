@@ -251,7 +251,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case '\n': 
 				  duc_dir_seek(dir, cur);
 				  struct duc_dirent *e = duc_dir_read(dir, st);
-				  if(e->type == DUC_FILE_TYPE_DIR) {
+				  if(e && e->type == DUC_FILE_TYPE_DIR) {
 					dir2 = duc_dir_openent(dir, e);
 					if(dir2) {
 						do_dir(dir2, depth + 1);
@@ -335,7 +335,7 @@ struct cmd cmd_ui = {
 	.main = ui_main,
 	.options = options,
 	.descr_long = 
-		"The 'gui' subcommand queries the duc database and runs an interactive ncurses\n"
+		"The 'ui' subcommand queries the duc database and runs an interactive ncurses\n"
 		"utility for exploring the disk usage of the given path. If no path is given the\n"
 		"current working directory is explored.\n"
 		"\n"
