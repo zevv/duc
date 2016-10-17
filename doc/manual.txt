@@ -121,10 +121,24 @@ Some notes:
 * The HTML page is generated with a simple embedded CSS style sheet. If the
   style is not to your liking you can provide an external CSS url with the
   --css-url option which will then be used instead of the embedded style
-  definition.
+  definition.  See examples/duc.css for a listing of all style elements used.
 
 * Add the option --list to generate a table of top sized files and directories
   in the HTML page.
+
+* The options --header and --footer allow you to insert your own div
+  to replace the default ones.  You must include the full div block wrappers
+
+    <div id="header">
+    </div>
+
+  or
+
+    <div id="footer">
+    </div>
+
+  in your provided file.  If the file cannot be read, it will default
+  back to the builtin default div.
 
 The current CGI configuration is not very flexible, nor secure. It is not
 advised to run the CGI from public reachable web servers, use at your own risk.

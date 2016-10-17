@@ -1,7 +1,11 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
+<<<<<<< HEAD
 .TH "DUC" "1" "October 2016" "" ""
+=======
+.TH "DUC" "1" "2016-10-15" "" ""
+>>>>>>> 1e22e712eae577615c89ff9987be3af633379a8d
 .
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
@@ -319,12 +323,20 @@ url of CSS style sheet to use instead of default CSS
 select database file to use [~/\.duc\.db]
 .
 .TP
+\fB\-0\fR, \fB\-\-footer=VAL\fR
+select html file to include in footer div
+.
+.TP
 \fB\-\-fuzz=VAL\fR
 use radius fuzz factor when drawing graph [0\.7]
 .
 .TP
 \fB\-\-gradient\fR
 draw graph with color gradient
+.
+.TP
+\fB\-0\fR, \fB\-\-header=VAL\fR
+select html file to include in header div
 .
 .TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
@@ -419,7 +431,7 @@ select palette\. available palettes are: size, rainbow, greyscale, monochrome, c
 leave a gap of VAL pixels between rings
 .
 .SS "duc ui"
-The \'ui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+The \'gui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .
 .P
 The following keys can be used to navigate and alter the file system:
@@ -502,10 +514,23 @@ Make sure the \.cgi script has execute permissions (\fBchmod +x duc\.cgi\fR)
 Some notes:
 .
 .IP "\(bu" 4
-The HTML page is generated with a simple embedded CSS style sheet\. If the style is not to your liking you can provide an external CSS url with the \-\-css\-url option which will then be used instead of the embedded style definition\.
+The HTML page is generated with a simple embedded CSS style sheet\. If the style is not to your liking you can provide an external CSS url with the \-\-css\-url option which will then be used instead of the embedded style definition\. See examples/duc\.css for a listing of all style elements used\.
 .
 .IP "\(bu" 4
 Add the option \-\-list to generate a table of top sized files and directories in the HTML page\.
+.
+.IP "\(bu" 4
+The options \-\-header and \-\-footer allow you to insert your own div to replace the default ones\. You must include the full div block wrappers
+.
+.IP
+.
+.IP
+or
+.
+.IP
+.
+.IP
+in your provided file\. If the file cannot be read, it will default back to the builtin default div\.
 .
 .IP "" 0
 .
