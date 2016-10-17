@@ -5,5 +5,5 @@
 
 testdir=/var/tmp/duc-cgi-test
 
-${testdir}/duc cgi -d ${testdir}/duc.db --list 
+${testdir}/duc cgi -d ${testdir}/duc.db --list  --footer footer.txt --header header.txt
 

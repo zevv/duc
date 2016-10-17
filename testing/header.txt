@@ -1,0 +1,8 @@
+<div id="header">
+<H1>Welcome to DUC!</H1>
+
+Return to the <A HREF="index.htm">index</A> of this test setup.<BR>
+
+<hr>
+</div>
+

@@ -12,8 +12,9 @@ if [ ! -d $testdir ]; then
 
   cp ./duc ${testdir}/duc
   mkdir ${testdir}/cgi-bin
-  cp testing/duc-test.cgi ${testdir}/cgi-bin
-
+  cp duc-test.cgi ${testdir}/cgi-bin
+  cp footer.txt header.txt index.htm ${testdir}
+  
   ./duc index -v -d ${testdir}/duc.db $testdir
 
 else
