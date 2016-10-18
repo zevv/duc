@@ -1,4 +1,4 @@
-<div id="footer">
+<div id="footer" display: inline; >
 <HR>
 <A HREF="http://github.com/zevv/duc">duc</A> is copyright 2016 and
 distributed under the GNU GPL v2 licenses.

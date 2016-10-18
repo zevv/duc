@@ -210,14 +210,15 @@ int print_html_file(const char *path)
 {
     FILE *f = fopen(path, "r");
     if(f == NULL) {
-	duc_log(NULL, DUC_LOG_DBG, "Error reading %s: %s", path, strerror(errno));
+	  duc_log(NULL, DUC_LOG_DBG, "Error reading %s: %s", path, strerror(errno));
 	return -1;
     }
+
     char buf[1024];
     size_t nbytes;
 
-    while ((nbytes = fread(buf, sizeof(char), sizeof(buf), f)) != 0) {
-	fwrite(buf, sizeof(char), nbytes, stdout);
+    while (fgets(buf, sizeof(buf) - 1, f) != NULL) {
+	printf("%s",buf);
     }
 
     fclose(f);
@@ -226,24 +227,31 @@ int print_html_file(const char *path)
 
 static void print_div(const int type, const char *path)
 {
-    int ok;
+    int ok = -1;
     if (path) {
-	ok = print_html_file(path);
+	  ok = print_html_file(path);
     }
     
     if (ok == -1) {
-	if (type == DIV_HEADER) {
+	switch(type) {
+	case DIV_HEADER:
 	    printf(
 		"<div id=\"header\">\n"
-		"</div>\n"
+		"Welcome to <br>"
+		"<hr>\n"
+		"</div>\n\n"
 		);
-	}
-	if (type == DIV_FOOTER) {
+		break;
+	case DIV_FOOTER:
 	    printf(
 		"<div id=\"footer\">\n"
+		"<hr>\n"
 		"You can find  duc at <A HREF=\"http://github.com/zevv/duc\">http://github.com/zevv/duc</A>"
-		"</div>\n"
+		"</div>\n\n"
 		);	       
+		break;
+	default:
+		break;
 	}
     }
 }

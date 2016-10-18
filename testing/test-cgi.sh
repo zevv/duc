@@ -7,7 +7,7 @@
 testdir=/var/tmp/duc-cgi-test
 port=8000
 
-if [ `basename pwd` != "testing" ]; then
+if [ `basename $PWD` != "testing" ]; then
     echo "Please run this script from within the testing directory only."
     exit 1
 fi
@@ -20,10 +20,15 @@ if [ ! -d $testdir ]; then
   cp duc-test.cgi ${testdir}/cgi-bin
   cp footer.txt header.txt index.htm ${testdir}
   
-  ./duc index -v -d ${testdir}/duc.db $testdir
+  ${testdir}/duc index -v -d ${testdir}/duc.db $testdir
 
 else
   echo "${testdir} already setup, just do rm -rf to purge and re-run for new setup."
+fi
+
+if [ ../duc -nt ${testdir}/duc ]; then
+    cp ../duc ${testdir}/duc
+    ${testdir}/duc index -v -d ${testdir}/duc.db $testdir
 fi
 
 # Serve up on a local port

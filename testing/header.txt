@@ -1,7 +1,7 @@
-<div id="header">
+<div id="header" display: inline; >
 <H1>Welcome to DUC!</H1>
 
-Return to the <A HREF="index.htm">index</A> of this test setup.<BR>
+Return to the <A HREF="/index.htm">index</A> of this test setup.<BR>
 
 <hr>
 </div>
