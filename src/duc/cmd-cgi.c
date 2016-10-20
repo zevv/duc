@@ -450,11 +450,14 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 	printf("</div>\n");
 
-	print_div(DIV_FOOTER,opt_footer);
-
 	if(opt_tooltip) {
 		printf("<div id=\"tooltip\"></div>\n");
 	}
+
+	print_div(DIV_FOOTER,opt_footer);
+
+	printf("</body>\n");
+	printf("</html>\n");
 
 	fflush(stdout);
 }
