@@ -110,6 +110,12 @@ static int index_main(duc *duc, int argc, char **argv)
 			duc_log(duc, DUC_LOG_WRN, "An error occurred while indexing: %s", duc_strerror(duc));
 		}
 
+		/* Prevent final output of progress_cb() from being overwritten with the shell's prompt */
+		if (opt_progress) {
+			fputc ('\n', stdout);
+			fflush (stdout);
+		}
+
 		duc_index_report_free(report);
 	}
 
