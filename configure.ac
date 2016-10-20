@@ -158,12 +158,14 @@ fi
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h termios.h])
 AC_CHECK_HEADERS([ncurses.h ncurses/ncurses.h ncursesw/ncurses.h])
 
+AM_PROG_CC_C_O
+
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
-AC_TYPE_UINT32_T
-AC_TYPE_UINT64_T
-AC_TYPE_UINT8_T
+#AC_TYPE_UINT32_T
+#AC_TYPE_UINT64_T
+#AC_TYPE_UINT8_T
 AC_CHECK_TYPES([dev_t, ino_t])
 
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
