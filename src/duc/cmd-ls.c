@@ -55,6 +55,7 @@ static int opt_recursive = 0;
 static char *opt_database = NULL;
 static int opt_dirs_only = 0;
 static int opt_levels = 4;
+static int opt_name_sort = 0;
 
 
 /*
@@ -73,6 +74,7 @@ static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 	int max_size_len = 6;
 	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
 	                   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_sort sort = opt_name_sort ? DUC_SORT_NAME : DUC_SORT_SIZE;
 
 	if(level > opt_levels) return;
 
@@ -81,7 +83,7 @@ static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 	/* Iterate the directory once to get maximum file size and name length */
 	
 	struct duc_dirent *e;
-	while( (e = duc_dir_read(dir, st)) != NULL) {
+	while( (e = duc_dir_read(dir, st, sort)) != NULL) {
 
 		off_t size = duc_get_size(&e->size, st);
 
@@ -100,7 +102,7 @@ static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 	size_t count = duc_dir_get_count(dir);
 	size_t n = 0;
 
-	while( (e = duc_dir_read(dir, st)) != NULL) {
+	while( (e = duc_dir_read(dir, st, sort)) != NULL) {
 
 		if(opt_dirs_only && e->type != DUC_FILE_TYPE_DIR) continue;
 
@@ -251,6 +253,7 @@ static struct ducrc_option options[] = {
 	{ &opt_full_path, "full-path",  0,  DUCRC_TYPE_BOOL,   "show full path instead of tree in recursive view" },
 	{ &opt_graph,     "graph",     'g', DUCRC_TYPE_BOOL,   "draw graph with relative size for each entry" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "traverse up to ARG levels deep [4]" },
+	{ &opt_name_sort, "name-sort", 'n', DUCRC_TYPE_BOOL,   "sort output by name instead of by size" },
 	{ &opt_recursive, "recursive", 'R', DUCRC_TYPE_BOOL,   "recursively list subdirectories" },
 	{ NULL }
 };

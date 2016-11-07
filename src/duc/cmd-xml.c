@@ -56,7 +56,7 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 {
 	struct duc_dirent *e;
 
-	while( (e = duc_dir_read(dir, DUC_SIZE_TYPE_ACTUAL)) != NULL) {
+	while( (e = duc_dir_read(dir, DUC_SIZE_TYPE_ACTUAL, DUC_SORT_SIZE)) != NULL) {
 
 		if(e->type == DUC_FILE_TYPE_DIR && e->size.apparent >= min_size) {
 			duc_dir *dir_child = duc_dir_openent(dir, e);

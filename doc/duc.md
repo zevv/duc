@@ -226,6 +226,9 @@ Options for command `duc ls [options] [PATH]`:
   * `-R`, `--recursive`:
     recursively list subdirectories
 
+  * `-n`, `--name-sort`:
+    sort output by name instead of by size
+
 ### duc xml
 
 Options for command `duc xml [options] [PATH]`:
@@ -402,6 +405,7 @@ The following keys can be used to navigate and alter the file system:
     b:               toggle between exact and abbreviated sizes
     c:               Toggle between file size and file count
     h:               show help. press 'q' to return to the main screen
+    n:               toggle sort order between 'size' and 'name'
     q, escape:       quit
 
 
@@ -421,6 +425,9 @@ Options for command `duc ui [options] [PATH]`:
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
+
+  * `-n`, `--name-sort`:
+    sort output by name instead of by size
 
 
 

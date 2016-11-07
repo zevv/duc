@@ -363,7 +363,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 		struct duc_dirent *e;
 		int n = 0;
-		while((n++ < 40) && (e = duc_dir_read(dir, st)) != NULL) {
+		while((n++ < 40) && (e = duc_dir_read(dir, st, DUC_SORT_SIZE)) != NULL) {
 			char siz[32];
 			duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 			printf("  <tr><td class=name>");
