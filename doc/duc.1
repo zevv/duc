@@ -224,12 +224,12 @@ draw graph with relative size for each entry
 traverse up to ARG levels deep [4]
 .
 .TP
-\fB\-R\fR, \fB\-\-recursive\fR
-recursively list subdirectories
-.
-.TP
 \fB\-n\fR, \fB\-\-name\-sort\fR
 sort output by name instead of by size
+.
+.TP
+\fB\-R\fR, \fB\-\-recursive\fR
+recursively list subdirectories
 .
 .SS "duc xml"
 Options for command \fBduc xml [options] [PATH]\fR:
@@ -323,12 +323,20 @@ url of CSS style sheet to use instead of default CSS
 select database file to use [~/\.duc\.db]
 .
 .TP
+\fB\-\-footer=VAL\fR
+select HTML file to include as footer
+.
+.TP
 \fB\-\-fuzz=VAL\fR
 use radius fuzz factor when drawing graph [0\.7]
 .
 .TP
 \fB\-\-gradient\fR
 draw graph with color gradient
+.
+.TP
+\fB\-\-header=VAL\fR
+select HTML file to include as header
 .
 .TP
 \fB\-l\fR, \fB\-\-levels=VAL\fR
@@ -465,16 +473,16 @@ show file size in exact number of bytes
 show number of files instead of file size
 .
 .TP
-\fB\-\-no\-color\fR
-do not use colors on terminal output
-.
-.TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
 select database file to use [~/\.duc\.db]
 .
 .TP
 \fB\-n\fR, \fB\-\-name\-sort\fR
 sort output by name instead of by size
+.
+.TP
+\fB\-\-no\-color\fR
+do not use colors on terminal output
 .
 .SH "CGI INTERFACING"
 The \fBduc\fR binary has support for a rudimentary CGI interface, currently only tested with apache\. The CGI interface generates a simple HTML page with a list of indexed directories, and shows a clickable graph for navigating the file system\. If the option \fB\-\-list\fR is given, a list of top sized files/dirs is also written\.
@@ -515,6 +523,9 @@ The HTML page is generated with a simple embedded CSS style sheet\. If the style
 .
 .IP "\(bu" 4
 Add the option \-\-list to generate a table of top sized files and directories in the HTML page\.
+.
+.IP "\(bu" 4
+The options \-\-header and \-\-footer allow you to insert your own HTML code before and after the main
 .
 .IP "" 0
 .

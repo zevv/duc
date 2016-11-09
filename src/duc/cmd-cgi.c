@@ -30,7 +30,9 @@ static int opt_bytes = 0;
 static int opt_list = 0;
 static int opt_size = 800;
 static int opt_gradient = 0;
+static char *opt_footer = NULL;
 static double opt_fuzz = 0.7;
+static char *opt_header = NULL;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
 static int opt_tooltip = 0;
@@ -246,6 +248,23 @@ static void print_script(const char *path)
 }
 
 
+static void include_file(const char *fname)
+{
+	FILE *f = fopen(fname, "rb");
+	if(f) {
+		printf("<!-- start include -->\n");
+		for(;;) {
+			char buf[4096];
+			size_t n = fread(buf, 1, sizeof(buf), f);
+			if(n == 0) break;
+			fwrite(buf, 1, n, stdout);
+		}
+		printf("<!-- end include -->\n");
+		fclose(f);
+	}
+}
+
+
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
 
@@ -293,11 +312,12 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		print_script(path);
 	}
 
-	printf(
-		"</head>\n"
-		"<div id=main>\n"
-	);
+	printf("</head>\n");
+	printf("<body>\n");
 
+	include_file(opt_header);
+
+	printf("<div id=main>\n");
 	printf("<div id=index>");
 	printf(" <table>\n");
 	printf("  <tr>\n");
@@ -394,6 +414,13 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	if(opt_tooltip) {
 		printf("<div id=\"tooltip\"></div>\n");
 	}
+
+	printf("</div>\n");
+
+	include_file(opt_footer);
+
+	printf("</body>\n");
+	printf("</html>\n");
 
 	fflush(stdout);
 }
@@ -514,8 +541,10 @@ static struct ducrc_option options[] = {
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_css_url,   "css-url",    0,  DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_footer,    "footer",     0,  DUCRC_TYPE_STRING, "select HTML file to include as footer" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
+	{ &opt_header,    "header",     0,  DUCRC_TYPE_STRING, "select HTML file to include as header" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_list,      "list",       0,  DUCRC_TYPE_BOOL,   "generate table with file list" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette",

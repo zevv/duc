@@ -2,6 +2,7 @@
 	- new: default per-user file path is now ~/.config/duc/ducrc
 	- new: added 'classic' palette for Philesight look
 	- new: added -n/--name-sort option to 'duc ui' and 'duc ls'
+	- new: added --header and --footer options to 'duc cgi'
 	- cha: warnings in during indexing now show full path
 	- fix: fixed multiline label printing in CGI graph
 	- fix: removed PATH_MAX references which broke build on GNU Hurd

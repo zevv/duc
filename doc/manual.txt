@@ -126,6 +126,9 @@ Some notes:
 * Add the option --list to generate a table of top sized files and directories
   in the HTML page.
 
+* The options --header and --footer allow you to insert your own HTML code
+  before and after the main <div>.
+
 The current CGI configuration is not very flexible, nor secure. It is not
 advised to run the CGI from public reachable web servers, use at your own risk.
 

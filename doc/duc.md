@@ -223,11 +223,11 @@ Options for command `duc ls [options] [PATH]`:
   * `-l`, `--levels=VAL`:
     traverse up to ARG levels deep [4]
 
-  * `-R`, `--recursive`:
-    recursively list subdirectories
-
   * `-n`, `--name-sort`:
     sort output by name instead of by size
+
+  * `-R`, `--recursive`:
+    recursively list subdirectories
 
 ### duc xml
 
@@ -308,11 +308,17 @@ Options for command `duc cgi [options] [PATH]`:
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
 
+  * `--footer=VAL`:
+    select HTML file to include as footer
+
   * `--fuzz=VAL`:
     use radius fuzz factor when drawing graph [0.7]
 
   * `--gradient`:
     draw graph with color gradient
+
+  * `--header=VAL`:
+    select HTML file to include as header
 
   * `-l`, `--levels=VAL`:
     draw up to ARG levels deep [4]
@@ -420,14 +426,14 @@ Options for command `duc ui [options] [PATH]`:
   * `--count`:
     show number of files instead of file size
 
-  * `--no-color`:
-    do not use colors on terminal output
-
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
 
   * `-n`, `--name-sort`:
     sort output by name instead of by size
+
+  * `--no-color`:
+    do not use colors on terminal output
 
 
 
@@ -462,6 +468,9 @@ Some notes:
 
 * Add the option --list to generate a table of top sized files and directories
   in the HTML page.
+
+* The options --header and --footer allow you to insert your own HTML code
+  before and after the main <div>.
 
 The current CGI configuration is not very flexible, nor secure. It is not
 advised to run the CGI from public reachable web servers, use at your own risk.
