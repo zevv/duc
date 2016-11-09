@@ -6,7 +6,7 @@ bored and have a lot of time on my hands. Anybody is free to pick and implement
 any of these tasks, of course!
 
 
-- Show increase since last index or time period 
+### Show increase since last index or time period 
 
   https://github.com/zevv/duc/issues/153
 
@@ -17,14 +17,14 @@ any of these tasks, of course!
   DUC to show the increase in % since last index or a configured time period
   (say 7 days ago).
 
-- Incremental Indexing
+### Incremental Indexing
  
   https://github.com/zevv/duc/issues/115
 
   Just a question, is the indexing process incremental or does it restart the
   indexing from scratch each time?
 
-- Per user filtering
+### Per user filtering
 
   https://github.com/zevv/duc/issues/30
 
@@ -34,7 +34,7 @@ any of these tasks, of course!
   a specific user. This way I could send users graphs of the disk usage limited
   to their user.
 
-- Directory mtime optimization
+### Directory mtime optimization
 
   https://github.com/zevv/duc/issues/101
 
@@ -43,7 +43,7 @@ any of these tasks, of course!
   readdir() is needed to update the database, or as a performance optimization
   whether an update of that directory can be skipped?
 
-- overall graph of multiple datasets in a database 
+### overall graph of multiple datasets in a database 
 
   https://github.com/zevv/duc/issues/56
 
