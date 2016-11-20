@@ -1,4 +1,6 @@
 
+1.4.2	(2016-11-20)
+
 	- new: default per-user file path is now ~/.config/duc/ducrc
 	- new: added 'classic' palette for Philesight look
 	- new: added -n/--name-sort option to 'duc ui' and 'duc ls'
