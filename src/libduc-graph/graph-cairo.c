@@ -104,7 +104,7 @@ static void br_cairo_draw_text(duc_graph *g, double x, double y, double size, ch
 	x -= ((double)w / PANGO_SCALE / 2);
 	y -= ((double)h / PANGO_SCALE / 2);
 
-	cairo_move_to(cr, x, y);
+	cairo_move_to(cr, floor(x+0.5), floor(y+0.5));
 	pango_cairo_layout_path(cr, layout);
 	g_object_unref(layout);
 	
