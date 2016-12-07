@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <limits.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,6 +32,7 @@ static char *opt_css_url = NULL;
 static char *opt_header = NULL;
 static char *opt_footer = NULL;
 static char *opt_database = NULL;
+static char *opt_dbdir = NULL;
 static int opt_bytes = 0;
 static int opt_list = 0;
 static int opt_size = 800;
@@ -307,8 +309,53 @@ static void print_script(const char *path)
 
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
+    DIR *cgi_db_dir;
+	struct dirent *e;
+	struct stat sb;
+	char name[128];
+	int r;
 
+	/* 
+	   look for db= CGI parameter, which implies that we're using
+	   index_dir mode to support multiple DBs in one CGI instance.
+	*/
+        char *cgi_db_name = cgi_get("db");
+	if (opt_dbdir) {
+	  cgi_db_dir = opendir(opt_dbdir);
+	  if (!cgi_db_dir) {
+		duc_log(NULL, DUC_LOG_DBG, "Error: opendir(%s): %s\n", opt_dbdir, strerror(errno));
+		return;
+	  }
+	  
+	  while(e = readdir(cgi_db_dir)) {
+		lstat(e->d_name, &sb);
+		/* skip all directory entries */
+		if (S_ISDIR(sb.st_mode)) {
+		  continue;
+		}
+
+		/* all passed in CGI string DBs do NOT have the .db extension, so add it
+		   to compare to found file name. */
+		strcpy(name,cgi_db_name);
+		strncat(name,".db",3);
+		if (strcmp(e->d_name,name)) {
+		  if (duc) {
+			duc_close(duc);
+		  }
+
+		  r = duc_open(duc, e->d_name, DUC_OPEN_RO);
+		  if(r != DUC_OK) {
+			printf("Content-Type: text/plain\n\n");
+			printf("%s\n", duc_strerror(duc));
+			return -1;
+		  }
 	
+		  
+		  /* reopen duc_dir *duc here to a new DB I think. */
+		}
+	  }
+	}
+
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
@@ -519,14 +566,21 @@ static int cgi_main(duc *duc, int argc, char **argv)
 
 	char *cmd = cgi_get("cmd");
 	if(cmd == NULL) cmd = "index";
-
-        r = duc_open(duc, opt_database, DUC_OPEN_RO);
-        if(r != DUC_OK) {
-		printf("Content-Type: text/plain\n\n");
-                printf("%s\n", duc_strerror(duc));
-		return -1;
-        }
-
+	
+	if (opt_database && opt_dbdir) {
+	  fprintf(stderr,
+			  "oops, both -d and -D options are used together...\n\n"
+			  );
+	  return(-1);
+	}
+	
+	r = duc_open(duc, opt_database, DUC_OPEN_RO);
+	if(r != DUC_OK) {
+	  printf("Content-Type: text/plain\n\n");
+	  printf("%s\n", duc_strerror(duc));
+	  return -1;
+	}
+	
 	duc_dir *dir = NULL;
 	char *path = cgi_get("path");
 	if(path) {
@@ -578,6 +632,7 @@ static struct ducrc_option options[] = {
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_css_url,   "css-url",    0,  DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_dbdir,     "dbdir",      0, DUCRC_TYPE_STRING,  "Directory to search for DBs.  Required for building index." },
 	{ &opt_footer,    "footer",     0, DUCRC_TYPE_STRING, "select html file to include in footer div" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
