@@ -7,6 +7,7 @@ duc_SOURCES := \
 	src/libduc/db.c \
 	src/libduc/db.h \
 	src/libduc/db-tokyo.c \
+	src/libduc/db-kyoto.c \
 	src/libduc/db-leveldb.c \
 	src/libduc/db-sqlite3.c \
 	src/libduc/db-lmdb.c \
@@ -54,11 +55,11 @@ duc_SOURCES  += \
 
 
 AM_CFLAGS := @CAIRO_CFLAGS@ @PANGO_CFLAGS@ @PANGOCAIRO_CFLAGS@
-AM_CFLAGS += @TC_CFLAGS@ @SQLITE3_CFLAGS@ @GLFW3_CFLAGS@ @LMDB_CFLAGS@
+AM_CFLAGS += @TC_CFLAGS@ @SQLITE3_CFLAGS@ @GLFW3_CFLAGS@ @LMDB_CFLAGS@ @KC_CFLAGS@
 AM_CFLAGS += -Isrc/libduc -Isrc/libduc-graph -Isrc/glad
 
 duc_LDADD := @CAIRO_LIBS@ @PANGO_LIBS@ @PANGOCAIRO_LIBS@
-duc_LDADD += @TC_LIBS@ @SQLITE3_LIBS@ @GLFW3_LIBS@ @LMDB_LIBS@
+duc_LDADD += @TC_LIBS@ @SQLITE3_LIBS@ @GLFW3_LIBS@ @LMDB_LIBS@ @KC_LIBS@
 
 man1_MANS = \
 	doc/duc.1
