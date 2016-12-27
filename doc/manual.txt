@@ -39,7 +39,7 @@ particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
 A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
 apply. A section begins with the name of the section in square brackets and
-continues until the next section begins.Sections contain parameters, one per
+continues until the next section begins. Sections contain parameters, one per
 line, which consist of a single option name for boolean flags, or an option name
 and a value for options which take a value. See the EXAMPLES section for an
 example of the configuration file format.
@@ -79,7 +79,7 @@ Duc has various subcommands for querying or exploring the index:
 * `duc ls` lists all files and directories under the given path on the console.
 
 * `duc ui` runs a ncurses based console user interface for exploring the file
-  system usage
+  system usage.
 
 * `duc gui` starts a graphical (X11) interface representing the file system in
   a sunburst graph. Click on a directory to redraw the graph from the
