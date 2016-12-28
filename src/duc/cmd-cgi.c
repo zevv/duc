@@ -428,9 +428,6 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 void do_tooltip(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
-			   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
-
 	printf("Content-Type: text/html\n");
 	printf("\n");
 
