@@ -26,7 +26,16 @@ struct db {
 struct db *db_open(const char *path_db, int flags, duc_errno *e)
 {
 	struct db *db;
-	int sflags = 0;
+	unsigned int env_flags = MDB_NOSUBDIR;
+	unsigned int open_flags = 0;
+	unsigned int txn_flags = 0;
+
+	if(flags & DUC_OPEN_RW) {
+		open_flags |= MDB_CREATE;
+	} else {
+		env_flags |= MDB_RDONLY;
+		txn_flags |= MDB_RDONLY;
+	}
 
 	db = duc_malloc(sizeof *db);
 
@@ -38,13 +47,13 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	rc = mdb_env_set_mapsize(db->env, 1024u * 1024u * 1024u);
 	if(rc != MDB_SUCCESS) goto out;
 
-	rc = mdb_env_open(db->env, path_db, MDB_NOSUBDIR, 0664);
+	rc = mdb_env_open(db->env, path_db, env_flags, 0664);
 	if(rc != MDB_SUCCESS) goto out;
 
-	rc = mdb_txn_begin(db->env, NULL, 0, &db->txn);
+	rc = mdb_txn_begin(db->env, NULL, txn_flags, &db->txn);
 	if(rc != MDB_SUCCESS) goto out;
 
-	rc = mdb_open(db->txn, NULL, MDB_CREATE, &db->dbi);
+	rc = mdb_open(db->txn, NULL, open_flags, &db->dbi);
 	if(rc != MDB_SUCCESS) goto out;
 
 	return db;
