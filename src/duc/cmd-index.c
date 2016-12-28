@@ -56,6 +56,13 @@ void progress_cb(struct duc_index_report *rep, void *ptr)
 }
 
 
+static void log_callback(duc_log_level level, const char *fmt, va_list va)
+{
+	vfprintf(stderr, fmt, va);
+	fprintf(stderr, "\e[K\n");
+}
+
+
 static int index_main(duc *duc, int argc, char **argv)
 {
 	duc_index_flags index_flags = 0;
@@ -67,11 +74,15 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_hide_file_names) index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
 	if(opt_check_hard_links) index_flags |= DUC_INDEX_CHECK_HARD_LINKS;
 	if(opt_uncompressed) open_flags &= ~DUC_OPEN_COMPRESS;
-	if(opt_progress) duc_index_req_set_progress_cb(req, progress_cb, NULL);
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");
 		return -2;
+	}
+	
+	if(opt_progress) {
+		duc_index_req_set_progress_cb(req, progress_cb, NULL);
+		duc_set_log_callback(duc, log_callback);
 	}
 	
 	int r = duc_open(duc, opt_database, open_flags);
