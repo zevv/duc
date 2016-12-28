@@ -37,6 +37,12 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 		txn_flags |= MDB_RDONLY;
 	}
 
+	/* On 32 bit machines the maximum db size is limited to 1GB, for 64 bit
+	 * machines we increase to 256 GB */
+
+	size_t map_size = 1024u * 1024u * 1024u;
+	if(sizeof(size_t) == 8) map_size *= 256u;
+
 	db = duc_malloc(sizeof *db);
 
 	int rc;
@@ -44,7 +50,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	rc = mdb_env_create(&db->env);
 	if(rc != MDB_SUCCESS) goto out;
 
-	rc = mdb_env_set_mapsize(db->env, 1024u * 1024u * 1024u);
+	rc = mdb_env_set_mapsize(db->env, map_size);
 	if(rc != MDB_SUCCESS) goto out;
 
 	rc = mdb_env_open(db->env, path_db, env_flags, 0664);
