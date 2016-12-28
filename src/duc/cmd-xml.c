@@ -16,7 +16,7 @@
 
 static char *opt_database = NULL;
 static double opt_min_size = 0;
-static int opt_exclude_files = 0;
+static bool opt_exclude_files = false;
 
 
 static void indent(int n)

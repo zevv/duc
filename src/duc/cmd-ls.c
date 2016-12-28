@@ -42,20 +42,20 @@ static char *tree_utf8[] = {
 	"    ",
 };
 
-static int opt_apparent = 0;
-static int opt_count = 0;
-static int opt_ascii = 0;
-static int opt_bytes = 0;
-static int opt_classify = 0;
-static int opt_color = 0;
-static int opt_full_path = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
+static bool opt_ascii = false;
+static bool opt_bytes = false;
+static bool opt_classify = false;
+static bool opt_color = false;
+static bool opt_full_path = false;
 static int width = 80;
-static int opt_graph = 0;
-static int opt_recursive = 0;
+static bool opt_graph = false;
+static bool opt_recursive = false;
 static char *opt_database = NULL;
-static int opt_dirs_only = 0;
+static bool opt_dirs_only = false;
 static int opt_levels = 4;
-static int opt_name_sort = 0;
+static bool opt_name_sort = false;
 
 
 /*

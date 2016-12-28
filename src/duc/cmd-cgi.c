@@ -22,20 +22,20 @@ struct param {
 };
 
 
-static int opt_apparent = 0;
-static int opt_count = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
 static char *opt_css_url = NULL;
 static char *opt_database = NULL;
-static int opt_bytes = 0;
-static int opt_list = 0;
+static bool opt_bytes = false;
+static bool opt_list = false;
 static int opt_size = 800;
-static int opt_gradient = 0;
+static bool opt_gradient = false;
 static char *opt_footer = NULL;
 static double opt_fuzz = 0.7;
 static char *opt_header = NULL;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
-static int opt_tooltip = 0;
+static bool opt_tooltip = false;
 static int opt_ring_gap = 4;
 
 static struct param *param_list = NULL;

@@ -41,12 +41,12 @@ enum {
 
 static void help(void);
 
-static int opt_apparent = 0;
-static int opt_count = 0;
-static int opt_bytes = 0;
-static int opt_graph = 1;
-static int opt_nocolor = 0;
-static int opt_name_sort = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
+static bool opt_bytes = false;
+static bool opt_graph = true;
+static bool opt_nocolor = false;
+static bool opt_name_sort = false;
 static char *opt_database = NULL;
 
 

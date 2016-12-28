@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <dirent.h>
 #include <stdint.h>
 #include <sys/types.h>

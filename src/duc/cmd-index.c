@@ -18,15 +18,15 @@
 #include "ducrc.h"
 
 
-static int opt_bytes = 0;
+static bool opt_bytes = false;
 static char *opt_database = NULL;
-static int opt_force = 0;          
-static int opt_check_hard_links = 0;
-static int opt_hide_file_names = 0;     
-static int opt_max_depth = 0;       
-static int opt_one_file_system = 0;
-static int opt_progress = 0;
-static int opt_uncompressed = 0;   
+static bool opt_force = false;
+static bool opt_check_hard_links = false;
+static bool opt_hide_file_names = false;
+static int opt_max_depth = 0;
+static bool opt_one_file_system = false;
+static bool opt_progress = false;
+static bool opt_uncompressed = false;
 static duc_index_req *req;
 
 

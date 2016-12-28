@@ -14,8 +14,8 @@
 #include "cmd.h"
 #include "duc.h"
 
-static int opt_apparent = 0;
-static int opt_bytes = 0;
+static bool opt_apparent = false;
+static bool opt_bytes = false;
 static char *opt_database = NULL;
 
 static int info_db(duc *duc, char *file)
