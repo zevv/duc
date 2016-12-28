@@ -177,6 +177,18 @@ Then you can run the regular
 
 to the regular build of the software.
 
+A note for Redhat and derivates users. The package providing the development file
+for lmdb (lmdb-devel) does not include a lmdb.pc pkgconfig file. This could lead to
+errors during the configure phase:
+
+  checking for LMDB... no  
+  configure: error: Package requirements (lmdb) were not met:  
+                                                                                     
+To avoid the need to call pkg-config, you may set the environment variables          
+LMDB_CFLAGS and LMDB_LIBS:
+
+  LMDB_CFLAGS=" " LMDB_LIBS=-llmdb ./configure --with-db-backend=lmdb [ options ]  
+
 ## EXAMPLES
 
 
