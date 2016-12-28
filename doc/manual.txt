@@ -165,15 +165,15 @@ key to toggle.
 If you use git clone to pull down the latest release, you will have to
 do the following:
 
-  git clone https://github.com/zevv/duc
-  cd duc
-  aclocal
-  automake --add-missing -c
+  git clone https://github.com/zevv/duc  
+  cd duc  
+  aclocal  
+  automake --add-missing -c  
 
 Then you can run the regular 
 
-  ./configure [ options ]
-  make
+  ./configure [ options ]  
+  make  
 
 to the regular build of the software.
 
