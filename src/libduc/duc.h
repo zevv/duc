@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <dirent.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -43,6 +44,11 @@ typedef enum {
 	DUC_SIZE_TYPE_ACTUAL,
 	DUC_SIZE_TYPE_COUNT,
 } duc_size_type;
+
+typedef enum {
+	DUC_SORT_SIZE = 1,
+	DUC_SORT_NAME = 2,
+} duc_sort;
 
 typedef enum {
 	DUC_OK,                     /* No error, success */
@@ -154,7 +160,7 @@ struct duc_index_report *duc_get_report(duc *duc, size_t id);
 duc_dir *duc_dir_open(duc *duc, const char *path);
 duc_dir *duc_dir_openat(duc_dir *dir, const char *name);
 duc_dir *duc_dir_openent(duc_dir *dir, const struct duc_dirent *e);
-struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st);
+struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st, duc_sort sort);
 char *duc_dir_get_path(duc_dir *dir);
 void duc_dir_get_size(duc_dir *dir, struct duc_size *size);
 size_t duc_dir_get_count(duc_dir *dir);

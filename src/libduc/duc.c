@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <time.h>
+#include <math.h>
 
 #include "private.h"
 #include "duc.h"
@@ -192,15 +193,15 @@ int duc_human_duration(struct timeval start, struct timeval stop, char *buf, siz
 
 	/* fixme: use timersub here */
 
-	start_secs =start.tv_sec + (start.tv_usec / 1000000.0);
+	start_secs = start.tv_sec + (start.tv_usec / 1000000.0);
 	stop_secs = stop.tv_sec + (stop.tv_usec / 1000000.0);
 	secs = stop_secs - start_secs;
 
-	days = secs / 86400;
+	days = floor(secs / 86400);
 	secs = secs - (days * 86400);
-	hours = secs / 3600;
+	hours = floor(secs / 3600);
 	secs = secs - (hours * 3600);
-	mins = secs / 60;
+	mins = floor(secs / 60);
 	secs = secs - (mins * 60);
 
 	int l;
@@ -212,7 +213,7 @@ int duc_human_duration(struct timeval start, struct timeval stop, char *buf, siz
 	} else if (mins) {
 		l = snprintf(buf, maxlen, "%.0f minutes, and %.2f seconds.", mins, secs);
 	} else {
-		l = snprintf(buf, maxlen, "%f secs.", secs);
+		l = snprintf(buf, maxlen, "%.2f secs.", secs);
 	}
 
 	return l;

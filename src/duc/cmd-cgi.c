@@ -22,18 +22,20 @@ struct param {
 };
 
 
-static int opt_apparent = 0;
-static int opt_count = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
 static char *opt_css_url = NULL;
 static char *opt_database = NULL;
-static int opt_bytes = 0;
-static int opt_list = 0;
+static bool opt_bytes = false;
+static bool opt_list = false;
 static int opt_size = 800;
-static int opt_gradient = 0;
+static bool opt_gradient = false;
+static char *opt_footer = NULL;
 static double opt_fuzz = 0.7;
+static char *opt_header = NULL;
 static int opt_levels = 4;
 static char *opt_palette = NULL;
-static int opt_tooltip = 0;
+static bool opt_tooltip = false;
 static int opt_ring_gap = 4;
 
 static struct param *param_list = NULL;
@@ -207,11 +209,13 @@ static void print_script(const char *path)
 		"    var tt = document.getElementById('tooltip');\n"
 		"    var timer;\n"
 		"    img.onmousedown = function(e) {\n"
+		"      if(e.button == 0) {\n"
 		"        var x = e.clientX - rect.left;\n"
 		"        var y = e.clientY - rect.top;\n"
 		"        window.location = '?x=' + x + '&y=' + y + '&path=");
 	print_html(path);
 	printf( "';\n"
+		"      }\n"
 		"    }\n");
 
 	if(opt_tooltip) {
@@ -241,6 +245,23 @@ static void print_script(const char *path)
 		"  };\n"
 		"</script>\n"
 	      );
+}
+
+
+static void include_file(const char *fname)
+{
+	FILE *f = fopen(fname, "rb");
+	if(f) {
+		printf("<!-- start include -->\n");
+		for(;;) {
+			char buf[4096];
+			size_t n = fread(buf, 1, sizeof(buf), f);
+			if(n == 0) break;
+			fwrite(buf, 1, n, stdout);
+		}
+		printf("<!-- end include -->\n");
+		fclose(f);
+	}
 }
 
 
@@ -291,11 +312,12 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		print_script(path);
 	}
 
-	printf(
-		"</head>\n"
-		"<div id=main>\n"
-	);
+	printf("</head>\n");
+	printf("<body>\n");
 
+	include_file(opt_header);
+
+	printf("<div id=main>\n");
 	printf("<div id=index>");
 	printf(" <table>\n");
 	printf("  <tr>\n");
@@ -361,7 +383,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 
 		struct duc_dirent *e;
 		int n = 0;
-		while((n++ < 40) && (e = duc_dir_read(dir, st)) != NULL) {
+		while((n++ < 40) && (e = duc_dir_read(dir, st, DUC_SORT_SIZE)) != NULL) {
 			char siz[32];
 			duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 			printf("  <tr><td class=name>");
@@ -393,15 +415,19 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		printf("<div id=\"tooltip\"></div>\n");
 	}
 
+	printf("</div>\n");
+
+	include_file(opt_footer);
+
+	printf("</body>\n");
+	printf("</html>\n");
+
 	fflush(stdout);
 }
 
 
 void do_tooltip(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
-			   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
-
 	printf("Content-Type: text/html\n");
 	printf("\n");
 
@@ -512,8 +538,10 @@ static struct ducrc_option options[] = {
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_css_url,   "css-url",    0,  DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_footer,    "footer",     0,  DUCRC_TYPE_STRING, "select HTML file to include as footer" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },
+	{ &opt_header,    "header",     0,  DUCRC_TYPE_STRING, "select HTML file to include as header" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "draw up to ARG levels deep [4]" },
 	{ &opt_list,      "list",       0,  DUCRC_TYPE_BOOL,   "generate table with file list" },
 	{ &opt_palette,   "palette",    0,  DUCRC_TYPE_STRING, "select palette",

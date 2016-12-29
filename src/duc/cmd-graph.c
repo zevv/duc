@@ -17,8 +17,8 @@
 #include "cmd.h"
 
 static char *opt_database = NULL;
-static int opt_apparent = 0;
-static int opt_count = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
 static int opt_size = 800;
 static double opt_fuzz = 0.7;
 static int opt_levels = 4;
@@ -26,7 +26,7 @@ static char *opt_output = NULL;
 static char *opt_palette = NULL;
 static enum duc_graph_palette palette = 0;
 static int opt_ring_gap = 4;
-static int opt_gradient = 0;
+static bool opt_gradient = false;
 
 #ifdef ENABLE_CAIRO
 static char *opt_format = "png";

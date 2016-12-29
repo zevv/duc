@@ -26,6 +26,7 @@ struct duc_dir {
 	size_t ent_count;
 	size_t ent_pool;
 	duc_size_type size_type;
+	duc_sort sort;
 };
 
 
@@ -269,20 +270,43 @@ static int fn_comp_count(const void *a, const void *b)
 	return strcmp(ea->name, eb->name);
 }
 
-struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st)
+
+static int fn_comp_name(const void *a, const void *b)
+{
+	const struct duc_dirent *ea = a;
+	const struct duc_dirent *eb = b;
+	return strcmp(ea->name, eb->name);
+}
+
+
+struct duc_dirent *duc_dir_read(duc_dir *dir, duc_size_type st, duc_sort sort)
 {
 	int (*fn_comp)(const void *, const void *);
 
 	dir->duc->err = 0;
 		
-	if(dir->size_type != st) {
-		switch(st) {
-			case DUC_SIZE_TYPE_APPARENT: fn_comp = fn_comp_apparent; break;
-			case DUC_SIZE_TYPE_ACTUAL: fn_comp = fn_comp_actual; break;
-			case DUC_SIZE_TYPE_COUNT: fn_comp = fn_comp_count; break;
+	if(dir->size_type != st || dir->sort != sort) {
+		switch(sort) {
+		case DUC_SORT_SIZE:
+			switch(st) {
+			case DUC_SIZE_TYPE_APPARENT: 
+				fn_comp = fn_comp_apparent; 
+				break;
+			case DUC_SIZE_TYPE_ACTUAL: 
+				fn_comp = fn_comp_actual; 
+				break;
+			case DUC_SIZE_TYPE_COUNT: 
+				fn_comp = fn_comp_count; 
+				break;
+			}
+			break;
+		case DUC_SORT_NAME: 
+			fn_comp = fn_comp_name; 
+			break;
 		}
 		qsort(dir->ent_list, dir->ent_count, sizeof(struct duc_dirent), fn_comp);
 		dir->size_type = st;
+		dir->sort = sort;
 	}
 
 	if(dir->ent_cur < dir->ent_count) {

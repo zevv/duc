@@ -17,16 +17,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-static int opt_bytes;
-static int opt_dark;
+static bool opt_bytes = false;
+static bool opt_dark = false;
 static char *opt_database = NULL;
 static char *opt_palette = NULL;
 static double opt_fuzz = 0.5;
 static int opt_levels = 4;
-static int opt_apparent = 0;
-static int opt_count = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
 static int opt_ring_gap = 4;
-static int opt_gradient = 0;
+static bool opt_gradient = false;
 
 static double tooltip_x = 0;
 static double tooltip_y = 0;

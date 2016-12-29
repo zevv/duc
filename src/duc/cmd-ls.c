@@ -42,26 +42,39 @@ static char *tree_utf8[] = {
 	"    ",
 };
 
-static int opt_apparent = 0;
-static int opt_count = 0;
-static int opt_ascii = 0;
-static int opt_bytes = 0;
-static int opt_classify = 0;
-static int opt_color = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
+static bool opt_ascii = false;
+static bool opt_bytes = false;
+static bool opt_classify = false;
+static bool opt_color = false;
+static bool opt_full_path = false;
 static int width = 80;
-static int opt_graph = 0;
-static int opt_recursive = 0;
+static bool opt_graph = false;
+static bool opt_recursive = false;
 static char *opt_database = NULL;
-static int opt_dirs_only = 0;
+static bool opt_dirs_only = false;
 static int opt_levels = 4;
+static bool opt_name_sort = false;
 
-static void ls_one(duc_dir *dir, int level, int *prefix)
+
+/*
+ * List one directory. This function is a bit hairy because of the different
+ * ways the output can be formatted with optional color, trees, graphs, etc.
+ * Maybe one day this should be split up for different renderings 
+ */
+
+static char parent_path[DUC_PATH_MAX] = "";
+static int prefix[MAX_DEPTH + 1] = { 0 };
+
+static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 {
 	off_t max_size = 0;
 	size_t max_name_len = 0;
 	int max_size_len = 6;
 	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
 	                   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_sort sort = opt_name_sort ? DUC_SORT_NAME : DUC_SORT_SIZE;
 
 	if(level > opt_levels) return;
 
@@ -70,7 +83,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	/* Iterate the directory once to get maximum file size and name length */
 	
 	struct duc_dirent *e;
-	while( (e = duc_dir_read(dir, st)) != NULL) {
+	while( (e = duc_dir_read(dir, st, sort)) != NULL) {
 
 		off_t size = duc_get_size(&e->size, st);
 
@@ -89,7 +102,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 	size_t count = duc_dir_get_count(dir);
 	size_t n = 0;
 
-	while( (e = duc_dir_read(dir, st)) != NULL) {
+	while( (e = duc_dir_read(dir, st, sort)) != NULL) {
 
 		if(opt_dirs_only && e->type != DUC_FILE_TYPE_DIR) continue;
 
@@ -116,10 +129,24 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 		printf("%*s", max_size_len, siz);
 		printf("%s", color_off);
 
-		int *p = prefix;
-		while(*p) printf("%s", tree[*p++]);
+		if(opt_recursive && !opt_full_path) {
+			int *p = prefix;
+			while(*p) printf("%s", tree[*p++]);
+		}
 
-		size_t l = printf(" %s", e->name);
+		putchar(' ');
+
+		if(opt_full_path) {
+			printf("%s", parent_path);
+			parent_path_len += strlen(e->name) + 1;
+			if(parent_path_len + 1 < DUC_PATH_MAX) {
+				strcat(parent_path, e->name);
+				strcat(parent_path, "/");
+			}
+		}
+
+		size_t l = printf("%s", e->name) + 1;
+
 		if(opt_classify) {
 			putchar(duc_file_type_char(e->type));
 			l++;
@@ -137,7 +164,7 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 			printf("%s]", color_off);
 		}
 
-		printf("\n");
+		putchar('\n');
 			
 		if(opt_recursive && level < MAX_DEPTH && e->type == DUC_FILE_TYPE_DIR) {
 			if(n == count-1) {
@@ -147,9 +174,14 @@ static void ls_one(duc_dir *dir, int level, int *prefix)
 			}
 			duc_dir *dir2 = duc_dir_openent(dir, e);
 			if(dir2) {
-				ls_one(dir2, level+1, prefix);
+				ls_one(dir2, level+1, parent_path_len);
 				duc_dir_close(dir2);
 			}
+		}
+
+		if(opt_full_path) {
+			parent_path_len -= strlen(e->name) + 1;
+			parent_path[parent_path_len] = '\0';
 		}
 		
 		n++;
@@ -180,6 +212,15 @@ static int ls_main(duc *duc, int argc, char **argv)
 		opt_color = 0;
 	}
 
+	/* Disable graph when --full-path is requested, since there is no good
+	 * way to render this */
+
+	if(opt_full_path) {
+		opt_graph = 0;
+	}
+
+	/* Open database */
+
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
 		return -1;
@@ -191,9 +232,7 @@ static int ls_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	int prefix[MAX_DEPTH + 1] = { 0 };
-
-	ls_one(dir, 0, prefix);
+	ls_one(dir, 0, 0);
 
 	duc_dir_close(dir);
 	duc_close(duc);
@@ -211,9 +250,11 @@ static struct ducrc_option options[] = {
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_dirs_only, "dirs-only",  0,  DUCRC_TYPE_BOOL,   "list only directories, skip individual files" },
+	{ &opt_full_path, "full-path",  0,  DUCRC_TYPE_BOOL,   "show full path instead of tree in recursive view" },
 	{ &opt_graph,     "graph",     'g', DUCRC_TYPE_BOOL,   "draw graph with relative size for each entry" },
 	{ &opt_levels,    "levels",    'l', DUCRC_TYPE_INT,    "traverse up to ARG levels deep [4]" },
-	{ &opt_recursive, "recursive", 'R', DUCRC_TYPE_BOOL,   "list subdirectories in a recursive tree view" },
+	{ &opt_name_sort, "name-sort", 'n', DUCRC_TYPE_BOOL,   "sort output by name instead of by size" },
+	{ &opt_recursive, "recursive", 'R', DUCRC_TYPE_BOOL,   "recursively list subdirectories" },
 	{ NULL }
 };
 

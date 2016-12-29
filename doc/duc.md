@@ -33,7 +33,8 @@ double-leading-dash (`--option`), some options have a corresponding short
 option which can be used as well with a single leading dash. (`-o`)
 
 At startup duc tries to read its configuration from three locations in this
-particular order: `/etc/ducrc`, `~/.ducrc` and `./.ducrc`.
+particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
+`./.ducrc`.
 
 A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
@@ -64,8 +65,8 @@ By default Duc indexes all directories it encounters during file system
 traversal, including special file systems like /proc and /sys, and
 network file systems like NFS or Samba mounts. There are a few options to
 select what parts of your filesystem you want to include or exclude from the
-scan, check the documentation below for --exclude, --fs-exclude and
---fs-include for more details.
+scan, check the documentation below for the options --one-file-system, 
+--exclude, --fs-exclude and --fs-include for more details.
 
 
 ## QUERYING THE INDEX
@@ -213,14 +214,20 @@ Options for command `duc ls [options] [PATH]`:
   * `--dirs-only`:
     list only directories, skip individual files
 
+  * `--full-path`:
+    show full path instead of tree in recursive view
+
   * `-g`, `--graph`:
     draw graph with relative size for each entry
 
   * `-l`, `--levels=VAL`:
     traverse up to ARG levels deep [4]
 
+  * `-n`, `--name-sort`:
+    sort output by name instead of by size
+
   * `-R`, `--recursive`:
-    list subdirectories in a recursive tree view
+    recursively list subdirectories
 
 ### duc xml
 
@@ -301,11 +308,17 @@ Options for command `duc cgi [options] [PATH]`:
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
 
+  * `--footer=VAL`:
+    select HTML file to include as footer
+
   * `--fuzz=VAL`:
     use radius fuzz factor when drawing graph [0.7]
 
   * `--gradient`:
     draw graph with color gradient
+
+  * `--header=VAL`:
+    select HTML file to include as header
 
   * `-l`, `--levels=VAL`:
     draw up to ARG levels deep [4]
@@ -382,7 +395,7 @@ Options for command `duc gui [options] [PATH]`:
 
 ### duc ui
 
-The 'gui' subcommand queries the duc database and runs an interactive ncurses
+The 'ui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 
@@ -398,6 +411,7 @@ The following keys can be used to navigate and alter the file system:
     b:               toggle between exact and abbreviated sizes
     c:               Toggle between file size and file count
     h:               show help. press 'q' to return to the main screen
+    n:               toggle sort order between 'size' and 'name'
     q, escape:       quit
 
 
@@ -412,11 +426,14 @@ Options for command `duc ui [options] [PATH]`:
   * `--count`:
     show number of files instead of file size
 
-  * `--no-color`:
-    do not use colors on terminal output
-
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
+
+  * `-n`, `--name-sort`:
+    sort output by name instead of by size
+
+  * `--no-color`:
+    do not use colors on terminal output
 
 
 
@@ -452,6 +469,9 @@ Some notes:
 * Add the option --list to generate a table of top sized files and directories
   in the HTML page.
 
+* The options --header and --footer allow you to insert your own HTML code
+  before and after the main <div>.
+
 The current CGI configuration is not very flexible, nor secure. It is not
 advised to run the CGI from public reachable web servers, use at your own risk.
 
@@ -483,6 +503,22 @@ report disk usage (`duc ls`, `duc graph`, `duc gui`, etc) have an option to
 change between these two modes (usually the `-a`), in the gui tool use the 'a'
 key to toggle.
 
+## BUILDING from git
+
+If you use git clone to pull down the latest release, you will have to
+do the following:
+
+  git clone https://github.com/zevv/duc
+  cd duc
+  aclocal
+  automake --add-missing -c
+
+Then you can run the regular 
+
+  ./configure [ options ]
+  make
+
+to the regular build of the software.
 
 ## EXAMPLES
 
@@ -569,7 +605,8 @@ path which is used by all subcommands
 ## FILES
 
 At startup duc tries to read its configuration from three locations in this
-particular order: `/etc/ducrc`, `~/.ducrc` and `./.ducrc`.
+particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
+`./.ducrc`.
 
 Duc mainains an index of scanned directories, which defaults to ~/.duc.db. All tools
 take the -d/--database option to override the database path.

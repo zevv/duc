@@ -74,6 +74,7 @@
     <a href="#OPTIONS">OPTIONS</a>
     <a href="#CGI-INTERFACING">CGI INTERFACING</a>
     <a href="#A-NOTE-ON-FILE-SIZE-AND-DISK-USAGE">A NOTE ON FILE SIZE AND DISK USAGE</a>
+    <a href="#BUILDING-from-git">BUILDING from git</a>
     <a href="#EXAMPLES">EXAMPLES</a>
     <a href="#FREQUENTLY-ASKED-QUESTIONS">FREQUENTLY ASKED QUESTIONS</a>
     <a href="#FILES">FILES</a>
@@ -121,7 +122,8 @@ double-leading-dash (<code>--option</code>), some options have a corresponding s
 option which can be used as well with a single leading dash. (<code>-o</code>)</p>
 
 <p>At startup duc tries to read its configuration from three locations in this
-particular order: <code>/etc/ducrc</code>, <code>~/.ducrc</code> and <code>./.ducrc</code>.</p>
+particular order: <code>/etc/ducrc</code>, <code>~/.config/duc/ducrc</code>, <code>~/.ducrc</code> and
+<code>./.ducrc</code>.</p>
 
 <p>A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
@@ -152,8 +154,8 @@ database location with the --database argument.</p>
 traversal, including special file systems like /proc and /sys, and
 network file systems like NFS or Samba mounts. There are a few options to
 select what parts of your filesystem you want to include or exclude from the
-scan, check the documentation below for --exclude, --fs-exclude and
---fs-include for more details.</p>
+scan, check the documentation below for the options --one-file-system,
+--exclude, --fs-exclude and --fs-include for more details.</p>
 
 <h2 id="QUERYING-THE-INDEX">QUERYING THE INDEX</h2>
 
@@ -250,9 +252,11 @@ working directory is listed.</p>
 <dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
 <dt><code>--dirs-only</code></dt><dd><p>list only directories, skip individual files</p></dd>
+<dt><code>--full-path</code></dt><dd><p>show full path instead of tree in recursive view</p></dd>
 <dt><code>-g</code>, <code>--graph</code></dt><dd><p>draw graph with relative size for each entry</p></dd>
 <dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>traverse up to ARG levels deep [4]</p></dd>
-<dt><code>-R</code>, <code>--recursive</code></dt><dd><p>list subdirectories in a recursive tree view</p></dd>
+<dt><code>-n</code>, <code>--name-sort</code></dt><dd><p>sort output by name instead of by size</p></dd>
+<dt><code>-R</code>, <code>--recursive</code></dt><dd><p>recursively list subdirectories</p></dd>
 </dl>
 
 
@@ -304,8 +308,10 @@ file name '-'.</p>
 <dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
 <dt><code>--css-url=VAL</code></dt><dd><p>url of CSS style sheet to use instead of default CSS</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>--footer=VAL</code></dt><dd><p>select HTML file to include as footer</p></dd>
 <dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
 <dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
+<dt><code>--header=VAL</code></dt><dd><p>select HTML file to include as header</p></dd>
 <dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
 <dt class="flush"><code>--list</code></dt><dd><p>generate table with file list</p></dd>
 <dt><code>--palette=VAL</code></dt><dd><p>select palette. available palettes are: size, rainbow, greyscale, monochrome, classic</p></dd>
@@ -353,7 +359,7 @@ backspace   go up one directory
 
 <h3 id="duc-ui">duc ui</h3>
 
-<p>The 'gui' subcommand queries the duc database and runs an interactive ncurses
+<p>The 'ui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.</p>
 
@@ -369,6 +375,7 @@ a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
 c:               Toggle between file size and file count
 h:               show help. press 'q' to return to the main screen
+n:               toggle sort order between 'size' and 'name'
 q, escape:       quit
 </code></pre>
 
@@ -378,8 +385,9 @@ q, escape:       quit
 <dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
 <dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
 <dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
-<dt><code>--no-color</code></dt><dd><p>do not use colors on terminal output</p></dd>
 <dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt><code>-n</code>, <code>--name-sort</code></dt><dd><p>sort output by name instead of by size</p></dd>
+<dt><code>--no-color</code></dt><dd><p>do not use colors on terminal output</p></dd>
 </dl>
 
 
@@ -418,6 +426,8 @@ style is not to your liking you can provide an external CSS url with the
 definition.</p></li>
 <li><p>Add the option --list to generate a table of top sized files and directories
 in the HTML page.</p></li>
+<li><p>The options --header and --footer allow you to insert your own HTML code
+before and after the main </p><div>.</div></li>
 </ul>
 
 
@@ -452,6 +462,23 @@ multiple of 512 bytes.</p></li>
 report disk usage (<code>duc ls</code>, <code>duc graph</code>, <code>duc gui</code>, etc) have an option to
 change between these two modes (usually the <code>-a</code>), in the gui tool use the 'a'
 key to toggle.</p>
+
+<h2 id="BUILDING-from-git">BUILDING from git</h2>
+
+<p>If you use git clone to pull down the latest release, you will have to
+do the following:</p>
+
+<p>  git clone https://github.com/zevv/duc
+  cd duc
+  aclocal
+  automake --add-missing -c</p>
+
+<p>Then you can run the regular</p>
+
+<p>  ./configure [ options ]
+  make</p>
+
+<p>to the regular build of the software.</p>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
@@ -544,7 +571,8 @@ and rebuild the index. If the error persists contact the authors.</p></li>
 <h2 id="FILES">FILES</h2>
 
 <p>At startup duc tries to read its configuration from three locations in this
-particular order: <code>/etc/ducrc</code>, <code>~/.ducrc</code> and <code>./.ducrc</code>.</p>
+particular order: <code>/etc/ducrc</code>, <code>~/.config/duc/ducrc</code>, <code>~/.ducrc</code> and
+<code>./.ducrc</code>.</p>
 
 <p>Duc mainains an index of scanned directories, which defaults to ~/.duc.db. All tools
 take the -d/--database option to override the database path.</p>
@@ -552,8 +580,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#x6d;&#x61;&#105;&#x6c;&#116;&#111;&#58;&#x64;&#117;&#x63;&#x40;&#122;&#101;&#118;&#x76;&#x2e;&#110;&#x6c;" data-bare-link="true">&#100;&#117;&#x63;&#64;&#122;&#x65;&#x76;&#x76;&#46;&#110;&#x6c;</a></li>
-<li>John Stoffel <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x6a;&#x6f;&#x68;&#x6e;&#x40;&#115;&#116;&#x6f;&#102;&#x66;&#101;&#108;&#46;&#x6f;&#x72;&#x67;" data-bare-link="true">&#x6a;&#x6f;&#x68;&#x6e;&#64;&#x73;&#x74;&#x6f;&#x66;&#x66;&#x65;&#108;&#46;&#111;&#x72;&#x67;</a></li>
+<li>Ico Doornekamp <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#100;&#117;&#99;&#64;&#122;&#x65;&#x76;&#118;&#x2e;&#x6e;&#108;" data-bare-link="true">&#x64;&#x75;&#99;&#x40;&#122;&#101;&#x76;&#118;&#46;&#x6e;&#x6c;</a></li>
+<li>John Stoffel <a href="&#109;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x6a;&#111;&#x68;&#x6e;&#64;&#x73;&#116;&#x6f;&#x66;&#102;&#101;&#108;&#46;&#x6f;&#x72;&#x67;" data-bare-link="true">&#106;&#x6f;&#x68;&#110;&#x40;&#x73;&#x74;&#x6f;&#x66;&#x66;&#x65;&#108;&#x2e;&#111;&#x72;&#x67;</a></li>
 </ul>
 
 
@@ -571,7 +599,7 @@ License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>October 2016</li>
+    <li class='tc'>November 2016</li>
     <li class='tr'>duc(1)</li>
   </ol>
 

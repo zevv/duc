@@ -41,11 +41,12 @@ enum {
 
 static void help(void);
 
-static int opt_apparent = 0;
-static int opt_count = 0;
-static int opt_bytes = 0;
-static int opt_graph = 1;
-static int opt_nocolor = 0;
+static bool opt_apparent = false;
+static bool opt_count = false;
+static bool opt_bytes = false;
+static bool opt_graph = true;
+static bool opt_nocolor = false;
+static bool opt_name_sort = false;
 static char *opt_database = NULL;
 
 
@@ -90,7 +91,8 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		int dir_count = 0;
 		int file_count = 0;
 		struct duc_dirent *e;
-		while( (e = duc_dir_read(dir, st)) != NULL) {
+		duc_sort sort = opt_name_sort ? DUC_SORT_NAME : DUC_SORT_SIZE;
+		while( (e = duc_dir_read(dir, st, sort)) != NULL) {
 			if(e->type == DUC_FILE_TYPE_DIR) {
 				dir_count ++;
 			} else {
@@ -150,7 +152,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 
 		for(i=top; i<top + pgsize; i++) {
 			
-			struct duc_dirent *e = duc_dir_read(dir, st);
+			struct duc_dirent *e = duc_dir_read(dir, st, sort);
 
 			attrset(cur == i ? attr_cursor : 0);
 			mvhline(y, 0, ' ', cols);
@@ -228,6 +230,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case 'c': opt_count ^= 1; break;
 			case 'g': opt_graph ^= 1; break;
 			case 'h': help(); break;
+			case 'n': opt_name_sort ^= 1; break;
 
 			case 27:
 			case 'q': 
@@ -250,8 +253,8 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case '\r':
 			case '\n': 
 				  duc_dir_seek(dir, cur);
-				  struct duc_dirent *e = duc_dir_read(dir, st);
-				  if(e->type == DUC_FILE_TYPE_DIR) {
+				  struct duc_dirent *e = duc_dir_read(dir, st, sort);
+				  if(e && e->type == DUC_FILE_TYPE_DIR) {
 					dir2 = duc_dir_openent(dir, e);
 					if(dir2) {
 						do_dir(dir2, depth + 1);
@@ -322,8 +325,9 @@ static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
-	{ &opt_nocolor,   "no-color",   0 , DUCRC_TYPE_BOOL,   "do not use colors on terminal output" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_name_sort, "name-sort", 'n', DUCRC_TYPE_BOOL,   "sort output by name instead of by size" },
+	{ &opt_nocolor,   "no-color",   0 , DUCRC_TYPE_BOOL,   "do not use colors on terminal output" },
 	{ NULL }
 };
 
@@ -351,6 +355,7 @@ struct cmd cmd_ui = {
 		"    b:               toggle between exact and abbreviated sizes\n"
 		"    c:               Toggle between file size and file count\n"
 		"    h:               show help. press 'q' to return to the main screen\n"
+		"    n:               toggle sort order between 'size' and 'name'\n"
 		"    q, escape:       quit\n"
 
 };

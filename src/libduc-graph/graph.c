@@ -244,7 +244,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 	off_t size_min = size_total;
 	off_t size_max = 0;
 
-	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
+	while( (e = duc_dir_read(dir, g->size_type, DUC_SORT_SIZE)) != NULL) {
 		off_t size = duc_get_size(&e->size, g->size_type);
 		if(size < size_min) size_min = size;
 		if(size > size_max) size_max = size;
@@ -253,7 +253,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 	/* Rewind and iterate the objects to graph */
 
 	duc_dir_rewind(dir);
-	while( (e = duc_dir_read(dir, g->size_type)) != NULL) {
+	while( (e = duc_dir_read(dir, g->size_type, DUC_SORT_SIZE)) != NULL) {
 
 		/* size_rel is size relative to total, size_nrel is size relative to min and max */
 

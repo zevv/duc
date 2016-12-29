@@ -569,11 +569,9 @@ static void read_mounts(duc_index_req *req)
 	}
 
 	char buf[DUC_PATH_MAX];
-	char *type = buf;
-	char *path;
 
 	while(fgets(buf, sizeof(buf)-1, f) != NULL) {
-		char *spec = strtok(buf, " ");
+		(void)strtok(buf, " ");
 		char *path = strtok(NULL, " ");
 		char *type = strtok(NULL, " ");
 		if(path && type) {

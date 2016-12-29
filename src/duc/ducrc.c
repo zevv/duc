@@ -72,7 +72,7 @@ static void handle_opt(struct ducrc *ducrc, char shortopt, const char *longopt, 
 {
 	struct ducrc_option **os = ducrc->option_list;
 	struct ducrc_option *o = NULL;
-	int *v_bool;
+	bool *v_bool;
 	int *v_int;
 	double *v_double;
 	const char **v_string;

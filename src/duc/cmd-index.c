@@ -18,15 +18,15 @@
 #include "ducrc.h"
 
 
-static int opt_bytes = 0;
+static bool opt_bytes = false;
 static char *opt_database = NULL;
-static int opt_force = 0;          
-static int opt_check_hard_links = 0;
-static int opt_hide_file_names = 0;     
-static int opt_max_depth = 0;       
-static int opt_one_file_system = 0;
-static int opt_progress = 0;
-static int opt_uncompressed = 0;   
+static bool opt_force = false;
+static bool opt_check_hard_links = false;
+static bool opt_hide_file_names = false;
+static int opt_max_depth = 0;
+static bool opt_one_file_system = false;
+static bool opt_progress = false;
+static bool opt_uncompressed = false;
 static duc_index_req *req;
 
 
@@ -56,6 +56,13 @@ void progress_cb(struct duc_index_report *rep, void *ptr)
 }
 
 
+static void log_callback(duc_log_level level, const char *fmt, va_list va)
+{
+	vfprintf(stderr, fmt, va);
+	fprintf(stderr, "\e[K\n");
+}
+
+
 static int index_main(duc *duc, int argc, char **argv)
 {
 	duc_index_flags index_flags = 0;
@@ -67,11 +74,15 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_hide_file_names) index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
 	if(opt_check_hard_links) index_flags |= DUC_INDEX_CHECK_HARD_LINKS;
 	if(opt_uncompressed) open_flags &= ~DUC_OPEN_COMPRESS;
-	if(opt_progress) duc_index_req_set_progress_cb(req, progress_cb, NULL);
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");
 		return -2;
+	}
+	
+	if(opt_progress) {
+		duc_index_req_set_progress_cb(req, progress_cb, NULL);
+		duc_set_log_callback(duc, log_callback);
 	}
 	
 	int r = duc_open(duc, opt_database, open_flags);
@@ -108,6 +119,12 @@ static int index_main(duc *duc, int argc, char **argv)
 					dur);
 		} else {
 			duc_log(duc, DUC_LOG_WRN, "An error occurred while indexing: %s", duc_strerror(duc));
+		}
+
+		/* Prevent final output of progress_cb() from being overwritten with the shell's prompt */
+		if (opt_progress) {
+			fputc ('\n', stdout);
+			fflush (stdout);
 		}
 
 		duc_index_report_free(report);
