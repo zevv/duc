@@ -55,7 +55,7 @@ void db_close(struct db *db)
 
 duc_errno db_put(struct db *db, const void *key, size_t key_len, const void *val, size_t val_len)
 {
-	char *err;
+	char *err = NULL;
 	leveldb_put(db->db, db->woptions, key, key_len, val, val_len, &err);
 	return err ? DUC_E_UNKNOWN : DUC_OK;
 }
@@ -82,7 +82,7 @@ duc_errno db_putcat(struct db *db, const void *key, size_t key_len, const void *
 
 void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len)
 {
-	char *err;
+	char *err = NULL;
 	char *val = leveldb_get(db->db, db->roptions, key, key_len, val_len, &err);
 	return val;
 }
