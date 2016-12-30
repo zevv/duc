@@ -542,13 +542,13 @@ static void scanner_free(struct scanner *scanner)
 
 	}
 	
-    if (!(req->flags & DUC_INDEX_DRY_RUN)) {
-	    char key[32];
-	    struct duc_devino *devino = &scanner->ent.devino;
-	    size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)devino->dev, (uintmax_t)devino->ino);
-	    int r = db_put(duc->db, key, keyl, scanner->buffer->data, scanner->buffer->len);
-	    if(r != 0) duc->err = r;
-    }
+	if(!(req->flags & DUC_INDEX_DRY_RUN)) {
+		char key[32];
+		struct duc_devino *devino = &scanner->ent.devino;
+		size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)devino->dev, (uintmax_t)devino->ino);
+		int r = db_put(duc->db, key, keyl, scanner->buffer->data, scanner->buffer->len);
+		if(r != 0) duc->err = r;
+	}
 
 	buffer_free(scanner->buffer);
 	closedir(scanner->d);
@@ -636,10 +636,10 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	
 	/* Store report */
 
-    if (!(req->flags & DUC_INDEX_DRY_RUN)) {
-	    gettimeofday(&report->time_stop, NULL);
-	    db_write_report(duc, report);
-    }
+	if(!(req->flags & DUC_INDEX_DRY_RUN)) {
+		gettimeofday(&report->time_stop, NULL);
+		db_write_report(duc, report);
+	}
 
 	free(path_canon);
 
