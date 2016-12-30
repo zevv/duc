@@ -27,6 +27,7 @@ static int opt_max_depth = 0;
 static bool opt_one_file_system = false;
 static bool opt_progress = false;
 static bool opt_uncompressed = false;
+static bool opt_dryrun = false;
 static duc_index_req *req;
 
 
@@ -74,6 +75,7 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_hide_file_names) index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
 	if(opt_check_hard_links) index_flags |= DUC_INDEX_CHECK_HARD_LINKS;
 	if(opt_uncompressed) open_flags &= ~DUC_OPEN_COMPRESS;
+	if(opt_dryrun) index_flags |= DUC_INDEX_DRY_RUN;
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");
@@ -173,6 +175,7 @@ static struct ducrc_option options[] = {
 	  "levels of directories in the database to reduce the size of the index" },
 	{ &opt_one_file_system, "one-file-system", 'x', DUCRC_TYPE_BOOL,   "skip directories on different file systems" },
 	{ &opt_progress,        "progress",        'p', DUCRC_TYPE_BOOL,   "show progress during indexing" },
+	{ &opt_dryrun,          "dry-run",          0 , DUCRC_TYPE_BOOL,   "do not update database, just crawl" },
 	{ &opt_uncompressed,    "uncompressed",     0 , DUCRC_TYPE_BOOL,   "do not use compression for database",
           "Duc enables compression if the underlying database supports this. This reduces index size at the cost "
 	  "of slightly longer indexing time" },
