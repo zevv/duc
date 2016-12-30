@@ -237,13 +237,10 @@ static void br_opengl_draw_tooltip(duc_graph *g, double x, double y, char *text)
 }
 
 
-static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double H, double S, double V, double L)
+static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1, double r2, double R, double G, double B, double L)
 {
 	struct opengl_backend_data *bd = g->backend_data;
 	int i;
-
-	double R, G, B;
-	hsv2rgb(H, S, V, &R, &G, &B);
 
 	a1 *= M_PI * 2;
 	a2 *= M_PI * 2;
