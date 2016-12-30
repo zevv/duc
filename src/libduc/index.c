@@ -289,7 +289,7 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 {
 	struct duc *duc = req->duc;
 
-	if(req->fstypes_include == NULL && req->fstypes_exclude == NULL) {
+	if((req->fstypes_include == NULL) && (req->fstypes_exclude == NULL)) {
 		return 1;
 	}
 
@@ -411,7 +411,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 		if(name[0] == '.') {
 			if(name[1] == '\0') continue;
-			if(name[1] == '.' && name[2] == '\0') continue;
+			if((name[1] == '.') && (name[2] == '\0')) continue;
 		}
 
 		if(match_exclude(name, req->exclude_list)) {
@@ -450,15 +450,16 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 		/* Skip hard link duplicates for any files with more then one hard link */
 
-		if(ent.type != DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_CHECK_HARD_LINKS && 
-	 	   st_ent.st_nlink > 1 && is_duplicate(req, &ent.devino)) {
+		if((ent.type != DUC_FILE_TYPE_DIR) && (req->flags & DUC_INDEX_CHECK_HARD_LINKS) &&
+		   (st_ent.st_nlink > 1) && is_duplicate(req, &ent.devino)) {
 			continue;
 		}
 
 
 		/* Check if we can cross file system boundaries */
 
-		if(ent.type == DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_XDEV && st_ent.st_dev != req->dev) {
+		if((ent.type == DUC_FILE_TYPE_DIR) && (req->flags & DUC_INDEX_XDEV) &&
+		   (st_ent.st_dev != req->dev)) {
 			report_skip(duc, name, "Not crossing file system boundaries");
 			continue;
 		}
@@ -495,7 +496,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 			/* Store record */
 
-			if(req->maxdepth == 0 || scanner_dir->depth < req->maxdepth) {
+			if((req->maxdepth == 0) || (scanner_dir->depth < req->maxdepth)) {
 				buffer_put_dirent(scanner_dir->buffer, &ent);
 			}
 		}
@@ -517,7 +518,7 @@ static void scanner_free(struct scanner *scanner)
 	if(scanner->parent) {
 		duc_size_accum(&scanner->parent->ent.size, &scanner->ent.size);
 
-		if(req->maxdepth == 0 || scanner->depth < req->maxdepth) {
+		if((req->maxdepth == 0) || (scanner->depth < req->maxdepth)) {
 			buffer_put_dirent(scanner->parent->buffer, &scanner->ent);
 		}
 
@@ -527,7 +528,7 @@ static void scanner_free(struct scanner *scanner)
 
 	if(req->progress_fn) {
 
-		if(!scanner->parent || req->progress_n++ == 100) {
+		if((!scanner->parent) || (req->progress_n++ == 100)) {
 			
 			struct timeval t_now;
 			gettimeofday(&t_now, NULL);
