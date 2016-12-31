@@ -53,14 +53,13 @@ duc_SOURCES := \
 	src/duc/ducrc.h \
 	src/duc/main.c
 
-
 AM_CFLAGS := @CAIRO_CFLAGS@ @PANGO_CFLAGS@ @PANGOCAIRO_CFLAGS@
 AM_CFLAGS += @TC_CFLAGS@ @SQLITE3_CFLAGS@ @GLFW3_CFLAGS@ @LMDB_CFLAGS@ @KC_CFLAGS@
 AM_CFLAGS += -Isrc/libduc -Isrc/libduc-graph -Isrc/glad
 
-duc_LDADD := @CAIRO_LIBS@ @PANGO_LIBS@ @PANGOCAIRO_LIBS@
-duc_LDADD += @TC_LIBS@ @SQLITE3_LIBS@ @GLFW3_LIBS@ @LMDB_LIBS@ @KC_LIBS@
-duc_LDADD += libduc.la libduc-graph.la
+libduc_graph_la_LIBADD := @PANGOCAIRO_LIBS@ @CAIRO_LIBS@ @PANGO_LIBS@ @GLFW3_LIBS@
+libduc_la_LIBADD       := @TC_LIBS@ @SQLITE3_LIBS@ @LMDB_LIBS@ @KC_LIBS@
+duc_LDADD              := libduc.la libduc-graph.la @CAIRO_LIBS@
 
 man1_MANS = \
 	doc/duc.1
