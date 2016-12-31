@@ -9,18 +9,10 @@ AC_PREREQ([2.13])
 
 AC_INIT([duc], [1.4.2], [duc@zevv.nl])
 
-LIB_CURRENT=1
-LIB_REVISION=0
-LIB_AGE=0
-AC_SUBST(LIB_CURRENT)
-AC_SUBST(LIB_REVISION)
-AC_SUBST(LIB_AGE)
-
 AM_INIT_AUTOMAKE([foreign subdir-objects])
+LT_INIT
 
 AC_CONFIG_HEADER([config.h])
-AC_GNU_SOURCE
-
 AC_SYS_LARGEFILE
 AC_SYS_LONG_FILE_NAMES
 
@@ -29,6 +21,7 @@ PKG_PROG_PKG_CONFIG
 
 AC_CHECK_LIB([m], [main])
 AC_CHECK_MEMBERS([struct stat.st_blocks])
+AC_GNU_SOURCE
 
 #
 # Check --disable options

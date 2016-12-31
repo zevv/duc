@@ -1,7 +1,9 @@
 
 bin_PROGRAMS := duc
+lib_LTLIBRARIES := libduc.la libduc-graph.la
+include_HEADERS := src/libduc/duc.h src/libduc-graph/duc-graph.h
 
-duc_SOURCES := \
+libduc_la_SOURCES := \
 	src/libduc/buffer.c \
 	src/libduc/buffer.h \
 	src/libduc/db.c \
@@ -23,21 +25,19 @@ duc_SOURCES := \
 	src/libduc/utlist.h \
 	src/libduc/utstring.h
 
-duc_SOURCES += \
-	src/glad/glad.c \
-	src/glad/KHR/khrplatform.h \
-	src/glad/glad/glad.h
-
-duc_SOURCES += \
+libduc_graph_la_SOURCES := \
 	src/libduc-graph/graph.c \
 	src/libduc-graph/graph-cairo.c \
 	src/libduc-graph/graph-opengl.c \
 	src/libduc-graph/graph-svg.c \
 	src/libduc-graph/graph-html.c \
 	src/libduc-graph/graph-private.h \
-	src/libduc-graph/duc-graph.h
+	src/libduc-graph/duc-graph.h \
+	src/glad/glad.c \
+	src/glad/KHR/khrplatform.h \
+	src/glad/glad/glad.h
 
-duc_SOURCES  += \
+duc_SOURCES := \
 	src/duc/cmd-cgi.c \
 	src/duc/cmd-graph.c \
 	src/duc/cmd-gui.c \
@@ -60,6 +60,7 @@ AM_CFLAGS += -Isrc/libduc -Isrc/libduc-graph -Isrc/glad
 
 duc_LDADD := @CAIRO_LIBS@ @PANGO_LIBS@ @PANGOCAIRO_LIBS@
 duc_LDADD += @TC_LIBS@ @SQLITE3_LIBS@ @GLFW3_LIBS@ @LMDB_LIBS@ @KC_LIBS@
+duc_LDADD += libduc.la libduc-graph.la
 
 man1_MANS = \
 	doc/duc.1
