@@ -1,5 +1,5 @@
 %global name duc
-%global version 1.4.2
+%global version 1.4.3
 %global release 1
 
 Name:           %{name}
@@ -44,6 +44,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/%{name}.1.gz
 
 %changelog
+* Mon Jan 02 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.3
+- Update to 1.4.3
+
 * Fri Dec 09 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.2
 - Update to 1.4.2
 - Removed devel rpm
