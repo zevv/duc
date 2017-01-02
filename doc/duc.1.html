@@ -128,7 +128,7 @@ particular order: <code>/etc/ducrc</code>, <code>~/.config/duc/ducrc</code>, <co
 <p>A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
 apply. A section begins with the name of the section in square brackets and
-continues until the next section begins.Sections contain parameters, one per
+continues until the next section begins. Sections contain parameters, one per
 line, which consist of a single option name for boolean flags, or an option name
 and a value for options which take a value. See the EXAMPLES section for an
 example of the configuration file format.</p>
@@ -166,7 +166,7 @@ scan, check the documentation below for the options --one-file-system,
 and date of the last scan.</p></li>
 <li><p><code>duc ls</code> lists all files and directories under the given path on the console.</p></li>
 <li><p><code>duc ui</code> runs a ncurses based console user interface for exploring the file
-system usage</p></li>
+system usage.</p></li>
 <li><p><code>duc gui</code> starts a graphical (X11) interface representing the file system in
 a sunburst graph. Click on a directory to redraw the graph from the
 perspective of the selected directory. Click in the center of the graph to go
@@ -220,6 +220,7 @@ are written to the index, and can later be queried by one of the other duc tools
 <dt><code>-m</code>, <code>--max-depth=VAL</code></dt><dd><p>limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index</p></dd>
 <dt><code>-x</code>, <code>--one-file-system</code></dt><dd><p>skip directories on different file systems</p></dd>
 <dt><code>-p</code>, <code>--progress</code></dt><dd><p>show progress during indexing</p></dd>
+<dt><code>--dry-run</code></dt><dd><p>do not update database, just crawl</p></dd>
 <dt><code>--uncompressed</code></dt><dd><p>do not use compression for database. Duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time</p></dd>
 </dl>
 
@@ -427,7 +428,7 @@ definition.</p></li>
 <li><p>Add the option --list to generate a table of top sized files and directories
 in the HTML page.</p></li>
 <li><p>The options --header and --footer allow you to insert your own HTML code
-before and after the main </p><div>.</div></li>
+before and after the main.</p></li>
 </ul>
 
 
@@ -468,17 +469,29 @@ key to toggle.</p>
 <p>If you use git clone to pull down the latest release, you will have to
 do the following:</p>
 
-<p>  git clone https://github.com/zevv/duc
-  cd duc
-  aclocal
+<p>  git clone https://github.com/zevv/duc<br />
+  cd duc<br />
+  aclocal<br />
   automake --add-missing -c</p>
 
 <p>Then you can run the regular</p>
 
-<p>  ./configure [ options ]
+<p>  ./configure [ options ]<br />
   make</p>
 
 <p>to the regular build of the software.</p>
+
+<p>A note for Redhat and derivates users. The package providing the development file
+for lmdb (lmdb-devel) does not include a lmdb.pc pkgconfig file. This could lead to
+errors during the configure phase:</p>
+
+<p>  checking for LMDB... no<br />
+  configure: error: Package requirements (lmdb) were not met:</p>
+
+<p>To avoid the need to call pkg-config, you may set the environment variables        <br />
+LMDB_CFLAGS and LMDB_LIBS:</p>
+
+<p>  LMDB_CFLAGS=" " LMDB_LIBS=-llmdb ./configure --with-db-backend=lmdb [ options ]</p>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
@@ -580,8 +593,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#100;&#117;&#99;&#64;&#122;&#x65;&#x76;&#118;&#x2e;&#x6e;&#108;" data-bare-link="true">&#x64;&#x75;&#99;&#x40;&#122;&#101;&#x76;&#118;&#46;&#x6e;&#x6c;</a></li>
-<li>John Stoffel <a href="&#109;&#97;&#105;&#x6c;&#116;&#x6f;&#58;&#x6a;&#111;&#x68;&#x6e;&#64;&#x73;&#116;&#x6f;&#x66;&#102;&#101;&#108;&#46;&#x6f;&#x72;&#x67;" data-bare-link="true">&#106;&#x6f;&#x68;&#110;&#x40;&#x73;&#x74;&#x6f;&#x66;&#x66;&#x65;&#108;&#x2e;&#111;&#x72;&#x67;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#105;&#x6c;&#x74;&#x6f;&#x3a;&#x64;&#x75;&#x63;&#64;&#x7a;&#101;&#118;&#x76;&#x2e;&#x6e;&#x6c;" data-bare-link="true">&#x64;&#117;&#99;&#x40;&#122;&#x65;&#118;&#x76;&#x2e;&#110;&#x6c;</a></li>
+<li>John Stoffel <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#x6f;&#x3a;&#106;&#111;&#x68;&#x6e;&#x40;&#x73;&#116;&#x6f;&#x66;&#x66;&#101;&#108;&#46;&#x6f;&#114;&#103;" data-bare-link="true">&#106;&#111;&#104;&#110;&#x40;&#x73;&#x74;&#111;&#102;&#102;&#101;&#108;&#x2e;&#x6f;&#114;&#x67;</a></li>
 </ul>
 
 
@@ -599,7 +612,7 @@ License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>November 2016</li>
+    <li class='tc'>January 2017</li>
     <li class='tr'>duc(1)</li>
   </ol>
 

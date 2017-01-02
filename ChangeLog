@@ -1,4 +1,10 @@
 
+1.4.3	(2017-01-02)
+
+	- fix: fixed mouse and tooltip coordinates in scrolled CGI
+	- fix: fixed lmdb read/write locking
+	- new: added --dry-run option to 'duc index' for testing purposes
+
 1.4.2	(2016-11-20)
 
 	- new: default per-user file path is now ~/.config/duc/ducrc
