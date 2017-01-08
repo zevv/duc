@@ -269,14 +269,15 @@ static void include_file(const char *fname)
 
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-
-	
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
 		
 	char url[DUC_PATH_MAX];
 	snprintf(url, sizeof url, "%s?cmd=index", script);
+
+	/* If 'x' and 'y' CGI parameters are given, lookup the new path in the
+	 * database. If found, generate a HTTP redirect to the new path. */
 
 	char *xs = cgi_get("x");
 	char *ys = cgi_get("y");
@@ -290,6 +291,10 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		if(dir2) {
 			dir = dir2;
 			path = duc_dir_get_path(dir);
+			printf("Status: 302 Found\n");
+			printf("Location: ?path=%s\n", path);
+			printf("\n");
+			return;
 		}
 	}
 
