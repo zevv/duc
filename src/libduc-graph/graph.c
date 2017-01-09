@@ -132,7 +132,7 @@ void car2pol(duc_graph *g, double x, double y, double *a, double *r)
 }
 
 
-void shorten_name(char *label, size_t maxlen)
+static void shorten_name(char *label, size_t maxlen)
 {
 	if(maxlen == 0) return;
 
@@ -157,7 +157,7 @@ void shorten_name(char *label, size_t maxlen)
 }
 
 
-void hsv2rgb(double h, double s, double v, double *r, double *g, double *b)
+static void hsv2rgb(double h, double s, double v, double *r, double *g, double *b)
 {	
 	double f, m, n;
 	int i;
@@ -314,6 +314,9 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 				L = 0.8;
 				break;
 		}
+
+		double R, G, B;
+		hsv2rgb(H, S, V, &R, &G, &B);
 		
 		if(e->type != DUC_FILE_TYPE_DIR) S *= 0.5;
 
@@ -357,7 +360,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 				duc_dir_close(dir_child);
 			} else {
 				if(g->backend) 
-					g->backend->draw_section(g, a1, a2, r2+2, r2+8, H, S/2, V/2, L);
+					g->backend->draw_section(g, a1, a2, r2+2, r2+8, R*0.5, G*0.5, B*0.5, L);
 			}
 		}
 
@@ -385,7 +388,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 		/* Draw section for this object */
 
 		if(g->backend) {
-			g->backend->draw_section(g, a1, a2, r1, r2 - g->ring_gap, H, S, V, L);
+			g->backend->draw_section(g, a1, a2, r1, r2 - g->ring_gap, R, G, B, L);
 		}
 
 		a1 = a2;

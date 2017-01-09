@@ -193,7 +193,8 @@ static void print_css(void)
 		"#list table td { padding-left: 5px; }\n"
 		"#list table td.name, th.name { text-align: left; }\n"
 		"#list table td.size, th.size { text-align: right; }\n"
-		"#tooltip { display: none; position: absolute; background-color: white; border: solid 1px black; padding: 3px; }\n"
+		"#tooltip { display: none; position: absolute; background-color: white;\n"
+		"           border: solid 1px black; padding: 3px; white-space: nowrap; }\n"
 		"</style>\n"
 	);
 }
@@ -205,11 +206,11 @@ static void print_script(const char *path)
 		"<script>\n"
 		"  window.onload = function() {\n"
 		"    var img = document.getElementById('duc_canvas');\n"
-		"    var rect = img.getBoundingClientRect(img);\n"
 		"    var tt = document.getElementById('tooltip');\n"
 		"    var timer;\n"
 		"    img.onmousedown = function(e) {\n"
 		"      if(e.button == 0) {\n"
+		"        var rect = img.getBoundingClientRect(img);\n"
 		"        var x = e.clientX - rect.left;\n"
 		"        var y = e.clientY - rect.top;\n"
 		"        window.location = '?x=' + x + '&y=' + y + '&path=");
@@ -224,15 +225,16 @@ static void print_script(const char *path)
 		"    img.onmousemove = function(e) {\n"
 		"      if(timer) clearTimeout(timer);\n"
 		"      timer = setTimeout(function() {\n"
+		"        var rect = img.getBoundingClientRect(img);\n"
 		"        var x = e.clientX - rect.left;\n"
 		"        var y = e.clientY - rect.top;\n"
 		"        var req = new XMLHttpRequest();\n"
 		"        req.onreadystatechange = function() {\n"
 		"          if(req.readyState == 4 && req.status == 200) {\n"
-		"            tt.innerHTML = req.responseText;\n"
 		"            tt.style.display = tt.innerHTML.length > 0 ? \"block\" : \"none\";\n"
-		"            tt.style.left = (e.clientX - tt.offsetWidth / 2) + \"px\";\n"
-		"            tt.style.top = (e.clientY - tt.offsetHeight - 5) + \"px\";\n"
+		"            tt.style.left = (e.pageX - tt.offsetWidth / 2) + \"px\";\n"
+		"            tt.style.top = (e.pageY - tt.offsetHeight - 5) + \"px\";\n"
+		"            tt.innerHTML = req.responseText;\n"
 		"          }\n"
 		"        };\n"
 		"        req.open(\"GET\", \"?cmd=tooltip&path=%s&x=\"+x+\"&y=\"+y , true);\n"
@@ -267,14 +269,15 @@ static void include_file(const char *fname)
 
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
-
-	
 	char *path = cgi_get("path");
 	char *script = getenv("SCRIPT_NAME");
 	if(!script) return;
 		
 	char url[DUC_PATH_MAX];
 	snprintf(url, sizeof url, "%s?cmd=index", script);
+
+	/* If 'x' and 'y' CGI parameters are given, lookup the new path in the
+	 * database. If found, generate a HTTP redirect to the new path. */
 
 	char *xs = cgi_get("x");
 	char *ys = cgi_get("y");
@@ -288,6 +291,10 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 		if(dir2) {
 			dir = dir2;
 			path = duc_dir_get_path(dir);
+			printf("Status: 302 Found\n");
+			printf("Location: ?path=%s\n", path);
+			printf("\n");
+			return;
 		}
 	}
 

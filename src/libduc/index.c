@@ -289,7 +289,7 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 {
 	struct duc *duc = req->duc;
 
-	if(req->fstypes_include == NULL && req->fstypes_exclude == NULL) {
+	if((req->fstypes_include == NULL) && (req->fstypes_exclude == NULL)) {
 		return 1;
 	}
 
@@ -411,7 +411,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 		if(name[0] == '.') {
 			if(name[1] == '\0') continue;
-			if(name[1] == '.' && name[2] == '\0') continue;
+			if((name[1] == '.') && (name[2] == '\0')) continue;
 		}
 
 		if(match_exclude(name, req->exclude_list)) {
@@ -450,15 +450,16 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 		/* Skip hard link duplicates for any files with more then one hard link */
 
-		if(ent.type != DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_CHECK_HARD_LINKS && 
-	 	   st_ent.st_nlink > 1 && is_duplicate(req, &ent.devino)) {
+		if((ent.type != DUC_FILE_TYPE_DIR) && (req->flags & DUC_INDEX_CHECK_HARD_LINKS) &&
+		   (st_ent.st_nlink > 1) && is_duplicate(req, &ent.devino)) {
 			continue;
 		}
 
 
 		/* Check if we can cross file system boundaries */
 
-		if(ent.type == DUC_FILE_TYPE_DIR && req->flags & DUC_INDEX_XDEV && st_ent.st_dev != req->dev) {
+		if((ent.type == DUC_FILE_TYPE_DIR) && (req->flags & DUC_INDEX_XDEV) &&
+		   (st_ent.st_dev != req->dev)) {
 			report_skip(duc, name, "Not crossing file system boundaries");
 			continue;
 		}
@@ -495,7 +496,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 			/* Store record */
 
-			if(req->maxdepth == 0 || scanner_dir->depth < req->maxdepth) {
+			if((req->maxdepth == 0) || (scanner_dir->depth < req->maxdepth)) {
 				buffer_put_dirent(scanner_dir->buffer, &ent);
 			}
 		}
@@ -517,7 +518,7 @@ static void scanner_free(struct scanner *scanner)
 	if(scanner->parent) {
 		duc_size_accum(&scanner->parent->ent.size, &scanner->ent.size);
 
-		if(req->maxdepth == 0 || scanner->depth < req->maxdepth) {
+		if((req->maxdepth == 0) || (scanner->depth < req->maxdepth)) {
 			buffer_put_dirent(scanner->parent->buffer, &scanner->ent);
 		}
 
@@ -527,7 +528,7 @@ static void scanner_free(struct scanner *scanner)
 
 	if(req->progress_fn) {
 
-		if(!scanner->parent || req->progress_n++ == 100) {
+		if((!scanner->parent) || (req->progress_n++ == 100)) {
 			
 			struct timeval t_now;
 			gettimeofday(&t_now, NULL);
@@ -541,11 +542,13 @@ static void scanner_free(struct scanner *scanner)
 
 	}
 	
-	char key[32];
-	struct duc_devino *devino = &scanner->ent.devino;
-	size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)devino->dev, (uintmax_t)devino->ino);
-	int r = db_put(duc->db, key, keyl, scanner->buffer->data, scanner->buffer->len);
-	if(r != 0) duc->err = r;
+	if(!(req->flags & DUC_INDEX_DRY_RUN)) {
+		char key[32];
+		struct duc_devino *devino = &scanner->ent.devino;
+		size_t keyl = snprintf(key, sizeof(key), "%jx/%jx", (uintmax_t)devino->dev, (uintmax_t)devino->ino);
+		int r = db_put(duc->db, key, keyl, scanner->buffer->data, scanner->buffer->len);
+		if(r != 0) duc->err = r;
+	}
 
 	buffer_free(scanner->buffer);
 	closedir(scanner->d);
@@ -633,8 +636,10 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	
 	/* Store report */
 
-	gettimeofday(&report->time_stop, NULL);
-	db_write_report(duc, report);
+	if(!(req->flags & DUC_INDEX_DRY_RUN)) {
+		gettimeofday(&report->time_stop, NULL);
+		db_write_report(duc, report);
+	}
 
 	free(path_canon);
 

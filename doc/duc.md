@@ -39,7 +39,7 @@ particular order: `/etc/ducrc`, `~/.config/duc/ducrc`, `~/.ducrc` and
 A configuration file consists of sections and parameters. The section names
 correspond to the duc subcommands for which the parameters in that section
 apply. A section begins with the name of the section in square brackets and
-continues until the next section begins.Sections contain parameters, one per
+continues until the next section begins. Sections contain parameters, one per
 line, which consist of a single option name for boolean flags, or an option name
 and a value for options which take a value. See the EXAMPLES section for an
 example of the configuration file format.
@@ -79,7 +79,7 @@ Duc has various subcommands for querying or exploring the index:
 * `duc ls` lists all files and directories under the given path on the console.
 
 * `duc ui` runs a ncurses based console user interface for exploring the file
-  system usage
+  system usage.
 
 * `duc gui` starts a graphical (X11) interface representing the file system in
   a sunburst graph. Click on a directory to redraw the graph from the
@@ -163,6 +163,9 @@ Options for command `duc index [options] PATH ...`:
 
   * `-p`, `--progress`:
     show progress during indexing
+
+  * `--dry-run`:
+    do not update database, just crawl
 
   * `--uncompressed`:
     do not use compression for database. Duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time
@@ -470,7 +473,7 @@ Some notes:
   in the HTML page.
 
 * The options --header and --footer allow you to insert your own HTML code
-  before and after the main <div>.
+  before and after the main.
 
 The current CGI configuration is not very flexible, nor secure. It is not
 advised to run the CGI from public reachable web servers, use at your own risk.
@@ -508,17 +511,29 @@ key to toggle.
 If you use git clone to pull down the latest release, you will have to
 do the following:
 
-  git clone https://github.com/zevv/duc
-  cd duc
-  aclocal
-  automake --add-missing -c
+  git clone https://github.com/zevv/duc  
+  cd duc  
+  aclocal  
+  automake --add-missing -c  
 
 Then you can run the regular 
 
-  ./configure [ options ]
-  make
+  ./configure [ options ]  
+  make  
 
 to the regular build of the software.
+
+A note for Redhat and derivates users. The package providing the development file
+for lmdb (lmdb-devel) does not include a lmdb.pc pkgconfig file. This could lead to
+errors during the configure phase:
+
+  checking for LMDB... no  
+  configure: error: Package requirements (lmdb) were not met:  
+                                                                                     
+To avoid the need to call pkg-config, you may set the environment variables          
+LMDB_CFLAGS and LMDB_LIBS:
+
+  LMDB_CFLAGS=" " LMDB_LIBS=-llmdb ./configure --with-db-backend=lmdb [ options ]  
 
 ## EXAMPLES
 
