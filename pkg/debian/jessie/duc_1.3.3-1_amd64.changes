@@ -1,0 +1,36 @@
+Format: 1.8
+Date: Wed, 24 Jun 2015 22:13:43 +0200
+Source: duc
+Binary: duc-nox duc
+Architecture: source amd64
+Version: 1.3.3-1
+Distribution: unstable
+Urgency: low
+Maintainer: Benoît SÉRIE <bserie@evolix.fr>
+Changed-By: Benoît SÉRIE <bserie@evolix.fr>
+Description:
+ duc        - scalable disk usage analyzer.
+ duc-nox    - scalable disk usage analyzer (without X support).
+Closes: 783310
+Changes:
+ duc (1.3.3-1) unstable; urgency=low
+ .
+   * Initial release. (Closes: #783310)
+Checksums-Sha1:
+ 8903dae3c1006dabcc5f533302727cf0d4efd5bf 1001 duc_1.3.3-1.dsc
+ 757c958452fe7da4e5067474e17534dd6a26d027 288072 duc_1.3.3.orig.tar.gz
+ acd7903c096001b2be486946462b785798f56bbe 2832 duc_1.3.3-1.debian.tar.xz
+ 47a30228bf09b6d6282a9cc1a73eb6116cc17b27 39328 duc-nox_1.3.3-1_amd64.deb
+ 1191f965ff97418abc62069ba048055591566481 42684 duc_1.3.3-1_amd64.deb
+Checksums-Sha256:
+ e8a8b8fc12ff789482b62d29e2dac64506d046ab640bd59da8563e3e90030363 1001 duc_1.3.3-1.dsc
+ 73f4260994dea91a975b8e8cf7ba9a3b144e4787bc125d37747a106d3043b726 288072 duc_1.3.3.orig.tar.gz
+ b8c879915bfd7002b7b6031ab0a7950c6e40fce41e0831d107f0e26523dbf1e7 2832 duc_1.3.3-1.debian.tar.xz
+ c2dc34f4239b76206dbc4748bada102f179a2d6cee949ec66833f9e896686e0c 39328 duc-nox_1.3.3-1_amd64.deb
+ 7f8189d1394c60a0154eb7d03b75347e997fa0419527cd5da3721ab5955c1bf9 42684 duc_1.3.3-1_amd64.deb
+Files:
+ 6a1b5bfcb1fccc55f72f9892c6ac8a8e 1001 admin optional duc_1.3.3-1.dsc
+ 20a3a2e470f49c8748757801d96b16d8 288072 admin optional duc_1.3.3.orig.tar.gz
+ 0233186bc18caa44818cf62cebdde67d 2832 admin optional duc_1.3.3-1.debian.tar.xz
+ c25ad02fa81adf79856886fb65c85426 39328 admin optional duc-nox_1.3.3-1_amd64.deb
+ c29244c8f64d75b7297302360e40b438 42684 admin optional duc_1.3.3-1_amd64.deb
