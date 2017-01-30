@@ -22,6 +22,9 @@ Duc scales quite well, it has been tested on systems with more then 500 million 
 Duc comes with a command line tool called \fBduc\fR, which is used to create, maintain and query the disk usage database\. run \fBduc help\fR to get a list of available commands\. \fBduc help <subcommand>\fR describes the usage of a specific subcommand\. Run \fBduc help \-\-all\fR for an extensive list of all commands and their options\.
 .
 .P
+Some commands might not be available on your system, depending on the exact configuration chosen when building Duc\. (For example, the \fBduc gui\fR command is not available in the \fBduc\-nox\fR package on Debian and Ubuntu)
+.
+.P
 Duc allows any option to be placed either on the command line or in a configuration file\. Options on the command line are preceded by a double\-leading\-dash (\fB\-\-option\fR), some options have a corresponding short option which can be used as well with a single leading dash\. (\fB\-o\fR)
 .
 .P
@@ -55,7 +58,7 @@ You can run \fBduc index\fR at any time later to rebuild the index\.
 By default Duc indexes all directories it encounters during file system traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for the options \-\-one\-file\-system, \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
 .
 .SH "QUERYING THE INDEX"
-Duc has various subcommands for querying or exploring the index:
+Duc has various subcommands for querying or exploring the index: (Note that depending on your configuration, some of these commands might not be available)
 .
 .IP "\(bu" 4
 \fBduc info\fR shows a list of available directory trees in the database, and the time and date of the last scan\.
@@ -237,6 +240,10 @@ recursively list subdirectories
 .
 .SS "duc xml"
 Options for command \fBduc xml [options] [PATH]\fR:
+.
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+interpret min_size/\-s value as apparent size
 .
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
@@ -551,7 +558,7 @@ Duc has two modes for counting file sizes:
 .IP "" 0
 .
 .P
-The default mode used by duc is to use the \'actual size\'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc gui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), in the gui tool use the \'a\' key to toggle\.
+The default mode used by duc is to use the \'actual size\'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc ui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), or use the \'a\' key to toggle\.
 .
 .SH "BUILDING from git"
 If you use git clone to pull down the latest release, you will have to do the following:
@@ -685,7 +692,7 @@ $ duc graph \-o /tmp/usr\.png /usr
 .IP "" 0
 .
 .P
-The following sample configuration file defines default parameters for the \fBduc ls\fR and \fBduc gui\fR commands and defines a global option to configure the database path which is used by all subcommands
+The following sample configuration file defines default parameters for the \fBduc ls\fR and \fBduc ui\fR commands and defines a global option to configure the database path which is used by all subcommands
 .
 .IP "" 4
 .
@@ -699,13 +706,9 @@ recursive
 classify
 color
 
-[gui]
-fuzz 0\.7
-palette rainbow
-levels 4
-
 [ui]
-color
+no\-color
+apparent
 .
 .fi
 .
@@ -724,6 +727,12 @@ Duc crashes with a segmentation fault, is it that buggy?
 .
 .IP
 By default Duc uses the Tokyocabinet database backend\. Tokyocabinet is pretty fast, stores the database in a single file and has nice compression support to keep the database small\. Unfortunately, it is not always robust and sometimes chokes on corrupt database files\. Try to remove the database and rebuild the index\. If the error persists contact the authors\.
+.
+.IP "\(bu" 4
+Some of the Duc subcommands like \fBduc gui\fR are not available on my system?
+.
+.IP
+Depending on the configuration that was chosen when building Duc, some options might or might not be available in the \fBduc\fR utility\. For example, on Debian or Ubuntu Duc comes in two flavours: there is a full featured package called \fBduc\fR, or a package without dependencies on X\-windows called \fBduc\-nox\fR, for which the latter lacks the \fBduc gui\fR command\.
 .
 .IP "" 0
 .
