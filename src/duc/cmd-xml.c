@@ -14,6 +14,7 @@
 #include "duc.h"
 	
 
+static bool opt_apparent = false;
 static char *opt_database = NULL;
 static double opt_min_size = 0;
 static bool opt_exclude_files = false;
@@ -56,9 +57,13 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 {
 	struct duc_dirent *e;
 
+	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+
 	while( (e = duc_dir_read(dir, DUC_SIZE_TYPE_ACTUAL, DUC_SORT_SIZE)) != NULL) {
 
-		if(e->type == DUC_FILE_TYPE_DIR && e->size.apparent >= min_size) {
+		off_t size = duc_get_size(&e->size, st);
+
+		if(e->type == DUC_FILE_TYPE_DIR && size>= min_size) {
 			duc_dir *dir_child = duc_dir_openent(dir, e);
 			if(dir_child) {
 				indent(depth);
@@ -70,7 +75,7 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 				printf("</ent>\n");
 			}
 		} else {
-			if(!ex_files && e->size.apparent >= min_size) {
+			if(!ex_files && size >= min_size) {
 				indent(depth);
 				printf("<ent name=\"");
 				print_escaped(e->name);
@@ -116,6 +121,7 @@ static int xml_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
+	{ &opt_apparent,      "apparent",      'a', DUCRC_TYPE_BOOL,   "interpret min_size/-s value as apparent size" },
 	{ &opt_database,      "database",      'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_exclude_files, "exclude-files", 'x', DUCRC_TYPE_BOOL,   "exclude file from xml output, only include directories" },
 	{ &opt_min_size,      "min_size",      's', DUCRC_TYPE_DOUBLE, "specify min size for files or directories" },

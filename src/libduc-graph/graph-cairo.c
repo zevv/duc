@@ -195,7 +195,7 @@ static void br_cairo_draw_section(duc_graph *g, double a1, double a2, double r1,
 		}
 		cairo_set_source(cr, pat);
 
-		cairo_fill_preserve(cr);
+		cairo_fill(cr);
 		cairo_pattern_destroy(pat);
 	}
 

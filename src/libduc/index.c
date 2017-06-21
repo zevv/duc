@@ -370,7 +370,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	scanner->ent.type = DUC_FILE_TYPE_DIR,
 	st_to_devino(st, &scanner->ent.devino);
 	st_to_size(st, &scanner->ent.size);
-
+	scanner->ent.size.apparent = 0;
 		
 	buffer_put_dir(scanner->buffer, &devino_parent, st->st_mtime);
 

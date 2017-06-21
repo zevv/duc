@@ -27,6 +27,10 @@ available commands. `duc help <subcommand>` describes the usage of a specific
 subcommand. Run `duc help --all` for an extensive list of all commands and
 their options.
 
+Some commands might not be available on your system, depending on the exact
+configuration chosen when building Duc. (For example, the `duc gui` command is
+not available in the `duc-nox` package on Debian and Ubuntu)
+
 Duc allows any option to be placed either on the command line or in a
 configuration file. Options on the command line are preceded by a
 double-leading-dash (`--option`), some options have a corresponding short
@@ -71,7 +75,8 @@ scan, check the documentation below for the options --one-file-system,
 
 ## QUERYING THE INDEX
 
-Duc has various subcommands for querying or exploring the index:
+Duc has various subcommands for querying or exploring the index: (Note that
+depending on your configuration, some of these commands might not be available)
 
 * `duc info` shows a list of available directory trees in the database, and the time
   and date of the last scan.
@@ -235,6 +240,9 @@ Options for command `duc ls [options] [PATH]`:
 ### duc xml
 
 Options for command `duc xml [options] [PATH]`:
+
+  * `-a`, `--apparent`:
+    interpret min_size/-s value as apparent size
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
@@ -502,9 +510,9 @@ Duc has two modes for counting file sizes:
   multiple of 512 bytes. 
 
 The default mode used by duc is to use the 'actual size'. Most duc commands to
-report disk usage (`duc ls`, `duc graph`, `duc gui`, etc) have an option to
-change between these two modes (usually the `-a`), in the gui tool use the 'a'
-key to toggle.
+report disk usage (`duc ls`, `duc graph`, `duc ui`, etc) have an option to
+change between these two modes (usually the `-a`), or use the 'a' key to
+toggle.
 
 ## BUILDING from git
 
@@ -582,7 +590,7 @@ Generate a graph of /usr/local in .png format:
 
 
 The following sample configuration file defines default parameters for the `duc
-ls` and `duc gui` commands and defines a global option to configure the database
+ls` and `duc ui` commands and defines a global option to configure the database
 path which is used by all subcommands
  
     [global]
@@ -593,13 +601,10 @@ path which is used by all subcommands
     classify
     color
     
-    [gui]
-    fuzz 0.7
-    palette rainbow
-    levels 4
-
     [ui]
-    color
+    no-color
+    apparent
+
 
 ## FREQUENTLY ASKED QUESTIONS
 
@@ -616,6 +621,14 @@ path which is used by all subcommands
   to keep the database small. Unfortunately, it is not always robust and
   sometimes chokes on corrupt database files. Try to remove the database
   and rebuild the index. If the error persists contact the authors.
+
+* Some of the Duc subcommands like `duc gui` are not available on my system?
+
+  Depending on the configuration that was chosen when building Duc, some
+  options might or might not be available in the `duc` utility. For example, on
+  Debian or Ubuntu Duc comes in two flavours: there is a full featured package
+  called `duc`, or a package without dependencies on X-windows called
+  `duc-nox`, for which the latter lacks the `duc gui` command.
 
 ## FILES
 
