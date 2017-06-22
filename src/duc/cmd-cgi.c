@@ -249,7 +249,6 @@ static void print_script(const char *path)
 	      );
 }
 
-
 static void include_file(const char *fname)
 {
 	FILE *f = fopen(fname, "rb");
@@ -266,6 +265,32 @@ static void include_file(const char *fname)
 	}
 }
 
+
+static void print_html_header(const char *path)
+{
+  printf(
+		 "Content-Type: text/html\n"
+		 "\n"
+		 "<!DOCTYPE html>\n"
+		 "<head>\n"
+		 "  <meta charset=\"utf-8\" />\n"
+		 );
+  
+  if(opt_css_url) {
+	printf("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">\n", opt_css_url);
+  } else {
+	print_css();
+  }
+  
+  if(path) {
+	print_script(path);
+  }
+  
+  printf("</head>\n");
+  printf("<body>\n");
+  
+  include_file(opt_header);
+}
 
 static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 {
@@ -301,28 +326,7 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 	struct duc_index_report *report;
 	int i = 0;
 
-	printf(
-		"Content-Type: text/html\n"
-		"\n"
-		"<!DOCTYPE html>\n"
-		"<head>\n"
-		"  <meta charset=\"utf-8\" />\n"
-	);
-
-	if(opt_css_url) {
-		printf("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">\n", opt_css_url);
-	} else {
-		print_css();
-	}
-
-	if(path) {
-		print_script(path);
-	}
-
-	printf("</head>\n");
-	printf("<body>\n");
-
-	include_file(opt_header);
+	print_html_header(path);
 
 	printf("<div id=main>\n");
 	printf("<div id=index>");
