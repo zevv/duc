@@ -1,4 +1,6 @@
 
+	- cha: changed license from GPL to LGPL (#190)
+
 1.4.3	(2017-01-02)
 
 	- fix: fixed mouse and tooltip coordinates in scrolled CGI
