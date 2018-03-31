@@ -253,13 +253,28 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case '\r':
 			case '\n': 
 				  duc_dir_seek(dir, cur);
-				  struct duc_dirent *e = duc_dir_read(dir, st, sort);
+				  e = duc_dir_read(dir, st, sort);
 				  if(e && e->type == DUC_FILE_TYPE_DIR) {
 					dir2 = duc_dir_openent(dir, e);
 					if(dir2) {
 						do_dir(dir2, depth + 1);
 						duc_dir_close(dir2);
 					}
+				  }
+				  break;
+			case 'o':
+				  duc_dir_seek(dir, cur);
+				  e = duc_dir_read(dir, st, sort);
+				  if(e && e->type == DUC_FILE_TYPE_REG) {
+					  char cmd[DUC_PATH_MAX] = "true";
+					  char *path = duc_dir_get_path(dir);
+					  if(path) {
+						  snprintf(cmd, sizeof(cmd), "xdg-open \"%s/%s\"", path, e->name);
+						  free(path);
+					  }
+					  endwin();
+					  system(cmd);
+					  doupdate();
 				  }
 				  break;
 			default:
@@ -356,6 +371,7 @@ struct cmd cmd_ui = {
 		"    c:               Toggle between file size and file count\n"
 		"    h:               show help. press 'q' to return to the main screen\n"
 		"    n:               toggle sort order between 'size' and 'name'\n"
+		"    o:               try to open the file using xdg-open\n"
 		"    q, escape:       quit\n"
 
 };

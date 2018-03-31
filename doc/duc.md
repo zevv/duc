@@ -423,6 +423,7 @@ The following keys can be used to navigate and alter the file system:
     c:               Toggle between file size and file count
     h:               show help. press 'q' to return to the main screen
     n:               toggle sort order between 'size' and 'name'
+    o:               try to open the file using xdg-open
     q, escape:       quit
 
 
