@@ -47,6 +47,7 @@ static bool opt_count = false;
 static bool opt_ascii = false;
 static bool opt_bytes = false;
 static bool opt_classify = false;
+static bool opt_directory = false;
 static bool opt_color = false;
 static bool opt_full_path = false;
 static int width = 80;
@@ -191,6 +192,30 @@ static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 }
 
 
+/*
+ * Show size of this directory only
+ */
+
+static void ls_dir_only(const char *path, duc_dir *dir)
+{
+	struct duc_size size;
+	char siz[32];
+
+	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
+		           opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_dir_get_size(dir, &size);
+	duc_human_size(&size, st, opt_bytes, siz, sizeof siz);
+
+	printf("%s %s", siz, path);
+
+	if(opt_classify) {
+		putchar('/');
+	}
+
+	putchar('\n');
+}
+
+
 static int ls_main(duc *duc, int argc, char **argv)
 {
 	char *path = ".";
@@ -232,7 +257,11 @@ static int ls_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	ls_one(dir, 0, 0);
+	if(opt_directory) {
+		ls_dir_only(path, dir);
+	} else {
+		ls_one(dir, 0, 0);
+	}
 
 	duc_dir_close(dir);
 	duc_close(duc);
@@ -249,6 +278,7 @@ static struct ducrc_option options[] = {
 	{ &opt_color,     "color",     'c', DUCRC_TYPE_BOOL,   "colorize output (only on ttys)" },
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_directory, "directory", 'D', DUCRC_TYPE_BOOL,   "list directory itself, not its contents" },
 	{ &opt_dirs_only, "dirs-only",  0,  DUCRC_TYPE_BOOL,   "list only directories, skip individual files" },
 	{ &opt_full_path, "full-path",  0,  DUCRC_TYPE_BOOL,   "show full path instead of tree in recursive view" },
 	{ &opt_graph,     "graph",     'g', DUCRC_TYPE_BOOL,   "draw graph with relative size for each entry" },
