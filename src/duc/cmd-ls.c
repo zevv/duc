@@ -216,11 +216,26 @@ static void ls_dir_only(const char *path, duc_dir *dir)
 }
 
 
+static void do_one(struct duc *duc, const char *path)
+{
+	duc_dir *dir = duc_dir_open(duc, path);
+	if(dir == NULL) {
+		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
+		return -1;
+	}
+
+	if(opt_directory) {
+		ls_dir_only(path, dir);
+	} else {
+		ls_one(dir, 0, 0);
+	}
+
+	duc_dir_close(dir);
+}
+
+
 static int ls_main(duc *duc, int argc, char **argv)
 {
-	char *path = ".";
-	if(argc > 0) path = argv[0];
-
 	/* Get terminal width */
 
 #ifdef TIOCGWINSZ
@@ -251,19 +266,15 @@ static int ls_main(duc *duc, int argc, char **argv)
 		return -1;
 	}
 
-	duc_dir *dir = duc_dir_open(duc, path);
-	if(dir == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
-		return -1;
-	}
-
-	if(opt_directory) {
-		ls_dir_only(path, dir);
+	if(argc > 0) {
+		int i;
+		for(i=0; i<argc; i++) {
+			do_one(duc, argv[i]);
+		}
 	} else {
-		ls_one(dir, 0, 0);
+		do_one(duc, ".");
 	}
 
-	duc_dir_close(dir);
 	duc_close(duc);
 
 	return 0;
@@ -291,7 +302,7 @@ static struct ducrc_option options[] = {
 struct cmd cmd_ls = {
 	.name = "ls",
 	.descr_short = "List sizes of directory",
-	.usage = "[options] [PATH]",
+	.usage = "[options] [PATH]...",
 	.main = ls_main,
 	.options = options,
 	.descr_long = 
