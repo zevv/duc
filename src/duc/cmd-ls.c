@@ -221,7 +221,6 @@ static void do_one(struct duc *duc, const char *path)
 	duc_dir *dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
 		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
-		return -1;
 	}
 
 	if(opt_directory) {
