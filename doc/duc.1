@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "DUC" "1" "March 2018" "" ""
+.TH "DUC" "1" "September 2018" "" ""
 .
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
@@ -184,7 +184,7 @@ select database file to use [~/\.duc\.db]
 The \'ls\' subcommand queries the duc database and lists the inclusive size of all files and directories on the given path\. If no path is given the current working directory is listed\.
 .
 .P
-Options for command \fBduc ls [options] [PATH]\fR:
+Options for command \fBduc ls [options] [PATH]\.\.\.\fR:
 .
 .TP
 \fB\-a\fR, \fB\-\-apparent\fR
@@ -213,6 +213,10 @@ show number of files instead of file size
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
 select database file to use [~/\.duc\.db]
+.
+.TP
+\fB\-D\fR, \fB\-\-directory\fR
+list directory itself, not its contents
 .
 .TP
 \fB\-\-dirs\-only\fR
@@ -571,10 +575,7 @@ git clone https://github\.com/zevv/duc
 cd duc
 .
 .br
-aclocal
-.
-.br
-automake \-\-add\-missing \-c
+autoreconf \-i
 .
 .P
 Then you can run the regular

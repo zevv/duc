@@ -172,8 +172,7 @@ do the following:
 
   git clone https://github.com/zevv/duc  
   cd duc  
-  aclocal  
-  automake --add-missing -c  
+  autoreconf -i
 
 Then you can run the regular 
 

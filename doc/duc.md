@@ -196,7 +196,7 @@ all files and directories on the given path. If no path is given the current
 working directory is listed.
 
 
-Options for command `duc ls [options] [PATH]`:
+Options for command `duc ls [options] [PATH]...`:
 
   * `-a`, `--apparent`:
     show apparent instead of actual file size
@@ -218,6 +218,9 @@ Options for command `duc ls [options] [PATH]`:
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
+
+  * `-D`, `--directory`:
+    list directory itself, not its contents
 
   * `--dirs-only`:
     list only directories, skip individual files
@@ -522,8 +525,7 @@ do the following:
 
   git clone https://github.com/zevv/duc  
   cd duc  
-  aclocal  
-  automake --add-missing -c  
+  autoreconf -i
 
 Then you can run the regular 
 
