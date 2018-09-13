@@ -27,6 +27,7 @@ static char *opt_palette = NULL;
 static enum duc_graph_palette palette = 0;
 static int opt_ring_gap = 4;
 static bool opt_gradient = false;
+static double opt_dpi = 96.0;
 
 #ifdef ENABLE_CAIRO
 static char *opt_format = "png";
@@ -119,6 +120,7 @@ static int graph_main(duc *duc, int argc, char **argv)
 	                   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
 	duc_graph_set_size(graph, opt_size, opt_size);
+	duc_graph_set_dpi(graph, opt_dpi);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_palette(graph, palette);
@@ -140,6 +142,7 @@ static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "Show apparent instead of actual file size" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
+	{ &opt_dpi,       "dpi",        0 , DUCRC_TYPE_DOUBLE, "set destination resolution in DPI [96.0]" },
 	{ &opt_format,    "format",    'f', DUCRC_TYPE_STRING, 
 #ifdef ENABLE_CAIRO
 	                                                        "select output format <png|svg|pdf|html> [png]" },

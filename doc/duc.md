@@ -278,6 +278,9 @@ Options for command `duc graph [options] [PATH]`:
   * `--count`:
     show number of files instead of file size
 
+  * `--dpi=VAL`:
+    set destination resolution in DPI [96.0]
+
   * `-f`, `--format=VAL`:
     select output format <png|svg|pdf|html> [png]
 
@@ -321,6 +324,9 @@ Options for command `duc cgi [options] [PATH]`:
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
+
+  * `--dpi=VAL`:
+    set destination resolution in DPI [96.0]
 
   * `--footer=VAL`:
     select HTML file to include as footer

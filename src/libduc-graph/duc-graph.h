@@ -41,6 +41,7 @@ void duc_graph_free(duc_graph *g);
 
 void duc_graph_set_max_level(duc_graph *g, int max_level);
 void duc_graph_set_size(duc_graph *g, int w, int h);
+void duc_graph_set_dpi(duc_graph *g, double dpi);
 void duc_graph_set_position(duc_graph *g, double x, double y);
 void duc_graph_set_tooltip(duc_graph *g, double x, double y);
 void duc_graph_set_palette(duc_graph *g, enum duc_graph_palette p);

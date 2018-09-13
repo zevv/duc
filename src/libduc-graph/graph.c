@@ -31,6 +31,7 @@ duc_graph *duc_graph_new(duc *duc)
 	g->duc = duc;
 	g->r_start = 100;
 	g->fuzz = 0;
+	duc_graph_set_dpi(g, 96);
 	duc_graph_set_max_level(g, 3);
 	duc_graph_set_size(g, 400, 400);
 
@@ -62,6 +63,13 @@ void duc_graph_set_size(duc_graph *g, int w, int h)
 {
 	g->width = w;
 	g->height = h;
+}
+
+
+void duc_graph_set_dpi(duc_graph *g, double dpi)
+{
+	g->dpi = dpi;
+	g->font_scale = dpi / 96.0;
 }
 
 
@@ -430,14 +438,14 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 
 	LL_FOREACH_SAFE(g->label_list, l, ln) {
 		if(g->backend)
-			g->backend->draw_text(g, (int)l->x, (int)l->y, FONT_SIZE_LABEL, l->text);
+			g->backend->draw_text(g, (int)l->x, (int)l->y, FONT_SIZE_LABEL * g->font_scale, l->text);
 		free(l->text);
 		free(l);
 	}
 	
 	char *p = duc_dir_get_path(dir);
 	if(g->backend)
-		g->backend->draw_text(g, (int)g->cx, 10, FONT_SIZE_LABEL, p);
+		g->backend->draw_text(g, (int)g->cx, 10, FONT_SIZE_LABEL * g->font_scale, p);
 	free(p);
 
 	struct duc_size size;
@@ -445,7 +453,7 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 	char siz[16];
 	duc_human_size(&size, g->size_type, g->bytes, siz, sizeof siz);
 	if(g->backend)
-		g->backend->draw_text(g, (int)g->cx, (int)g->cy, FONT_SIZE_CENTER, siz);
+		g->backend->draw_text(g, (int)g->cx, (int)g->cy, FONT_SIZE_CENTER * g->font_scale, siz);
 
 	if(g->tooltip_r < g->r_start) {
 		gen_tooltip(g, &size, NULL, DUC_FILE_TYPE_DIR);

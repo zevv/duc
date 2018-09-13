@@ -260,9 +260,14 @@ int gui_main(duc *duc, int argc, char *argv[])
 	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
 	cr = cairo_create(cs);
 
-
-
 	graph = duc_graph_new_cairo(duc, cr);
+
+	int w_px = DisplayWidth(dpy, 0);
+	int w_mm = DisplayWidthMM(dpy, 0);
+	if(w_px && w_mm) {
+		double dpi = 25.4 * w_px / w_mm;
+		duc_graph_set_dpi(graph, dpi);
+	}
 
 	do_gui(duc, graph, dir);
 

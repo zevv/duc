@@ -31,6 +31,8 @@ struct duc_graph {
 
 	struct duc *duc;
 	double size;
+	double dpi;
+	double font_scale;
 	double cx, cy;
 	double pos_x, pos_y;
 	double width, height;

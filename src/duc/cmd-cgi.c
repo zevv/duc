@@ -37,6 +37,7 @@ static int opt_levels = 4;
 static char *opt_palette = NULL;
 static bool opt_tooltip = false;
 static int opt_ring_gap = 4;
+static double opt_dpi = 96.0;
 
 static struct param *param_list = NULL;
 
@@ -526,6 +527,7 @@ static int cgi_main(duc *duc, int argc, char **argv)
 
 	duc_graph *graph = duc_graph_new_html(duc, stdout, 0);
 	duc_graph_set_size(graph, opt_size, opt_size);
+	duc_graph_set_dpi(graph, opt_dpi);
 	duc_graph_set_max_level(graph, opt_levels);
 	duc_graph_set_fuzz(graph, opt_fuzz);
 	duc_graph_set_palette(graph, palette);
@@ -549,6 +551,7 @@ static struct ducrc_option options[] = {
 	{ &opt_count,     "count",      0,  DUCRC_TYPE_BOOL,   "show number of files instead of file size" },
 	{ &opt_css_url,   "css-url",    0,  DUCRC_TYPE_STRING, "url of CSS style sheet to use instead of default CSS" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_dpi,       "dpi",        0 , DUCRC_TYPE_DOUBLE, "set destination resolution in DPI [96.0]" },
 	{ &opt_footer,    "footer",     0,  DUCRC_TYPE_STRING, "select HTML file to include as footer" },
 	{ &opt_fuzz,      "fuzz",       0,  DUCRC_TYPE_DOUBLE, "use radius fuzz factor when drawing graph [0.7]" },
 	{ &opt_gradient,  "gradient",   0,  DUCRC_TYPE_BOOL,   "draw graph with color gradient" },

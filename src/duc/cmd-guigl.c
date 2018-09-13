@@ -201,6 +201,18 @@ int guigl_main(duc *duc, int argc, char *argv[])
 	sc2fb(window, &font_scale, NULL);
 	graph = duc_graph_new_opengl(duc, font_scale);
 	
+	GLFWmonitor* mon = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(mon);
+	if(mode) {
+		int w_mm = 0, h_mm = 0;
+		glfwGetMonitorPhysicalSize(mon, &w_mm, &h_mm);
+		if(mode && mode->width && w_mm) {
+			double dpi = 25.4 * mode->width / w_mm;
+			printf("dpi %f\n", dpi);
+			duc_graph_set_dpi(graph, dpi);
+		}
+	}
+	
 	glfwSetKeyCallback(window, cb_keyboard);
 	glfwSetFramebufferSizeCallback(window, cb_winsize);
 	glfwSetMouseButtonCallback(window, cb_mouse_button);
