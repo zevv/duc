@@ -230,6 +230,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case 'c': opt_count ^= 1; break;
 			case 'g': opt_graph ^= 1; break;
 			case 'h': help(); break;
+			case '?': help(); break;
 			case 'n': opt_name_sort ^= 1; break;
 
 			case 27:
