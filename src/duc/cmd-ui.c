@@ -266,7 +266,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case 'o':
 				  duc_dir_seek(dir, cur);
 				  e = duc_dir_read(dir, st, sort);
-				  if(e && e->type == DUC_FILE_TYPE_REG) {
+				  if(e) {
 					  char cmd[DUC_PATH_MAX] = "true";
 					  char *path = duc_dir_get_path(dir);
 					  if(path) {
