@@ -36,8 +36,9 @@ void br_svg_start(duc_graph *g)
 	fprintf(f, "<?xml version='1.0' standalone='no'?>\n");
 	fprintf(f, "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' \n");
 	fprintf(f, " 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>\n");
-	fprintf(f, "<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink= 'http://www.w3.org/1999/xlink'>\n");
-
+	fprintf(f, "<svg width='%.0fpx' height='%.0fpx'\n", g->width, g->height);
+	fprintf(f, "     xmlns='http://www.w3.org/2000/svg'\n");
+	fprintf(f, "     xmlns:xlink='http://www.w3.org/1999/xlink'>\n");
 	fprintf(f, " <style><![CDATA[\n");
 	fprintf(f, "    text {\n");
 	fprintf(f, "      font-family: 'Arial';\n");
@@ -52,18 +53,33 @@ void br_svg_start(duc_graph *g)
 
 }
 
-static void print_html(const char *s, FILE *f)
+static void draw_text_aux(int x, const char *s, FILE *f)
 {
-	while(*s) {
-		switch(*s) {
-			case '<': fprintf(f, "&lt;"); break;
-			case '>': fprintf(f, "&gt;"); break;
-			case '&': fprintf(f, "&amp;"); break;
-			case '"': fprintf(f, "&quot;"); break;
-			default: fputc(*s, f); break;
+	char *p = strdup(s);
+	assert(p);
+
+	double y = 0;
+	char *l = strtok(p, "\n");
+
+	while(l != NULL) {
+		fprintf(f, " <tspan x='%d' dy='%.1fem'>", x, y);
+		while(*l) {
+			switch(*l) {
+				case '<': fprintf(f, "&lt;"); break;
+				case '>': fprintf(f, "&gt;"); break;
+				case '&': fprintf(f, "&amp;"); break;
+				case '"': fprintf(f, "&quot;"); break;
+				default: fputc(*l, f); break;
+			}
+			l++;
 		}
-		s++;
+		fprintf(f, "</tspan>\n");
+
+		y += 1.2;
+		l = strtok(NULL, "\n");
 	}
+
+	free(p);
 }
 
 static void br_svg_draw_text(duc_graph *g, double x, double y, double size, char *text)
@@ -71,12 +87,12 @@ static void br_svg_draw_text(duc_graph *g, double x, double y, double size, char
 	struct svg_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
 
-	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' stroke='white' stroke-width='2'>", x, y, size);
-	print_html(text, f);
+	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' stroke='white' stroke-width='2'>\n", x, y, size);
+	draw_text_aux(x, text, f);
 	fprintf(f, "</text>\n");
-	
-	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' fill='black' stroke-width='2'>", x, y, size);
-	print_html(text, f);
+
+	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' fill='black' stroke-width='2'>\n", x, y, size);
+	draw_text_aux(x, text, f);
 	fprintf(f, "</text>\n");
 }
 
