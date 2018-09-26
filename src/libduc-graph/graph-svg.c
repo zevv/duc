@@ -87,11 +87,11 @@ static void br_svg_draw_text(duc_graph *g, double x, double y, double size, char
 	struct svg_backend_data *bd = g->backend_data;
 	FILE *f = bd->fout;
 
-	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' stroke='white' stroke-width='2'>\n", x, y, size);
+	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' stroke='white' stroke-width='3' stroke-opacity='0.7'>\n", x, y, size);
 	draw_text_aux(x, text, f);
 	fprintf(f, "</text>\n");
 
-	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' fill='black' stroke-width='2'>\n", x, y, size);
+	fprintf(f, "<text x='%.0f' y='%.0f' font-size='%.0fpt' fill='black'>\n", x, y, size);
 	draw_text_aux(x, text, f);
 	fprintf(f, "</text>\n");
 }
