@@ -1,4 +1,13 @@
 
+1.4.4	(2018-09-28)
+
+	- new: added --directory/-D option to 'duc ls' to allow listing
+	       of only directory itself (#196)
+	- new: 'duc ls' now handles multiple path arguments
+	- new: added 'o' key to duc-ui to pass current file to xdg-open
+	- new: added DPI handing for graph font size (#201)
+	- new: added '-a/--apparent' option to 'duc xml' (#171)
+	- fix: improved cairo and SVG graph rendering (#202)
 	- cha: changed license from GPL to LGPL (#190)
 
 1.4.3	(2017-01-02)
