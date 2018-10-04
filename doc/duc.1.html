@@ -590,6 +590,16 @@ options might or might not be available in the <code>duc</code> utility. For exa
 Debian or Ubuntu Duc comes in two flavours: there is a full featured package
 called <code>duc</code>, or a package without dependencies on X-windows called
 <code>duc-nox</code>, for which the latter lacks the <code>duc gui</code> command.</p></li>
+<li><p><code>duc index</code> is hogging my system and using a lot of CPU and I/O!</p>
+
+<p>Traversing a file system is hard work - which is the exact reason why Duc
+exists in the first place. You can use the default tools to make Duc behave
+nice towards other processes on your machine, use something like:</p>
+
+<p><code>nice -20 ionice -c 3 duc index [options]</code></p>
+
+<p>This makes <code>duc index</code> run with the lowest CPU and I/O scheduler priorities,
+which is nicer to all the other processes on your machine.</p></li>
 </ul>
 
 
@@ -605,8 +615,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#109;&#x61;&#x69;&#x6c;&#x74;&#111;&#x3a;&#100;&#x75;&#x63;&#x40;&#122;&#101;&#x76;&#118;&#x2e;&#x6e;&#108;" data-bare-link="true">&#100;&#117;&#x63;&#x40;&#x7a;&#101;&#118;&#x76;&#46;&#x6e;&#x6c;</a></li>
-<li>John Stoffel <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;&#x6a;&#x6f;&#104;&#110;&#64;&#x73;&#x74;&#111;&#102;&#x66;&#x65;&#108;&#x2e;&#x6f;&#114;&#x67;" data-bare-link="true">&#x6a;&#x6f;&#x68;&#x6e;&#64;&#x73;&#116;&#x6f;&#102;&#102;&#101;&#x6c;&#x2e;&#111;&#114;&#103;</a></li>
+<li>Ico Doornekamp <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#111;&#58;&#100;&#x75;&#99;&#x40;&#122;&#x65;&#118;&#x76;&#x2e;&#x6e;&#108;" data-bare-link="true">&#x64;&#117;&#x63;&#x40;&#x7a;&#101;&#x76;&#118;&#x2e;&#x6e;&#108;</a></li>
+<li>John Stoffel <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#x6f;&#x3a;&#x6a;&#x6f;&#104;&#110;&#64;&#x73;&#116;&#x6f;&#x66;&#x66;&#101;&#108;&#46;&#111;&#114;&#x67;" data-bare-link="true">&#x6a;&#111;&#x68;&#110;&#64;&#x73;&#x74;&#111;&#102;&#102;&#101;&#108;&#46;&#x6f;&#x72;&#x67;</a></li>
 </ul>
 
 
@@ -624,7 +634,7 @@ License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>September 2018</li>
+    <li class='tc'>October 2018</li>
     <li class='tr'>duc(1)</li>
   </ol>
 

@@ -639,6 +639,18 @@ path which is used by all subcommands
   called `duc`, or a package without dependencies on X-windows called
   `duc-nox`, for which the latter lacks the `duc gui` command.
 
+* `duc index` is hogging my system and using a lot of CPU and I/O!
+
+  Traversing a file system is hard work - which is the exact reason why Duc
+  exists in the first place. You can use the default tools to make Duc behave
+  nice towards other processes on your machine, use something like:
+
+  `nice -20 ionice -c 3 duc index [options]`
+
+  This makes `duc index` run with the lowest CPU and I/O scheduler priorities,
+  which is nicer to all the other processes on your machine.
+
+
 ## FILES
 
 At startup duc tries to read its configuration from three locations in this
