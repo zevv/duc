@@ -35,6 +35,7 @@ extern struct cmd cmd_graph;
 extern struct cmd cmd_xml;
 extern struct cmd cmd_cgi;
 extern struct cmd cmd_ui;
+extern struct cmd cmd_verify;
 
 
 struct cmd *cmd_list[] = {
@@ -46,6 +47,7 @@ struct cmd *cmd_list[] = {
 	&cmd_xml,
 	&cmd_graph,
 	&cmd_cgi,
+	&cmd_verify,
 #ifdef ENABLE_X11
 	&cmd_gui,
 #endif

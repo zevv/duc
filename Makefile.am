@@ -39,6 +39,7 @@ duc_SOURCES += \
 
 duc_SOURCES  += \
 	src/duc/cmd-cgi.c \
+	src/duc/cmd-verify.c \
 	src/duc/cmd-graph.c \
 	src/duc/cmd-gui.c \
 	src/duc/cmd-guigl.c \
