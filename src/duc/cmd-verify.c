@@ -35,6 +35,7 @@ static void dump(duc *duc, duc_dir *dir, struct duc_size *size_out)
 			if(dir_child) {
 				dump(duc, dir_child, size_out);
 			}
+			duc_dir_close(dir_child);
 			size_out->apparent += 0;
 			size_out->actual += 4096;
 		} else {
