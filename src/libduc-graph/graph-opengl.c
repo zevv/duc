@@ -377,6 +377,8 @@ duc_graph *duc_graph_new_opengl(duc *duc, double font_scale)
 	struct opengl_backend_data *bd;
 	bd = duc_malloc(sizeof *bd);
 	g->backend_data = bd;
+
+	font_scale = 1;
 	
 	bd->sp = shaders();
 	bd->loc_pos     = glGetAttribLocation(bd->sp, "pos_in");

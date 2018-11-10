@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <wchar.h>
+#include <locale.h>
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -59,6 +61,26 @@ static int opt_levels = 4;
 static bool opt_name_sort = false;
 
 
+/* 
+ * Calculate monospace font widht of string for aligning terminal output
+ */
+
+static size_t string_width(char *string)
+{
+	int w = 0;
+	size_t n = mbstowcs(NULL, string, 0) + 1;
+	wchar_t *wcstring = malloc(n * sizeof *wcstring);
+	if (wcstring) {
+		if (mbstowcs(wcstring, string, n) != (size_t)-1) {
+			w = wcswidth(wcstring, n);
+		}
+		free(wcstring);
+	}
+	if(w <= 0) w = strlen(string);
+	return w;
+}
+
+
 /*
  * List one directory. This function is a bit hairy because of the different
  * ways the output can be formatted with optional color, trees, graphs, etc.
@@ -89,7 +111,7 @@ static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 		off_t size = duc_get_size(&e->size, st);
 
 		if(size > max_size) max_size = size;
-		size_t l = strlen(e->name);
+		size_t l = string_width(e->name);
 		if(l > max_name_len) max_name_len = l;
 	}
 
@@ -146,7 +168,9 @@ static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 			}
 		}
 
-		size_t l = printf("%s", e->name) + 1;
+		size_t l = string_width(e->name) + 1;
+		
+		printf("%s", e->name);
 
 		if(opt_classify) {
 			putchar(duc_file_type_char(e->type));
@@ -244,6 +268,10 @@ static int ls_main(duc *duc, int argc, char **argv)
 		if(r == 0) width = w.ws_col;
 	}
 #endif
+
+	/* Set locale for wide string calculations */
+
+	setlocale(LC_ALL, "");
 
 	/* Disable color if output is not a tty */
 
