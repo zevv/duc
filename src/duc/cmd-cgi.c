@@ -319,9 +319,9 @@ static void do_index(duc *duc, duc_graph *graph, duc_dir *dir)
 			path = duc_dir_get_path(dir);
 			printf("Status: 302 Found\n");
 			printf("Location: ?path=%s\n", path);
-            printf("URI: ?path=%s\n", path);
-            printf("Connection: close\n");
-            printf("Content-type: text/html\n\n");
+			printf("URI: ?path=%s\n", path);
+			printf("Connection: close\n");
+			printf("Content-type: text/html\n\n");
 			printf("\n");
 			return;
 		}
