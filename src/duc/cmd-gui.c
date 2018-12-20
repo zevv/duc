@@ -234,7 +234,12 @@ int gui_main(duc *duc, int argc, char *argv[])
 	
 	dir = duc_dir_open(duc, path);
 	if(dir == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
+		if(duc_error(duc) == DUC_E_PATH_NOT_FOUND) {
+			duc_log(duc, DUC_LOG_FTL, "The requested path '%s' was not found in the database,", path);
+			duc_log(duc, DUC_LOG_FTL, "Please run 'duc info' for a list of available directories.");
+		} else {
+			duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
+		}
 		return -1;
 	}
 	
