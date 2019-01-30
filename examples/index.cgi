@@ -18,10 +18,19 @@
 # Make changes here
 #---------------------------------------------------------------------
 
+duc="/usr/local/bin/duc"
+
 title="Disk Usage graphs"
 dbdir="/var/lib/duc"
 wwwdir="/var/www/html"
-duc="/usr/local/bin/duc"
+
+# Defaults to same directory as index.cgi, use relative URL paths with trailing slash
+#jsdir="js/"
+jsdir=""
+
+#cssdir="css/"
+cssdir=""
+
 
 #---------------------------------------------------------------------
 # No changes needed past here
@@ -87,13 +96,13 @@ if [ "$mkcgi" = "0" ]; then
   echo "    table, th, td { border: 1px solid black; border-collapse: collapse; }"
   echo "    th, td { padding: 5px; text-align: left; }"
   echo "  </STYLE>"
-  echo "  <SCRIPT type=\"text/javascript\" src=\"jquery-latest.js\"></SCRIPT>"
-  echo "  <SCRIPT type=\"text/javascript\" src=\"jquery.tablesorter.js\"></SCRIPT>"
-  echo "  <SCRIPT type=\"text/javascript\" src=\"numeral.js\"></SCRIPT>"
-  echo "  <SCRIPT type=\"text/javascript\" src=\"mytable.js\"></SCRIPT>"
+  echo "  <SCRIPT type=\"text/javascript\" src=\"${jsdir}jquery-latest.js\"></SCRIPT>"
+  echo "  <SCRIPT type=\"text/javascript\" src=\"${jsdir}jquery.tablesorter.js\"></SCRIPT>"
+  echo "  <SCRIPT type=\"text/javascript\" src=\"${jsdir}numeral.js\"></SCRIPT>"
+  echo "  <SCRIPT type=\"text/javascript\" src=\"${jsdir}mytable.js\"></SCRIPT>"
   echo ""
   echo "  <TITLE>$title</TITLE>"
-  echo "  <LINK rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" id=\"\" media=\"print, projection, screen\" />"
+  echo "  <LINK rel=\"stylesheet\" href=\"${cssdir}style.css\" type=\"text/css\" id=\"\" media=\"print, projection, screen\" />"
   echo " </HEAD>"
   echo " <BODY>"
   echo ""
@@ -149,9 +158,9 @@ do
       cat <<EOF > $cgi
 #!/bin/sh
 
-args="-d /data/sjscratch/is/duc/${db} --palette=rainbow --list --header=header.htm --footer=footer.htm"
+args="-d ${dbdir}/${db} --palette=rainbow --list --header=header.htm --footer=footer.htm"
 
-/usr/local/bin/duc cgi \$args
+$duc cgi \$args
 
 EOF
 
