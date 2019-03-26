@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <pwd.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -49,6 +50,8 @@ struct duc_index_req {
 	duc_dev_t dev;
 	duc_index_flags flags;
 	int maxdepth;
+        uid_t uid;
+        const char *username;
 	duc_index_progress_cb progress_fn;
 	void *progress_fndata;
 	int progress_n;
@@ -172,6 +175,27 @@ int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth)
 {
 	req->maxdepth = maxdepth;
 	return 0;
+}
+
+/* We set both uid and username, since we cannot use -1 UID to check wether we're 
+   limiting the search to just a specific UID, but we use UID for quicker compares. */
+
+int duc_index_req_set_username(duc_index_req *req, const char *username )
+{
+    struct passwd *pass;
+    pass = getpwnam(username);
+    req->username = username;
+    req->uid = pass->pw_uid;
+    return 0;
+}
+
+int duc_index_req_set_uid(duc_index_req *req, int uid)
+{
+    struct passwd *pass;
+    pass = getpwuid(uid);
+    req->uid = uid;
+    req->username = pass->pw_name;
+    return 0;
 }
 
 
@@ -440,6 +464,13 @@ static void scanner_scan(struct scanner *scanner_dir)
 			}
 		}
 
+		/* Are we looking for data for only a specific user? */
+		if(req->username) {
+		    if(st_ent.st_uid != req->uid) {
+			continue;
+		    }
+		}
+		
 		/* Create duc_dirent from readdir() and fstatat() results */
 		
 		struct duc_dirent ent;

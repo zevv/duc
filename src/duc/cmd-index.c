@@ -23,6 +23,8 @@ static char *opt_database = NULL;
 static bool opt_force = false;
 static bool opt_check_hard_links = false;
 static bool opt_hide_file_names = false;
+static char *opt_username = NULL;
+static int opt_uid = 0;
 static int opt_max_depth = 0;
 static bool opt_one_file_system = false;
 static bool opt_progress = false;
@@ -76,6 +78,8 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_check_hard_links) index_flags |= DUC_INDEX_CHECK_HARD_LINKS;
 	if(opt_uncompressed) open_flags &= ~DUC_OPEN_COMPRESS;
 	if(opt_dryrun) index_flags |= DUC_INDEX_DRY_RUN;
+	if(opt_username) duc_index_req_set_username(req, opt_username);
+	if(opt_uid) duc_index_req_set_uid(req, opt_uid);
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");
@@ -170,6 +174,8 @@ static struct ducrc_option options[] = {
 	  "VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs" },
 	{ &opt_hide_file_names, "hide-file-names",  0 , DUCRC_TYPE_BOOL,   "hide file names in index (privacy)", 
 	  "the names of directories will be preserved, but the names of the individual files will be hidden" },
+	{ &opt_uid,             "uid",              'U', DUCRC_TYPE_INT,    "limit index to only files/dirs owned by uid" },
+	{ &opt_username,        "username",         'u', DUCRC_TYPE_STRING, "limit index to only files/dirs owned by username" },
 	{ &opt_max_depth,       "max-depth",       'm', DUCRC_TYPE_INT,    "limit directory names to given depth" ,
 	  "when this option is given duc will traverse the complete file system, but will only the first VAL "
 	  "levels of directories in the database to reduce the size of the index" },
