@@ -465,10 +465,11 @@ static void scanner_scan(struct scanner *scanner_dir)
 		}
 
 		/* Are we looking for data for only a specific user? */
-		if(req->username) {
-		    if(st_ent.st_uid != req->uid) {
-			continue;
-		    }
+		/* make sure we only skip files, not directories */
+		if(req->usernamei &&
+		   ent.type != DUC_FILE_TYPE_DIR &&
+		   st_ent.st_uid != req->uid ) {
+		    continue;
 		}
 		
 		/* Create duc_dirent from readdir() and fstatat() results */
