@@ -38,6 +38,7 @@ typedef enum {
 	DUC_INDEX_HIDE_FILE_NAMES  = 1<<1, /* Hide file names */
 	DUC_INDEX_CHECK_HARD_LINKS = 1<<2, /* Count hard links only once during indexing */
 	DUC_INDEX_DRY_RUN          = 1<<3, /* Do not touch the database */
+	DUC_INDEX_BY_UID           = 1<<4, /* Indexing only files owned by UID */
 } duc_index_flags;
 
 typedef enum {

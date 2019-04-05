@@ -78,8 +78,14 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_check_hard_links) index_flags |= DUC_INDEX_CHECK_HARD_LINKS;
 	if(opt_uncompressed) open_flags &= ~DUC_OPEN_COMPRESS;
 	if(opt_dryrun) index_flags |= DUC_INDEX_DRY_RUN;
-	if(opt_username) duc_index_req_set_username(req, opt_username);
-	if(opt_uid) duc_index_req_set_uid(req, opt_uid);
+	if(opt_username) {
+	    index_flags |= DUC_INDEX_BY_UID;
+	    duc_index_req_set_username(req, opt_username);
+	}
+	if(opt_uid) {
+	    index_flags |= DUC_INDEX_BY_UID;
+	    duc_index_req_set_uid(req, opt_uid);
+	}
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");

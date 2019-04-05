@@ -183,18 +183,27 @@ int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth)
 int duc_index_req_set_username(duc_index_req *req, const char *username )
 {
     struct passwd *pass;
-    pass = getpwnam(username);
-    req->username = username;
-    req->uid = pass->pw_uid;
-    return 0;
+    if (pass = getpwnam(username)) {
+	req->username = username;
+	req->uid = pass->pw_uid;
+	return 0;
+    }
+    else {
+	printf("Error!  Username %s not found using getpwnam()\n\n",username);
+	exit;
+    }
 }
 
 int duc_index_req_set_uid(duc_index_req *req, int uid)
 {
     struct passwd *pass;
-    pass = getpwuid(uid);
+    if (pass = getpwuid(uid)) {
+	req->username = pass->pw_name;
+    }
+    else {
+	req->username = "<unknown>";
+    }
     req->uid = uid;
-    req->username = pass->pw_name;
     return 0;
 }
 
@@ -464,14 +473,6 @@ static void scanner_scan(struct scanner *scanner_dir)
 			}
 		}
 
-		/* Are we looking for data for only a specific user? */
-		/* make sure we only skip files, not directories */
-		if(req->usernamei &&
-		   ent.type != DUC_FILE_TYPE_DIR &&
-		   st_ent.st_uid != req->uid ) {
-		    continue;
-		}
-		
 		/* Create duc_dirent from readdir() and fstatat() results */
 		
 		struct duc_dirent ent;
@@ -487,7 +488,14 @@ static void scanner_scan(struct scanner *scanner_dir)
 			continue;
 		}
 
-
+		/* Are we looking for data for only a specific user? */
+		/* make sure we only skip files, not directories */
+		if((req->flags & DUC_INDEX_BY_UID) &&
+		   ent.type != DUC_FILE_TYPE_DIR &&
+		   st_ent.st_uid != req->uid ) {
+		    continue;
+		}
+		
 		/* Check if we can cross file system boundaries */
 
 		if((ent.type == DUC_FILE_TYPE_DIR) && (req->flags & DUC_INDEX_XDEV) &&
