@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "DUC" "1" "October 2018" "" ""
+.TH "DUC" "1" "April 2019" "" ""
 .
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
@@ -144,6 +144,14 @@ include file system type VAL during indexing\. VAL is a comma separated list of 
 .TP
 \fB\-\-hide\-file\-names\fR
 hide file names in index (privacy)\. the names of directories will be preserved, but the names of the individual files will be hidden
+.
+.TP
+\fB\-U\fR, \fB\-\-uid=VAL\fR
+limit index to only files/dirs owned by uid
+.
+.TP
+\fB\-u\fR, \fB\-\-username=VAL\fR
+limit index to only files/dirs owned by username
 .
 .TP
 \fB\-m\fR, \fB\-\-max\-depth=VAL\fR
