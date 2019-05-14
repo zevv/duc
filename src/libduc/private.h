@@ -30,12 +30,6 @@
   } while (0)
 #endif
 
-#ifdef WIN32
-#define FNAME_DUC_DB "duc.db"
-#else
-#define FNAME_DUC_DB ".duc.db"
-#endif
-
 struct duc {
 	struct db *db;
 	duc_errno err;
