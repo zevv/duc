@@ -9,6 +9,9 @@
 #include <stdarg.h>
 #include <time.h>
 #include <math.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "private.h"
 #include "duc.h"
@@ -62,17 +65,55 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		path_db = getenv("DUC_DATABASE");
 	}
 
-	/* If the path is still empty, default to ~/.duc.db on unix, or
-	 * %APPDATA%/duc.db for windows */
-
+#ifdef WIN32
+	/* If the path is still empty, default to %APPDATA%/duc.db on windows */
 	if(path_db == NULL) {
-		char *home = getenv("HOME");
-		if(home == NULL) home = getenv("APPDATA");
+		char *home = getenv("APPDATA");
 		if(home) {
-			snprintf(tmp, sizeof tmp, "%s/" FNAME_DUC_DB, home);
+			snprintf(tmp, sizeof tmp, "%s/duc.db", home);
 			path_db = tmp;
 		}
 	}
+#else
+	/* Search for ~/.duc.db and use it if it exists for backwards compatibility reasons. */
+	if(path_db == NULL) {
+		char *home = getenv("HOME");
+		if(home) {
+			snprintf(tmp, sizeof tmp, "%s/.duc.db", home);
+			if(access(tmp, R_OK | W_OK) != -1) {
+				// file exists
+				path_db = tmp;
+				duc_log(duc, DUC_LOG_WRN, "Using old database at \"%s\", please move this to \"$XDG_CACHE_HOME/duc/duc.db\"", path_db);
+			}
+		}
+	}
+	/* Otherwise, follow the basedir specification and use $XDG_CACHE_HOME/duc/duc.db*/
+	if(path_db == NULL) {
+		char *home = getenv("XDG_CACHE_HOME");
+		if(home) {
+			/* Append parent folder */
+			snprintf(tmp, sizeof tmp, "%s/duc", home);
+			/* Create if needed */
+			mkdir(tmp, 0700);
+			/* Append file to folder*/
+			snprintf(tmp, sizeof tmp, "%s/duc/duc.db", home);
+			path_db = tmp;
+		}
+	}
+	/* Last fallback: ~/.cache/duc/duc.db */
+	if(path_db == NULL) {
+		char *home = getenv("HOME");
+		if(home) {
+			/* Append parent folder */
+			snprintf(tmp, sizeof tmp, "%s/.cache/duc", home);
+			/* Create if needed */
+			mkdir(tmp, 0700);
+			/* Append file to folder*/
+			snprintf(tmp, sizeof tmp, "%s/.cache/duc/duc.db", home);
+			path_db = tmp;
+		}
+	}
+#endif
 
 	if(path_db == NULL) {
 		duc->err = DUC_E_DB_NOT_FOUND;
