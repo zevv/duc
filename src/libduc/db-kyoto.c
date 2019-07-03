@@ -46,7 +46,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	}
 
 	char fname[DUC_PATH_MAX];
-	snprintf(fname, sizeof(fname), "%s.kct#opts=c", path_db);
+	snprintf(fname, sizeof(fname), "%s#type=kct#opts=c", path_db);
 
 	int r = kcdbopen(db->kdb, fname, mode);
 	if(r == 0) {
