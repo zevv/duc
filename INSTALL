@@ -8,6 +8,10 @@ To build Duc with its default options, run:
     $ make
     $ sudo make install
 
+Generate the configure script when it is not available (cloned git repo):
+
+    $ autoreconf -i
+
 
 To get the required dependencies on Debian or Ubuntu, run:
 
@@ -17,10 +21,10 @@ To get the required dependencies on Debian or Ubuntu, run:
 
 On RHEL or CentOS systems, you need to do:
 
-    $ sudo yum install pango-devel cairo-devel tokyocabinet-devel 
+    $ sudo yum install pango-devel cairo-devel tokyocabinet-devel
 
 
-Duc comes with various user interfaces and a number of back ends for database
+Duc comes with various user interfaces and a number of backends for database
 access and graph drawing. You can choose which options should be used with the
 ./configure script to build Duc to fit best in your environment.
 
@@ -55,20 +59,26 @@ Duc comes with the following user interfaces:
     --enable-opengl --disable-x11
 
 
-Database back end
+Database backend
 ----------------
 
-Duc supports various key-value database back ends, at this time Tokyocabinet,
-Leveldb and Sqlite3 are supported. Duc uses Tokyocabinet by default: the
-performance is acceptable and generates in the smallest database size.
+Duc supports various key-value database backends:
+  - Tokyo Cabinet:                     tokyocabinet
+  - LevelDB:                           leveldb
+  - Sqlite3:                           sqlite3
+  - Lightning Memory-Mapped Database:  lmdb
+  - Kyoto Cabinet:                     kyotocabinet
 
-    --with-db-back end=ARG
+Duc uses Tokyo Cabinet by default: the performance is acceptable and generates
+in the smallest database size.
+
+    --with-db-backend=ARG
 
 If your system supports none of the above, contact the author to see if we can
-add your favourite back end.
+add your favourite backend.
 
 Please note: Not all database formats can be shared between machines with
-different architectures. Notably, Tokyocabinet is built with non-standard
+different architectures. Notably, Tokyo Cabinet is built with non-standard
 options which break compatibility with other linux distributions, even on the
 same architecture [1]. If you are planning to share databases between different
 platforms (index machine A, display on machine B) we recommend using the
@@ -90,27 +100,27 @@ robustness. Some measurements on my system of a 372G directory with 1.6M files:
  kyotocabinet         8.3   26.7
 ----------------------------------
 
-[*] Tokyocabinet currenty is the default used by Duc because of the good
-compression and reasonable performance. A problem is that Tokyocabinet is not
+[*] Tokyo Cabinet currenty is the default used by Duc because of the good
+compression and reasonable performance. A problem is that Tokyo Cabinet is not
 very stable and can create corrupt databases when interrupting the indexing. If
 this is a problem for you, choose a different db backend.
 
 Graphics
 --------
 
-Duc supports various back ends for creating graphics, but some have dependencies
+Duc supports various backends for creating graphics, but some have dependencies
 which cannot be met on all systems. Especially on headless server systems or
 embedded systems not all graphics libraries are available.
 
 - SVG: Duc has native SVG support, which can be used by the 'duc graph' command
-  to create static images of disk usage. The SVG back end has no external
+  to create static images of disk usage. The SVG backend has no external
   dependencies and is always enabled.
 
 - HTML canvas: Duc has native support for generating graphs in HTML5 using
-  JavaScript and the canvas object. The HTML back end has not external
+  JavaScript and the canvas object. The HTML backend has not external
   dependencies and is always enabled.
 
-- Cairo/pango: The cairo/pango back end is required for the X11 user interface,
+- Cairo/pango: The cairo/pango backend is required for the X11 user interface,
   and also adds an option to the duc-graph command to generate images in .PNG
   or .PDF file format. If your systems does not have cairo and pango available,
   add the following flag to ./configure:
@@ -118,7 +128,7 @@ embedded systems not all graphics libraries are available.
     --disable-cairo
 
 - OpenGL: Duc can draw to OpenGL contexts and can be used by the 'duc gui'
-  command. To enable the OpenGL back end for the 'duc gui' command, run 
+  command. To enable the OpenGL backend for the 'duc gui' command, run
   ./configure with:
 
     --enable-opengl --disable-x11
