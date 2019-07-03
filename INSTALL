@@ -62,7 +62,7 @@ Duc supports various key-value database back ends, at this time Tokyocabinet,
 Leveldb and Sqlite3 are supported. Duc uses Tokyocabinet by default: the
 performance is acceptable and generates in the smallest database size.
 
-    --with-db-back end=ARG
+    --with-db-backend=ARG
 
 If your system supports none of the above, contact the author to see if we can
 add your favourite back end.
