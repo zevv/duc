@@ -8,6 +8,10 @@ To build Duc with its default options, run:
     $ make
     $ sudo make install
 
+Generate the configure script when it is not available (cloned git repo):
+
+    $ autoreconf -i
+
 
 To get the required dependencies on Debian or Ubuntu, run:
 
