@@ -58,9 +58,15 @@ Duc comes with the following user interfaces:
 Database backend
 ----------------
 
-Duc supports various key-value database backends, at this time Tokyocabinet,
-Leveldb and Sqlite3 are supported. Duc uses Tokyocabinet by default: the
-performance is acceptable and generates in the smallest database size.
+Duc supports various key-value database backends:
+  - Tokyo Cabinet:                     tokyocabinet
+  - LevelDB:                           leveldb
+  - Sqlite3:                           sqlite3
+  - Lightning Memory-Mapped Database:  lmdb
+  - Kyoto Cabinet:                     kyotocabinet
+
+Duc uses Tokyo Cabinet by default: the performance is acceptable and generates
+in the smallest database size.
 
     --with-db-backend=ARG
 
@@ -68,7 +74,7 @@ If your system supports none of the above, contact the author to see if we can
 add your favourite backend.
 
 Please note: Not all database formats can be shared between machines with
-different architectures. Notably, Tokyocabinet is built with non-standard
+different architectures. Notably, Tokyo Cabinet is built with non-standard
 options which break compatibility with other linux distributions, even on the
 same architecture [1]. If you are planning to share databases between different
 platforms (index machine A, display on machine B) we recommend using the
@@ -90,8 +96,8 @@ robustness. Some measurements on my system of a 372G directory with 1.6M files:
  kyotocabinet         8.3   26.7
 ----------------------------------
 
-[*] Tokyocabinet currenty is the default used by Duc because of the good
-compression and reasonable performance. A problem is that Tokyocabinet is not
+[*] Tokyo Cabinet currenty is the default used by Duc because of the good
+compression and reasonable performance. A problem is that Tokyo Cabinet is not
 very stable and can create corrupt databases when interrupting the indexing. If
 this is a problem for you, choose a different db backend.
 
