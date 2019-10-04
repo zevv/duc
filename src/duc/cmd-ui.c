@@ -27,7 +27,12 @@
 #endif
 #endif
 #ifdef HAVE_LIBNCURSESW
+#ifdef HAVE_NCURSESW_NCURSES_H
 #include <ncursesw/ncurses.h>
+#endif
+#ifdef HAVE_NCURSES_H
+#include <ncurses.h>
+#endif
 #endif
 
 enum {
