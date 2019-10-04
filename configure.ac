@@ -161,6 +161,7 @@ fi
 
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h termios.h])
 AC_CHECK_HEADERS([ncurses.h ncurses/ncurses.h ncursesw/ncurses.h])
+AC_CHECK_HEADERS([wordexp.h])
 
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
@@ -172,6 +173,7 @@ AC_CHECK_TYPES([dev_t, ino_t])
 
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_CHECK_FUNCS([floor memset strchr strdup strerror gettimeofday lstat])
+AC_CHECK_FUNCS([wordexp])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
