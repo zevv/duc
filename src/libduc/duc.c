@@ -127,10 +127,8 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 	}
 
 #if HAVE_WORDEXP
-	bzero(tmp, DUC_PATH_MAX);
 	if (wordexp(path_db, &wxp, WRDE_NOCMD) == 0 && wxp.we_wordc == 1) {
-		snprintf(tmp, sizeof tmp, "%s", wxp.we_wordv[0]);
-		path_db = tmp;
+		path_db = strdup(wxp.we_wordv[0]); /* yes, this leaks, sorry */
 	}
 	wordfree(&wxp);
 #endif // HAVE_WORDEXP
