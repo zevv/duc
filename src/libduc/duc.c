@@ -13,13 +13,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#if HAVE_WORDEXP_H
-#  include <wordexp.h>
-#endif // HAVE_WORDEXP_H
-
 #include "private.h"
 #include "duc.h"
 #include "db.h"
+
 
 static void default_log_callback(duc_log_level level, const char *fmt, va_list va)
 {
@@ -62,9 +59,6 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[DUC_PATH_MAX];
-#if HAVE_WORDEXP
-	wordexp_t wxp;
-#endif // HAVE_WORDEXP
 
 	/* An empty path means check the ENV path instead */
 	if(path_db == NULL) {
@@ -125,13 +119,6 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		duc->err = DUC_E_DB_NOT_FOUND;
 		return -1;
 	}
-
-#if HAVE_WORDEXP
-	if (wordexp(path_db, &wxp, WRDE_NOCMD) == 0 && wxp.we_wordc == 1) {
-		path_db = strdup(wxp.we_wordv[0]); /* yes, this leaks, sorry */
-	}
-	wordfree(&wxp);
-#endif // HAVE_WORDEXP
 
 	duc_log(duc, DUC_LOG_INF, "%s database \"%s\"", 
 			(flags & DUC_OPEN_RO) ? "Reading from" : "Writing to",
