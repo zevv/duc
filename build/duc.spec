@@ -1,5 +1,5 @@
 %global name duc
-%global version 1.4.3
+%global version 1.4.4
 %global release 1
 
 Name:           %{name}
@@ -44,6 +44,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/%{name}.1.gz
 
 %changelog
+* Mon Oct 14 2019 Peter Cummuskey <peterc@aetheric.co.nz> - 1.4.4
+- Update to 1.4.4
+
 * Mon Jan 02 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.3
 - Update to 1.4.3
 
