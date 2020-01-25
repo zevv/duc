@@ -1,11 +1,12 @@
 %global name duc
-%global version 1.4.3
+%global version 1.4.4
 %global release 1
 
 Name:           %{name}
 Version:        %{version}
 Release:        %{release}%{?dist}
 Summary:        Duc, a library and suite of tools for inspecting disk usage
+Requires:       pango cairo tokyocabinet ncurses
 
 License:        GNU General Public License
 URL:            https://github.com/zevv/duc
@@ -44,6 +45,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/%{name}.1.gz
 
 %changelog
+* Mon Oct 14 2019 Peter Cummuskey <peterc@aetheric.co.nz> - 1.4.4
+- Update to 1.4.4
+- Added runtime requirements
+
 * Mon Jan 02 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.3
 - Update to 1.4.3
 
@@ -55,5 +60,6 @@ rm -rf $RPM_BUILD_ROOT
 * Mon Jun 29 2015 James Chang - 1.3.3
 - added ncurses-devel package requirement
 - fixed file not found for libs
+
 * Wed Feb 11 2015 Edoardo Spadoni <edoardo.spadoni@nethesis.it> - 1.0
 - first version
