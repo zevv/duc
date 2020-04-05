@@ -57,8 +57,7 @@ static int info_db(duc *duc, char *file)
 
 static int info_main(duc *duc, int argc, char **argv)
 {
-	info_db(duc, opt_database);
-	return 0;
+    return(info_db(duc, opt_database));
 }
 
 
