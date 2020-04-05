@@ -3,7 +3,10 @@
 export DUC_DATABASE=test.db
 DUC_TEST_DIR=test
 # Set to 0 to allow valgrind use
-NOVALGRIND=1
+DEF_USE_VALGRIND=0
+
+# Run with USE_VALGRIND=1 ./test.sh
+DO_VALGRIND=${USE_VALGRIND:=$DEF_USE_VALGRIND}
 
 valargs="--quiet \
   --suppressions=valgrind-suppressions \
@@ -13,22 +16,26 @@ valargs="--quiet \
   --num-callers=30 \
   --error-exitcode=1 \
 "
-# Check for valgrind
-hash valgrind 2>/dev/null
+# Check for valgrind only if asked to use it.
+valgrind=""
+if [ "${DO_VALGRIND}" = "1" ]; then
+    hash valgrind 2>/dev/null
 
-if [ $? -eq 1 ] || [ "$NOVALGRIND" = "1" ]; then
-    valgrind=""
-else
-    valgrind="valgrind $valargs"
+    if [ $? -eq 1 ]; then
+	echo "Error!  Valgrind not installed, can't run with \$DO_VALGRIND set."
+	exit 1
+    else
+	echo "Using valgrind with : $valargs"
+	echo ""
+	valgrind="valgrind $valargs"
+    fi
 fi
-
 
 mkfile()
 {
 	mkdir -p "`dirname \"$1\"`"
 	dd if=/dev/zero of="$1" bs=1 count=$2 2> /dev/null
 }
-
 
 rm -rf $DUC_DATABASE $DUC_TEST_DIR
 mkdir $DUC_TEST_DIR
@@ -96,9 +103,9 @@ long="some_stupidly_long_directory_name_I_just_made_up"
 current=`pwd`
 cd $DUC_TEST_DIR
 while [ $x -le 20 ]; do
-    echo mkdir ${long}${x}
+    #echo mkdir ${long}${x}
     mkdir ${long}${x}
-    echo cd ${long}${x}
+    #echo cd ${long}${x}
     cd ${long}${x}
     dd if=/dev/zero of=longone bs=1 count=40 2> /dev/null 
     dd if=/dev/zero of=longtwo bs=1 count=100 2> /dev/null
@@ -117,7 +124,13 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-cat ${DUC_TEST_DIR}.out | grep -q "Indexed 37 files and 27 directories, (199661B apparent, 294912B actual)"
+
+#---------------------------------------------------------------------------------
+# Actual tests are below.  If you add test cases above, these need to be tweaked.
+#---------------------------------------------------------------------------------
+
+
+cat ${DUC_TEST_DIR}.out | grep -q "Indexed 77 files and 47 directories, (91869B apparent, 540672B actual)"
 
 if [ "$?" = "0" ]; then
 	echo "report ok"
@@ -139,7 +152,7 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-md5sum ${DUC_TEST_DIR}.out | grep -q decda4c4f77b20a45aee5e90f7587603
+md5sum ${DUC_TEST_DIR}.out | grep -q 78dbf880ef6917ea665fddb5ebb44428
 
 if [ "$?" = "0" ]; then
 	echo "md5sum ok"
