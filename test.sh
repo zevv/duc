@@ -134,7 +134,7 @@ fi
 cat ${DUC_TEST_DIR}.out | grep -q "Indexed 77 files and 47 directories, (91869B apparent, 540672B actual)"
 
 if [ "$?" = "0" ]; then
-	echo "report ok"
+	echo "report: ok"
 else
         echo "-----------------------------"
 	echo "report failed"
@@ -158,9 +158,9 @@ md5sum ${DUC_TEST_DIR}.out > /tmp/.duc.md5sum
 grep -q $testsum /tmp/.duc.md5sum
 
 if [ "$?" = "0" ]; then
-	echo "md5sum ok"
+	echo "md5sum: ok"
 else
-	echo "md5sum failed"
+	echo "md5sum: failed"
 	echo "expected: "
 	echo "$testsum  ${DUC_TEST_DIR}.out"
 	echo "got: "
@@ -171,16 +171,25 @@ fi
 
 # Test backend checking.
 ductype=`./duc --version | tail -1 | awk '{print $NF}'`
-
+typemax=5
+typecount=0
 for type in leveldb lmdb tokyocabinet kyotocabinet sqlite; do
     if [ "$ductype" != "$type" ]; then
-	   echo "./duc info -d test/dbs/${type}.db"
+	#echo "./duc info -d test/dbs/${type}.db"
+	./duc info -d test/dbs/${type}.db > ${DUC_TEST_DIR}.out 2>&1 
+	if [ "$?" = "1" ]; then
+	    typecount=`expr $typecount + 1`
+	fi
     else
-	echo "skipping DB type $ductype, we are compiled with that type."
+	echo "skipping DB type $ductype, we are compiled with that type." > ${DUC_TEST_DIR}.out 2>&1 
     fi
 done
 
-
+if [ "$typecount" = "4" ]; then
+    echo "DB Types: ok"
+else
+    echo "Type checks: failed - got $typecount failures instead of expected 4 out of $typemax."
+fi
 
 # end
 
