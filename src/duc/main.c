@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 
 	duc_del(duc);
 	ducrc_free(ducrc);
-	return (r == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	exit((r == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 
@@ -416,7 +416,7 @@ static void show_version(void)
 #endif
 	printf(DB_BACKEND "\n");
 
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 static struct ducrc_option help_options[] = {
