@@ -1,7 +1,8 @@
 #!/bin/sh
 
-export DUC_DATABASE=test.db
-DUC_TEST_DIR=test
+export DUC_DATABASE=/tmp/duc-test.db
+DUC_TEST_DIR=/tmp/duc-test
+
 # Set to 0 to allow valgrind use
 DEF_USE_VALGRIND=0
 
@@ -152,15 +153,20 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-md5sum ${DUC_TEST_DIR}.out | grep -q 78dbf880ef6917ea665fddb5ebb44428
+testsum="78dbf880ef6917ea665fddb5ebb44428"
+md5sum ${DUC_TEST_DIR}.out > /tmp/.duc.md5sum
+grep -q $testsum /tmp/.duc.md5sum
 
 if [ "$?" = "0" ]; then
 	echo "md5sum ok"
 else
 	echo "md5sum failed"
-	cat ${DUC_TEST_DIR}.out 
+	echo -n "expected $testsum, got: "
+	cat /tmp/.duc.md5sum
 	exit 1
 fi
+
+$valgrind ./duc info -d test/dbs/
 
 # end
 
