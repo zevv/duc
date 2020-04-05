@@ -153,7 +153,7 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-testsum="78dbf880ef6917ea665fddb5ebb44428"
+testsum="33e2be27a9e70e81d4006a2d7b555948"
 md5sum ${DUC_TEST_DIR}.out > /tmp/.duc.md5sum
 grep -q $testsum /tmp/.duc.md5sum
 
@@ -161,12 +161,26 @@ if [ "$?" = "0" ]; then
 	echo "md5sum ok"
 else
 	echo "md5sum failed"
-	echo -n "expected $testsum, got: "
+	echo "expected: "
+	echo "$testsum  ${DUC_TEST_DIR}.out"
+	echo "got: "
 	cat /tmp/.duc.md5sum
 	exit 1
 fi
 
-$valgrind ./duc info -d test/dbs/
+
+# Test backend checking.
+ductype=`./duc --version | tail -1 | awk '{print $NF}'`
+
+for type in leveldb lmdb tokyocabinet kyotocabinet sqlite; do
+    if [ "$ductype" != "$type" ]; then
+	   echo "./duc info -d test/dbs/${type}.db"
+    else
+	echo "skipping DB type $ductype, we are compiled with that type."
+    fi
+done
+
+
 
 # end
 
