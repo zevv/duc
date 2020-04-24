@@ -82,8 +82,6 @@ void br_opengl_start(duc_graph *g)
 
 	glUniformMatrix4fv(bd->loc_matrix, 1, 0, mv);
 
-	glClearColor(1, 1, 1, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 }

@@ -75,6 +75,14 @@ static void draw(GLFWwindow *window)
 	duc_graph_set_ring_gap(graph, opt_ring_gap);
 	duc_graph_set_gradient(graph, opt_gradient);
 
+	if(opt_dark) {
+		glClearColor(0, 0, 0, 1);
+	} else {
+		glClearColor(1, 1, 1, 1);
+	}
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	duc_graph_draw(graph, dir);
 
 	glfwSwapBuffers(window);
@@ -136,8 +144,6 @@ void cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
 {
 	static double scroll = 0;
 	scroll += yoffset;
-	if(scroll < -1) { opt_levels --; scroll += 1; }
-	if(scroll > +1) { opt_levels ++; scroll -= 1; }
 }
 
 
