@@ -144,6 +144,8 @@ void cb_scroll(GLFWwindow* window, double xoffset, double yoffset)
 {
 	static double scroll = 0;
 	scroll += yoffset;
+	if(scroll < -1) { opt_levels --; scroll += 1; }
+	if(scroll > +1) { opt_levels ++; scroll -= 1; }
 }
 
 
