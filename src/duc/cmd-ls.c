@@ -272,6 +272,9 @@ static int ls_main(duc *duc, int argc, char **argv)
 		struct winsize w;
 		int r = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		if(r == 0) width = w.ws_col;
+	} else {
+		char *columns = getenv("COLUMNS");
+		if(columns) width = atoi(columns);
 	}
 #endif
 
