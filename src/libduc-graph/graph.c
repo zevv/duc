@@ -386,7 +386,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 				shorten_name(name, g->max_name_len);
 
 				pol2car(g, ang((a1+a2)/2), (r1+r2)/2, &label->x, &label->y);
-				asprintf(&label->text, "%s\n%s", name, siz);
+				int r = asprintf(&label->text, "%s\n%s", name, siz);
 				LL_APPEND(g->label_list, label);
 
 				free(name);

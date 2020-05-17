@@ -279,7 +279,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 						  free(path);
 					  }
 					  endwin();
-					  system(cmd);
+					  int ret = system(cmd);
 					  doupdate();
 				  }
 				  break;
