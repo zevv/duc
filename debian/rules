@@ -1,0 +1,43 @@
+#!/usr/bin/make -f
+
+#DH_VERBOSE = 1
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+FLAGS_duc:=--enable-dependency-tracking
+FLAGS_duc-nox:=--enable-dependency-tracking
+FLAGS_duc-nox+=--disable-cairo
+FLAGS_duc-nox+=--disable-x11
+
+BUILDDIR     := $(CURDIR)/debian/build
+BUILDDIR_NOX := $(CURDIR)/debian/build-nox
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure --builddirectory=$(BUILDDIR) -- $(FLAGS_duc) CFLAGS="$(CFLAGS) -fPIE" LDFLAGS="$(LDFLAGS) -fPIE -pie"
+	dh_auto_configure --builddirectory=$(BUILDDIR_NOX) -- $(FLAGS_duc-nox) CFLAGS="$(CFLAGS) -fPIE" LDFLAGS="$(LDFLAGS) -fPIE -pie"
+
+override_dh_auto_build:
+	cp -r src/glad/* $(BUILDDIR)/src/glad/
+	cp -r src/glad/* $(BUILDDIR_NOX)/src/glad/
+	cp src/libduc/*.h $(BUILDDIR)/src/libduc/
+	cp src/libduc/*.h $(BUILDDIR_NOX)/src/libduc/
+	cp src/libduc-graph/*.h $(BUILDDIR)/src/libduc-graph/
+	cp src/libduc-graph/*.h $(BUILDDIR_NOX)/src/libduc-graph/
+	dh_auto_build -a -- -C $(BUILDDIR)
+	dh_auto_build -a -- -C $(BUILDDIR_NOX)/src
+
+override_dh_auto_install:
+	$(MAKE) -C $(BUILDDIR) install DESTDIR=$(BUILDDIR).inst
+	$(MAKE) -C $(BUILDDIR_NOX) install DESTDIR=$(BUILDDIR_NOX).inst
+	cp -r doc $(BUILDDIR_NOX)/
+	rm -f $(BUILDDIR_NOX)/doc/duc.1
+	$(MAKE) -C $(BUILDDIR_NOX)/doc
+
+override_dh_auto_clean:
+	dh_clean
+	rm -fr $(BUILDDIR) $(BUILDDIR_NOX)
+	rm -fr debian/*.inst
