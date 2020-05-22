@@ -1,0 +1,2 @@
+version=4
+https://github.com/zevv/duc/releases .*/archive/v?(\d\S+)\.tar\.(?:gz|bz2|xz)

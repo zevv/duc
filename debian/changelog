@@ -1,0 +1,149 @@
+duc (1.4.4-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Bump standards version.
+  * Move to debhelper 12.
+
+ -- Jonathan Dowland <jmtd@debian.org>  Wed, 06 May 2020 16:20:12 +0100
+
+duc (1.4.3-6) unstable; urgency=medium
+
+  * Fix FTBFS (dh_installman: Cannot find "debian/build-nox/doc/duc.1").
+    (Closes: #924473)
+
+ -- Bruno Kleinert <fuddl@debian.org>  Sun, 17 Mar 2019 18:55:56 +0100
+
+duc (1.4.3-5) unstable; urgency=medium
+
+  [Ondřej Nový]
+  * d/copyright: Use https protocol in Format field
+  * d/rules: Remove trailing whitespaces
+
+  [Helmut Grohne]
+  * Address FTCBFS: Let dh_auto_configure pass --host to ./configure.
+    (Closes: #915595)
+
+ -- Helmut Grohne <helmut@subdivi.de>  Wed, 05 Dec 2018 06:24:22 +0100
+
+duc (1.4.3-4) unstable; urgency=medium
+
+  * Update Vcs-* headers to reflect migration from Alioth to Salsa.
+  * Change B-D on ruby-conn to conn. Thanks Helmut Grohne. Closes: #903067.
+  * Bump standards version (no other changes)
+
+ -- Jonathan Dowland <jmtd@debian.org>  Thu, 05 Jul 2018 21:58:21 +0100
+
+duc (1.4.3-3) unstable; urgency=medium
+
+  * Adopt duc. Thank you Herbert Parentes Fortes Neto for all your hard
+    work and best wishes for the future! Closes: #886013.
+  * Bump standards version (no further changes needed)
+  * duc-nox provides /usr/bin/duc and the duc and duc-nox packages now
+    conflict with each other. Closes: #885404.
+    * Add a compatibility symlink for duc-nox.
+  * Remove empty debian/patches/series
+  * Revert src/libduc-graph/font.c to upstream version (DOS line endings)
+    to keep dpkg-source happy.
+
+ -- Jonathan Dowland <jmtd@debian.org>  Tue, 02 Jan 2018 16:12:09 +0000
+
+duc (1.4.3-2) unstable; urgency=medium
+
+  * debian/control:
+      - Add ruby-ronn to Build-Depends
+  * debian/duc-nox.manpages:
+      - Upstream manpage generated at build time.
+  * debian/man removed.
+  * debian/rules:
+      - generate duc-nox manpage
+
+ -- Herbert Parentes Fortes Neto <hpfn@debian.org>  Mon, 30 Jan 2017 10:55:43 -0200
+
+duc (1.4.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/copyright:
+      - Updated.
+  * debian/man:
+      - Refresh duc-nox manpage.
+
+ -- Herbert Parentes Fortes Neto <hpfn@debian.org>  Mon, 30 Jan 2017 10:33:18 -0200
+
+duc (1.4.2-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/man/duc-nox.1:
+      - Refresh file.
+  * debian/patches:
+      - all patches applied by the upstream.
+  * debian/rules:
+      - dh_auto_configure:
+          - Add '-fPIE' to CFLAGS.
+          - Add '-fPIE -pie' to LDFLAGS.
+
+ -- Herbert Parentes Fortes Neto <hpfn@debian.org>  Sat, 26 Nov 2016 08:46:56 -0200
+
+duc (1.4.1-4) unstable; urgency=medium
+
+  * debian/control:
+      - Update my email.
+  * debian/copyright:
+      - Update my email
+  * debian/man:
+      - Fix typo in duc-nox.txt and generate a new duc-nox.1
+  * debian/patches:
+      - Create fix-typo-manpage.patch. duc.1
+      - Create fix-typo-cmd-cgi-c.patch.
+
+ -- Herbert Parentes Fortes Neto <hpfn@debian.org>  Sat, 05 Nov 2016 12:24:11 -0200
+
+duc (1.4.1-3) unstable; urgency=medium
+
+  * debian/control:
+      - bump Standards-Version from 3.9.7 to 3.9.8
+  * debian/copyright:
+      - License other_1 renamed to Expat.
+
+ -- Herbert Parentes Fortes Neto <hpfn@ig.com.br>  Sun, 19 Jun 2016 15:28:07 -0300
+
+duc (1.4.1-2) unstable; urgency=low
+
+  * debian/patches:
+      - ftbfs_hurd-i386.patch file created.
+
+ -- Herbert Parentes Fortes Neto <hpfn@ig.com.br>  Sat, 02 Apr 2016 17:18:35 -0300
+
+duc (1.4.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/man/* updated.
+
+ -- Herbert Parentes Fortes Neto <hpfn@ig.com.br>  Tue, 22 Mar 2016 13:48:45 -0300
+
+duc (1.4.0-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/control:
+      - dh-autoreconf added to Build-Depends field.
+      - Bump Standards-Version to 3.9.7.
+      - Vcs-* fields using https.
+  * debian/copyright updated.
+  * debian/duc*.examples created.
+  * debian/man/* updated to version 1.4.0.
+  * debian/patches:
+      - fix_typo_cmd-index.patch created.
+      - fix_typo_libduc_duc.patch created.
+  * debian/rules:
+      - '--with autoreconf' param added.
+      - set '--prefix=/usr' as a install dir.
+      - two lines added to 'cp src/glad' to where the build is done.
+  * debian/watch:
+      - version 4.
+
+ -- Herbert Parentes Fortes Neto <hpfn@ig.com.br>  Wed, 09 Mar 2016 15:06:01 -0300
+
+duc (1.3.3-1) unstable; urgency=medium
+
+  * Initial release (Closes: #783310)
+
+ -- Herbert Parentes Fortes Neto <hpfn@ig.com.br>  Sun, 21 Jun 2015 11:06:54 -0300

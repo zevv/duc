@@ -1,0 +1,46 @@
+Source: duc
+Section: utils
+Priority: optional
+Maintainer: Jonathan Dowland <jmtd@debian.org>
+Build-Depends: debhelper (>= 12),
+               libcairo2-dev,
+               libncursesw5-dev,
+               libpango1.0-dev,
+               libtokyocabinet-dev,
+               ronn,
+               txt2man
+Standards-Version: 4.5.0
+Homepage: http://duc.zevv.nl/
+Vcs-Git: https://salsa.debian.org/debian/duc.git
+Vcs-Browser: https://salsa.debian.org/debian/duc
+
+Package: duc-nox
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Conflicts: duc
+Description: high-performance disk usage analyzer (without X support)
+ Duc maintains a database of accumulated sizes of directories of the file
+ system, and allows you to query this database with some tools.
+ .
+ Duc comes with console utilities, ncursesw and a CGI wrapper for disk
+ usage querying and visualisation.
+ .
+ Duc is designed to scale to huge filesystems: it will index and display
+ hundreds of millions of files on petabytes of storage without problems.
+ .
+ This package provides the console version of the duc.
+
+Package: duc
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Conflicts: duc-nox (>= 1.4.3-3)
+Description: high-performance disk usage analyzer
+ Duc maintains a database of accumulated sizes of directories of the file
+ system, and allows you to query this database with some tools, or create
+ fancy graphs showing you where your bytes are.
+ .
+ Duc comes with console utilities, ncursesw and X11 user interfaces and a
+ CGI wrapper for disk usage querying and visualisation.
+ .
+ Duc is designed to scale to huge filesystems: it will index and display
+ hundreds of millions of files on petabytes of storage without problems.
