@@ -126,8 +126,15 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 
 	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
+	    /* Now we can maybe do some quick checks to see if we tried to open a non-supported DB type. */
+	    char *db_type = duc_db_type_check(path_db);
+	    if (db_type) {
+		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - unsupported DB type %s, compiled for %s", path_db, db_type, DB_BACKEND);
+	    }
+	    else {
 		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - %s", path_db, duc_strerror(duc));
-		return -1;
+	    }
+	    return -1;
 	}
 
 	return 0;
@@ -174,6 +181,7 @@ const char *duc_strerror(duc *duc)
 		case DUC_E_DB_NOT_FOUND:         return "Database not found";
 		case DUC_E_DB_CORRUPT:           return "Database corrupt and not usable";
 		case DUC_E_DB_VERSION_MISMATCH:  return "Database version mismatch";
+		case DUC_E_DB_TYPE_MISMATCH:     return "Database type mismatch";
 		case DUC_E_PATH_NOT_FOUND:       return "Requested path not found";
 		case DUC_E_PERMISSION_DENIED:    return "Permission denied";
 		case DUC_E_OUT_OF_MEMORY:        return "Out of memory";

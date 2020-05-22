@@ -134,3 +134,19 @@ embedded systems not all graphics libraries are available.
     --enable-opengl --disable-x11
 
 
+Testing
+-------
+
+Duc comes with a rudimentary test harness which can be run with
+
+  ./test.sh
+
+If you have valgrind and you want to run the tests using it do:
+
+  USE_VALGRIND=1 ./test.sh
+
+It will complain if you try this and valgrind isn't installed.  The
+test harness still needs work and more tests, but should hopefully
+help keep us from re-introducing bugs as they are fixed and checked
+for.
+

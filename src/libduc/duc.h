@@ -56,6 +56,7 @@ typedef enum {
 	DUC_E_DB_NOT_FOUND,         /* Database not found */
 	DUC_E_DB_CORRUPT,           /* Database corrupt and unusable */
 	DUC_E_DB_VERSION_MISMATCH,  /* Database version mismatch */
+	DUC_E_DB_TYPE_MISMATCH,     /* Database compiled in type mismatch */
 	DUC_E_PATH_NOT_FOUND,       /* Requested path not found */
 	DUC_E_PERMISSION_DENIED,    /* Permission denied */
 	DUC_E_OUT_OF_MEMORY,        /* Out of memory */
@@ -184,4 +185,5 @@ void duc_log(struct duc *duc, duc_log_level lvl, const char *fmt, ...);
 char duc_file_type_char(duc_file_type t);
 char *duc_file_type_name(duc_file_type t);
 
-#endif
+char *duc_db_type_check(const char *path_db);
+#endif  /* ifndef duc_h */
