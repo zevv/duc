@@ -7,7 +7,7 @@
 
 AC_PREREQ([2.13])
 
-AC_INIT([duc], [1.4.4], [duc@zevv.nl])
+AC_INIT([duc], [1.4.5-rc1], [duc@zevv.nl])
 
 LIB_CURRENT=1
 LIB_REVISION=0

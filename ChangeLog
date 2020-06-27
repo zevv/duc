@@ -1,4 +1,10 @@
 
+1.4.5   (????-??-??)
+
+	- new: added '-u' option to duc index to index by username
+	- cha: duc db location is now XDG compliant
+	- fix: various bug fixes
+
 1.4.4	(2018-09-28)
 
 	- new: added --directory/-D option to 'duc ls' to allow listing
