@@ -102,7 +102,10 @@ duc_dir *duc_dir_openent(duc_dir *dir, const struct duc_dirent *e)
 
 	duc_dir *dir2 = duc_dir_new(dir->duc, &e->devino);
 	if(dir2) {
-		int r = asprintf(&dir2->path, "%s/%s", dir->path, e->name);
+	    int r = asprintf(&dir2->path, "%s/%s", dir->path, e->name);
+	    if (r < 0) {
+		dir2->path = '\0';
+	    }
 	}
 	return dir2;
 }
