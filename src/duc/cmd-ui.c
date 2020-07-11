@@ -139,13 +139,17 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		duc_human_number(dir_count, opt_bytes, dcnt, sizeof dcnt);
 		attrset(attr_bar);
 		mvhline(rows-1, 0, ' ', cols);
-		mvprintw(rows-1, 0, " Total %sB in %s files and %s directories (", siz, fcnt, dcnt);
-		switch(st) {
-			case DUC_SIZE_TYPE_APPARENT: printw("apparent size"); break;
-			case DUC_SIZE_TYPE_ACTUAL: printw("actual size"); break;
-			case DUC_SIZE_TYPE_COUNT: printw("file count"); break;
+		if(st == DUC_SIZE_TYPE_COUNT) {
+			mvprintw(rows-1, 0, " Total %s files, %s files and %s directories here", siz, fcnt, dcnt);
+		} else {
+			mvprintw(rows-1, 0, " Total %sB in %s files and %s directories (", siz, fcnt, dcnt);
+			switch(st) {
+				case DUC_SIZE_TYPE_APPARENT: printw("apparent size"); break;
+				case DUC_SIZE_TYPE_ACTUAL: printw("actual size"); break;
+				case DUC_SIZE_TYPE_COUNT: printw("file count"); break;
+			}
+			printw(")");
 		}
-		printw(")");
 		attrset(0);
 
 		/* Draw dirents */
