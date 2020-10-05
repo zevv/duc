@@ -294,7 +294,10 @@ static void report_skip(struct duc *duc, const char *name, const char *fmt, ...)
 {
 	char path_full[DUC_PATH_MAX];
 	char msg[DUC_PATH_MAX + 128];
-	realpath(name, path_full);
+	char *res = realpath(name, path_full);
+	if (res == NULL) {
+	    duc_log(duc, DUC_LOG_WRN, "Cannot determine realpath of: %s", name);
+	}
 	va_list va;
 	va_start(va, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, va);
@@ -320,7 +323,11 @@ static int is_fstype_allowed(struct duc_index_req *req, const char *name)
 	/* Find file system type */
 
 	char path_full[DUC_PATH_MAX];
-	realpath(name, path_full);
+        char *res = realpath(name, path_full);
+	if (res == NULL) {
+	    report_skip(duc, name, "Cannot determine realpath result");
+            return 0;
+	}
 	struct fstype *fstype = NULL;
 	HASH_FIND_STR(req->fstypes_mounted, path_full, fstype);
 	if(fstype == NULL) {
@@ -411,14 +418,15 @@ err:
 
 static void scanner_scan(struct scanner *scanner_dir)
 {
-	struct duc *duc = scanner_dir->duc;
+        int r;
+        struct duc *duc = scanner_dir->duc;
 	struct duc_index_req *req = scanner_dir->req;
 	struct duc_index_report *report = scanner_dir->rep; 	
 
 	report->dir_count ++;
 	duc_size_accum(&report->size, &scanner_dir->ent.size);
 
-	int r = chdir(scanner_dir->ent.name);
+	r = chdir(scanner_dir->ent.name);
 	if(r != 0) {
 		report_skip(duc, scanner_dir->ent.name, strerror(errno));
 		return;
@@ -533,7 +541,12 @@ static void scanner_scan(struct scanner *scanner_dir)
 		}
 	}
 
-	chdir("..");
+	r = chdir("..");
+	if(r != 0) {
+		report_skip(duc, scanner_dir->ent.name, strerror(errno));
+		return;
+	}
+
 }
 
 

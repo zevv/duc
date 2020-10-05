@@ -283,7 +283,10 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 						  free(path);
 					  }
 					  endwin();
-					  system(cmd);
+					  int ret = system(cmd);
+					  if (ret == -1) {
+					      printw("Cannot run command: %s", cmd);
+					  }
 					  doupdate();
 				  }
 				  break;
