@@ -84,8 +84,14 @@ case "${with_db_backend}" in
 		AC_DEFINE([ENABLE_SQLITE], [1], [Enable sqlite3 db backend])
 		;;
 	lmdb)
-		PKG_CHECK_MODULES([LMDB], [lmdb])
-		AC_DEFINE([ENABLE_LMDB], [1], [Enable lmdb db backend])
+                LDFLAGS="$outer_LDFLAGS -llmdb"
+                AC_CHECK_LIB(lmdb, mdb_env_create, 
+			     [ 
+	                          LMDB_LIBS="-llmdb"		     
+				  AC_DEFINE([ENABLE_LMDB], [1], [Enable lmdb db backend])
+			     ], [ AC_MSG_ERROR(Unable to find LMDB) ])
+		AC_SUBST([LMDB_LIBS])
+		AC_SUBST([LMDB_CFLAGS])
 		;;
 	kyotocabinet)
 		PKG_CHECK_MODULES([KC], [kyotocabinet])
