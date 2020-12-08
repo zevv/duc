@@ -18,6 +18,7 @@
 #include <string.h>
 #include <cairo-xlib.h>
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/keysym.h>
 
 static bool opt_bytes = false;
@@ -258,6 +259,12 @@ int gui_main(duc *duc, int argc, char *argv[])
 			1, 1, 
 			win_w, win_h, 0, 
 			BlackPixel(dpy, scr), WhitePixel(dpy, scr));
+
+    XClassHint ch = {
+        .res_name = "duc",
+        .res_class = "Duc",
+    };
+    XSetClassHint(dpy, win, &ch);
 
 	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
 	XMapWindow(dpy, win);
