@@ -47,6 +47,7 @@ static cairo_t *cr;
 static duc_dir *dir;
 static duc_graph *graph;
 static double fuzz;
+static Atom wmDeleteMessage;
 
 static void draw(void)
 {
@@ -165,6 +166,11 @@ static int handle_event(XEvent e)
 			tooltip_moved = 1;
 			break;
 
+        case ClientMessage:
+            if ((Atom)e.xclient.data.l[0] == wmDeleteMessage) {
+                return 1;
+            }
+
 		default:
 			break;
 	}
@@ -268,6 +274,9 @@ int gui_main(duc *duc, int argc, char *argv[])
 
 	XSelectInput(dpy, win, ExposureMask | ButtonPressMask | StructureNotifyMask | KeyPressMask | PointerMotionMask);
 	XMapWindow(dpy, win);
+
+    wmDeleteMessage = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(dpy, win, &wmDeleteMessage, 1);
 	
 	cs = cairo_xlib_surface_create(dpy, win, DefaultVisual(dpy, 0), win_w, win_h);
 	cr = cairo_create(cs);
