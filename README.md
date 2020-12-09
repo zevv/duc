@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/zevv/duc.svg?branch=master)](https://travis-ci.org/zevv/duc)
+[![Build Status](https://travis-ci.org/zevv/duc.svg?branch=master)](https://travis-ci.org/zevv/duc) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/duc.svg)](https://anaconda.org/conda-forge/duc)
 
 Duc is a collection of tools for indexing, inspecting and visualizing disk
 usage. Duc maintains a database of accumulated sizes of directories of the file
