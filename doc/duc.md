@@ -159,6 +159,12 @@ Options for command `duc index [options] PATH ...`:
     hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden
 
 
+  * `-U`, `--uid=VAL`:
+    limit index to only files/dirs owned by uid
+
+  * `-u`, `--username=VAL`:
+    limit index to only files/dirs owned by username
+
   * `-m`, `--max-depth=VAL`:
     limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index
 
@@ -645,7 +651,7 @@ path which is used by all subcommands
   exists in the first place. You can use the default tools to make Duc behave
   nice towards other processes on your machine, use something like:
 
-  `nice -20 ionice -c 3 duc index [options]`
+  `nice 19 ionice -c 3 duc index [options]`
 
   This makes `duc index` run with the lowest CPU and I/O scheduler priorities,
   which is nicer to all the other processes on your machine.

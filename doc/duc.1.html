@@ -222,6 +222,8 @@ are written to the index, and can later be queried by one of the other duc tools
 <dt><code>--fs-exclude=VAL</code></dt><dd><p>exclude file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</p></dd>
 <dt><code>--fs-include=VAL</code></dt><dd><p>include file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</p></dd>
 <dt><code>--hide-file-names</code></dt><dd><p>hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden</p></dd>
+<dt><code>-U</code>, <code>--uid=VAL</code></dt><dd><p>limit index to only files/dirs owned by uid</p></dd>
+<dt><code>-u</code>, <code>--username=VAL</code></dt><dd><p>limit index to only files/dirs owned by username</p></dd>
 <dt><code>-m</code>, <code>--max-depth=VAL</code></dt><dd><p>limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index</p></dd>
 <dt><code>-x</code>, <code>--one-file-system</code></dt><dd><p>skip directories on different file systems</p></dd>
 <dt><code>-p</code>, <code>--progress</code></dt><dd><p>show progress during indexing</p></dd>
@@ -596,7 +598,7 @@ called <code>duc</code>, or a package without dependencies on X-windows called
 exists in the first place. You can use the default tools to make Duc behave
 nice towards other processes on your machine, use something like:</p>
 
-<p><code>nice -20 ionice -c 3 duc index [options]</code></p>
+<p><code>nice 19 ionice -c 3 duc index [options]</code></p>
 
 <p>This makes <code>duc index</code> run with the lowest CPU and I/O scheduler priorities,
 which is nicer to all the other processes on your machine.</p></li>
@@ -615,8 +617,8 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#109;&#x61;&#105;&#x6c;&#x74;&#111;&#58;&#100;&#x75;&#99;&#x40;&#122;&#x65;&#118;&#x76;&#x2e;&#x6e;&#108;" data-bare-link="true">&#x64;&#117;&#x63;&#x40;&#x7a;&#101;&#x76;&#118;&#x2e;&#x6e;&#108;</a></li>
-<li>John Stoffel <a href="&#x6d;&#x61;&#105;&#108;&#x74;&#x6f;&#x3a;&#x6a;&#x6f;&#104;&#110;&#64;&#x73;&#116;&#x6f;&#x66;&#x66;&#101;&#108;&#46;&#111;&#114;&#x67;" data-bare-link="true">&#x6a;&#111;&#x68;&#110;&#64;&#x73;&#x74;&#111;&#102;&#102;&#101;&#108;&#46;&#x6f;&#x72;&#x67;</a></li>
+<li>Ico Doornekamp <a href="&#x6d;&#97;&#x69;&#108;&#116;&#x6f;&#x3a;&#x64;&#x75;&#99;&#x40;&#122;&#101;&#x76;&#x76;&#x2e;&#x6e;&#x6c;" data-bare-link="true">&#x64;&#x75;&#99;&#64;&#122;&#x65;&#x76;&#118;&#46;&#110;&#108;</a></li>
+<li>John Stoffel <a href="&#109;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#106;&#x6f;&#x68;&#x6e;&#x40;&#x73;&#116;&#x6f;&#102;&#x66;&#x65;&#x6c;&#46;&#111;&#114;&#103;" data-bare-link="true">&#x6a;&#111;&#104;&#110;&#64;&#115;&#116;&#111;&#102;&#102;&#101;&#108;&#x2e;&#x6f;&#114;&#x67;</a></li>
 </ul>
 
 
@@ -634,7 +636,7 @@ License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>October 2018</li>
+    <li class='tc'>January 2021</li>
     <li class='tr'>duc(1)</li>
   </ol>
 
