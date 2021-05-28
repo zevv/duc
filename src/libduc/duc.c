@@ -56,7 +56,8 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[DUC_PATH_MAX];
-
+	char full_path_db[DUC_PATH_MAX];
+	
 	/* An empty path means check the ENV path instead */
 	if(path_db == NULL) {
 		path_db = getenv("DUC_DATABASE");
@@ -79,13 +80,16 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		return -1;
 	}
 
+	/* Convert ~/some/path/to/db into /full/path/to/some/path/to/db */
+	realpath(path_db, full_path_db);
+
 	duc_log(duc, DUC_LOG_INF, "%s database \"%s\"", 
 			(flags & DUC_OPEN_RO) ? "Reading from" : "Writing to",
-			path_db);
+			full_path_db);
 
-	duc->db = db_open(path_db, flags, &duc->err);
+	duc->db = db_open(full_path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - %s", path_db, duc_strerror(duc));
+		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - %s", full_path_db, duc_strerror(duc));
 		return -1;
 	}
 
