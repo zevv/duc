@@ -97,6 +97,7 @@ struct scanner {
 	_Atomic unsigned int completed_children;  /* Number of children of this node that completed */
 	_Atomic unsigned int num_children;        /* Number of children that this node has */
 	_Atomic bool done_processing;             /* Indicates whether the node finished processing */
+	pthread_mutex_t free_check_lock;          /* Enforces that checks relating to freeing are atomic */
 };
 
 
@@ -483,6 +484,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	scanner->done_processing = false;
 	scanner->num_children = 0;
 	scanner->completed_children = 0;
+	pthread_mutex_init(&scanner->free_check_lock, NULL);
 
 	if(scanner_parent) {
 		scanner->depth = scanner_parent->depth + 1;
@@ -565,8 +567,9 @@ static void scanner_free(struct scanner *scanner)
 		if(r != 0) duc->err = r;
 	}
 
+	pthread_mutex_destroy(&scanner->free_check_lock);
+	
 	duc_free((void *)scanner->absolute_path);
-
 	buffer_free(scanner->buffer);
 	duc_free(scanner->ent.name);
 	duc_free(scanner);
@@ -651,20 +654,29 @@ void free_nodes(struct scanner *scanner)
 	struct scanner* s = scanner->parent;
 	scanner_free(scanner);
 	while(s) {
+		pthread_mutex_lock(&s->free_check_lock);
 		s->completed_children++;
 
 		/*
 		 * If the parent hasn't finished processing, then this child cannot free it.
 		 * So the child can ignore its parent in this scenario.
 		 */
-		if(! s->done_processing) break;
+		if(! s->done_processing) {
+			pthread_mutex_unlock(&s->free_check_lock);
+			break;
+		}
 		s->done_processing = true;
 
 		/*
 		 * If the parent is done processing but this child is not the last child to process,
 		 * then the child cannot free the parent (top sort demands ALL children finish before parent).
 		 */
-		if (s->completed_children != s->num_children) break;
+		if (s->completed_children != s->num_children) {
+			pthread_mutex_unlock(&s->free_check_lock);
+			break;
+		}
+		
+		pthread_mutex_unlock(&s->free_check_lock);
 
 		/* Free the parent */
 		struct scanner* new_parent = s->parent;
@@ -841,12 +853,15 @@ void dfs_worker(unsigned int worker_num)
 		bool is_leaf = process_node(worker_num, scanner);
 
 		/* Run the free algorithm on the node */
+		pthread_mutex_lock(&scanner->free_check_lock);
 		if (is_leaf ||
 			!scanner->done_processing &&
 			scanner->completed_children == scanner->num_children) {
+			pthread_mutex_unlock(&scanner->free_check_lock);
 			free_nodes(scanner);
 		} else {
 			scanner->done_processing = true;
+			pthread_mutex_unlock(&scanner->free_check_lock);
 		}
 		return;
 	}
