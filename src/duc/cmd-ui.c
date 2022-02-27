@@ -309,6 +309,9 @@ static int ui_main(duc *duc, int argc, char **argv)
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
+	if(getenv("NO_COLOR")) {
+		opt_nocolor = true;
+	}
 
 	int r = duc_open(duc, opt_database, DUC_OPEN_RO);
 	if(r != DUC_OK) {
