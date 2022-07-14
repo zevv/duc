@@ -74,6 +74,7 @@ static void dump(duc *duc, duc_dir *dir, int depth, off_t min_size, int ex_files
 				indent(depth);
 				printf("</ent>\n");
 			}
+			duc_dir_close(dir_child);
 		} else {
 			if(!ex_files && size >= min_size) {
 				indent(depth);
