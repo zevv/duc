@@ -33,6 +33,7 @@ extern struct cmd cmd_gui;
 extern struct cmd cmd_guigl;
 extern struct cmd cmd_graph;
 extern struct cmd cmd_xml;
+extern struct cmd cmd_json;
 extern struct cmd cmd_cgi;
 extern struct cmd cmd_ui;
 
@@ -44,6 +45,7 @@ struct cmd *cmd_list[] = {
 	&cmd_manual,
 	&cmd_ls,
 	&cmd_xml,
+	&cmd_json,
 	&cmd_graph,
 	&cmd_cgi,
 #ifdef ENABLE_X11

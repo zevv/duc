@@ -49,6 +49,7 @@ duc_SOURCES  += \
 	src/duc/cmd-ls.c \
 	src/duc/cmd-ui.c \
 	src/duc/cmd-xml.c \
+	src/duc/cmd-json.c \
 	src/duc/ducrc.c \
 	src/duc/ducrc.h \
 	src/duc/main.c
