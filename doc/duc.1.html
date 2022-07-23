@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv='content-type' value='text/html;charset=utf8'>
-  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <meta http-equiv='content-type' content='text/html;charset=utf8'>
+  <meta name='generator' content='Ronn-NG/v0.9.1 (http://github.com/apjanke/ronn-ng/tree/0.9.1)'>
   <title>duc(1) - index, query and graph disk usage</title>
   <style type='text/css' media='all'>
   /* style: man */
@@ -74,7 +74,7 @@
     <a href="#OPTIONS">OPTIONS</a>
     <a href="#CGI-INTERFACING">CGI INTERFACING</a>
     <a href="#A-NOTE-ON-FILE-SIZE-AND-DISK-USAGE">A NOTE ON FILE SIZE AND DISK USAGE</a>
-    <a href="#BUILDING-from-git">BUILDING from git</a>
+    <a href="#BUILDING-FROM-GIT">BUILDING from git</a>
     <a href="#EXAMPLES">EXAMPLES</a>
     <a href="#FREQUENTLY-ASKED-QUESTIONS">FREQUENTLY ASKED QUESTIONS</a>
     <a href="#FILES">FILES</a>
@@ -88,11 +88,12 @@
     <li class='tr'>duc(1)</li>
   </ol>
 
-  <h2 id="NAME">NAME</h2>
+  
+
+<h2 id="NAME">NAME</h2>
 <p class="man-name">
   <code>duc</code> - <span class="man-whatis">index, query and graph disk usage</span>
 </p>
-
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
 <p><code>duc</code> <var>subcommand</var> <a href="#OPTIONS" title="OPTIONS" data-bare-link="true">options</a></p>
@@ -112,7 +113,7 @@ files and several petabytes of storage.</p>
 
 <p>Duc comes with a command line tool called <code>duc</code>, which is used to create,
 maintain and query the disk usage database.  run <code>duc help</code> to get a list of
-available commands. <code>duc help &lt;subcommand></code> describes the usage of a specific
+available commands. <code>duc help &lt;subcommand&gt;</code> describes the usage of a specific
 subcommand. Run <code>duc help --all</code> for an extensive list of all commands and
 their options.</p>
 
@@ -158,7 +159,7 @@ database location with the --database argument.</p>
 traversal, including special file systems like /proc and /sys, and
 network file systems like NFS or Samba mounts. There are a few options to
 select what parts of your filesystem you want to include or exclude from the
-scan, check the documentation below for the options --one-file-system,
+scan, check the documentation below for the options --one-file-system, 
 --exclude, --fs-exclude and --fs-include for more details.</p>
 
 <h2 id="QUERYING-THE-INDEX">QUERYING THE INDEX</h2>
@@ -167,17 +168,24 @@ scan, check the documentation below for the options --one-file-system,
 depending on your configuration, some of these commands might not be available)</p>
 
 <ul>
-<li><p><code>duc info</code> shows a list of available directory trees in the database, and the time
-and date of the last scan.</p></li>
-<li><p><code>duc ls</code> lists all files and directories under the given path on the console.</p></li>
-<li><p><code>duc ui</code> runs a ncurses based console user interface for exploring the file
-system usage.</p></li>
-<li><p><code>duc gui</code> starts a graphical (X11) interface representing the file system in
+  <li>
+    <p><code>duc info</code> shows a list of available directory trees in the database, and the time
+and date of the last scan.</p>
+  </li>
+  <li>
+    <p><code>duc ls</code> lists all files and directories under the given path on the console.</p>
+  </li>
+  <li>
+    <p><code>duc ui</code> runs a ncurses based console user interface for exploring the file
+system usage.</p>
+  </li>
+  <li>
+    <p><code>duc gui</code> starts a graphical (X11) interface representing the file system in
 a sunburst graph. Click on a directory to redraw the graph from the
 perspective of the selected directory. Click in the center of the graph to go
-up one directory in the tree.</p></li>
+up one directory in the tree.</p>
+  </li>
 </ul>
-
 
 <h2 id="OPTIONS">OPTIONS</h2>
 
@@ -188,22 +196,34 @@ up one directory in the tree.</p></li>
 <p>These options apply to all Duc subcommands:</p>
 
 <dl>
-<dt class="flush"><code>--debug</code></dt><dd><p>increase verbosity to debug level</p></dd>
-<dt><code>-h</code>, <code>--help</code></dt><dd><p>show help</p></dd>
-<dt><code>-q</code>, <code>--quiet</code></dt><dd><p>quiet mode, do not print any warning</p></dd>
-<dt><code>-v</code>, <code>--verbose</code></dt><dd><p>increase verbosity</p></dd>
-<dt><code>--version</code></dt><dd><p>output version information and exit</p></dd>
+<dt><code>--debug</code></dt>
+<dd>increase verbosity to debug level</dd>
+<dt>
+<code>-h</code>, <code>--help</code>
+</dt>
+<dd>show help</dd>
+<dt>
+<code>-q</code>, <code>--quiet</code>
+</dt>
+<dd>quiet mode, do not print any warning</dd>
+<dt>
+<code>-v</code>, <code>--verbose</code>
+</dt>
+<dd>increase verbosity</dd>
+<dt><code>--version</code></dt>
+<dd>output version information and exit</dd>
 </dl>
-
 
 <h3 id="duc-help">duc help</h3>
 
 <p>Options for command <code>duc help [options]</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--all</code></dt><dd>show complete help for all commands</dd>
+<dt>
+<code>-a</code>, <code>--all</code>
+</dt>
+<dd>show complete help for all commands</dd>
 </dl>
-
 
 <h3 id="duc-index">duc index</h3>
 
@@ -214,34 +234,76 @@ are written to the index, and can later be queried by one of the other duc tools
 <p>Options for command <code>duc index [options] PATH ...</code>:</p>
 
 <dl>
-<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>use database file VAL</p></dd>
-<dt><code>-e</code>, <code>--exclude=VAL</code></dt><dd><p>exclude files matching VAL</p></dd>
-<dt><code>-H</code>, <code>--check-hard-links</code></dt><dd><p>count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted</p></dd>
-<dt><code>-f</code>, <code>--force</code></dt><dd><p>force writing in case of corrupted db</p></dd>
-<dt><code>--fs-exclude=VAL</code></dt><dd><p>exclude file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</p></dd>
-<dt><code>--fs-include=VAL</code></dt><dd><p>include file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</p></dd>
-<dt><code>--hide-file-names</code></dt><dd><p>hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden</p></dd>
-<dt><code>-U</code>, <code>--uid=VAL</code></dt><dd><p>limit index to only files/dirs owned by uid</p></dd>
-<dt><code>-u</code>, <code>--username=VAL</code></dt><dd><p>limit index to only files/dirs owned by username</p></dd>
-<dt><code>-m</code>, <code>--max-depth=VAL</code></dt><dd><p>limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index</p></dd>
-<dt><code>-x</code>, <code>--one-file-system</code></dt><dd><p>skip directories on different file systems</p></dd>
-<dt><code>-p</code>, <code>--progress</code></dt><dd><p>show progress during indexing</p></dd>
-<dt><code>--dry-run</code></dt><dd><p>do not update database, just crawl</p></dd>
-<dt><code>--uncompressed</code></dt><dd><p>do not use compression for database. Duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time</p></dd>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>use database file VAL</dd>
+<dt>
+<code>-e</code>, <code>--exclude=VAL</code>
+</dt>
+<dd>exclude files matching VAL</dd>
+<dt>
+<code>-H</code>, <code>--check-hard-links</code>
+</dt>
+<dd>count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted</dd>
+<dt>
+<code>-f</code>, <code>--force</code>
+</dt>
+<dd>force writing in case of corrupted db</dd>
+<dt><code>--fs-exclude=VAL</code></dt>
+<dd>exclude file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</dd>
+<dt><code>--fs-include=VAL</code></dt>
+<dd>include file system type VAL during indexing. VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs</dd>
+<dt><code>--hide-file-names</code></dt>
+<dd>hide file names in index (privacy). the names of directories will be preserved, but the names of the individual files will be hidden</dd>
+<dt>
+<code>-U</code>, <code>--uid=VAL</code>
+</dt>
+<dd>limit index to only files/dirs owned by uid</dd>
+<dt>
+<code>-u</code>, <code>--username=VAL</code>
+</dt>
+<dd>limit index to only files/dirs owned by username</dd>
+<dt>
+<code>-m</code>, <code>--max-depth=VAL</code>
+</dt>
+<dd>limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index</dd>
+<dt>
+<code>-x</code>, <code>--one-file-system</code>
+</dt>
+<dd>skip directories on different file systems</dd>
+<dt>
+<code>-p</code>, <code>--progress</code>
+</dt>
+<dd>show progress during indexing</dd>
+<dt><code>--dry-run</code></dt>
+<dd>do not update database, just crawl</dd>
+<dt><code>--uncompressed</code></dt>
+<dd>do not use compression for database. Duc enables compression if the underlying database supports this. This reduces index size at the cost of slightly longer indexing time</dd>
 </dl>
-
 
 <h3 id="duc-info">duc info</h3>
 
 <p>Options for command <code>duc info [options]</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
-<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>show apparent instead of actual file size</dd>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
 </dl>
-
 
 <h3 id="duc-ls">duc ls</h3>
 
@@ -252,34 +314,101 @@ working directory is listed.</p>
 <p>Options for command <code>duc ls [options] [PATH]...</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
-<dt class="flush"><code>--ascii</code></dt><dd><p>use ASCII characters instead of UTF-8 to draw tree</p></dd>
-<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
-<dt><code>-F</code>, <code>--classify</code></dt><dd><p>append file type indicator (one of */) to entries</p></dd>
-<dt><code>-c</code>, <code>--color</code></dt><dd><p>colorize output (only on ttys)</p></dd>
-<dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
-<dt><code>-D</code>, <code>--directory</code></dt><dd><p>list directory itself, not its contents</p></dd>
-<dt><code>--dirs-only</code></dt><dd><p>list only directories, skip individual files</p></dd>
-<dt><code>--full-path</code></dt><dd><p>show full path instead of tree in recursive view</p></dd>
-<dt><code>-g</code>, <code>--graph</code></dt><dd><p>draw graph with relative size for each entry</p></dd>
-<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>traverse up to ARG levels deep [4]</p></dd>
-<dt><code>-n</code>, <code>--name-sort</code></dt><dd><p>sort output by name instead of by size</p></dd>
-<dt><code>-R</code>, <code>--recursive</code></dt><dd><p>recursively list subdirectories</p></dd>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>show apparent instead of actual file size</dd>
+<dt><code>--ascii</code></dt>
+<dd>use ASCII characters instead of UTF-8 to draw tree</dd>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
+<dt>
+<code>-F</code>, <code>--classify</code>
+</dt>
+<dd>append file type indicator (one of */) to entries</dd>
+<dt>
+<code>-c</code>, <code>--color</code>
+</dt>
+<dd>colorize output (only on ttys)</dd>
+<dt><code>--count</code></dt>
+<dd>show number of files instead of file size</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt>
+<code>-D</code>, <code>--directory</code>
+</dt>
+<dd>list directory itself, not its contents</dd>
+<dt><code>--dirs-only</code></dt>
+<dd>list only directories, skip individual files</dd>
+<dt><code>--full-path</code></dt>
+<dd>show full path instead of tree in recursive view</dd>
+<dt>
+<code>-g</code>, <code>--graph</code>
+</dt>
+<dd>draw graph with relative size for each entry</dd>
+<dt>
+<code>-l</code>, <code>--levels=VAL</code>
+</dt>
+<dd>traverse up to ARG levels deep [4]</dd>
+<dt>
+<code>-n</code>, <code>--name-sort</code>
+</dt>
+<dd>sort output by name instead of by size</dd>
+<dt>
+<code>-R</code>, <code>--recursive</code>
+</dt>
+<dd>recursively list subdirectories</dd>
 </dl>
-
 
 <h3 id="duc-xml">duc xml</h3>
 
 <p>Options for command <code>duc xml [options] [PATH]</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>interpret min_size/-s value as apparent size</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
-<dt><code>-x</code>, <code>--exclude-files</code></dt><dd><p>exclude file from xml output, only include directories</p></dd>
-<dt><code>-s</code>, <code>--min_size=VAL</code></dt><dd><p>specify min size for files or directories</p></dd>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>interpret min_size/-s value as apparent size</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt>
+<code>-x</code>, <code>--exclude-files</code>
+</dt>
+<dd>exclude file from xml output, only include directories</dd>
+<dt>
+<code>-s</code>, <code>--min_size=VAL</code>
+</dt>
+<dd>specify min size for files or directories</dd>
 </dl>
 
+<h3 id="duc-json">duc json</h3>
+
+<p>Options for command <code>duc json [options] [PATH]</code>:</p>
+
+<dl>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>interpret min_size/-s value as apparent size</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt>
+<code>-x</code>, <code>--exclude-files</code>
+</dt>
+<dd>exclude file from json output, only include directories</dd>
+<dt>
+<code>-s</code>, <code>--min_size=VAL</code>
+</dt>
+<dd>specify min size for files or directories</dd>
+</dl>
 
 <h3 id="duc-graph">duc graph</h3>
 
@@ -294,44 +423,92 @@ file name '-'.</p>
 <p>Options for command <code>duc graph [options] [PATH]</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>Show apparent instead of actual file size</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
-<dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
-<dt><code>--dpi=VAL</code></dt><dd><p>set destination resolution in DPI [96.0]</p></dd>
-<dt><code>-f</code>, <code>--format=VAL</code></dt><dd><p>select output format <var>png|svg|pdf|html</var> [png]</p></dd>
-<dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
-<dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
-<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
-<dt><code>-o</code>, <code>--output=VAL</code></dt><dd><p>output file name [duc.png]</p></dd>
-<dt><code>--palette=VAL</code></dt><dd><p>select palette. available palettes are: size, rainbow, greyscale, monochrome, classic</p></dd>
-<dt><code>--ring-gap=VAL</code></dt><dd><p>leave a gap of VAL pixels between rings</p></dd>
-<dt><code>-s</code>, <code>--size=VAL</code></dt><dd><p>image size [800]</p></dd>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>Show apparent instead of actual file size</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt><code>--count</code></dt>
+<dd>show number of files instead of file size</dd>
+<dt><code>--dpi=VAL</code></dt>
+<dd>set destination resolution in DPI [96.0]</dd>
+<dt>
+<code>-f</code>, <code>--format=VAL</code>
+</dt>
+<dd>select output format <var>png|svg|pdf|html</var> [png]</dd>
+<dt><code>--fuzz=VAL</code></dt>
+<dd>use radius fuzz factor when drawing graph [0.7]</dd>
+<dt><code>--gradient</code></dt>
+<dd>draw graph with color gradient</dd>
+<dt>
+<code>-l</code>, <code>--levels=VAL</code>
+</dt>
+<dd>draw up to ARG levels deep [4]</dd>
+<dt>
+<code>-o</code>, <code>--output=VAL</code>
+</dt>
+<dd>output file name [duc.png]</dd>
+<dt><code>--palette=VAL</code></dt>
+<dd>select palette. available palettes are: size, rainbow, greyscale, monochrome, classic</dd>
+<dt><code>--ring-gap=VAL</code></dt>
+<dd>leave a gap of VAL pixels between rings</dd>
+<dt>
+<code>-s</code>, <code>--size=VAL</code>
+</dt>
+<dd>image size [800]</dd>
 </dl>
-
 
 <h3 id="duc-cgi">duc cgi</h3>
 
 <p>Options for command <code>duc cgi [options] [PATH]</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>Show apparent instead of actual file size</p></dd>
-<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
-<dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
-<dt><code>--css-url=VAL</code></dt><dd><p>url of CSS style sheet to use instead of default CSS</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
-<dt><code>--dpi=VAL</code></dt><dd><p>set destination resolution in DPI [96.0]</p></dd>
-<dt><code>--footer=VAL</code></dt><dd><p>select HTML file to include as footer</p></dd>
-<dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph [0.7]</p></dd>
-<dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
-<dt><code>--header=VAL</code></dt><dd><p>select HTML file to include as header</p></dd>
-<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to ARG levels deep [4]</p></dd>
-<dt class="flush"><code>--list</code></dt><dd><p>generate table with file list</p></dd>
-<dt><code>--palette=VAL</code></dt><dd><p>select palette. available palettes are: size, rainbow, greyscale, monochrome, classic</p></dd>
-<dt><code>--ring-gap=VAL</code></dt><dd><p>leave a gap of VAL pixels between rings</p></dd>
-<dt><code>-s</code>, <code>--size=VAL</code></dt><dd><p>image size [800]</p></dd>
-<dt><code>--tooltip</code></dt><dd><p>enable tooltip when hovering over the graph. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increase the HTTP traffic to the web server</p></dd>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>Show apparent instead of actual file size</dd>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
+<dt><code>--count</code></dt>
+<dd>show number of files instead of file size</dd>
+<dt><code>--css-url=VAL</code></dt>
+<dd>url of CSS style sheet to use instead of default CSS</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt><code>--dpi=VAL</code></dt>
+<dd>set destination resolution in DPI [96.0]</dd>
+<dt><code>--footer=VAL</code></dt>
+<dd>select HTML file to include as footer</dd>
+<dt><code>--fuzz=VAL</code></dt>
+<dd>use radius fuzz factor when drawing graph [0.7]</dd>
+<dt><code>--gradient</code></dt>
+<dd>draw graph with color gradient</dd>
+<dt><code>--header=VAL</code></dt>
+<dd>select HTML file to include as header</dd>
+<dt>
+<code>-l</code>, <code>--levels=VAL</code>
+</dt>
+<dd>draw up to ARG levels deep [4]</dd>
+<dt><code>--list</code></dt>
+<dd>generate table with file list</dd>
+<dt><code>--palette=VAL</code></dt>
+<dd>select palette. available palettes are: size, rainbow, greyscale, monochrome, classic</dd>
+<dt><code>--ring-gap=VAL</code></dt>
+<dd>leave a gap of VAL pixels between rings</dd>
+<dt>
+<code>-s</code>, <code>--size=VAL</code>
+</dt>
+<dd>image size [800]</dd>
+<dt><code>--tooltip</code></dt>
+<dd>enable tooltip when hovering over the graph. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increase the HTTP traffic to the web server</dd>
 </dl>
-
 
 <h3 id="duc-gui">duc gui</h3>
 
@@ -356,18 +533,35 @@ backspace   go up one directory
 <p>Options for command <code>duc gui [options] [PATH]</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
-<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
-<dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
-<dt class="flush"><code>--dark</code></dt><dd><p>use dark background color</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
-<dt><code>--fuzz=VAL</code></dt><dd><p>use radius fuzz factor when drawing graph</p></dd>
-<dt><code>--gradient</code></dt><dd><p>draw graph with color gradient</p></dd>
-<dt><code>-l</code>, <code>--levels=VAL</code></dt><dd><p>draw up to VAL levels deep [4]</p></dd>
-<dt><code>--palette=VAL</code></dt><dd><p>select palette. available palettes are: size, rainbow, greyscale, monochrome, classic</p></dd>
-<dt><code>--ring-gap=VAL</code></dt><dd><p>leave a gap of VAL pixels between rings</p></dd>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>show apparent instead of actual file size</dd>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
+<dt><code>--count</code></dt>
+<dd>show number of files instead of file size</dd>
+<dt><code>--dark</code></dt>
+<dd>use dark background color</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt><code>--fuzz=VAL</code></dt>
+<dd>use radius fuzz factor when drawing graph</dd>
+<dt><code>--gradient</code></dt>
+<dd>draw graph with color gradient</dd>
+<dt>
+<code>-l</code>, <code>--levels=VAL</code>
+</dt>
+<dd>draw up to VAL levels deep [4]</dd>
+<dt><code>--palette=VAL</code></dt>
+<dd>select palette. available palettes are: size, rainbow, greyscale, monochrome, classic</dd>
+<dt><code>--ring-gap=VAL</code></dt>
+<dd>leave a gap of VAL pixels between rings</dd>
 </dl>
-
 
 <h3 id="duc-ui">duc ui</h3>
 
@@ -395,14 +589,27 @@ q, escape:       quit
 <p>Options for command <code>duc ui [options] [PATH]</code>:</p>
 
 <dl>
-<dt><code>-a</code>, <code>--apparent</code></dt><dd><p>show apparent instead of actual file size</p></dd>
-<dt><code>-b</code>, <code>--bytes</code></dt><dd><p>show file size in exact number of bytes</p></dd>
-<dt class="flush"><code>--count</code></dt><dd><p>show number of files instead of file size</p></dd>
-<dt><code>-d</code>, <code>--database=VAL</code></dt><dd><p>select database file to use [~/.duc.db]</p></dd>
-<dt><code>-n</code>, <code>--name-sort</code></dt><dd><p>sort output by name instead of by size</p></dd>
-<dt><code>--no-color</code></dt><dd><p>do not use colors on terminal output</p></dd>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>show apparent instead of actual file size</dd>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
+<dt><code>--count</code></dt>
+<dd>show number of files instead of file size</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt>
+<code>-n</code>, <code>--name-sort</code>
+</dt>
+<dd>sort output by name instead of by size</dd>
+<dt><code>--no-color</code></dt>
+<dd>do not use colors on terminal output</dd>
 </dl>
-
 
 <h2 id="CGI-INTERFACING">CGI INTERFACING</h2>
 
@@ -424,25 +631,29 @@ location of the database to navigate.</p>
 </code></pre>
 
 <ul>
-<li>Make sure the database file is readable by the user (usually www-data)</li>
-<li>Debugging is best done by inspecting the web server's error log</li>
-<li>Make sure the .cgi script has execute permissions (<code>chmod +x duc.cgi</code>)</li>
+  <li>Make sure the database file is readable by the user (usually www-data)</li>
+  <li>Debugging is best done by inspecting the web server's error log</li>
+  <li>Make sure the .cgi script has execute permissions (<code>chmod +x duc.cgi</code>)</li>
 </ul>
-
 
 <p>Some notes:</p>
 
 <ul>
-<li><p>The HTML page is generated with a simple embedded CSS style sheet. If the
+  <li>
+    <p>The HTML page is generated with a simple embedded CSS style sheet. If the
 style is not to your liking you can provide an external CSS url with the
 --css-url option which will then be used instead of the embedded style
-definition.</p></li>
-<li><p>Add the option --list to generate a table of top sized files and directories
-in the HTML page.</p></li>
-<li><p>The options --header and --footer allow you to insert your own HTML code
-before and after the main.</p></li>
+definition.</p>
+  </li>
+  <li>
+    <p>Add the option --list to generate a table of top sized files and directories
+in the HTML page.</p>
+  </li>
+  <li>
+    <p>The options --header and --footer allow you to insert your own HTML code
+before and after the main.</p>
+  </li>
 </ul>
-
 
 <p>The current CGI configuration is not very flexible, nor secure. It is not
 advised to run the CGI from public reachable web servers, use at your own risk.</p>
@@ -463,13 +674,16 @@ always a bit more then its apparent size.</p>
 <p>Duc has two modes for counting file sizes:</p>
 
 <ul>
-<li><p><code>apparent size</code>: this is the size as reported by <code>ls</code>. This number indicates
-the file length, which is usually smaller then the actual disk usage.</p></li>
-<li><p><code>actual size</code>: this is the size as reported by <code>du</code> and <code>df</code>. The actual file
+  <li>
+    <p><code>apparent size</code>: this is the size as reported by <code>ls</code>. This number indicates
+the file length, which is usually smaller then the actual disk usage.</p>
+  </li>
+  <li>
+    <p><code>actual size</code>: this is the size as reported by <code>du</code> and <code>df</code>. The actual file
 size tells you how much disk is actually used by a file, and is always a
-multiple of 512 bytes.</p></li>
+multiple of 512 bytes.</p>
+  </li>
 </ul>
-
 
 <p>The default mode used by duc is to use the 'actual size'. Most duc commands to
 report disk usage (<code>duc ls</code>, <code>duc graph</code>, <code>duc ui</code>, etc) have an option to
@@ -481,13 +695,13 @@ toggle.</p>
 <p>If you use git clone to pull down the latest release, you will have to
 do the following:</p>
 
-<p>  git clone https://github.com/zevv/duc<br />
-  cd duc<br />
+<p>git clone https://github.com/zevv/duc<br>
+  cd duc<br>
   autoreconf -i</p>
 
 <p>Then you can run the regular</p>
 
-<p>  ./configure [ options ]<br />
+<p>./configure [ options ]<br>
   make</p>
 
 <p>to the regular build of the software.</p>
@@ -496,13 +710,13 @@ do the following:</p>
 for lmdb (lmdb-devel) does not include a lmdb.pc pkgconfig file. This could lead to
 errors during the configure phase:</p>
 
-<p>  checking for LMDB... no<br />
+<p>checking for LMDB... no<br>
   configure: error: Package requirements (lmdb) were not met:</p>
 
-<p>To avoid the need to call pkg-config, you may set the environment variables        <br />
+<p>To avoid the need to call pkg-config, you may set the environment variables        <br>
 LMDB_CFLAGS and LMDB_LIBS:</p>
 
-<p>  LMDB_CFLAGS=" " LMDB_LIBS=-llmdb ./configure --with-db-backend=lmdb [ options ]</p>
+<p>LMDB_CFLAGS=" " LMDB_LIBS=-llmdb ./configure --with-db-backend=lmdb [ options ]</p>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
@@ -559,7 +773,7 @@ path which is used by all subcommands</p>
 
 <pre><code>[global]
 database /var/cache/duc.db
-
+ 
 [ls]
 recursive
 classify
@@ -573,37 +787,44 @@ apparent
 <h2 id="FREQUENTLY-ASKED-QUESTIONS">FREQUENTLY ASKED QUESTIONS</h2>
 
 <ul>
-<li><p>What does the error 'Database version mismatch mean?'</p>
+  <li>
+    <p>What does the error 'Database version mismatch mean?'</p>
 
-<p>The layout of the index database sometimes changes when new features are
+    <p>The layout of the index database sometimes changes when new features are
 implemented. When you get this error you have probably upgraded to a newer
-version. Just remove the old database file and rebuild the index.</p></li>
-<li><p>Duc crashes with a segmentation fault, is it that buggy?</p>
+version. Just remove the old database file and rebuild the index.</p>
+  </li>
+  <li>
+    <p>Duc crashes with a segmentation fault, is it that buggy?</p>
 
-<p>By default Duc uses the Tokyocabinet database backend. Tokyocabinet is pretty
+    <p>By default Duc uses the Tokyocabinet database backend. Tokyocabinet is pretty
 fast, stores the database in a single file and has nice compression support
 to keep the database small. Unfortunately, it is not always robust and
 sometimes chokes on corrupt database files. Try to remove the database
-and rebuild the index. If the error persists contact the authors.</p></li>
-<li><p>Some of the Duc subcommands like <code>duc gui</code> are not available on my system?</p>
+and rebuild the index. If the error persists contact the authors.</p>
+  </li>
+  <li>
+    <p>Some of the Duc subcommands like <code>duc gui</code> are not available on my system?</p>
 
-<p>Depending on the configuration that was chosen when building Duc, some
+    <p>Depending on the configuration that was chosen when building Duc, some
 options might or might not be available in the <code>duc</code> utility. For example, on
 Debian or Ubuntu Duc comes in two flavours: there is a full featured package
 called <code>duc</code>, or a package without dependencies on X-windows called
-<code>duc-nox</code>, for which the latter lacks the <code>duc gui</code> command.</p></li>
-<li><p><code>duc index</code> is hogging my system and using a lot of CPU and I/O!</p>
+<code>duc-nox</code>, for which the latter lacks the <code>duc gui</code> command.</p>
+  </li>
+  <li>
+    <p><code>duc index</code> is hogging my system and using a lot of CPU and I/O!</p>
 
-<p>Traversing a file system is hard work - which is the exact reason why Duc
+    <p>Traversing a file system is hard work - which is the exact reason why Duc
 exists in the first place. You can use the default tools to make Duc behave
 nice towards other processes on your machine, use something like:</p>
 
-<p><code>nice 19 ionice -c 3 duc index [options]</code></p>
+    <p><code>nice 19 ionice -c 3 duc index [options]</code></p>
 
-<p>This makes <code>duc index</code> run with the lowest CPU and I/O scheduler priorities,
-which is nicer to all the other processes on your machine.</p></li>
+    <p>This makes <code>duc index</code> run with the lowest CPU and I/O scheduler priorities,
+which is nicer to all the other processes on your machine.</p>
+  </li>
 </ul>
-
 
 <h2 id="FILES">FILES</h2>
 
@@ -617,10 +838,11 @@ take the -d/--database option to override the database path.</p>
 <h2 id="AUTHORS">AUTHORS</h2>
 
 <ul>
-<li>Ico Doornekamp <a href="&#x6d;&#97;&#x69;&#108;&#116;&#x6f;&#x3a;&#x64;&#x75;&#99;&#x40;&#122;&#101;&#x76;&#x76;&#x2e;&#x6e;&#x6c;" data-bare-link="true">&#x64;&#x75;&#99;&#64;&#122;&#x65;&#x76;&#118;&#46;&#110;&#108;</a></li>
-<li>John Stoffel <a href="&#109;&#97;&#x69;&#108;&#x74;&#x6f;&#58;&#106;&#x6f;&#x68;&#x6e;&#x40;&#x73;&#116;&#x6f;&#102;&#x66;&#x65;&#x6c;&#46;&#111;&#114;&#103;" data-bare-link="true">&#x6a;&#111;&#104;&#110;&#64;&#115;&#116;&#111;&#102;&#102;&#101;&#108;&#x2e;&#x6f;&#114;&#x67;</a></li>
+  <li>Ico Doornekamp <a href="mailto:duc@zevv.nl" data-bare-link="true">duc@zevv.nl</a>
+</li>
+  <li>John Stoffel <a href="mailto:john@stoffel.org" data-bare-link="true">john@stoffel.org</a>
+</li>
 </ul>
-
 
 <p>Other contributors can be found in the Git log at GitHub.</p>
 
@@ -633,10 +855,9 @@ useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 License for more details.</p>
 
-
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>January 2021</li>
+    <li class='tc'>July 2022</li>
     <li class='tr'>duc(1)</li>
   </ol>
 

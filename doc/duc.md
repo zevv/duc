@@ -262,6 +262,22 @@ Options for command `duc xml [options] [PATH]`:
   * `-s`, `--min_size=VAL`:
     specify min size for files or directories
 
+### duc json
+
+Options for command `duc json [options] [PATH]`:
+
+  * `-a`, `--apparent`:
+    interpret min_size/-s value as apparent size
+
+  * `-d`, `--database=VAL`:
+    select database file to use [~/.duc.db]
+
+  * `-x`, `--exclude-files`:
+    exclude file from json output, only include directories
+
+  * `-s`, `--min_size=VAL`:
+    specify min size for files or directories
+
 ### duc graph
 
 The 'graph' subcommand queries the duc database and generates a sunburst graph

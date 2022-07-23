@@ -1,9 +1,11 @@
 
-1.4.5   (????-??-??)
+1.4.5   (2022-07-29)
 
 	- new: added '-u' option to duc index to index by username
+	- new: added `json` subcommand (thanks Nicolas!)
+	- new: added support for NO_COLOR env var
 	- cha: duc db location is now XDG compliant
-	- fix: various bug fixes
+	- fix: various bug fixes, check the git log for details
 
 1.4.4	(2018-09-28)
 
@@ -44,7 +46,7 @@
 
 1.4.0   (2016-02-24)
 
-        - new: added --count option
+	- new: added --count option
 	- new: added support for windows
 	- cha: renamed guigl to gui, only one gui (X11/OpenGL) can now be enabled
 	- cha: improved font handling on OpenGL backend
