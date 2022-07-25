@@ -69,7 +69,8 @@ EXTRA_DIST = \
 	doc/duc.1 \
 	doc/duc.1.html \
 	src/libduc-graph/font.c \
-	doc/duc.md
+	doc/duc.md \
+	LICENSE
 
 install-exec-hook:
 	-/sbin/ldconfig || :;
