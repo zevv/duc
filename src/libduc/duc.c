@@ -104,6 +104,9 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 	if(path_db == NULL) {
 		char *home = getenv("HOME");
 		if(home) {
+			/* Create ~/.cache if needed */
+			snprintf(tmp, sizeof tmp, "%s/.cache", home);
+			mkdir(tmp, 0700);
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/.cache/duc", home);
 			/* Create if needed */
