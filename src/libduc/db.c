@@ -34,9 +34,8 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 		} else {
 			db_put(duc->db, "duc_index_reports", 17, report->path, sizeof(report->path));
 		}
-	} else {
-		free(tmp);
 	}
+	free(tmp);
 
 	struct buffer *b = buffer_new(NULL, 0);
 
