@@ -26,6 +26,8 @@ static bool opt_hide_file_names = false;
 static char *opt_username = NULL;
 static int opt_uid = 0;
 static int opt_max_depth = 0;
+static unsigned int opt_thread_count = 1;
+static unsigned int opt_cutoff_depth = 2;
 static bool opt_one_file_system = false;
 static bool opt_progress = false;
 static bool opt_uncompressed = false;
@@ -73,6 +75,8 @@ static int index_main(duc *duc, int argc, char **argv)
 	
 	if(opt_force) open_flags |= DUC_OPEN_FORCE;
 	if(opt_max_depth) duc_index_req_set_maxdepth(req, opt_max_depth);
+	if(opt_thread_count) duc_index_set_worker_count(opt_thread_count);
+    if(opt_cutoff_depth) duc_index_set_cutoff_depth(opt_cutoff_depth);
 	if(opt_one_file_system) index_flags |= DUC_INDEX_XDEV;
 	if(opt_hide_file_names) index_flags |= DUC_INDEX_HIDE_FILE_NAMES;
 	if(opt_check_hard_links) index_flags |= DUC_INDEX_CHECK_HARD_LINKS;
@@ -174,11 +178,16 @@ static struct ducrc_option options[] = {
 	  "VAL is a comma separated list of file system types as found in your systems fstab, for example ext3,ext4,dosfs" },
 	{ &opt_hide_file_names, "hide-file-names",  0 , DUCRC_TYPE_BOOL,   "hide file names in index (privacy)", 
 	  "the names of directories will be preserved, but the names of the individual files will be hidden" },
-	{ &opt_uid,             "uid",              'U', DUCRC_TYPE_INT,    "limit index to only files/dirs owned by uid" },
-	{ &opt_username,        "username",         'u', DUCRC_TYPE_STRING, "limit index to only files/dirs owned by username" },
+	{ &opt_uid,             "uid",             'U', DUCRC_TYPE_INT,    "limit index to only files/dirs owned by uid" },
+	{ &opt_username,        "username",        'u', DUCRC_TYPE_STRING, "limit index to only files/dirs owned by username" },
 	{ &opt_max_depth,       "max-depth",       'm', DUCRC_TYPE_INT,    "limit directory names to given depth" ,
 	  "when this option is given duc will traverse the complete file system, but will only the first VAL "
 	  "levels of directories in the database to reduce the size of the index" },
+	{ &opt_thread_count,    "thread-count",    't', DUCRC_TYPE_INT,    "stipulate index to use a given number of threads",
+      "when this option is given duc will multithread the indexing algorithm and use VAL workers to traverse the filesystem. "
+      "Default value is 1."},
+    { &opt_cutoff_depth,    "cutoff-depth",    'c', DUCRC_TYPE_INT,    "ensures that each worker has at least VAL tasks before "
+      "other workers start taking its tasks", "In general the lower this is, the higher the concurrency. Default value is 2."},
 	{ &opt_one_file_system, "one-file-system", 'x', DUCRC_TYPE_BOOL,   "skip directories on different file systems" },
 	{ &opt_progress,        "progress",        'p', DUCRC_TYPE_BOOL,   "show progress during indexing" },
 	{ &opt_dryrun,          "dry-run",          0 , DUCRC_TYPE_BOOL,   "do not update database, just crawl" },

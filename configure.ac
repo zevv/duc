@@ -164,6 +164,10 @@ The X11 library was not found, which is needed for x11 gui support.
         AC_DEFINE([ENABLE_X11], [1], [Enable X11])
 fi
 
+AC_CHECK_LIB([pthread], [pthread_create],, [AC_MSG_ERROR([
+The pthread library was not found, which is needed for concurrency in the indexing algorithm.
+])])
+
 
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h stdlib.h string.h sys/ioctl.h unistd.h fnmatch.h termios.h])
 AC_CHECK_HEADERS([ncurses.h ncurses/ncurses.h ncursesw/ncurses.h])

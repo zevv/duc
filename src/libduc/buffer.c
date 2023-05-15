@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "private.h"
 #include "buffer.h"
@@ -23,6 +24,7 @@ struct buffer *buffer_new(void *data, size_t len)
 
 	b = duc_malloc(sizeof(struct buffer));
 	b->ptr = 0;
+	pthread_rwlock_init(&b->data_lock, NULL);
 
 	if(data) {
 		b->max = len;
@@ -40,6 +42,7 @@ struct buffer *buffer_new(void *data, size_t len)
 
 void buffer_free(struct buffer *b)
 {
+	pthread_rwlock_destroy(&b->data_lock);
 	duc_free(b->data);
 	duc_free(b);
 }
@@ -162,20 +165,29 @@ static void buffer_get_size(struct buffer *b, struct duc_size *size)
 
 void buffer_put_dir(struct buffer *b, const struct duc_devino *devino, time_t mtime)
 {
+	/* Putting a directory into a buffer should be an atomic operation */
+	pthread_rwlock_wrlock(&b->data_lock);
+
 	buffer_put_devino(b, devino);
 	buffer_put_varint(b, mtime);
+
+	pthread_rwlock_unlock(&b->data_lock);
 }
 
 
 void buffer_get_dir(struct buffer *b, struct duc_devino *devino, time_t *mtime)
 {
+	pthread_rwlock_rdlock(&b->data_lock);
 	uint64_t v;
 	buffer_get_devino(b, devino);
 	buffer_get_varint(b, &v); *mtime = v;
+	pthread_rwlock_unlock(&b->data_lock);
 }
 
 void buffer_put_dirent(struct buffer *b, const struct duc_dirent *ent)
 {
+	/* Putting a directory entry into a buffer should be an atomic operation */
+	pthread_rwlock_wrlock(&b->data_lock);
 	buffer_put_string(b, ent->name);
 	buffer_put_size(b, &ent->size);
 	buffer_put_varint(b, ent->type);
@@ -183,10 +195,12 @@ void buffer_put_dirent(struct buffer *b, const struct duc_dirent *ent)
 	if(ent->type == DUC_FILE_TYPE_DIR) {
 		buffer_put_devino(b, &ent->devino);
 	}
+	pthread_rwlock_unlock(&b->data_lock);
 }
 
 void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 {
+	pthread_rwlock_rdlock(&b->data_lock);
 	uint64_t v;
 
 	buffer_get_string(b, &ent->name);
@@ -196,11 +210,14 @@ void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 	if(ent->type == DUC_FILE_TYPE_DIR) {
 		buffer_get_devino(b, &ent->devino);
 	}
+	pthread_rwlock_unlock(&b->data_lock);
 }
 
 
 void buffer_put_index_report(struct buffer *b, const struct duc_index_report *report)
 {
+	/* Putting the index report into the buffer should be an atomic operation */
+	pthread_rwlock_wrlock(&b->data_lock);
 	buffer_put_string(b, report->path);
 	buffer_put_devino(b, &report->devino);
 	buffer_put_varint(b, report->time_start.tv_sec);
@@ -210,11 +227,13 @@ void buffer_put_index_report(struct buffer *b, const struct duc_index_report *re
 	buffer_put_varint(b, report->file_count);
 	buffer_put_varint(b, report->dir_count);
 	buffer_put_size(b, &report->size);
+	pthread_rwlock_unlock(&b->data_lock);
 }
 
 
 void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 {
+	pthread_rwlock_rdlock(&b->data_lock);
 	char *vs = NULL;
 	buffer_get_string(b, &vs);
 	if(vs == NULL) return;
@@ -230,6 +249,7 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	buffer_get_varint(b, &vi); report->file_count = vi;
 	buffer_get_varint(b, &vi); report->dir_count = vi;
 	buffer_get_size(b, &report->size);
+	pthread_rwlock_unlock(&b->data_lock);
 }
 
 

@@ -3,9 +3,10 @@
 
 struct buffer {
 	uint8_t *data;
-	size_t max;
-	size_t len;
-	size_t ptr;
+	pthread_rwlock_t data_lock;
+	_Atomic size_t max;
+	_Atomic size_t len;
+	_Atomic size_t ptr;
 };
 
 struct buffer *buffer_new(void *data, size_t len);

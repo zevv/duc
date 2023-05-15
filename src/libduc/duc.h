@@ -90,18 +90,18 @@ struct duc_devino {
 };
 
 struct duc_size {
-	off_t actual;
-	off_t apparent;
-	off_t count;
+	_Atomic off_t actual;
+	_Atomic off_t apparent;
+	_Atomic off_t count;
 };
 
 struct duc_index_report {
-	char path[DUC_PATH_MAX];        /* Indexed path */
+	char path[DUC_PATH_MAX];    /* Indexed path */
 	struct duc_devino devino;   /* Index top device id and inode number */
 	struct timeval time_start;  /* Index start time */
 	struct timeval time_stop;   /* Index finished time */
-	size_t file_count;          /* Total number of files indexed */
-	size_t dir_count;           /* Total number of directories indexed */
+	_Atomic size_t file_count;  /* Total number of files indexed */
+	_Atomic size_t dir_count;   /* Total number of directories indexed */
 	struct duc_size size;       /* Total size */
 };
 
@@ -150,6 +150,8 @@ int duc_index_req_add_fstype_include(duc_index_req *req, const char *types);
 int duc_index_req_add_fstype_exclude(duc_index_req *req, const char *types);
 int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
 int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr);
+int duc_index_set_cutoff_depth(unsigned int cutoff_depth);
+int duc_index_set_worker_count(unsigned int worker_count);
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
 int duc_index_report_free(struct duc_index_report *rep);
