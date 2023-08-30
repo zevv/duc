@@ -169,8 +169,10 @@ if [ "$?" = "0" ]; then
 	echo "md5sum: ok"
 else
 	echo "md5sum: failed"
-	echo "expected: "
-	echo "$testsum  ${DUC_TEST_DIR}.out"
+	echo "expected one of: "
+	echo "$testsum0  ${DUC_TEST_DIR}.out"
+	echo "$testsum1  ${DUC_TEST_DIR}.out"
+	echo "$testsum2  ${DUC_TEST_DIR}.out"
 	echo "got: "
 	cat /tmp/.duc.md5sum
 	exit 1
