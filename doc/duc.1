@@ -1,6 +1,6 @@
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DUC" "1" "July 2022" ""
+.TH "DUC" "1" "September 2023" ""
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
 .SH "SYNOPSIS"
@@ -10,7 +10,7 @@ Duc is a collection of tools for inspecting and visualizing disk usage\.
 .P
 Duc maintains an indexed database of accumulated sizes of directories of your file system, and allows you to query this database with some tools, or create fancy sunburst graphs to show you where your bytes are\.
 .P
-Duc scales quite well, it has been tested on systems with more then 500 million files and several petabytes of storage\.
+Duc scales quite well, it has been tested on systems with more than 500 million files and several petabytes of storage\.
 .SH "USAGE"
 Duc comes with a command line tool called \fBduc\fR, which is used to create, maintain and query the disk usage database\. run \fBduc help\fR to get a list of available commands\. \fBduc help <subcommand>\fR describes the usage of a specific subcommand\. Run \fBduc help \-\-all\fR for an extensive list of all commands and their options\.
 .P
@@ -72,7 +72,7 @@ Options for command \fBduc help [options]\fR:
 \fB\-a\fR, \fB\-\-all\fR
 show complete help for all commands
 .SS "duc index"
-The 'index' subcommand performs a recursive scan of the given paths on the filesystem and calculates the inclusive size of all directories\. The results are written to the index, and can later be queried by one of the other duc tools\.
+The \'index\' subcommand performs a recursive scan of the given paths on the filesystem and calculates the inclusive size of all directories\. The results are written to the index, and can later be queried by one of the other duc tools\.
 .P
 Options for command \fBduc index [options] PATH \|\.\|\.\|\.\fR:
 .TP
@@ -132,7 +132,7 @@ show file size in exact number of bytes
 \fB\-d\fR, \fB\-\-database=VAL\fR
 select database file to use [~/\.duc\.db]
 .SS "duc ls"
-The 'ls' subcommand queries the duc database and lists the inclusive size of all files and directories on the given path\. If no path is given the current working directory is listed\.
+The \'ls\' subcommand queries the duc database and lists the inclusive size of all files and directories on the given path\. If no path is given the current working directory is listed\.
 .P
 Options for command \fBduc ls [options] [PATH]\|\.\|\.\|\.\fR:
 .TP
@@ -206,9 +206,9 @@ exclude file from json output, only include directories
 \fB\-s\fR, \fB\-\-min_size=VAL\fR
 specify min size for files or directories
 .SS "duc graph"
-The 'graph' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
+The \'graph\' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
 .P
-By default the graph is written to the file 'duc\.png', which can be overridden by using the \-o/\-\-output option\. The output can be sent to stdout by using the special file name '\-'\.
+By default the graph is written to the file \'duc\.png\', which can be overridden by using the \-o/\-\-output option\. The output can be sent to stdout by using the special file name \'\-\'\.
 .P
 Options for command \fBduc graph [options] [PATH]\fR:
 .TP
@@ -298,7 +298,7 @@ image size [800]
 \fB\-\-tooltip\fR
 enable tooltip when hovering over the graph\. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increase the HTTP traffic to the web server
 .SS "duc gui"
-The 'gui' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+The \'gui\' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .P
 The following keys can be used to navigate and alter the graph:
 .IP "" 4
@@ -348,7 +348,7 @@ select palette\. available palettes are: size, rainbow, greyscale, monochrome, c
 \fB\-\-ring\-gap=VAL\fR
 leave a gap of VAL pixels between rings
 .SS "duc ui"
-The 'ui' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+The \'ui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .P
 The following keys can be used to navigate and alter the file system:
 .IP "" 4
@@ -362,8 +362,8 @@ right, enter:    descent into selected directory
 a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
 c:               Toggle between file size and file count
-h:               show help\. press 'q' to return to the main screen
-n:               toggle sort order between 'size' and 'name'
+h:               show help\. press \'q\' to return to the main screen
+n:               toggle sort order between \'size\' and \'name\'
 o:               try to open the file using xdg\-open
 q, escape:       quit
 .fi
@@ -403,7 +403,7 @@ An example duc\.cgi script would be
 .IP "\[ci]" 4
 Make sure the database file is readable by the user (usually www\-data)
 .IP "\[ci]" 4
-Debugging is best done by inspecting the web server's error log
+Debugging is best done by inspecting the web server\'s error log
 .IP "\[ci]" 4
 Make sure the \.cgi script has execute permissions (\fBchmod +x duc\.cgi\fR)
 .IP "" 0
@@ -419,16 +419,16 @@ The options \-\-header and \-\-footer allow you to insert your own HTML code bef
 .P
 The current CGI configuration is not very flexible, nor secure\. It is not advised to run the CGI from public reachable web servers, use at your own risk\.
 .SH "A NOTE ON FILE SIZE AND DISK USAGE"
-The concepts of 'file size' and 'disk usage' can be a bit confusing\. Files on disk have an apparent size, which indicates how much bytes are in the file from the users point of view; this is the size reported by tools like \fBls \-l\fR\. The apparent size can be any number, from 0 bytes up to several TB\. The actual number of bytes which are used on the filesystem to store the file can differ from this apparent size for a number of reasons: disks store data in blocks, which cause files to always take up a multiple of the block size, files can have holes ('sparse' files), and other technical reasons\. This number is always a multiple of 512, which means that the actual size used for a file is almost always a bit more then its apparent size\.
+The concepts of \'file size\' and \'disk usage\' can be a bit confusing\. Files on disk have an apparent size, which indicates how much bytes are in the file from the users point of view; this is the size reported by tools like \fBls \-l\fR\. The apparent size can be any number, from 0 bytes up to several TB\. The actual number of bytes which are used on the filesystem to store the file can differ from this apparent size for a number of reasons: disks store data in blocks, which cause files to always take up a multiple of the block size, files can have holes (\'sparse\' files), and other technical reasons\. This number is always a multiple of 512, which means that the actual size used for a file is almost always a bit more than its apparent size\.
 .P
 Duc has two modes for counting file sizes:
 .IP "\[ci]" 4
-\fBapparent size\fR: this is the size as reported by \fBls\fR\. This number indicates the file length, which is usually smaller then the actual disk usage\.
+\fBapparent size\fR: this is the size as reported by \fBls\fR\. This number indicates the file length, which is usually smaller than the actual disk usage\.
 .IP "\[ci]" 4
 \fBactual size\fR: this is the size as reported by \fBdu\fR and \fBdf\fR\. The actual file size tells you how much disk is actually used by a file, and is always a multiple of 512 bytes\.
 .IP "" 0
 .P
-The default mode used by duc is to use the 'actual size'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc ui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), or use the 'a' key to toggle\.
+The default mode used by duc is to use the \'actual size\'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc ui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), or use the \'a\' key to toggle\.
 .SH "BUILDING from git"
 If you use git clone to pull down the latest release, you will have to do the following:
 .P
@@ -532,7 +532,7 @@ apparent
 .IP "" 0
 .SH "FREQUENTLY ASKED QUESTIONS"
 .IP "\[ci]" 4
-What does the error 'Database version mismatch mean?'
+What does the error \'Database version mismatch mean?\'
 .IP
 The layout of the index database sometimes changes when new features are implemented\. When you get this error you have probably upgraded to a newer version\. Just remove the old database file and rebuild the index\.
 .IP "\[ci]" 4

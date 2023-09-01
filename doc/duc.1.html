@@ -106,7 +106,7 @@
 file system, and allows you to query this database with some tools, or create
 fancy sunburst graphs to show you where your bytes are.</p>
 
-<p>Duc scales quite well, it has been tested on systems with more then 500 million
+<p>Duc scales quite well, it has been tested on systems with more than 500 million
 files and several petabytes of storage.</p>
 
 <h2 id="USAGE">USAGE</h2>
@@ -669,14 +669,14 @@ from this apparent size for a number of reasons: disks store data in blocks,
 which cause files to always take up a multiple of the block size, files can
 have holes ('sparse' files), and other technical reasons. This number is always
 a multiple of 512, which means that the actual size used for a file is almost
-always a bit more then its apparent size.</p>
+always a bit more than its apparent size.</p>
 
 <p>Duc has two modes for counting file sizes:</p>
 
 <ul>
   <li>
     <p><code>apparent size</code>: this is the size as reported by <code>ls</code>. This number indicates
-the file length, which is usually smaller then the actual disk usage.</p>
+the file length, which is usually smaller than the actual disk usage.</p>
   </li>
   <li>
     <p><code>actual size</code>: this is the size as reported by <code>du</code> and <code>df</code>. The actual file
@@ -857,7 +857,7 @@ License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>July 2022</li>
+    <li class='tc'>September 2023</li>
     <li class='tr'>duc(1)</li>
   </ol>
 
