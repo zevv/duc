@@ -110,6 +110,9 @@ struct duc_dirent {
 	duc_file_type type;         /* File type */
 	struct duc_size size;       /* File size */
 	struct duc_devino devino;   /* Device id and inode number */
+#ifdef ENABLE_MAGIC
+	char *magic;
+#endif
 };
 
 /*

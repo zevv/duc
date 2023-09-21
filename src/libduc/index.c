@@ -20,6 +20,9 @@
 #ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
 #endif
+#ifdef ENABLE_MAGIC
+#include <magic.h>
+#endif
 
 #include "db.h"
 #include "duc.h"
@@ -61,6 +64,9 @@ struct duc_index_req {
 	struct fstype *fstypes_mounted;
 	struct fstype *fstypes_include;
 	struct fstype *fstypes_exclude;
+#ifdef ENABLE_MAGIC
+	magic_t magic;
+#endif
 };
 
 struct scanner {
@@ -86,6 +92,11 @@ duc_index_req *duc_index_req_new(duc *duc)
 	req->progress_interval.tv_sec = 0;
 	req->progress_interval.tv_usec = 100 * 1000;
 	req->hard_link_map = NULL;
+
+#ifdef ENABLE_MAGIC
+	req->magic = magic_open(0);
+	magic_load(req->magic, NULL);
+#endif
 
 	return req;
 }
@@ -125,6 +136,10 @@ int duc_index_req_free(duc_index_req *req)
 		free(e->name);
 		free(e);
 	}
+
+#ifdef ENABLE_MAGIC
+	magic_close(req->magic);
+#endif
 
 	free(req);
 
@@ -486,7 +501,6 @@ static void scanner_scan(struct scanner *scanner_dir)
 		ent.type = st_to_type(st_ent.st_mode);
 		st_to_devino(&st_ent, &ent.devino);
 		st_to_size(&st_ent, &ent.size);
-
 		/* Skip hard link duplicates for any files with more then one hard link */
 
 		if((ent.type != DUC_FILE_TYPE_DIR) && (req->flags & DUC_INDEX_CHECK_HARD_LINKS) &&
@@ -521,6 +535,10 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 			duc_size_accum(&scanner_dir->ent.size, &ent.size);
 			duc_size_accum(&report->size, &ent.size);
+
+#ifdef ENABLE_MAGIC
+			ent.magic = (char *)magic_file(req->magic, name);
+#endif
 
 			report->file_count ++;
 

@@ -172,6 +172,12 @@ static void ls_one(duc_dir *dir, int level, size_t parent_path_len)
 		
 		printf("%s", e->name);
 
+#ifdef ENABLE_MAGIC
+		if(e->magic) {
+			printf(" (%s)", e->magic);
+		}
+#endif
+
 		if(opt_classify) {
 			putchar(duc_file_type_char(e->type));
 			l++;

@@ -179,6 +179,9 @@ void buffer_put_dirent(struct buffer *b, const struct duc_dirent *ent)
 	buffer_put_string(b, ent->name);
 	buffer_put_size(b, &ent->size);
 	buffer_put_varint(b, ent->type);
+#ifdef ENABLE_MAGIC
+	buffer_put_string(b, ent->magic ? ent->magic : "");
+#endif
 
 	if(ent->type == DUC_FILE_TYPE_DIR) {
 		buffer_put_devino(b, &ent->devino);
@@ -192,6 +195,7 @@ void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 	buffer_get_string(b, &ent->name);
 	buffer_get_size(b, &ent->size);
 	buffer_get_varint(b, &v); ent->type = v;
+	buffer_get_string(b, &ent->magic);
 	
 	if(ent->type == DUC_FILE_TYPE_DIR) {
 		buffer_get_devino(b, &ent->devino);

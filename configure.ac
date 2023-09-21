@@ -41,6 +41,12 @@ AC_ARG_ENABLE(
 )
 
 AC_ARG_ENABLE(
+        [magic],
+        [AS_HELP_STRING([--enable-magic], [enable magic indexing @<:@default=no@:>@])], ,
+        [enable_magic="no"]
+)
+
+AC_ARG_ENABLE(
         [opengl],
         [AS_HELP_STRING([--enable-opengl], [enable OpenGL drawing @<:@default=no@:>@])], ,
         [enable_opengl="no"]
@@ -123,6 +129,11 @@ the pangocairo development libraries, or compile without graph support (--disabl
         AC_DEFINE([ENABLE_CAIRO], [1], [Enable cairo])
 fi
 
+if test "${enable_magic}" = "yes"; then
+	AC_CHECK_LIB([magic], [magic_open])
+        AC_DEFINE([ENABLE_MAGIC], [1], [Enable magic])
+fi
+
 if test "${enable_opengl}" = "yes"; then
 
 	PKG_CHECK_MODULES([GLFW3], [glfw3],, [AC_MSG_ERROR([
@@ -198,6 +209,7 @@ AC_MSG_RESULT([
    - OpenGL support: ${enable_opengl}
    - UI (ncurses) support: ${enable_ui}
    - Graph cairo support: ${enable_cairo}
+   - Magic support: ${enable_magic}
 
 ])
 
