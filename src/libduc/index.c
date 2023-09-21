@@ -537,7 +537,15 @@ static void scanner_scan(struct scanner *scanner_dir)
 			duc_size_accum(&report->size, &ent.size);
 
 #ifdef ENABLE_MAGIC
-			ent.magic = (char *)magic_file(req->magic, name);
+			char buf[30];
+			int fd = open(name, O_RDONLY);
+			if(fd != -1) {
+				int r = read(fd, buf, sizeof(buf));
+				if(r > 0) {
+					ent.magic = (char *)magic_buffer(req->magic, buf, r);
+				}
+				close(fd);
+			}
 #endif
 
 			report->file_count ++;
