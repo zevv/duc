@@ -68,6 +68,7 @@ Duc supports various key-value database backends:
   - Sqlite3:                           sqlite3
   - Lightning Memory-Mapped Database:  lmdb
   - Kyoto Cabinet:                     kyotocabinet
+  - Tkrzw:                             tkrzw
 
 Duc uses Tokyo Cabinet by default: the performance is acceptable and generates
 in the smallest database size.
@@ -98,6 +99,7 @@ robustness. Some measurements on my system of a 372G directory with 1.6M files:
  sqlite3             13.5   71.1
  lmdb                 5.9   78.7
  kyotocabinet         8.3   26.7
+ tkrzw                ???   ??? 
 ----------------------------------
 
 [*] Tokyo Cabinet currenty is the default used by Duc because of the good
