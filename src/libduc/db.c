@@ -98,6 +98,10 @@ char *duc_db_type_check(const char *path_db)
 	    return("Tokyo Cabinet");
 	}
 
+	if (strncmp(buf,"TkrzwHDB",8) == 0) {
+	    return("Tokyo Cabinet");
+	}
+
 	if (strncmp(buf,"SQLite format 3",15) == 0) {
 	    return("SQLite3");
 	}
