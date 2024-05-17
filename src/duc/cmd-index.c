@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -89,6 +90,30 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_progress) {
 		duc_index_req_set_progress_cb(req, progress_cb, NULL);
 		duc_set_log_callback(duc, log_callback);
+	}
+
+	int c;
+	for (c=0; c<argc; c++) {
+	    struct statvfs buf;
+
+	    int s = statvfs(argv[c], &buf);
+	    if (s) {
+		duc_log(duc, DUC_LOG_FTL, "Can't run statvfs on %s", argv[c]);
+		return -1;
+	    }
+	    unsigned long diff = buf.f_files - buf.f_ffree;
+	    if ( diff > 10000000) {
+		duc_log(duc, DUC_LOG_INF, "Found big filesystem");
+		open_flags |= DUC_FS_BIG;
+	    }
+	    if (diff > 100000000) {
+		duc_log(duc, DUC_LOG_INF, "Found biger filesystem");
+		open_flags |= DUC_FS_BIGGER;
+	    }
+	    if (diff > 1000000000) {
+		duc_log(duc, DUC_LOG_INF, "Found biggest filesystem");
+		open_flags |= DUC_FS_BIGGEST;
+	    }
 	}
 	
 	int r = duc_open(duc, opt_database, open_flags);
