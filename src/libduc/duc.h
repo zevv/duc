@@ -30,6 +30,9 @@ typedef enum {
 	DUC_OPEN_RW = 1<<1,        /* Open read-write (for indexing) */
 	DUC_OPEN_COMPRESS = 1<<2,  /* Create compressed database */
 	DUC_OPEN_FORCE = 1<<3,     /* Force over-write of database for indexing */
+	DUC_FS_BIG = 1<<4,       /* Tune for large filesystems to index */
+	DUC_FS_BIGGER = 1<<5,       /* Tune for large filesystems to index */
+	DUC_FS_BIGGEST = 1<<6,       /* Tune for large filesystems to index */
 } duc_open_flags;
 
 
