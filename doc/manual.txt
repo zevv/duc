@@ -15,7 +15,7 @@ Duc maintains an indexed database of accumulated sizes of directories of your
 file system, and allows you to query this database with some tools, or create
 fancy sunburst graphs to show you where your bytes are.
 
-Duc scales quite well, it has been tested on systems with more then 500 million
+Duc scales quite well, it has been tested on systems with more than 500 million
 files and several petabytes of storage. 
 
 
@@ -149,12 +149,12 @@ from this apparent size for a number of reasons: disks store data in blocks,
 which cause files to always take up a multiple of the block size, files can
 have holes ('sparse' files), and other technical reasons. This number is always
 a multiple of 512, which means that the actual size used for a file is almost
-always a bit more then its apparent size.
+always a bit more than its apparent size.
 
 Duc has two modes for counting file sizes:
 
 - `apparent size`: this is the size as reported by `ls`. This number indicates
-  the file length, which is usually smaller then the actual disk usage. 
+  the file length, which is usually smaller than the actual disk usage. 
 
 - `actual size`: this is the size as reported by `du` and `df`. The actual file
   size tells you how much disk is actually used by a file, and is always a
