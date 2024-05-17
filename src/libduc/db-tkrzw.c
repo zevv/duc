@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+// For sizing the DBs on large large filesystems.
+#include <sys/statvfs.h>
+
 #include <tkrzw_langc.h>
 
 #include "duc.h"
@@ -23,6 +26,7 @@ duc_errno tkrzwdb_to_errno(TkrzwDBM *hdb)
     TkrzwStatus status = tkrzw_get_last_status();
     printf("tkrzw_get_last_status() = %s\n",status.message);
 	switch(status.code) {
+	    // FIXME!
 	    /*
 		case TCESUCCESS: return DUC_OK;
 		case TCENOFILE:  return DUC_E_DB_NOT_FOUND;
@@ -42,16 +46,32 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	struct db *db;
 	int compress = 0;
 	int writeable = 0;
-	char options[] = "dbm=HashDBM,file=StdFile";
+	char options[256] = "dbm=HashDBM,file=StdFile";
 
 	if (flags & DUC_OPEN_FORCE) { 
 	    char trunc[] = ",truncate=true";
 	    strcat(options,trunc);
 	}
 
-	if (flags & DUC_OPEN_RW) writeable = 1;
+	// Ideally we would know the filesystem here so we can scale things properly, but this is a major re-work of API, so for now just define some new DUC_FS_*" factors...
+	if (flags & DUC_FS_BIG) {
+	    char big[] = ",num_buckets=100000000";
+	    strcat(options,big);
+	}
 
+	if (flags & DUC_FS_BIGGER) {
+	    char bigger[] = ",num_buckets=1000000000";
+	    strcat(options,bigger);
+	}
+
+	if (flags & DUC_FS_BIGGEST) {
+	    char biggest[] = ",num_buckets=10000000000";
+	    strcat(options,biggest);
+	}
+
+	if (flags & DUC_OPEN_RW) writeable = 1;
 	if (flags & DUC_OPEN_COMPRESS) {
+	    /* Do no compression for now, need to update configure tests first */
 	    char comp[] = ",record_comp_mode=RECORD_COMP_LZ4";
 	    strcat(options,comp);
 	}
