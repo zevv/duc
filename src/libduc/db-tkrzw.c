@@ -26,18 +26,12 @@ duc_errno tkrzwdb_to_errno(TkrzwDBM *hdb)
     TkrzwStatus status = tkrzw_get_last_status();
     printf("tkrzw_get_last_status() = %s\n",status.message);
 	switch(status.code) {
-	    // FIXME!
-	    /*
-		case TCESUCCESS: return DUC_OK;
-		case TCENOFILE:  return DUC_E_DB_NOT_FOUND;
-		case TCENOPERM:  return DUC_E_PERMISSION_DENIED;
-		case TCEOPEN:    return DUC_E_PERMISSION_DENIED;
-		case TCEMETA:    return DUC_E_DB_CORRUPT;
-		case TCERHEAD:   return DUC_E_DB_CORRUPT;
-		case TCEREAD:    return DUC_E_DB_CORRUPT;
-		case TCESEEK:    return DUC_E_DB_CORRUPT;
-	    */
-		default:         return DUC_E_UNKNOWN;
+        	case TKRZW_STATUS_SUCCESS:           return DUC_OK;
+		case TKRZW_STATUS_SYSTEM_ERROR:      return DUC_E_DB_NOT_FOUND;
+		case TKRZW_STATUS_PERMISSION_ERROR:  return DUC_E_PERMISSION_DENIED;
+		case TKRZW_STATUS_BROKEN_DATA_ERROR: return DUC_E_DB_CORRUPT;
+		case TKRZW_STATUS_UNKNOWN_ERROR:     return DUC_E_UNKNOWN;
+        	default:                             return DUC_E_UNKNOWN;
 	}
 }
 
@@ -46,7 +40,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	struct db *db;
 	int compress = 0;
 	int writeable = 0;
-	char options[256] = "dbm=HashDBM,file=StdFile";
+	char options[256] = "dbm=HashDBM,file=StdFile,offset_width=5";
 
 	if (flags & DUC_OPEN_FORCE) { 
 	    char trunc[] = ",truncate=true";
@@ -79,7 +73,11 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	db = duc_malloc(sizeof *db);
 
 	db->hdb = tkrzw_dbm_open(path_db, writeable, options);
-  
+	if (!db->hdb) {
+	    *e = DUC_E_UNKNOWN;
+	    goto err2;
+	}
+
 	size_t vall;
 	char *version = db_get(db, "duc_db_version", 14, &vall);
 	if (version) {
