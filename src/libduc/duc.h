@@ -64,6 +64,7 @@ typedef enum {
 	DUC_E_PERMISSION_DENIED,    /* Permission denied */
 	DUC_E_OUT_OF_MEMORY,        /* Out of memory */
 	DUC_E_DB_BACKEND,           /* Unable to initialize database backend */
+	DUC_E_NOT_IMPLEMENTED,      /* Some feature request is not supported */
 	DUC_E_UNKNOWN,              /* Unknown error, contact the author */
 } duc_errno;
 
