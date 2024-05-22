@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <dirent.h>
 #include <time.h>
+#include <math.h>
 #include <sys/time.h>
 #include <unistd.h>
 #ifdef HAVE_FNMATCH_H
@@ -76,6 +77,11 @@ struct scanner {
 
 
 static void scanner_free(struct scanner *scanner);
+
+/* Inital stab at building histogram of filesizes in duc, using powers of 2 */
+
+#define HISTMAX 128
+long int* histogram[HISTMAX];
 
 
 duc_index_req *duc_index_req_new(duc *duc)
@@ -523,6 +529,19 @@ static void scanner_scan(struct scanner *scanner_dir)
 			duc_size_accum(&report->size, &ent.size);
 
 			report->file_count ++;
+			
+			/* add to histogram */
+			int i;
+			if (st_ent.st_size == 0) {
+			    i = 0;
+			} else {
+			    i = (int) floor(log(st_ent.st_size) / log(2));
+			}
+			if (i >= HISTMAX) {
+			    i = 127;
+			    duc_log(duc, DUC_LOG_WRN, "Histogram buckets more than %d, please increase HISTMAX and recompile!\n",HISTMAX);
+			}
+			report->histogram[i]++;
 
 			duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
 					duc_file_type_char(ent.type), ent.size.apparent, ent.size.actual, name);

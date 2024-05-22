@@ -107,6 +107,7 @@ struct duc_index_report {
 	size_t file_count;          /* Total number of files indexed */
 	size_t dir_count;           /* Total number of directories indexed */
 	struct duc_size size;       /* Total size */
+        size_t histogram[256];      /* histogram of file sizes, log(size)/log(2) */
 };
 
 struct duc_dirent {
