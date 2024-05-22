@@ -95,22 +95,23 @@ static int index_main(duc *duc, int argc, char **argv)
 	int c;
 	for (c=0; c<argc; c++) {
 	    struct statvfs buf;
+	    unsigned long iused;
 
 	    int s = statvfs(argv[c], &buf);
 	    if (s) {
 		duc_log(duc, DUC_LOG_FTL, "Can't run statvfs on %s", argv[c]);
 		return -1;
 	    }
-	    unsigned long diff = buf.f_files - buf.f_ffree;
-	    if ( diff > 10000000) {
+	    iused = buf.f_files - buf.f_ffree;
+	    if ( iused > 1000000) {
 		duc_log(duc, DUC_LOG_INF, "Found big filesystem");
 		open_flags |= DUC_FS_BIG;
 	    }
-	    if (diff > 100000000) {
+	    if (iused > 10000000) {
 		duc_log(duc, DUC_LOG_INF, "Found biger filesystem");
 		open_flags |= DUC_FS_BIGGER;
 	    }
-	    if (diff > 1000000000) {
+	    if (iused > 100000000) {
 		duc_log(duc, DUC_LOG_INF, "Found biggest filesystem");
 		open_flags |= DUC_FS_BIGGEST;
 	    }
