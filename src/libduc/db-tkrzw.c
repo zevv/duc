@@ -24,14 +24,23 @@ duc_errno tkrzwdb_to_errno(TkrzwDBM *hdb)
 {
 
     TkrzwStatus status = tkrzw_get_last_status();
-    printf("tkrzw_get_last_status() = %s\n",status.message);
+    printf("  tkrzw_get_last_status() = %s\n",status.message);
 	switch(status.code) {
-        	case TKRZW_STATUS_SUCCESS:           return DUC_OK;
-		case TKRZW_STATUS_SYSTEM_ERROR:      return DUC_E_DB_NOT_FOUND;
-		case TKRZW_STATUS_PERMISSION_ERROR:  return DUC_E_PERMISSION_DENIED;
-		case TKRZW_STATUS_BROKEN_DATA_ERROR: return DUC_E_DB_CORRUPT;
-		case TKRZW_STATUS_UNKNOWN_ERROR:     return DUC_E_UNKNOWN;
-        	default:                             return DUC_E_UNKNOWN;
+	case TKRZW_STATUS_SUCCESS:                 return DUC_OK;
+	case TKRZW_STATUS_UNKNOWN_ERROR:           return DUC_E_UNKNOWN;
+	case TKRZW_STATUS_SYSTEM_ERROR:            return DUC_E_DB_NOT_FOUND;
+	case TKRZW_STATUS_NOT_IMPLEMENTED_ERROR:   return DUC_E_NOT_IMPLEMENTED;
+	case TKRZW_STATUS_PRECONDITION_ERROR:      return DUC_E_NOT_IMPLEMENTED;
+	case TKRZW_STATUS_INVALID_ARGUEMENT_ERROR: return DUC_E_NOT_IMPLEMENTED;
+	case TKRZW_STATUS_CANCELED_ERROR:          return DUC_E_UNKNOWN;
+	case TKRZW_STATUS_NOT_FOUND_ERROR:         return DUC_E_DB_NOT_FOUND;
+	case TKRZW_STATUS_PERMISSION_ERROR:        return DUC_E_PERMISSION_DENIED;
+	case TKRZW_STATUS_INFEASIBLE_ERROR:        return DUC_E_DB_BACKEND;
+	case TKRZW_STATUS_DUPLICATION_ERROR:       return DUC_E_DB_CORRUPT;
+	case TKRZW_STATUS_BROKEN_DATA_ERROR:       return DUC_E_DB_CORRUPT;
+	case TKRZW_STATUS_NETWORK_ERROR:           return DUC_E_UNKNOWN;
+	case TKRZW_STATUS_APPLICATION_ERROR:       return DUC_E_UNKNOWN;
+	default:                                   return DUC_E_UNKNOWN;
 	}
 }
 
@@ -74,8 +83,8 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 
 	db->hdb = tkrzw_dbm_open(path_db, writeable, options);
 	if (!db->hdb) {
-	    *e = DUC_E_UNKNOWN;
-	    goto err2;
+	    *e = tkrzwdb_to_errno(db->hdb);
+	    goto err1;
 	}
 
 	size_t vall;
