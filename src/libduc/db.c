@@ -1,4 +1,3 @@
-
 #include "config.h"
 
 #include <stdint.h>
@@ -99,7 +98,7 @@ char *duc_db_type_check(const char *path_db)
 	}
 
 	if (strncmp(buf,"TkrzwHDB",8) == 0) {
-	    return("Tokyo Cabinet");
+	    return("Tkrzw HashDBM");
 	}
 
 	if (strncmp(buf,"SQLite format 3",15) == 0) {
