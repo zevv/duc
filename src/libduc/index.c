@@ -78,11 +78,6 @@ struct scanner {
 
 static void scanner_free(struct scanner *scanner);
 
-/* Inital stab at building histogram of filesizes in duc, using powers of 2 */
-
-#define HISTMAX 128
-long int* histogram[HISTMAX];
-
 
 duc_index_req *duc_index_req_new(duc *duc)
 {
@@ -537,9 +532,9 @@ static void scanner_scan(struct scanner *scanner_dir)
 			} else {
 			    i = (int) floor(log(st_ent.st_size) / log(2));
 			}
-			if (i >= HISTMAX) {
+			if (i >= DUC_HISTOGRAM_MAX) {
 			    i = 127;
-			    duc_log(duc, DUC_LOG_WRN, "Histogram buckets more than %d, please increase HISTMAX and recompile!\n",HISTMAX);
+			    duc_log(duc, DUC_LOG_WRN, "Histogram buckets more than %d, please increase DUC_HISTOGRAM_MAX define and recompile!\n",DUC_HISTOGRAM_MAX);
 			}
 			report->histogram[i]++;
 
