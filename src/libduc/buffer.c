@@ -210,6 +210,11 @@ void buffer_put_index_report(struct buffer *b, const struct duc_index_report *re
 	buffer_put_varint(b, report->file_count);
 	buffer_put_varint(b, report->dir_count);
 	buffer_put_size(b, &report->size);
+
+	/* Make this dynamic where the last bucket has -1 maybe */
+	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
+	    buffer_put_varint(b,report->histogram[i]);
+	}
 }
 
 
@@ -218,6 +223,7 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	char *vs = NULL;
 	buffer_get_string(b, &vs);
 	if(vs == NULL) return;
+
 	snprintf(report->path, sizeof(report->path), "%s", vs);
 	duc_free(vs);
 
@@ -230,6 +236,12 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	buffer_get_varint(b, &vi); report->file_count = vi;
 	buffer_get_varint(b, &vi); report->dir_count = vi;
 	buffer_get_size(b, &report->size);
+
+	/* when reading, look for -1 as last bucket, so we can be dynamically sized? */
+	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
+	    buffer_get_varint(b, &vi);
+	    report->histogram[i] = vi;
+	}
 }
 
 
