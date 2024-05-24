@@ -33,6 +33,19 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 		} else {
 			db_put(duc->db, "duc_index_reports", 17, report->path, sizeof(report->path));
 		}
+		
+		/* write histogram */
+		tmp = db_get(duc->db, "duc_index_histograms", 20, &tmpl);
+		if (tmp) {
+			tmp = duc_realloc(tmp, tmpl + sizeof(report->histogram));
+			memcpy(tmp + tmpl, report->histogram, sizeof(report->histogram));
+			db_put(duc->db, "duc_index_histograms", 20, tmp, 
+			       tmpl + sizeof(report->histogram));
+		} else {
+			db_put(duc->db, "duc_index_histograms", 20, report->histogram, 
+			       sizeof(report->histogram));
+		}
+
 	} else {
 		free(tmp);
 	}
