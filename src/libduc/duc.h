@@ -13,6 +13,9 @@
 
 #define DUC_PATH_MAX 16384
 
+/* Don't expect to find files size 2^48 or larger! */
+#define DUC_HISTOGRAM_MAX 48
+
 #ifdef WIN32
 typedef int64_t duc_dev_t;
 typedef int64_t duc_ino_t;
@@ -107,7 +110,7 @@ struct duc_index_report {
 	size_t file_count;          /* Total number of files indexed */
 	size_t dir_count;           /* Total number of directories indexed */
 	struct duc_size size;       /* Total size */
-        size_t histogram[256];      /* histogram of file sizes, log(size)/log(2) */
+        size_t histogram[DUC_HISTOGRAM_MAX];      /* histogram of file sizes, log(size)/log(2) */
 };
 
 struct duc_dirent {
