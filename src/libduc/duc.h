@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <locale.h>
 
 #define DUC_PATH_MAX 16384
 

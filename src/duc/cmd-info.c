@@ -48,11 +48,12 @@ static int info_db(duc *duc, char *file)
 
 		if (opt_histogram) {
 		    size_t count;
+		    setlocale(LC_NUMERIC, "");
 		    printf("\nHistogram:\n----------\n");
 		    for (int i=0; i < DUC_HISTOGRAM_MAX; i++) {
 			count = report->histogram[i];
 			if (count != 0) {
-			    printf("2^%-02d %d\n",i, count);
+			    printf("2^%-02d  %'d\n",i, count);
 			}
 		    }
 		}
