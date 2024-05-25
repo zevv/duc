@@ -14,6 +14,7 @@ duc_SOURCES := \
 	src/libduc/dir.c \
 	src/libduc/duc.c \
 	src/libduc/duc.h \
+	src/libduc/histogram.c \
 	src/libduc/index.c \
 	src/libduc/private.h \
 	src/libduc/canonicalize.c \
@@ -44,6 +45,7 @@ duc_SOURCES  += \
 	src/duc/cmd-guigl.c \
 	src/duc/cmd.h \
 	src/duc/cmd.h  \
+	src/duc/cmd-histogram.c \
 	src/duc/cmd-index.c \
 	src/duc/cmd-info.c \
 	src/duc/cmd-ls.c \

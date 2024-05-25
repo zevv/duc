@@ -24,6 +24,7 @@ typedef ino_t duc_ino_t;
 typedef struct duc duc;
 typedef struct duc_dir duc_dir;
 typedef struct duc_index_req duc_index_req;
+typedef struct duc_histogram duc_histogram;
 
 typedef enum {
 	DUC_OPEN_RO = 1<<0,        /* Open read-only (for querying)*/
@@ -112,6 +113,16 @@ struct duc_dirent {
 	struct duc_devino devino;   /* Device id and inode number */
 };
 
+struct duc_histogram {
+	size_t bins;
+	struct duc_histogram_bin {
+		size_t min;
+		size_t max;
+		size_t file_count;
+		size_t dir_count;
+	} *bin;
+};
+
 /*
  * Duc context, logging and error reporting
  */
@@ -152,6 +163,7 @@ int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
 int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr);
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
+void duc_histogram_free(duc_histogram *h);
 int duc_index_report_free(struct duc_index_report *rep);
 
 
@@ -172,6 +184,14 @@ struct duc_dirent *duc_dir_find_child(duc_dir *dir, const char *name);
 int duc_dir_seek(duc_dir *dir, size_t offset);
 int duc_dir_rewind(duc_dir *dir);
 int duc_dir_close(duc_dir *dir);
+
+/*
+ * Histogram
+ */
+
+duc_histogram *duc_histogram_new(duc_dir *dir, duc_size_type st, size_t bin_min, size_t bin_max, double power);
+void duc_histogram_free();
+
 
 /* 
  * Helper functions

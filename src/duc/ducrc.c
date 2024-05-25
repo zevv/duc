@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <getopt.h>
+#include <inttypes.h>
 
 #include "private.h"
 #include "duc.h"
@@ -74,6 +75,7 @@ static void handle_opt(struct ducrc *ducrc, char shortopt, const char *longopt, 
 	struct ducrc_option *o = NULL;
 	bool *v_bool;
 	int *v_int;
+	int *v_size_t;
 	double *v_double;
 	const char **v_string;
 	int i;
@@ -110,6 +112,11 @@ found:
 		case DUCRC_TYPE_INT:
 			v_int = o->ptr;
 			*v_int = atoi(val);
+			break;
+
+		case DUCRC_TYPE_SIZE_T:
+			v_size_t = o->ptr;
+			*v_size_t = strtoumax(val, NULL, 0);
 			break;
 
 		case DUCRC_TYPE_DOUBLE:
