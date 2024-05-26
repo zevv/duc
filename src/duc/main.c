@@ -25,6 +25,7 @@
 
 
 extern struct cmd cmd_help;
+extern struct cmd cmd_histogram;
 extern struct cmd cmd_info;
 extern struct cmd cmd_index;
 extern struct cmd cmd_manual;
@@ -40,6 +41,7 @@ extern struct cmd cmd_ui;
 
 struct cmd *cmd_list[] = {
 	&cmd_help,
+	&cmd_histogram,
 	&cmd_index,
 	&cmd_info,
 	&cmd_manual,
