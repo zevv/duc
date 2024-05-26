@@ -430,7 +430,7 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 
 	/* Prepare histogram */
 
-	duc_histogram *histogram = duc_histogram_new(g->size_type, 1, 16ULL * 1024 * 1024 * 1024, 4);
+	duc_histogram *histogram = duc_histogram_new(g->size_type, 1, 16ULL * 1024 * 1024 * 1024, 2);
 
 	/* Recursively draw graph */
 	
