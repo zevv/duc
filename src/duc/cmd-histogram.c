@@ -39,9 +39,15 @@ static void do_one(struct duc *duc, const char *path)
 	duc_size_type st = opt_count ? DUC_SIZE_TYPE_COUNT : 
 	                   opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
 
-	struct duc_dirent *e;
 
-	struct duc_histogram *h = duc_histogram_new(dir, st, opt_bin_min, opt_bin_max, opt_bin_exp);
+	struct duc_histogram *h = duc_histogram_new(st, opt_bin_min, opt_bin_max, opt_bin_exp);
+
+	duc_dir_rewind(dir);
+	struct duc_dirent *e;
+	while( (e = duc_dir_read(dir, st, DUC_SORT_SIZE)) != NULL) {
+		duc_histogram_accumumlate(h, e);
+	}
+
 	for(size_t i=0; i<h->bins; i++) {
 		struct duc_histogram_bin *bin = &h->bin[i];
 		char size_min[32];

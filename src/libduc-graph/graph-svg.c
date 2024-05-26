@@ -149,6 +149,15 @@ static void br_svg_draw_section(duc_graph *g, double a1, double a2, double r1, d
 }
 
 
+static void br_svg_draw_bar(duc_graph *g, double x0, double y0, double x1, double y1, double R, double G, double B)
+{
+	struct svg_backend_data *bd = g->backend_data;
+	FILE *f = bd->fout;
+	fprintf(f, "<rect x='%.0f' y='%.0f' width='%.0f' height='%.0f' fill='#%02x%02x%02x'/>\n",
+			x0, y0, x1-x0, y1-y0, (int)(R*255), (int)(G*255), (int)(B*255));
+}
+
+
 void br_svg_done(duc_graph *g)
 {
 	struct svg_backend_data *bd = g->backend_data;
@@ -168,6 +177,7 @@ struct duc_graph_backend duc_graph_backend_svg = {
 	.draw_text = br_svg_draw_text,
 	.draw_tooltip = br_svg_draw_tooltip,
 	.draw_section = br_svg_draw_section,
+	.draw_bar = br_svg_draw_bar,
 	.done = br_svg_done,
 	.free = br_svg_free,
 };

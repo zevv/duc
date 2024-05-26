@@ -79,6 +79,12 @@ void br_html_start(duc_graph *g)
 	fprintf(f, "  }\n");
 	fprintf(f, "}\n");
 
+	fprintf(f, "function b(x0, y0, x1, y1, r, g, b) {\n");
+	fprintf(f, "  var c0 = 'rgb(' + f(r) + ',' + f(g) + ',' + f(b) + ')';\n");
+	fprintf(f, "  c.fillStyle = c0;\n");
+	fprintf(f, "  c.fillRect(x0, y0, x1-x0, y1-y0);\n");
+	fprintf(f, "}\n");
+
 	fprintf(f, "function t(text, s, x, y) {\n");
 	fprintf(f, "  c.font = s + 'pt Arial'\n");
 	fprintf(f, "  c.lineWidth = 2;\n");
@@ -136,6 +142,17 @@ static void br_html_draw_section(duc_graph *g, double a1, double a2, double r1, 
 }
 
 
+static void br_html_draw_bar(duc_graph *g, double x0, double y0, double x1, double y1, double R, double G, double B)
+{
+	struct html_backend_data *bd = g->backend_data;
+	FILE *f = bd->fout;
+
+	fprintf(f, "b(%.0f,%.0f,%.0f,%.0f,%d,%d,%d);\n", 
+			x0, y0, x1, y1,
+			(int)(R*255), (int)(G*255), (int)(B*255));
+}
+
+
 void br_html_done(duc_graph *g)
 {
 	struct html_backend_data *bd = g->backend_data;
@@ -158,6 +175,7 @@ struct duc_graph_backend duc_graph_backend_html = {
 	.draw_text = br_html_draw_text,
 	.draw_tooltip = br_html_draw_tooltip,
 	.draw_section = br_html_draw_section,
+	.draw_bar = br_html_draw_bar,
 	.done = br_html_done,
 	.free = br_html_free,
 };

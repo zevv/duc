@@ -295,6 +295,33 @@ static void br_opengl_draw_section(duc_graph *g, double a1, double a2, double r1
 }
 
 
+static void br_opengl_draw_bar(duc_graph *g, double x0, double y0, double x1, double y1, double R, double G, double B)
+{
+	struct opengl_backend_data *bd = g->backend_data;
+
+	GLfloat vVertices[] = {
+		x0 - g->cx, y0 - g->cy, 0, 0,
+		x1 - g->cx, y0 - g->cy, 1, 0,
+		x1 - g->cx, y1 - g->cy, 1, 1,
+		x0 - g->cx, y1 - g->cy, 0, 1,
+	};
+
+	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+
+	glVertexAttribPointer(bd->loc_pos,     2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[0]);
+	glVertexAttribPointer(bd->loc_texture, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), &vVertices[2]);
+
+	glEnableVertexAttribArray(bd->loc_pos);
+	glEnableVertexAttribArray(bd->loc_texture);
+
+	glDisableVertexAttribArray(bd->loc_color);
+	glDisable(GL_TEXTURE_2D);
+
+	glVertexAttrib4f(bd->loc_color, R, G, B, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
+}
+
+
 static GLuint load_shader(const GLchar **txt, GLenum type)
 {
 	GLuint s;
@@ -361,6 +388,7 @@ struct duc_graph_backend duc_graph_backend_opengl = {
 	.draw_text = br_opengl_draw_text,
 	.draw_tooltip = br_opengl_draw_tooltip,
 	.draw_section = br_opengl_draw_section,
+	.draw_bar = br_opengl_draw_bar,
 	.done = br_opengl_done,
 	.free = br_opengl_free,
 };

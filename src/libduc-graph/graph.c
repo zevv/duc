@@ -227,7 +227,7 @@ static void gen_tooltip(duc_graph *g, struct duc_size *size, const char *name, d
  *   that is below that spot
  */
 
-static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_dir, double a2_dir, struct duc_size *total)
+static int do_dir(duc_graph *g, duc_dir *dir, duc_histogram *histogram, int level, double r1, double a1_dir, double a2_dir, struct duc_size *total)
 {
 	double a_range = a2_dir - a1_dir;
 	double a1 = a1_dir;
@@ -256,6 +256,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 		off_t size = duc_get_size(&e->size, g->size_type);
 		if(size < size_min) size_min = size;
 		if(size > size_max) size_max = size;
+		duc_histogram_accumumlate(histogram, e);
 	}
 
 	/* Rewind and iterate the objects to graph */
@@ -364,7 +365,7 @@ static int do_dir(duc_graph *g, duc_dir *dir, int level, double r1, double a1_di
 			if(level+1 < g->max_level) {
 				duc_dir *dir_child = duc_dir_openent(dir, e);
 				if(!dir_child) continue;
-				do_dir(g, dir_child, level + 1, r2, a1, a2, &e->size);
+				do_dir(g, dir_child, histogram, level + 1, r2, a1, a2, &e->size);
 				duc_dir_close(dir_child);
 			} else {
 				if(g->backend) 
@@ -427,13 +428,17 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 
 	car2pol(g, tooltip_x, tooltip_y, &g->tooltip_a, &g->tooltip_r);
 
+	/* Prepare histogram */
+
+	duc_histogram *histogram = duc_histogram_new(g->size_type, 1, 16ULL * 1024 * 1024 * 1024, 4);
+
 	/* Recursively draw graph */
 	
 	duc_dir_rewind(dir);
 
 	if(g->backend)
 		g->backend->start(g);
-	do_dir(g, dir, 0, g->r_start, 0, 1, NULL);
+	do_dir(g, dir, histogram, 0, g->r_start, 0, 1, NULL);
 
 	/* Draw collected labels */
 
@@ -460,6 +465,33 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 
 	if(g->tooltip_r < g->r_start) {
 		gen_tooltip(g, &size, NULL, DUC_FILE_TYPE_DIR);
+	}
+
+	/* Draw histogram */
+
+	int x = 10;
+	int y = 10;
+	int step = 10;
+	double nmax = 0;
+	for(size_t i=0; i<histogram->bins; i++) {
+		if(histogram->bin[i].file_count > nmax) {
+			nmax = histogram->bin[i].file_count;
+		}
+	}
+	for(size_t i=0; i<histogram->bins; i++) {
+		struct duc_histogram_bin *bin = &histogram->bin[i];
+
+		char size[32];
+		struct duc_size s;
+		s.actual = bin->min;
+		s.apparent = bin->min;
+		duc_human_size(&s, g->size_type, g->bytes, size, sizeof size);
+		g->backend->draw_text(g, x+10, y, FONT_SIZE_LABEL * g->font_scale, size);
+		
+		int w = 100 * bin->file_count / nmax;;
+		g->backend->draw_bar(g, x + 50, y, x + 50 + w, y + step - 2, 0, 0, 255);
+
+		y += step;
 	}
 		
 	/* Draw tooltip */
@@ -506,7 +538,7 @@ duc_dir *duc_graph_find_spot(duc_graph *g, duc_dir *dir, double x, double y, str
 		duc_dir_rewind(dir);
 		struct duc_graph_backend *be = g->backend;
 		g->backend = NULL;
-		do_dir(g, dir, 0, g->r_start, 0, 1, NULL);
+		do_dir(g, dir, NULL, 0, g->r_start, 0, 1, NULL);
 		g->backend = be;
 
 		g->spot_a = 0;

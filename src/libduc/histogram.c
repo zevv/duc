@@ -5,7 +5,7 @@
 #include "private.h"
 
 
-duc_histogram *duc_histogram_new(duc_dir *dir, duc_size_type st, size_t bin_min, size_t bin_max, double power)
+duc_histogram *duc_histogram_new(duc_size_type st, size_t bin_min, size_t bin_max, double power)
 {
 	duc_histogram *h = duc_malloc(sizeof(duc_histogram));
 	h->bins = logf(bin_max / bin_min) / logf(power) + 1;
@@ -30,26 +30,29 @@ duc_histogram *duc_histogram_new(duc_dir *dir, duc_size_type st, size_t bin_min,
 	// TODO: gap between bin[0] and bin[1] is not handled
 	// TODO: > bin_max is not handled
 
-	duc_dir_rewind(dir);
-	struct duc_dirent *e;
-	while( (e = duc_dir_read(dir, st, DUC_SORT_SIZE)) != NULL) {
+	return h;
+}
 
-		/* For now, do a naive linear search instead of calculating
-		 * the bin number. Fast enough until proven otherwise */
 
-		for(size_t i=0; i<h->bins; i++) {
-			if(e->size.actual >= h->bin[i].min && e->size.actual < h->bin[i].max) {
-				if(e->type == DUC_FILE_TYPE_DIR) {
-					h->bin[i].dir_count++;
-				} else {
-					h->bin[i].file_count++;
-				}
-				break;
-			}
-		}
+void duc_histogram_accumumlate(duc_histogram *h, struct duc_dirent *e)
+{
+	if(h == NULL) {
+		return;
 	}
 
-	return h;
+	/* For now, do a naive linear search instead of calculating
+	 * the bin number. Fast enough until proven otherwise */
+
+	for(size_t i=0; i<h->bins; i++) {
+		if(e->size.apparent >= h->bin[i].min && e->size.apparent < h->bin[i].max) {
+			if(e->type == DUC_FILE_TYPE_DIR) {
+				h->bin[i].dir_count++;
+			} else {
+				h->bin[i].file_count++;
+			}
+			break;
+		}
+	}
 }
 
 

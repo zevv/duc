@@ -20,6 +20,7 @@ struct duc_graph_backend {
 	void (*start)(duc_graph *g);
 	void (*draw_tooltip)(duc_graph *g, double x, double y, char *text);
 	void (*draw_section)(duc_graph *g, double a1, double a2, double r1, double r2, double R, double G, double B, double line);
+	void (*draw_bar)(duc_graph *g, double x0, double y0, double x1, double y1, double R, double G, double B);
 	void (*draw_text)(duc_graph *g, double x, double y, double size, char *text);
 	void (*done)(duc_graph *g);
 };

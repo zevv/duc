@@ -163,7 +163,6 @@ int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
 int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr);
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
-void duc_histogram_free(duc_histogram *h);
 int duc_index_report_free(struct duc_index_report *rep);
 
 
@@ -189,8 +188,9 @@ int duc_dir_close(duc_dir *dir);
  * Histogram
  */
 
-duc_histogram *duc_histogram_new(duc_dir *dir, duc_size_type st, size_t bin_min, size_t bin_max, double power);
-void duc_histogram_free();
+duc_histogram *duc_histogram_new(duc_size_type st, size_t bin_min, size_t bin_max, double power);
+void duc_histogram_accumumlate(duc_histogram *h, struct duc_dirent *e);
+void duc_histogram_free(duc_histogram *h);
 
 
 /* 

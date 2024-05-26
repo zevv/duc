@@ -207,6 +207,17 @@ static void br_cairo_draw_section(duc_graph *g, double a1, double a2, double r1,
 }
 
 
+static void br_cairo_draw_bar(duc_graph *g, double x0, double y0, double x1, double y1, double R, double G, double B)
+{
+	struct cairo_backend_data *bd = g->backend_data;
+	cairo_t *cr = bd->cr;
+	
+	// draw filled rect
+	cairo_set_source_rgb(cr, R, G, B);
+	cairo_rectangle(cr, x0, y0, x1-x0, y1-y0);
+	cairo_fill(cr);
+}
+
 
 void br_cairo_done(duc_graph *g)
 {
@@ -245,6 +256,7 @@ struct duc_graph_backend duc_graph_backend_cairo = {
 	.draw_text = br_cairo_draw_text,
 	.draw_tooltip = br_cairo_draw_tooltip,
 	.draw_section = br_cairo_draw_section,
+	.draw_bar = br_cairo_draw_bar,
 	.done = br_cairo_done,
 	.free = br_cairo_free,
 };
@@ -255,6 +267,7 @@ struct duc_graph_backend duc_graph_backend_file = {
 	.draw_text = br_cairo_draw_text,
 	.draw_tooltip = br_cairo_draw_tooltip,
 	.draw_section = br_cairo_draw_section,
+	.draw_bar = br_cairo_draw_bar,
 	.done = br_file_done,
 	.free = br_cairo_free,
 };
