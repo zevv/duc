@@ -115,6 +115,7 @@ struct duc_dirent {
 
 struct duc_histogram {
 	size_t bins;
+	duc_size_type st;
 	struct duc_histogram_bin {
 		size_t min;
 		size_t max;

@@ -486,10 +486,11 @@ int duc_graph_draw(duc_graph *g, duc_dir *dir)
 		s.actual = bin->min;
 		s.apparent = bin->min;
 		duc_human_size(&s, g->size_type, g->bytes, size, sizeof size);
-		g->backend->draw_text(g, x+10, y, FONT_SIZE_LABEL * g->font_scale, size);
 		
-		int w = 100 * bin->file_count / nmax;;
-		g->backend->draw_bar(g, x + 50, y, x + 50 + w, y + step - 2, 0, 0, 255);
+		int w = 100 * bin->file_count / nmax;
+
+		g->backend->draw_text(g, x+10, y, FONT_SIZE_LABEL * g->font_scale, size);
+		g->backend->draw_bar(g, x + 40, y, x + 40 + w, y + step - 2, 0, 0, 1.0);
 
 		y += step;
 	}
