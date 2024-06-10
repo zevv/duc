@@ -304,7 +304,7 @@ int topn_comp(const void *a, const void *b) {
 /* put Struct into array[0], sort array, drop array[0] value */
 int duc_topn_add(duc_topn_file *array, const void *name, size_t size, int topn_cnt) {
     
-    array[0].name = name;
+    strncpy(array[0].name,name,sizeof(name));
     array[0].size = size;
     
     qsort(array, topn_cnt, sizeof(struct duc_topn_file), topn_comp);
