@@ -17,6 +17,13 @@
 /* Don't expect to find files size 2^48 or larger! */
 #define DUC_HISTOGRAM_MAX 48
 
+/* Number of Largest files to track */
+#define DUC_TOPN_CNT 100
+
+/* minimum size to track, 100mbytes */
+#define DUC_TOPN_FILE_MIN_SIZE 1<<12
+
+
 #ifdef WIN32
 typedef int64_t duc_dev_t;
 typedef int64_t duc_ino_t;
@@ -45,6 +52,7 @@ typedef enum {
 	DUC_INDEX_HIDE_FILE_NAMES  = 1<<1, /* Hide file names */
 	DUC_INDEX_CHECK_HARD_LINKS = 1<<2, /* Count hard links only once during indexing */
 	DUC_INDEX_DRY_RUN          = 1<<3, /* Do not touch the database */
+	DUC_INDEX_TOPN_FILES       = 1<<4, /* Keep side DB of top N largest files */
 } duc_index_flags;
 
 typedef enum {
@@ -103,6 +111,14 @@ struct duc_size {
 	off_t count;
 };
 
+/* Track largest files found */
+
+typedef struct duc_topn_file {
+    // Should be dynamically allocated...
+    char name[DUC_PATH_MAX];
+    size_t size;
+} duc_topn_file;
+
 struct duc_index_report {
 	char path[DUC_PATH_MAX];        /* Indexed path */
 	struct duc_devino devino;   /* Index top device id and inode number */
@@ -112,6 +128,11 @@ struct duc_index_report {
 	size_t dir_count;           /* Total number of directories indexed */
 	struct duc_size size;       /* Total size */
         size_t histogram[DUC_HISTOGRAM_MAX];      /* histogram of file sizes, log(size)/log(2) */
+        size_t topn_min;            /* minimum size in bytes to get into topn list of files */
+        size_t topn_cnt;            /* topn count of files to report */
+        int topn_max_cnt;        /* Maximum number of topN files to track */
+        // Should be dynamically allocated... need to have one extra.
+        duc_topn_file* topn_array[DUC_TOPN_CNT+1];    /* pointer to array of structs storing topN filename and size */
 };
 
 struct duc_dirent {
@@ -120,6 +141,7 @@ struct duc_dirent {
 	struct duc_size size;       /* File size */
 	struct duc_devino devino;   /* Device id and inode number */
 };
+
 
 /*
  * Duc context, logging and error reporting
