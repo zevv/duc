@@ -199,6 +199,7 @@ void buffer_get_dirent(struct buffer *b, struct duc_dirent *ent)
 }
 
 
+/* make sure these next two are in sync, the format needs to be identical */
 void buffer_put_index_report(struct buffer *b, const struct duc_index_report *report)
 {
 	buffer_put_string(b, report->path);
@@ -214,6 +215,16 @@ void buffer_put_index_report(struct buffer *b, const struct duc_index_report *re
 	/* Make this dynamic where the last bucket has -1 maybe */
 	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
 	    buffer_put_varint(b,report->histogram[i]);
+	}
+
+	/* write topN data */
+	buffer_put_varint(b, report->topn_min);
+	buffer_put_varint(b, report->topn_cnt);
+	buffer_put_varint(b, report->topn_max_cnt);
+
+	for(int i = 1; i<report->topn_cnt; i++) {
+	    buffer_put_string(b, report->topn_array[i]->name);
+	    buffer_put_varint(b, report->topn_array[i]->size);
 	}
 }
 
@@ -241,6 +252,19 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
 	    buffer_get_varint(b, &vi);
 	    report->histogram[i] = vi;
+	}
+
+        /* read topN data as well, if found */
+	buffer_get_varint(b, &vi); report->topn_min = vi;
+	buffer_get_varint(b, &vi); report->topn_cnt = vi;
+	buffer_get_varint(b, &vi); report->topn_max_cnt = vi;
+
+	for(int i = 1; i<report->topn_cnt; i++) {
+	    buffer_get_string(b, &vs);
+	    // Why not strncpy? 
+	    snprintf(report->topn_array[i]->name,sizeof(report->topn_array[i]->name),"%s", vs);
+	    duc_free(vs);
+	    buffer_get_varint(b, &vi); report->topn_array[i]->size = vi;
 	}
 }
 
