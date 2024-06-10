@@ -35,8 +35,8 @@ static int topn_db(duc *duc, char *file)
 	while(( report = duc_get_report(duc, i)) != NULL) {
 
 	    size_t count;
-	    int topn_cnt = report.topn_cnt;
-	    int topn_max_cnt = report.topn_max_cnt;
+	    int topn_cnt = report->topn_cnt;
+	    int topn_max_cnt = report->topn_max_cnt;
 
 	    setlocale(LC_NUMERIC, "");
 	    for (int i=topn_cnt+1; i > 0; i--) {
@@ -64,7 +64,6 @@ static int topn_main(duc *duc, int argc, char **argv)
 
 static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
-	{ &opt_base,      "base10",    't', DUCRC_TYPE_BOOL,   "show histogram in base 10 bucket spacing, default base2 bucket sizes." },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show bucket size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
