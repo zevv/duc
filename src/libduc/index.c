@@ -290,6 +290,28 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 	return 0;
 }
 
+/* Sorts so smallest ends up in array[0] where we will ignore it. */
+int topn_comp(const void *a, const void *b) {
+
+    struct duc_topn_file* AA = (struct duc_topn_file *)a;
+    struct duc_topn_file* BB = (struct duc_topn_file *)b;
+
+    if (BB->size  > AA->size) return -1;
+    if (BB->size  < AA->size) return 1;
+    return 0;
+}
+
+/* put Struct into array[0], sort array, drop array[0] value */
+int duc_topn_add(duc_topn_file *array, const void *name, size_t size, int topn_cnt) {
+    
+    array[0].name = name;
+    array[0].size = size;
+    
+    qsort(array, topn_cnt, sizeof(struct duc_topn_file), topn_comp);
+
+
+}
+
 
 static void report_skip(struct duc *duc, const char *name, const char *fmt, ...)
 {
@@ -532,8 +554,10 @@ static void scanner_scan(struct scanner *scanner_dir)
 			} else {
 			    i = (int) floor(log(st_ent.st_size) / log(2));
 			}
+
+			/* clamp size of histogram even if we run into monster sized file */
 			if (i >= DUC_HISTOGRAM_MAX) {
-			    i = 127;
+			    i = DUC_HISTOGRAM_MAX;
 			    duc_log(duc, DUC_LOG_WRN, "Histogram buckets more than %d, please increase DUC_HISTOGRAM_MAX define and recompile!\n",DUC_HISTOGRAM_MAX);
 			}
 			report->histogram[i]++;
@@ -541,6 +565,20 @@ static void scanner_scan(struct scanner *scanner_dir)
 			duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
 					duc_file_type_char(ent.type), ent.size.apparent, ent.size.actual, name);
 
+			/* optionally track largest N files */
+			if (req->flags & DUC_INDEX_TOPN_FILES) {
+			    
+			    /* Log largest files found */
+			    if (st_ent.st_size > report->topn_min) {
+				report->topn_min = st_ent.st_size;
+				
+				/* Insert into array, dropping entries smaller than report_topn_min */
+				if (duc_topn_add(&report->topn_array, &name, &st_ent.st_size, report->topn_cnt) == NULL) {
+				    duc_log(duc, DUC_LOG_WRN, "error adding file to list of topN files!\n");
+				    return;
+				}
+			    }
+			}
 
 			/* Optionally hide file names */
 
@@ -552,6 +590,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 			if((req->maxdepth == 0) || (scanner_dir->depth < req->maxdepth)) {
 				buffer_put_dirent(scanner_dir->buffer, &ent);
 			}
+
 		}
 	}
 
@@ -711,7 +750,6 @@ int duc_index_report_free(struct duc_index_report *rep)
 	free(rep);
 	return 0;
 }
-
 
 /*
  * End
