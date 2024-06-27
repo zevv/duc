@@ -38,8 +38,10 @@ static int topn_db(duc *duc, char *file)
 	    int topn_cnt = report->topn_cnt;
 	    int topn_max_cnt = report->topn_max_cnt;
 
+	    printf(" Got path=%s, topn_cnt=%d, topn_max_cnt=%d\n",report->path,topn_cnt, topn_max_cnt);
 	    setlocale(LC_NUMERIC, "");
-	    for (int i=topn_cnt+1; i > 0; i--) {
+	    // Counting DOWN from largest to smallest...
+	    for (int i=topn_max_cnt; i > 0; i--) {
 		size_t size = report->topn_array[i]->size;
 		if ( size != 0) {
 		    printf("2^%-07d  %'d\n",i, size);
@@ -63,8 +65,6 @@ static int topn_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
-	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
-	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show bucket size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
 };
