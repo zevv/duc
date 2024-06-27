@@ -51,6 +51,7 @@ struct duc_index_req {
 	duc_dev_t dev;
 	duc_index_flags flags;
 	int maxdepth;
+        int topn_cnt;
         uid_t uid;
         const char *username;
 	duc_index_progress_cb progress_fn;
@@ -87,7 +88,7 @@ duc_index_req *duc_index_req_new(duc *duc)
 	req->progress_interval.tv_sec = 0;
 	req->progress_interval.tv_usec = 100 * 1000;
 	req->hard_link_map = NULL;
-
+	req->topn_cnt = DUC_TOPN_CNT;
 	return req;
 }
 
@@ -175,6 +176,12 @@ int duc_index_req_add_fstype_exclude(duc_index_req *req, const char *types)
 int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth)
 {
 	req->maxdepth = maxdepth;
+	return 0;
+}
+
+int duc_index_req_set_topn(duc_index_req *req, int cnt)
+{
+	req->topn_cnt = cnt;
 	return 0;
 }
 
@@ -293,22 +300,16 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 /* Sorts so smallest ends up in array[0] where we will ignore it. */
 int topn_comp(const void *a, const void *b) {
 
-    struct duc_topn_file* AA = (struct duc_topn_file *)a;
-    struct duc_topn_file* BB = (struct duc_topn_file *)b;
+    struct duc_topn_file* AA = *(struct duc_topn_file **)a;
+    struct duc_topn_file* BB = *(struct duc_topn_file **)b;
 
-    if (BB->size  > AA->size) return -1;
-    if (BB->size  < AA->size) return 1;
+    if (BB->size > AA->size) return -1;
+    if (BB->size < AA->size) return 1;
     return 0;
 }
 
-/* put Struct into array[0], sort array, drop array[0] value */
-int duc_topn_add(duc_topn_file *array, const void *name, size_t size, int topn_cnt) {
-    
-    strncpy(array[0].name,name,sizeof(name));
-    array[0].size = size;
-    
-    qsort(array, topn_cnt, sizeof(struct duc_topn_file), topn_comp);
-
+// put Struct into array[0], sort array, smallest size in array[0]
+int duc_topn_add(duc_topn_file *array, const void *path, size_t size, int topn_cnt) {
 
 }
 
@@ -566,20 +567,16 @@ static void scanner_scan(struct scanner *scanner_dir)
 					duc_file_type_char(ent.type), ent.size.apparent, ent.size.actual, name);
 
 			/* optionally track largest N files */
-			if (req->flags & DUC_INDEX_TOPN_FILES) {
-			    
-			    /* Log largest files found */
-			    if (st_ent.st_size > report->topn_min) {
-				report->topn_min = st_ent.st_size;
-				
-				/* Insert into array, dropping entries smaller than report_topn_min */
-				if (duc_topn_add(&report->topn_array, &name, &st_ent.st_size, report->topn_cnt) == NULL) {
-				    duc_log(duc, DUC_LOG_WRN, "error adding file to list of topN files!\n");
-				    return;
-				}
+			if (req->flags & DUC_INDEX_TOPN_FILES) { 
+			    //printf(" is (%ld > %ld) && (%ld > %ld)\n",st_ent.st_size,report->topn_min, st_ent.st_size, report->topn_array[0]->size);
+			    if ((st_ent.st_size > report->topn_min) && (st_ent.st_size > report->topn_array[0]->size)) {
+				printf(" adding %s to topn_array (%ld > %ld)\n",name, st_ent.st_size, report->topn_array[0]->size);
+				report->topn_array[0]->size = st_ent.st_size;
+				strncpy(report->topn_array[0]->name,name,sizeof(name));
+				qsort(report->topn_array, DUC_TOPN_CNT, sizeof(struct duc_topn_file *), topn_comp);
 			    }
 			}
-
+			
 			/* Optionally hide file names */
 
 			if(req->flags & DUC_INDEX_HIDE_FILE_NAMES) ent.name = "<FILE>";
@@ -706,6 +703,15 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Create report */
 	
 	struct duc_index_report *report = duc_malloc0(sizeof(struct duc_index_report));
+
+	// Allocate topn_array of pointers, FIXME: use option topn_max_??? instead
+	printf(" allocating pointers in report->topn_array[]\n");
+	for (int i = 0; i < DUC_TOPN_CNT; i++) {
+	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
+	}
+	report->topn_min = DUC_TOPN_MIN_FILE_SIZE;
+	report->topn_max_cnt = DUC_TOPN_CNT;
+	report->topn_cnt = 0;
 	gettimeofday(&report->time_start, NULL);
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
 
