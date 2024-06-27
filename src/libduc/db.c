@@ -24,6 +24,7 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 	size_t tmpl;
 	char *tmp = db_get(duc->db, report->path, strlen(report->path), &tmpl);
 
+	printf("writing report, ->topn_cnt = %d, ->topn_max_cnt = %d\n",report->topn_cnt, report->topn_max_cnt);
 	if(tmp == NULL) {
 		char *tmp = db_get(duc->db, "duc_index_reports", 17, &tmpl);
 		if(tmp) {
@@ -44,6 +45,20 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 		} else {
 			db_put(duc->db, "duc_index_histograms", 20, report->histogram, 
 			       sizeof(report->histogram));
+		}
+
+		/* write topn array, FIXME to really work... */
+		char str[] = "duc_index_topn_info";
+		int str_len = sizeof(str);
+		tmp = db_get(duc->db, str, str_len , &tmpl);
+		if (tmp) {
+			tmp = duc_realloc(tmp, tmpl + sizeof(report->topn_array));
+			memcpy(tmp + tmpl, report->topn_array, sizeof(report->topn_array));
+			db_put(duc->db, str, str_len, tmp, 
+			       tmpl + sizeof(report->topn_array));
+		} else {
+			db_put(duc->db, str, str_len, report->topn_array, 
+			       sizeof(report->topn_array));
 		}
 
 	} else {
