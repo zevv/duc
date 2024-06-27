@@ -18,11 +18,10 @@
 #define DUC_HISTOGRAM_MAX 48
 
 /* Number of Largest files to track */
-#define DUC_TOPN_CNT 100
+#define DUC_TOPN_CNT 10
 
-/* minimum size to track, 100mbytes */
-#define DUC_TOPN_FILE_MIN_SIZE 1<<12
-
+/* minimum file size to track in topN list: 10 kilobytes */
+#define DUC_TOPN_MIN_FILE_SIZE 10240
 
 #ifdef WIN32
 typedef int64_t duc_dev_t;
@@ -128,11 +127,10 @@ struct duc_index_report {
 	size_t dir_count;           /* Total number of directories indexed */
 	struct duc_size size;       /* Total size */
         size_t histogram[DUC_HISTOGRAM_MAX];      /* histogram of file sizes, log(size)/log(2) */
-        size_t topn_min;            /* minimum size in bytes to get into topn list of files */
-        size_t topn_cnt;            /* topn count of files to report */
-        int topn_max_cnt;        /* Maximum number of topN files to track */
-        // Should be dynamically allocated... need to have one extra.
-        duc_topn_file* topn_array[DUC_TOPN_CNT+1];    /* pointer to array of structs storing topN filename and size */
+        size_t topn_min;            /* minimum size in bytes to get added to topN list of files */
+        size_t topn_cnt;            /* Max topN number of files to report on*/
+        int topn_max_cnt;           /* Maximum number of topN files to track */
+        duc_topn_file* topn_array[DUC_TOPN_CNT];    /* pointer to array of structs, stores each topN filename and size */
 };
 
 struct duc_dirent {
@@ -181,6 +179,7 @@ int duc_index_req_add_fstype_include(duc_index_req *req, const char *types);
 int duc_index_req_add_fstype_exclude(duc_index_req *req, const char *types);
 int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
 int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr);
+int duc_index_req_set_topn(duc_index_req *req, int topn);
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
 int duc_index_report_free(struct duc_index_report *rep);
