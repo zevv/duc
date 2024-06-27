@@ -27,6 +27,8 @@ static bool opt_hide_file_names = false;
 static char *opt_username = NULL;
 static int opt_uid = 0;
 static int opt_max_depth = 0;
+static int opt_topn_min = DUC_TOPN_MIN_FILE_SIZE;
+static int opt_topn_cnt = DUC_TOPN_CNT;
 static bool opt_one_file_system = false;
 static bool opt_progress = false;
 static bool opt_uncompressed = false;
@@ -81,6 +83,9 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_dryrun) index_flags |= DUC_INDEX_DRY_RUN;
 	if(opt_username) duc_index_req_set_username(req, opt_username);
 	if(opt_uid) duc_index_req_set_uid(req, opt_uid);
+	if(opt_topn_cnt) duc_index_req_set_topn(req, opt_topn_cnt);
+	// For now always index topN files.
+	index_flags |= DUC_INDEX_TOPN_FILES;
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");
@@ -201,6 +206,8 @@ static struct ducrc_option options[] = {
 	{ &opt_hide_file_names, "hide-file-names",  0 , DUCRC_TYPE_BOOL,   "hide file names in index (privacy)", 
 	  "the names of directories will be preserved, but the names of the individual files will be hidden" },
 	{ &opt_uid,             "uid",              'U', DUCRC_TYPE_INT,    "limit index to only files/dirs owned by uid" },
+	{ &opt_topn_cnt,        "topn",             'T', DUCRC_TYPE_INT,    "Number of topN largest files found to store in index" },
+	{ &opt_topn_min,        "topn-min",         'M', DUCRC_TYPE_INT,    "Minimum size (in bytes) to make topN list of files by size" },
 	{ &opt_username,        "username",         'u', DUCRC_TYPE_STRING, "limit index to only files/dirs owned by username" },
 	{ &opt_max_depth,       "max-depth",       'm', DUCRC_TYPE_INT,    "limit directory names to given depth" ,
 	  "when this option is given duc will traverse the complete file system, but will only the first VAL "
