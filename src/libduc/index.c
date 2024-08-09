@@ -308,7 +308,7 @@ int topn_comp(const void *a, const void *b) {
     return 0;
 }
 
-// put Struct into array[0], sort array, smallest size in array[0]
+// put data into Struct in array[0], sort array, smallest size ends up in array[0]
 int duc_topn_add(duc_topn_file *array, const void *path, size_t size, int topn_cnt) {
 
 }
@@ -570,9 +570,16 @@ static void scanner_scan(struct scanner *scanner_dir)
 			if (req->flags & DUC_INDEX_TOPN_FILES) { 
 			    //printf(" is (%ld > %ld) && (%ld > %ld)\n",st_ent.st_size,report->topn_min, st_ent.st_size, report->topn_array[0]->size);
 			    if ((st_ent.st_size > report->topn_min) && (st_ent.st_size > report->topn_array[0]->size)) {
-				printf(" adding %s to topn_array (%ld > %ld)\n",name, st_ent.st_size, report->topn_array[0]->size);
+				char path_full[DUC_PATH_MAX];
+				char *res = realpath(name, path_full);
+				if (res == NULL) {
+				    report_skip(duc, name, "Cannot determine realpath result");
+				    // FIXME
+				    path_full[0] ='\0';
+				}
+
 				report->topn_array[0]->size = st_ent.st_size;
-				strncpy(report->topn_array[0]->name,name,sizeof(name));
+				strncpy(report->topn_array[0]->name,path_full,sizeof(path_full));
 				qsort(report->topn_array, DUC_TOPN_CNT, sizeof(struct duc_topn_file *), topn_comp);
 			    }
 			}
@@ -704,8 +711,6 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	
 	struct duc_index_report *report = duc_malloc0(sizeof(struct duc_index_report));
 
-	// Allocate topn_array of pointers, FIXME: use option topn_max_??? instead
-	printf(" allocating pointers in report->topn_array[]\n");
 	for (int i = 0; i < DUC_TOPN_CNT; i++) {
 	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
 	}
