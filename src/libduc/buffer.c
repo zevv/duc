@@ -108,13 +108,18 @@ static void buffer_put_string(struct buffer *b, const char *s)
 		buffer_put(b, &l, sizeof l);
 		buffer_put(b, s, l);
 	}
+	else {
+	    fprintf(stderr,"cannot buffer_put_string() larger than 255 bytes\n");
+	    exit(1);
+	}
 }
 
-
+// FIXME!  This must return something on error.  Or crash cleanly?
+// Maximum string size of 255 bytes... why?
 static void buffer_get_string(struct buffer *b, char **sout)
 {
 	uint8_t len;
-	buffer_get(b, &len, sizeof len);
+	buffer_get(b, &len, sizeof(len));
 	char *s = duc_malloc(len + 1);
 	if(s) {
 		buffer_get(b, s, len);
@@ -258,13 +263,11 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	    report->histogram[i] = vi;
 	}
 
-	printf("  reading from buffer upto topn_max_cnt: %d\n",report->topn_max_cnt);
-
 	for(int i = 0; i < report->topn_max_cnt; i++) {
 	    buffer_get_string(b, &vs);
-	    // Why not strncpy? 
-	    snprintf(report->topn_array[i]->name,sizeof(report->topn_array[i]->name),"%s", vs);
-	    duc_free(vs);
+	    //printf("  vs=%s\n",vs);
+	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
+	    strncpy(report->topn_array[i]->name, vs, strlen(vs));
 	    buffer_get_varint(b, &vi); report->topn_array[i]->size = vi;
 	}
 }
