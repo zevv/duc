@@ -22,7 +22,9 @@ static char *opt_database = NULL;
 static int topn_db(duc *duc, char *file)
 {
 	struct duc_index_report *report;
-	duc_size_type st = opt_apparent ? DUC_SIZE_TYPE_APPARENT : DUC_SIZE_TYPE_ACTUAL;
+	duc_size_type st = DUC_SIZE_TYPE_ACTUAL;
+	duc_sort sort = DUC_SORT_SIZE;
+
 	int i = 0;
 
 	int r = duc_open(duc, file, DUC_OPEN_RO);
@@ -31,20 +33,24 @@ static int topn_db(duc *duc, char *file)
 		return -1;
 	}
 
-	printf("Size   File Count\n");
+	printf("%*s Filename\n",12,"Size");
 	while(( report = duc_get_report(duc, i)) != NULL) {
 
 	    size_t count;
 	    int topn_cnt = report->topn_cnt;
 	    int topn_max_cnt = report->topn_max_cnt;
 
-	    printf(" Got path=%s, topn_cnt=%d, topn_max_cnt=%d\n",report->path,topn_cnt, topn_max_cnt);
 	    setlocale(LC_NUMERIC, "");
-	    // Counting DOWN from largest to smallest...
-	    for (int i=topn_max_cnt; i > 0; i--) {
+	    // Counting DOWN from largest to smallest, assumes it's already sorted.
+	    for (int i=topn_max_cnt-1; i >= 0; i--) {
 		size_t size = report->topn_array[i]->size;
 		if ( size != 0) {
-		    printf("2^%-07d  %'d\n",i, size);
+		    char siz[32];
+		    struct duc_size dsize;
+		    dsize.actual = size;
+		    duc_human_size(&dsize, st, opt_bytes, siz, sizeof siz);
+		    printf("%*s", 12, siz);
+		    printf(" %s\n", report->topn_array[i]->name);
 		}
 	    }
 			
@@ -65,6 +71,7 @@ static int topn_main(duc *duc, int argc, char **argv)
 
 
 static struct ducrc_option options[] = {
+	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
 	{ NULL }
 };
