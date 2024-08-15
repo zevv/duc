@@ -37,12 +37,12 @@ static int topn_db(duc *duc, char *file)
 	while(( report = duc_get_report(duc, i)) != NULL) {
 
 	    size_t count;
+	    // Get number of topN files actually found.
 	    int topn_cnt = report->topn_cnt;
-	    int topn_max_cnt = report->topn_max_cnt;
 
 	    setlocale(LC_NUMERIC, "");
-	    // Counting DOWN from largest to smallest, assumes it's already sorted.
-	    for (int i=topn_max_cnt-1; i >= 0; i--) {
+	    // Counting DOWN from largest to smallest, assumes array already sorted.
+	    for (int i=topn_cnt-1; i >= 0; i--) {
 		size_t size = report->topn_array[i]->size;
 		if ( size != 0) {
 		    char siz[32];

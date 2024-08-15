@@ -568,8 +568,8 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 			/* optionally track largest N files */
 			if (req->flags & DUC_INDEX_TOPN_FILES) { 
-			    //printf(" is (%ld > %ld) && (%ld > %ld)\n",st_ent.st_size,report->topn_min, st_ent.st_size, report->topn_array[0]->size);
-			    if ((st_ent.st_size > report->topn_min) && (st_ent.st_size > report->topn_array[0]->size)) {
+			    //printf(" is (%ld > %ld) && (%ld > %ld)\n",st_ent.st_size,report->topn_min_size, st_ent.st_size, report->topn_array[0]->size);
+			    if ((st_ent.st_size > report->topn_min_size) && (st_ent.st_size > report->topn_array[0]->size)) {
 				char path_full[DUC_PATH_MAX];
 				char *res = realpath(name, path_full);
 				if (res == NULL) {
@@ -580,7 +580,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 				report->topn_array[0]->size = st_ent.st_size;
 				strncpy(report->topn_array[0]->name,path_full,sizeof(path_full));
-				qsort(report->topn_array, DUC_TOPN_CNT, sizeof(struct duc_topn_file *), topn_comp);
+				qsort(report->topn_array, req->topn_cnt, sizeof(struct duc_topn_file *), topn_comp);
 			    }
 			}
 			
@@ -711,12 +711,13 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	
 	struct duc_index_report *report = duc_malloc0(sizeof(struct duc_index_report));
 
-	for (int i = 0; i < DUC_TOPN_CNT; i++) {
+	for (int i = 0; i < req->topn_cnt; i++) {
 	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
 	}
-	report->topn_min = DUC_TOPN_MIN_FILE_SIZE;
-	report->topn_max_cnt = DUC_TOPN_CNT;
-	report->topn_cnt = 0;
+	report->topn_min_size = DUC_TOPN_MIN_FILE_SIZE;
+	report->topn_cnt_max = DUC_TOPN_CNT_MAX;
+	report->topn_cnt = req->topn_cnt;
+
 	gettimeofday(&report->time_start, NULL);
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
 

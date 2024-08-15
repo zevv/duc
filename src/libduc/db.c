@@ -24,7 +24,7 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 	size_t tmpl;
 	char *tmp = db_get(duc->db, report->path, strlen(report->path), &tmpl);
 
-	printf("writing report, ->topn_cnt = %d, ->topn_max_cnt = %d\n",report->topn_cnt, report->topn_max_cnt);
+	printf("writing report, ->topn_cnt = %d, ->topn_cnt_max = %d\n",report->topn_cnt, report->topn_cnt_max);
 	if(tmp == NULL) {
 		char *tmp = db_get(duc->db, "duc_index_reports", 17, &tmpl);
 		if(tmp) {

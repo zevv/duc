@@ -44,7 +44,7 @@ void buffer_free(struct buffer *b)
 	duc_free(b);
 }
 
-
+// Add item to buffer, but grow by doubling if needed
 static int buffer_put(struct buffer *b, const void *data, size_t len)
 {
 	if(b->ptr + len > b->max) {
@@ -217,9 +217,9 @@ void buffer_put_index_report(struct buffer *b, const struct duc_index_report *re
 	buffer_put_varint(b, report->dir_count);
 	buffer_put_size(b, &report->size);
 	/* write topN data */
-	buffer_put_varint(b, report->topn_min);
+	buffer_put_varint(b, report->topn_min_size);
 	buffer_put_varint(b, report->topn_cnt);
-	buffer_put_varint(b, report->topn_max_cnt);
+	buffer_put_varint(b, report->topn_cnt_max);
 
 	/* Make this dynamic where the last bucket has -1 maybe */
 	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
@@ -227,13 +227,14 @@ void buffer_put_index_report(struct buffer *b, const struct duc_index_report *re
 	}
 
 	/* write topN data, FIXME */
-	for(int i = 0; i < report->topn_max_cnt; i++) {
+	for(int i = 0; i < report->topn_cnt; i++) {
+	    buffer_put_varint(b, strlen(report->topn_array[i]->name));
 	    buffer_put_string(b, report->topn_array[i]->name);
 	    buffer_put_varint(b, report->topn_array[i]->size);
 	}
 }
 
-/* must have identical layout as above!!!!! */
+/* must have identical layout as buffer_put_index_report()! */
 void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 {
 	char *vs = NULL;
@@ -253,9 +254,9 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	buffer_get_varint(b, &vi); report->dir_count = vi;
 	buffer_get_size(b, &report->size);
         /* read topN data as well, if found */
-	buffer_get_varint(b, &vi); report->topn_min = vi;
+	buffer_get_varint(b, &vi); report->topn_min_size = vi;
 	buffer_get_varint(b, &vi); report->topn_cnt = vi;
-	buffer_get_varint(b, &vi); report->topn_max_cnt = vi;
+	buffer_get_varint(b, &vi); report->topn_cnt_max = vi;
 
 	/* when reading, look for -1 as last bucket, so we can be dynamically sized? */
 	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
@@ -263,9 +264,10 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	    report->histogram[i] = vi;
 	}
 
-	for(int i = 0; i < report->topn_max_cnt; i++) {
+	for(int i = 0; i < report->topn_cnt; i++) {
+	    uint64_t length;
+	    buffer_get_varint(b, &length);
 	    buffer_get_string(b, &vs);
-	    //printf("  vs=%s\n",vs);
 	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
 	    strncpy(report->topn_array[i]->name, vs, strlen(vs));
 	    buffer_get_varint(b, &vi); report->topn_array[i]->size = vi;
