@@ -68,10 +68,11 @@ Duc supports various key-value database backends:
   - Sqlite3:                           sqlite3
   - Lightning Memory-Mapped Database:  lmdb
   - Kyoto Cabinet:                     kyotocabinet
-  - Tkrzw:                             tkrzw
+  - Tkrzw:                             tkrzw  (default as of v1.5)
 
-Duc uses Tokyo Cabinet by default: the performance is acceptable and generates
-in the smallest database size.
+Duc uses Tkrzw by default: the performance is acceptable and it
+handles extremely large volumes with Terabytes of storage and millions
+of files.
 
     --with-db-backend=ARG
 
@@ -85,6 +86,11 @@ same architecture [1]. If you are planning to share databases between different
 platforms (index machine A, display on machine B) we recommend using the
 sqlite3 backend.
 
+Note, Tokyo Cabiner, Kyoto Cabinet, LevelDB and LMDB are all being
+deprecated from future versions because the lack of development and
+support for these libraries, especially for super large volumes to be
+indexed.
+
 1. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=667979
 
 When picking a backend you probably need to choose between speed, size and
@@ -94,18 +100,20 @@ robustness. Some measurements on my system of a 372G directory with 1.6M files:
  Database        Run time Db size
                       (s)    (kB)
 ----------------------------------
- tokyocabinet [*]     8.4   19.2
+ tokyocabinet         8.4   19.2
  leveldb              7.1   31.5
  sqlite3             13.5   71.1
  lmdb                 5.9   78.7
  kyotocabinet         8.3   26.7
- tkrzw                ???   ??? 
+ tkrzw [*]            ???   ??? 
 ----------------------------------
 
-[*] Tokyo Cabinet currenty is the default used by Duc because of the good
-compression and reasonable performance. A problem is that Tokyo Cabinet is not
-very stable and can create corrupt databases when interrupting the indexing. If
-this is a problem for you, choose a different db backend.
+[*] Tkrzw currently is the default used by Duc because of current
+development, good compression and reasonable performance. 
+
+Tokyo Cabinet is not very stable and can create corrupt databases when
+interrupting the indexing. If this is a problem for you, choose a
+different db backend.
 
 Graphics
 --------
