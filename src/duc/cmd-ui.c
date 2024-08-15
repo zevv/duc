@@ -59,7 +59,7 @@ static int cols = 80;
 static int rows = 25;
 
 
-static duc_dir *do_dir(duc_dir *dir, int depth)
+static duc_dir *do_dir(duc *duc, duc_dir *dir, int depth)
 {
 	int top = 0;
 	int cur = 0;
@@ -124,7 +124,22 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 		char *path = duc_dir_get_path(dir);
 		attrset(attr_bar);
 		mvhline(0, 0, ' ', cols);
-		mvprintw(0, 1, " %s ", path);
+		if (opt_topn) {
+		    // We can have more than one report in DB...
+		    int rep_idx = 0;
+		    int topn_cnt = 0;
+		    struct duc_index_report *report;
+
+		    // FIXME - only gets last report data
+		    while(( report = duc_get_report(duc, rep_idx)) != NULL) {
+			topn_cnt = report->topn_cnt;
+			rep_idx++;
+		    }
+		    mvprintw(0, 1, " %d largest files", topn_cnt);
+		}
+		else {
+		    mvprintw(0, 1, " %s ", path);		    
+		}
 		attrset(0);
 		free(path);
 
@@ -254,7 +269,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 				  } else {
 					  dir2 = duc_dir_openat(dir, "..");
 					  if(dir2) {
-						  do_dir(dir2, 0);
+						  do_dir(duc, dir2, 0);
 						  duc_dir_close(dir2);
 					  }
 				  }
@@ -268,7 +283,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 				  if(e && e->type == DUC_FILE_TYPE_DIR) {
 					dir2 = duc_dir_openent(dir, e);
 					if(dir2) {
-						do_dir(dir2, depth + 1);
+						do_dir(duc, dir2, depth + 1);
 						duc_dir_close(dir2);
 					}
 				  }
@@ -307,6 +322,7 @@ static void bye(void)
 
 static int ui_main(duc *duc, int argc, char **argv)
 {
+    struct duc_index_report *report;
 	char *path = ".";
 	if(argc > 0) path = argv[0];
 
@@ -350,7 +366,7 @@ static int ui_main(duc *duc, int argc, char **argv)
 	init_pair(PAIR_BAR, COLOR_WHITE, COLOR_BLUE);
 	init_pair(PAIR_CURSOR, COLOR_BLACK, COLOR_CYAN);
 
-	do_dir(dir, 0);
+	do_dir(duc, dir, 0);
 
 	duc_dir_close(dir);
 	duc_close(duc);
