@@ -25,7 +25,8 @@ static int topn_db(duc *duc, char *file)
 	duc_size_type st = DUC_SIZE_TYPE_ACTUAL;
 	duc_sort sort = DUC_SORT_SIZE;
 
-	int i = 0;
+	// We can have multiple reports in a single DB... needs more testing.
+	int rep_idx = 0;
 
 	int r = duc_open(duc, file, DUC_OPEN_RO);
 	if(r != DUC_OK) {
@@ -34,28 +35,30 @@ static int topn_db(duc *duc, char *file)
 	}
 
 	printf("%*s Filename\n",12,"Size");
-	while(( report = duc_get_report(duc, i)) != NULL) {
+	while(( report = duc_get_report(duc, rep_idx)) != NULL) {
 
 	    size_t count;
-	    // Get number of topN files actually found.
+	    // Get number of topN files actually stored in report.
 	    int topn_cnt = report->topn_cnt;
 
 	    setlocale(LC_NUMERIC, "");
 	    // Counting DOWN from largest to smallest, assumes array already sorted.
-	    for (int i=topn_cnt-1; i >= 0; i--) {
-		size_t size = report->topn_array[i]->size;
+	    for (int idx=topn_cnt-1; idx >= 0; idx--) {
+		size_t size = report->topn_array[idx]->size;
 		if ( size != 0) {
+		    // FIXME - replace 32 with correct #define
 		    char siz[32];
 		    struct duc_size dsize;
 		    dsize.actual = size;
 		    duc_human_size(&dsize, st, opt_bytes, siz, sizeof siz);
+		    // FIXME - replace 12 with correct #define
 		    printf("%*s", 12, siz);
-		    printf(" %s\n", report->topn_array[i]->name);
+		    printf(" %s\n", report->topn_array[idx]->name);
 		}
 	    }
 			
 	    duc_index_report_free(report);
-	    i++;
+	    rep_idx++;
 	}
 
 	duc_close(duc);
