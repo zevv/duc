@@ -19,6 +19,8 @@
 
 /* Number of Largest files to track */
 #define DUC_TOPN_CNT 10
+/* Maximum number of topN files we can track, totally arbitrary... */
+#define DUC_TOPN_CNT_MAX 1000
 
 /* minimum file size to track in topN list: 10 kilobytes */
 #define DUC_TOPN_MIN_FILE_SIZE 10240
@@ -127,10 +129,10 @@ struct duc_index_report {
 	size_t dir_count;           /* Total number of directories indexed */
 	struct duc_size size;       /* Total size */
         size_t histogram[DUC_HISTOGRAM_MAX];      /* histogram of file sizes, log(size)/log(2) */
-        size_t topn_min;            /* minimum size in bytes to get added to topN list of files */
-        size_t topn_cnt;            /* Max topN number of files to report on*/
-        int topn_max_cnt;           /* Maximum number of topN files to track */
-        duc_topn_file* topn_array[DUC_TOPN_CNT];    /* pointer to array of structs, stores each topN filename and size */
+        size_t topn_min_size;       /* minimum size in bytes to get added to topN list of files */
+        int topn_cnt;               /* Max topN number of files to report on*/
+        int topn_cnt_max;           /* Maximum number of topN files to track */
+        duc_topn_file* topn_array[DUC_TOPN_CNT_MAX];    /* pointer to array of structs, stores each topN filename and size */
 };
 
 struct duc_dirent {
