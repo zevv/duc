@@ -53,7 +53,7 @@ static bool opt_graph = true;
 static bool opt_nocolor = false;
 static bool opt_name_sort = false;
 static char *opt_database = NULL;
-
+static bool opt_topn = false;
 
 static int cols = 80;
 static int rows = 25;
@@ -241,6 +241,7 @@ static duc_dir *do_dir(duc_dir *dir, int depth)
 			case 'h': help(); break;
 			case '?': help(); break;
 			case 'n': opt_name_sort ^= 1; break;
+			case 't': opt_topn ^= 1; break;
 
 			case 27:
 			case 'q': 
@@ -379,7 +380,7 @@ struct cmd cmd_ui = {
 		"utility for exploring the disk usage of the given path. If no path is given the\n"
 		"current working directory is explored.\n"
 		"\n"
-		"The following keys can be used to navigate and alter the file system:\n"
+		"The following keys can be used to navigate and (maybe) alter the file system:\n"
 		"\n"
 		"    up, pgup, j:     move cursor up\n"
 		"    down, pgdn, k:   move cursor down\n"
@@ -394,7 +395,7 @@ struct cmd cmd_ui = {
 		"    n:               toggle sort order between 'size' and 'name'\n"
 		"    o:               try to open the file using xdg-open\n"
 		"    q, escape:       quit\n"
-
+	        "    t:               toggle between regular view and TopN files by size\n"
 };
 
 
