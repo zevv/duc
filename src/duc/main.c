@@ -211,6 +211,7 @@ static void printi(const char *s, int pos, int indent, int max)
 	const char *p1 = s;
 	const char *p2 = s;
 	int i;
+	int out;
 
 	while(*p1) {
 		while(*p2 && !isspace(*p2)) p2++;
@@ -222,7 +223,8 @@ static void printi(const char *s, int pos, int indent, int max)
 			pos = indent;
 		}
 
-		fwrite(p1, l, 1, stdout);
+		out = fwrite(p1, l, 1, stdout);
+		if (out == 0) break;
 		while(*p2 && isspace(*p2)) p2++;
 		pos += l;
 		if(pos < max) {
