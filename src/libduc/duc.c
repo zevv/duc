@@ -191,7 +191,7 @@ const char *duc_strerror(duc *duc)
 }
 
 
-static int humanize(double v, int exact, double scale, char *buf, size_t maxlen)
+int humanize(double v, int exact, double scale, char *buf, size_t maxlen)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	char *p = prefix;
