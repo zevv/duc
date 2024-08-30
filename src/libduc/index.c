@@ -52,6 +52,7 @@ struct duc_index_req {
 	duc_index_flags flags;
 	int maxdepth;
         int topn_cnt;
+        int histogram_buckets;
         uid_t uid;
         const char *username;
 	duc_index_progress_cb progress_fn;
@@ -182,6 +183,12 @@ int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth)
 int duc_index_req_set_topn(duc_index_req *req, int cnt)
 {
 	req->topn_cnt = cnt;
+	return 0;
+}
+
+int duc_index_req_set_buckets(duc_index_req *req, int cnt)
+{
+	req->histogram_buckets = cnt;
 	return 0;
 }
 
@@ -548,18 +555,19 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 			report->file_count ++;
 			
-			/* add to histogram */
+			/* add to histogram, trapping zero size files first. */
 			int i;
 			if (st_ent.st_size == 0) {
 			    i = 0;
 			} else {
+			    // Doesn't dynamically scale for different bucket counts.
 			    i = (int) floor(log(st_ent.st_size) / log(2));
 			}
 
 			/* clamp size of histogram even if we run into monster sized file */
-			if (i >= DUC_HISTOGRAM_MAX) {
-			    i = DUC_HISTOGRAM_MAX;
-			    duc_log(duc, DUC_LOG_WRN, "Histogram buckets more than %d, please increase DUC_HISTOGRAM_MAX define and recompile!\n",DUC_HISTOGRAM_MAX);
+			if (i >= report->histogram_buckets) {
+			    i = report->histogram_buckets;
+			    duc_log(duc, DUC_LOG_WRN, "File sizes large enough we ran out of histogram buckets %d, please increase the number of buckets and re-run your indexing.",report->histogram_buckets);
 			}
 			report->histogram[i]++;
 
@@ -717,6 +725,9 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	report->topn_min_size = DUC_TOPN_MIN_FILE_SIZE;
 	report->topn_cnt_max = DUC_TOPN_CNT_MAX;
 	report->topn_cnt = req->topn_cnt;
+
+	report->histogram_buckets = req->histogram_buckets;
+
 
 	gettimeofday(&report->time_start, NULL);
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
