@@ -220,9 +220,10 @@ void buffer_put_index_report(struct buffer *b, const struct duc_index_report *re
 	buffer_put_varint(b, report->topn_min_size);
 	buffer_put_varint(b, report->topn_cnt);
 	buffer_put_varint(b, report->topn_cnt_max);
+	buffer_put_varint(b, report->histogram_buckets);
 
 	/* Make this dynamic where the last bucket has -1 maybe */
-	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
+	for(int i = 0; i < report->histogram_buckets; i++) {
 	    buffer_put_varint(b,report->histogram[i]);
 	}
 
@@ -257,9 +258,10 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	buffer_get_varint(b, &vi); report->topn_min_size = vi;
 	buffer_get_varint(b, &vi); report->topn_cnt = vi;
 	buffer_get_varint(b, &vi); report->topn_cnt_max = vi;
+	buffer_get_varint(b, &vi); report->histogram_buckets = vi;
 
 	/* when reading, look for -1 as last bucket, so we can be dynamically sized? */
-	for(int i = 0; i<DUC_HISTOGRAM_MAX; i++) {
+	for(int i = 0; i < report->histogram_buckets; i++) {
 	    buffer_get_varint(b, &vi);
 	    report->histogram[i] = vi;
 	}
