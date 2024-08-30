@@ -50,7 +50,7 @@ static int info_db(duc *duc, char *file)
 		    size_t count;
 		    setlocale(LC_NUMERIC, "");
 		    printf("\nHistogram:\n----------\n");
-		    for (int i=0; i < DUC_HISTOGRAM_MAX; i++) {
+		    for (int i=0; i < report->histogram_buckets; i++) {
 			count = report->histogram[i];
 			if (count != 0) {
 			    printf("2^%-02d  %'d\n",i, count);
