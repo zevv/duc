@@ -26,6 +26,7 @@ static bool opt_check_hard_links = false;
 static bool opt_hide_file_names = false;
 static char *opt_username = NULL;
 static int opt_uid = 0;
+static int opt_histogram_buckets = DUC_HISTOGRAM_BUCKETS_DEF;
 static int opt_max_depth = 0;
 static int opt_topn_min_size = DUC_TOPN_MIN_FILE_SIZE;
 static int opt_topn_cnt = DUC_TOPN_CNT;
@@ -88,11 +89,18 @@ static int index_main(duc *duc, int argc, char **argv)
 	    if (opt_topn_cnt > DUC_TOPN_CNT_MAX) {
 		duc_log(duc, DUC_LOG_FTL, "Cannot store more than %d topN files", DUC_TOPN_CNT_MAX);
 		duc_index_req_set_topn(req, DUC_TOPN_CNT_MAX);
-		
 	    }
 	    duc_index_req_set_topn(req, opt_topn_cnt);
 	    // For now always index topN files.
 	    index_flags |= DUC_INDEX_TOPN_FILES;
+	}
+
+	if(opt_histogram_buckets) {
+	    if (opt_histogram_buckets > DUC_HISTOGRAM_BUCKETS_MAX) {
+		duc_log(duc, DUC_LOG_FTL, "Cannot use more than %d histogram buckets.", DUC_HISTOGRAM_BUCKETS_MAX);
+		duc_index_req_set_buckets(req,DUC_HISTOGRAM_BUCKETS_MAX);
+	    }
+	    duc_index_req_set_buckets(req,opt_histogram_buckets);
 	}
 
 	if(argc < 1) {
@@ -201,8 +209,9 @@ static void fn_fs_exclude(const char *val)
 
 
 static struct ducrc_option options[] = {
-	{ &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
-	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file VAL" },
+    { &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+    { &opt_histogram_buckets, "buckets", 'B', DUCRC_TYPE_INT,    "number of buckets in histogram, default XX" },
+    { &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file VAL" },  
 	{ fn_exclude,           "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching VAL"  },
 	{ &opt_check_hard_links,"check-hard-links",'H', DUCRC_TYPE_BOOL,   "count hard links only once",
           "if two or more hard links point to the same file, only one of the hard links is displayed and counted" },
