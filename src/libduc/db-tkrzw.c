@@ -24,7 +24,6 @@ duc_errno tkrzwdb_to_errno(TkrzwDBM *hdb)
 {
 
     TkrzwStatus status = tkrzw_get_last_status();
-    printf("  tkrzw_get_last_status() = %s\n",status.message);
 	switch(status.code) {
 	case TKRZW_STATUS_SUCCESS:                 return DUC_OK;
 	case TKRZW_STATUS_UNKNOWN_ERROR:           return DUC_E_UNKNOWN;
