@@ -45,9 +45,11 @@ duc_SOURCES  += \
 	src/duc/cmd-guigl.c \
 	src/duc/cmd.h \
 	src/duc/cmd.h  \
+	src/duc/cmd-histogram.c \
 	src/duc/cmd-index.c \
 	src/duc/cmd-info.c \
 	src/duc/cmd-ls.c \
+	src/duc/cmd-topn.c \
 	src/duc/cmd-ui.c \
 	src/duc/cmd-xml.c \
 	src/duc/cmd-json.c \
