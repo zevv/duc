@@ -7,7 +7,7 @@
 
 AC_PREREQ([2.13])
 
-AC_INIT([duc], [1.5.0], [duc@zevv.nl])
+AC_INIT([duc], [1.5.0-rc1], [duc@zevv.nl])
 
 LIB_CURRENT=1
 LIB_REVISION=0
@@ -60,8 +60,8 @@ AC_ARG_ENABLE(
 
 AC_ARG_WITH(
         [db-backend],
-        [AS_HELP_STRING([--with-db-backend], [select database backend (tokyocabinet,leveldb,sqlite3,lmdb,kyotocabinet,tkrzw) @<:@default=tokyocabinet@:>@])], ,
-        [with_db_backend="tokyocabinet"]
+        [AS_HELP_STRING([--with-db-backend], [select database backend (tokyocabinet,leveldb,sqlite3,lmdb,kyotocabinet,tkrzw) @<:@default=tkrzw@:>@])], ,
+        [with_db_backend="tkrzw"]
 )
 
 AC_MSG_RESULT([Selected backend ${with_db_backend}])
