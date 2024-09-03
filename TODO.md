@@ -5,6 +5,12 @@ I'm still keeping the requests here for future reference or for if I ever get
 bored and have a lot of time on my hands. Anybody is free to pick and implement
 any of these tasks, of course!
 
+### Edit database to remove path(s) from Index and do all cleanup
+
+  This should be a simple change to add, though it does require some hackery to
+  remove entries from the records[] array in the DB.  Needs thought.  Currently
+  only solution would be to index to a totally new DB file with only the path(s)
+  you want.  
 
 ### Show increase since last index or time period 
 
