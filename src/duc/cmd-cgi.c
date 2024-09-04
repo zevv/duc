@@ -257,9 +257,11 @@ static void include_file(const char *fname)
 		printf("<!-- start include -->\n");
 		for(;;) {
 			char buf[4096];
-			size_t n = fread(buf, 1, sizeof(buf), f);
-			if(n == 0) break;
-			fwrite(buf, 1, n, stdout);
+			size_t in = fread(buf, 1, sizeof(buf), f);
+			if(in == 0) break;
+			size_t out = fwrite(buf, 1, in, stdout);
+			if(out == 0) break;
+			if(out < in) break;
 		}
 		printf("<!-- end include -->\n");
 		fclose(f);

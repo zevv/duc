@@ -41,7 +41,10 @@ struct cairo_backend_data {
 static cairo_status_t cairo_writer(void *closure, const unsigned char *data, unsigned int length)
 {
 	FILE *f = closure;
-	fwrite(data, length, 1, f);
+	size_t out = fwrite(data, length, 1, f);
+	if (out == 0 || out < length) {
+	    return CAIRO_STATUS_WRITE_ERROR;
+	}
 	return CAIRO_STATUS_SUCCESS;
 }
 
