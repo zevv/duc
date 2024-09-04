@@ -130,8 +130,8 @@ fi
 # Actual tests are below.  If you add test cases above, these need to be tweaked.
 #---------------------------------------------------------------------------------
 
-
-cat ${DUC_TEST_DIR}.out | grep -q "Indexed 77 files and 47 directories, (91869B apparent, 540672B actual)"
+# An exact match is expected on the apparent size; the actual size may vary.
+cat ${DUC_TEST_DIR}.out | grep -q "Indexed 77 files and 47 directories, (91869B apparent, [0-9]*B actual)"
 
 if [ "$?" = "0" ]; then
 	echo "report: ok"
@@ -153,16 +153,26 @@ if [ "$?" != "0" ]; then
 	exit 1
 fi
 
-testsum="33e2be27a9e70e81d4006a2d7b555948"
+# When two or more hard links point to the same file and when running duc with
+# the `--check-hard-links' option, only one of the hard links will be
+# counted. However, duc may pick up and display a different hard link depending
+# on the system it is being run on. Since our tests include three hard links to
+# the same file, we should be expecting three possible outcomes, all equally
+# valid, each corresponding to one of the following MD5 checksums.
+testsum0="78dbf880ef6917ea665fddb5ebb44428"
+testsum1="38ab7b7d1ec6ac57d672c5618371386d"
+testsum2="33e2be27a9e70e81d4006a2d7b555948"
 md5sum ${DUC_TEST_DIR}.out > /tmp/.duc.md5sum
-grep -q $testsum /tmp/.duc.md5sum
+grep -q "$testsum0\|$testsum1\|$testsum2" /tmp/.duc.md5sum
 
 if [ "$?" = "0" ]; then
 	echo "md5sum: ok"
 else
 	echo "md5sum: failed"
-	echo "expected: "
-	echo "$testsum  ${DUC_TEST_DIR}.out"
+	echo "expected one of: "
+	echo "$testsum0  ${DUC_TEST_DIR}.out"
+	echo "$testsum1  ${DUC_TEST_DIR}.out"
+	echo "$testsum2  ${DUC_TEST_DIR}.out"
 	echo "got: "
 	cat /tmp/.duc.md5sum
 	exit 1
