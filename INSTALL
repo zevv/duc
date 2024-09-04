@@ -23,57 +23,42 @@ To get the required dependencies on Debian or Ubuntu, run:
 
      deb http://deb.debian.org/debian bullseye-backports main
 
-  Then you do:
+    Then you would do:
 
      $ sudo apt update
-     $ sudo apt-get install libtkrzw-dev tkrzw-doc tkrzw-utils
+
+    $ sudo apt-get install libncursesw5-dev libcairo2-dev libpango1.0-dev \
+      build-essential libtkrzw-dev tkrzw-doc tkrzw-utils
 
 
-On RHEL or CentOS systems, you need to do:
+  On older RHEL or CentOS systems, you need to do:
 
     $ sudo yum install pango-devel cairo-devel tokyocabinet-devel
 
 
-  RHEL 8 / Rockly Linux 8 / Alma Linux 8  
+  RHEL 8 & 9 / Rockly Linux 8 & 9 / Alma Linux 8 & 9
 
-    Download latest epel-release rpm from
+    Install epel-release & update
 
-      http://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/
+      $ sudo yum install epel-release
+      $ sudo yum update
 
-    Install epel-release rpm:
+    Install tkrzw and other packages:
 
-      # rpm -Uvh epel-release*rpm
-
-    Install tkrzw rpm package:
-
-      # dnf install tkrzw
+      $ sudo yum install tkrzw tkrzw-devel tkrzw-doc tkrzw-libs pango-devel cairo-devel tokyocabinet-devel
 
 
-  RHEL 9 / Rockly Linux 9 / Alma Linux 9
+Configuration Options
+---------------------
 
-    Download latest epel-release rpm from
-
-      https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/e/epel-release-9-7.el9.noarch.rpm
-
-    Install epel-release rpm:
-
-      # rpm -Uvh epel-release*rpm
-
-    Install tkrzw rpm package:
-
-      # dnf install tkrzw
-
-  
-  
-
-   
-
-Duc comes with various user interfaces and a number of backends for database
-access and graph drawing. You can choose which options should be used with the
-./configure script to build Duc to fit best in your environment.
+Duc comes with support for various user interfaces and a number of
+backends for database access and graph drawing. You can choose which
+options should be used with the ./configure script to build Duc to fit
+best in your environment.
 
 This document describes the various options which can be passed to the
-./configure script, and the impact these options have on Duc functionality.
+./configure script, and the impact these options have on Duc
+functionality.  But the ./configure --help is the definitive source.
 
 
 User interfaces
@@ -82,7 +67,7 @@ User interfaces
 Duc comes with the following user interfaces:
 
 - Command line interface (duc ls): This user interface has no external
-  dependencies and is always enabled
+  dependencies and is always enabled.
 
 - Ncurses console interface (duc ui): an interactive console interface, which
   depends on ncurses or ncursesw. This user interface is enabled by default. If
@@ -103,8 +88,8 @@ Duc comes with the following user interfaces:
     --enable-opengl --disable-x11
 
 
-Database backend
-----------------
+Database backends
+-----------------
 
 Duc supports various key-value database backends:
   - Tokyo Cabinet:                     tokyocabinet
@@ -112,23 +97,23 @@ Duc supports various key-value database backends:
   - Sqlite3:                           sqlite3
   - Lightning Memory-Mapped Database:  lmdb
   - Kyoto Cabinet:                     kyotocabinet
-  - Tkrzw:                             tkrzw  (default as of v1.5)
+  - Tkrzw:                             tkrzw  (default as of v1.5.0)
 
-Duc uses Tkrzw by default: the performance is acceptable and it
-handles extremely large volumes with Terabytes of storage and millions
-of files.
+Duc now uses Tkrzw by default: the performance is acceptable and it
+handles extremely large databases of volumes with terabytes of storage
+and millions of files.
 
     --with-db-backend=ARG
 
-If your system supports none of the above, contact the author to see if we can
-add your favourite backend.
+If your system supports none of the above, contact the authors to see
+if we can add your favourite backend.
 
-Please note: Not all database formats can be shared between machines with
-different architectures. Notably, Tokyo Cabinet is built with non-standard
-options which break compatibility with other linux distributions, even on the
-same architecture [1]. If you are planning to share databases between different
-platforms (index machine A, display on machine B) we recommend using the
-sqlite3 backend.
+Please note: Not all database formats can be shared between machines
+with different architectures. Notably, Tokyo Cabinet is built with
+non-standard options which break compatibility with other linux
+distributions, even on the same architecture [1]. If you are planning
+to share databases between different platforms (index machine A,
+display on machine B) we recommend using the sqlite3 backend.
 
 Note, Tokyo Cabiner, Kyoto Cabinet, LevelDB and LMDB are all being
 deprecated from future versions because the lack of development and
@@ -137,27 +122,30 @@ indexed.
 
 1. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=667979
 
-When picking a backend you probably need to choose between speed, size and
-robustness. Some measurements on my system of a 372G directory with 1.6M files:
+When picking a backend you probably need to choose between speed, size
+and robustness. Some (out of date) measurements on a system with a
+372G directory containing 1.6M files:
 
-----------------------------------
- Database        Run time Db size
-                      (s)    (kB)
-----------------------------------
- tokyocabinet         8.4   19.2
- leveldb              7.1   31.5
- sqlite3             13.5   71.1
- lmdb                 5.9   78.7
- kyotocabinet         8.3   26.7
- tkrzw [*]            ???   ??? 
-----------------------------------
+    ----------------------------------
+     Database        Run time Db size
+			  (s)    (kB)
+    ----------------------------------
+     tokyocabinet         8.4   19.2
+     leveldb              7.1   31.5
+     sqlite3             13.5   71.1
+     lmdb                 5.9   78.7
+     kyotocabinet         8.3   26.7
+     tkrzw [*]            ???   ??? 
+    ----------------------------------
 
-[*] Tkrzw currently is the default used by Duc because of current
+
+[*] Tkrzw currently is the default used by Duc because of it's current
 development, good compression and reasonable performance. 
 
 Tokyo Cabinet is not very stable and can create corrupt databases when
 interrupting the indexing. If this is a problem for you, choose a
 different db backend.
+
 
 Graphics
 --------
@@ -191,7 +179,8 @@ embedded systems not all graphics libraries are available.
 Testing
 -------
 
-Duc comes with a rudimentary test harness which can be run with
+Duc comes with a rudimentary test harness which can be run at the top
+level directory with:
 
   ./test.sh
 
@@ -202,5 +191,6 @@ If you have valgrind and you want to run the tests using it do:
 It will complain if you try this and valgrind isn't installed.  The
 test harness still needs work and more tests, but should hopefully
 help keep us from re-introducing bugs as they are fixed and checked
-for.
+for.  We would love to see more tests and a better harness, patches
+welcome!
 
