@@ -17,6 +17,7 @@
 static bool opt_apparent = false;
 static bool opt_bytes = false;
 static char *opt_database = NULL;
+static bool opt_histogram = false;
 
 static int info_db(duc *duc, char *file)
 {
@@ -45,6 +46,18 @@ static int info_db(duc *duc, char *file)
 
 		printf("%s %7s %7s %7s %s\n", ts, fs, ds, siz, report->path);
 
+		if (opt_histogram) {
+		    size_t count;
+		    setlocale(LC_NUMERIC, "");
+		    printf("\nHistogram:\n----------\n");
+		    for (int i=0; i < report->histogram_buckets; i++) {
+			count = report->histogram[i];
+			if (count != 0) {
+			    printf("2^%-02d  %'d\n",i, count);
+			}
+		    }
+		}
+		
 		duc_index_report_free(report);
 		i++;
 	}
@@ -65,6 +78,7 @@ static struct ducrc_option options[] = {
 	{ &opt_apparent,  "apparent",  'a', DUCRC_TYPE_BOOL,   "show apparent instead of actual file size" },
 	{ &opt_bytes,     "bytes",     'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ &opt_database,  "database",  'd', DUCRC_TYPE_STRING, "select database file to use [~/.duc.db]" },
+	{ &opt_histogram, "histogram",'H', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
 	{ NULL }
 };
 

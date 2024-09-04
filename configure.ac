@@ -7,7 +7,7 @@
 
 AC_PREREQ([2.13])
 
-AC_INIT([duc], [1.4.5], [duc@zevv.nl])
+AC_INIT([duc], [1.5.0-rc1], [duc@zevv.nl])
 
 LIB_CURRENT=1
 LIB_REVISION=0
@@ -60,8 +60,8 @@ AC_ARG_ENABLE(
 
 AC_ARG_WITH(
         [db-backend],
-        [AS_HELP_STRING([--with-db-backend], [select database backend (tokyocabinet,leveldb,sqlite3,lmdb,kyotocabinet) @<:@default=tokyocabinet@:>@])], ,
-        [with_db_backend="tokyocabinet"]
+        [AS_HELP_STRING([--with-db-backend], [select database backend (tokyocabinet,leveldb,sqlite3,lmdb,kyotocabinet,tkrzw) @<:@default=tkrzw@:>@])], ,
+        [with_db_backend="tkrzw"]
 )
 
 AC_MSG_RESULT([Selected backend ${with_db_backend}])
@@ -74,6 +74,16 @@ case "${with_db_backend}" in
 	tokyocabinet)
 		PKG_CHECK_MODULES([TC], [tokyocabinet])
 		AC_DEFINE([ENABLE_TOKYOCABINET], [1], [Enable tokyocabinet db backend])
+		;;
+	tkrzw)
+                LDFLAGS="$outer_LDFLAGS -ltkrzw"
+                AC_CHECK_LIB(tkrzw, tkrzw_get_last_status, 
+			     [ 
+	                          TKRZW_LIBS="-ltkrzw"		     
+				  AC_DEFINE([ENABLE_TKRZW], [1], [Enable tkrzw db backend])
+			     ], [ AC_MSG_ERROR(Unable to find tkrzw) ])
+		AC_SUBST([TKRZW_LIBS])
+p		AC_SUBST([TKRZW_CFLAGS])
 		;;
 	leveldb)
 		AC_CHECK_LIB([leveldb], [leveldb_open])
@@ -98,7 +108,7 @@ case "${with_db_backend}" in
 		AC_DEFINE([ENABLE_KYOTOCABINET], [1], [Enable kyotocabinet db backend])
 		;;
 	*)
-		AC_MSG_ERROR([Unsupported db-backend])
+		AC_MSG_ERROR([Unsupported db-backend "${with_db_backend}"])
 esac
 
 AC_DEFINE_UNQUOTED(DB_BACKEND, ["${with_db_backend}"], [Database backend])

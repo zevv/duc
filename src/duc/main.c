@@ -24,26 +24,30 @@
 #include "ducrc.h"
 
 
-extern struct cmd cmd_help;
-extern struct cmd cmd_info;
-extern struct cmd cmd_index;
-extern struct cmd cmd_manual;
-extern struct cmd cmd_ls;
+extern struct cmd cmd_cgi;
 extern struct cmd cmd_gui;
 extern struct cmd cmd_guigl;
 extern struct cmd cmd_graph;
-extern struct cmd cmd_xml;
+extern struct cmd cmd_help;
+extern struct cmd cmd_histogram;
+extern struct cmd cmd_info;
+extern struct cmd cmd_index;
 extern struct cmd cmd_json;
-extern struct cmd cmd_cgi;
+extern struct cmd cmd_ls;
+extern struct cmd cmd_manual;
+extern struct cmd cmd_topn;
 extern struct cmd cmd_ui;
+extern struct cmd cmd_xml;
 
 
 struct cmd *cmd_list[] = {
 	&cmd_help,
+	&cmd_histogram,
 	&cmd_index,
 	&cmd_info,
 	&cmd_manual,
 	&cmd_ls,
+	&cmd_topn,
 	&cmd_xml,
 	&cmd_json,
 	&cmd_graph,

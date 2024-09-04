@@ -1,4 +1,3 @@
-
 #include "config.h"
 
 #include <stdint.h>
@@ -25,6 +24,7 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 	size_t tmpl;
 	char *tmp = db_get(duc->db, report->path, strlen(report->path), &tmpl);
 
+	//printf("writing report, ->topn_cnt = %d, ->topn_cnt_max = %d\n",report->topn_cnt, report->topn_cnt_max);
 	if(tmp == NULL) {
 		char *tmp = db_get(duc->db, "duc_index_reports", 17, &tmpl);
 		if(tmp) {
@@ -34,6 +34,33 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 		} else {
 			db_put(duc->db, "duc_index_reports", 17, report->path, sizeof(report->path));
 		}
+		
+		/* write histogram */
+		tmp = db_get(duc->db, "duc_index_histograms", 20, &tmpl);
+		if (tmp) {
+			tmp = duc_realloc(tmp, tmpl + sizeof(report->histogram));
+			memcpy(tmp + tmpl, report->histogram, sizeof(report->histogram));
+			db_put(duc->db, "duc_index_histograms", 20, tmp, 
+			       tmpl + sizeof(report->histogram));
+		} else {
+			db_put(duc->db, "duc_index_histograms", 20, report->histogram, 
+			       sizeof(report->histogram));
+		}
+
+		/* write topn array, FIXME to really work... */
+		char str[] = "duc_index_topn_info";
+		int str_len = sizeof(str);
+		tmp = db_get(duc->db, str, str_len , &tmpl);
+		if (tmp) {
+			tmp = duc_realloc(tmp, tmpl + sizeof(report->topn_array));
+			memcpy(tmp + tmpl, report->topn_array, sizeof(report->topn_array));
+			db_put(duc->db, str, str_len, tmp, 
+			       tmpl + sizeof(report->topn_array));
+		} else {
+			db_put(duc->db, str, str_len, report->topn_array, 
+			       sizeof(report->topn_array));
+		}
+
 	} else {
 		free(tmp);
 	}
@@ -96,6 +123,10 @@ char *duc_db_type_check(const char *path_db)
 	
 	if (strncmp(buf,"ToKyO CaBiNeT",13) == 0) {
 	    return("Tokyo Cabinet");
+	}
+
+	if (strncmp(buf,"TkrzwHDB",8) == 0) {
+	    return("Tkrzw HashDBM");
 	}
 
 	if (strncmp(buf,"SQLite format 3",15) == 0) {

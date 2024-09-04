@@ -55,7 +55,7 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 	duc->log_callback = cb;
 }
 
-
+// Return 0 ok, -1 for errors.
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[DUC_PATH_MAX];
@@ -126,17 +126,20 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 
 	duc->db = db_open(path_db, flags, &duc->err);
 	if(duc->db == NULL) {
-	    /* Now we can maybe do some quick checks to see if we tried to open a non-supported DB type. */
-	    char *db_type = duc_db_type_check(path_db);
-	    if (db_type) {
-		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - unsupported DB type %s, compiled for %s", path_db, db_type, DB_BACKEND);
-	    }
-	    else {
-		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - %s", path_db, duc_strerror(duc));
-	    }
+	    duc_log(duc, DUC_LOG_FTL, "Error opening: %s - %s", path_db, duc_strerror(duc));
 	    return -1;
 	}
+	else {
 
+	    /* Now we can maybe do some quick checks to see if we
+	     * tried to open a non-supported DB type. */
+
+	    char *db_type = duc_db_type_check(path_db);
+	    if (db_type && (strcmp(db_type,"unknown") == 0)) {
+		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - unsupported DB type _%s_, duc compiled for %s", path_db, db_type, DB_BACKEND);
+		return -1;
+	    }
+	}
 	return 0;
 }
 
@@ -191,7 +194,7 @@ const char *duc_strerror(duc *duc)
 }
 
 
-static int humanize(double v, int exact, double scale, char *buf, size_t maxlen)
+int humanize(double v, int exact, double scale, char *buf, size_t maxlen)
 {
 	char prefix[] = { '\0', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
 	char *p = prefix;

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -25,7 +26,11 @@ static bool opt_check_hard_links = false;
 static bool opt_hide_file_names = false;
 static char *opt_username = NULL;
 static int opt_uid = 0;
+static int opt_histogram_buckets = DUC_HISTOGRAM_BUCKETS_DEF;
 static int opt_max_depth = 0;
+static int opt_topn_min_size = DUC_TOPN_MIN_FILE_SIZE;
+static int opt_topn_cnt = DUC_TOPN_CNT;
+static int opt_topn_cnt_max = DUC_TOPN_CNT_MAX;
 static bool opt_one_file_system = false;
 static bool opt_progress = false;
 static bool opt_uncompressed = false;
@@ -80,6 +85,23 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_dryrun) index_flags |= DUC_INDEX_DRY_RUN;
 	if(opt_username) duc_index_req_set_username(req, opt_username);
 	if(opt_uid) duc_index_req_set_uid(req, opt_uid);
+	if(opt_topn_cnt) {
+	    if (opt_topn_cnt > DUC_TOPN_CNT_MAX) {
+		duc_log(duc, DUC_LOG_FTL, "Cannot store more than %d topN files", DUC_TOPN_CNT_MAX);
+		duc_index_req_set_topn(req, DUC_TOPN_CNT_MAX);
+	    }
+	    duc_index_req_set_topn(req, opt_topn_cnt);
+	    // For now always index topN files.
+	    index_flags |= DUC_INDEX_TOPN_FILES;
+	}
+
+	if(opt_histogram_buckets) {
+	    if (opt_histogram_buckets > DUC_HISTOGRAM_BUCKETS_MAX) {
+		duc_log(duc, DUC_LOG_FTL, "Cannot use more than %d histogram buckets.", DUC_HISTOGRAM_BUCKETS_MAX);
+		duc_index_req_set_buckets(req,DUC_HISTOGRAM_BUCKETS_MAX);
+	    }
+	    duc_index_req_set_buckets(req,opt_histogram_buckets);
+	}
 
 	if(argc < 1) {
 		duc_log(duc, DUC_LOG_FTL, "Required index PATH missing.");
@@ -89,6 +111,31 @@ static int index_main(duc *duc, int argc, char **argv)
 	if(opt_progress) {
 		duc_index_req_set_progress_cb(req, progress_cb, NULL);
 		duc_set_log_callback(duc, log_callback);
+	}
+
+	int c;
+	for (c=0; c<argc; c++) {
+	    struct statvfs buf;
+	    unsigned long iused;
+
+	    int s = statvfs(argv[c], &buf);
+	    if (s) {
+		duc_log(duc, DUC_LOG_FTL, "Can't run statvfs on %s", argv[c]);
+		return -1;
+	    }
+	    iused = buf.f_files - buf.f_ffree;
+	    if ( iused > 1000000) {
+		duc_log(duc, DUC_LOG_INF, "Found big filesystem");
+		open_flags |= DUC_FS_BIG;
+	    }
+	    if (iused > 10000000) {
+		duc_log(duc, DUC_LOG_INF, "Found bigger filesystem");
+		open_flags |= DUC_FS_BIGGER;
+	    }
+	    if (iused > 100000000) {
+		duc_log(duc, DUC_LOG_INF, "Found biggest filesystem");
+		open_flags |= DUC_FS_BIGGEST;
+	    }
 	}
 	
 	int r = duc_open(duc, opt_database, open_flags);
@@ -162,8 +209,9 @@ static void fn_fs_exclude(const char *val)
 
 
 static struct ducrc_option options[] = {
-	{ &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
-	{ &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file VAL" },
+    { &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
+    { &opt_histogram_buckets, "buckets", 'B', DUCRC_TYPE_INT,    "number of buckets in histogram, default XX" },
+    { &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file VAL" },  
 	{ fn_exclude,           "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching VAL"  },
 	{ &opt_check_hard_links,"check-hard-links",'H', DUCRC_TYPE_BOOL,   "count hard links only once",
           "if two or more hard links point to the same file, only one of the hard links is displayed and counted" },
@@ -175,6 +223,8 @@ static struct ducrc_option options[] = {
 	{ &opt_hide_file_names, "hide-file-names",  0 , DUCRC_TYPE_BOOL,   "hide file names in index (privacy)", 
 	  "the names of directories will be preserved, but the names of the individual files will be hidden" },
 	{ &opt_uid,             "uid",              'U', DUCRC_TYPE_INT,    "limit index to only files/dirs owned by uid" },
+	{ &opt_topn_cnt,        "topn",             'T', DUCRC_TYPE_INT,    "Number of topN largest files found to store in index" },
+	{ &opt_topn_min_size,   "topn-min",         'M', DUCRC_TYPE_INT,    "Minimum size (in bytes) to make topN list of files by size" },
 	{ &opt_username,        "username",         'u', DUCRC_TYPE_STRING, "limit index to only files/dirs owned by username" },
 	{ &opt_max_depth,       "max-depth",       'm', DUCRC_TYPE_INT,    "limit directory names to given depth" ,
 	  "when this option is given duc will traverse the complete file system, but will only store the "

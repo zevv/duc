@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <dirent.h>
 #include <time.h>
+#include <math.h>
 #include <sys/time.h>
 #include <unistd.h>
 #ifdef HAVE_FNMATCH_H
@@ -50,6 +51,8 @@ struct duc_index_req {
 	duc_dev_t dev;
 	duc_index_flags flags;
 	int maxdepth;
+        int topn_cnt;
+        int histogram_buckets;
         uid_t uid;
         const char *username;
 	duc_index_progress_cb progress_fn;
@@ -86,7 +89,7 @@ duc_index_req *duc_index_req_new(duc *duc)
 	req->progress_interval.tv_sec = 0;
 	req->progress_interval.tv_usec = 100 * 1000;
 	req->hard_link_map = NULL;
-
+	req->topn_cnt = DUC_TOPN_CNT;
 	return req;
 }
 
@@ -174,6 +177,18 @@ int duc_index_req_add_fstype_exclude(duc_index_req *req, const char *types)
 int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth)
 {
 	req->maxdepth = maxdepth;
+	return 0;
+}
+
+int duc_index_req_set_topn(duc_index_req *req, int cnt)
+{
+	req->topn_cnt = cnt;
+	return 0;
+}
+
+int duc_index_req_set_buckets(duc_index_req *req, int cnt)
+{
+	req->histogram_buckets = cnt;
 	return 0;
 }
 
@@ -287,6 +302,22 @@ static int is_duplicate(struct duc_index_req *req, struct duc_devino *devino)
 	h->devino = *devino;
 	HASH_ADD(hh, req->hard_link_map, devino, sizeof(h->devino), h);
 	return 0;
+}
+
+/* Sorts so smallest ends up in array[0] where we will ignore it. */
+int topn_comp(const void *a, const void *b) {
+
+    struct duc_topn_file* AA = *(struct duc_topn_file **)a;
+    struct duc_topn_file* BB = *(struct duc_topn_file **)b;
+
+    if (BB->size > AA->size) return -1;
+    if (BB->size < AA->size) return 1;
+    return 0;
+}
+
+// put data into Struct in array[0], sort array, smallest size ends up in array[0]
+int duc_topn_add(duc_topn_file *array, const void *path, size_t size, int topn_cnt) {
+
 }
 
 
@@ -523,11 +554,44 @@ static void scanner_scan(struct scanner *scanner_dir)
 			duc_size_accum(&report->size, &ent.size);
 
 			report->file_count ++;
+			
+			/* add to histogram, trapping zero size files first. */
+			int i;
+			if (st_ent.st_size == 0) {
+			    i = 0;
+			} else {
+			    // Doesn't dynamically scale for different bucket counts.
+			    i = (int) floor(log(st_ent.st_size) / log(2));
+			}
+
+			/* clamp size of histogram even if we run into monster sized file */
+			if (i >= report->histogram_buckets) {
+			    i = report->histogram_buckets;
+			    duc_log(duc, DUC_LOG_WRN, "File sizes large enough we ran out of histogram buckets %d, please increase the number of buckets and re-run your indexing.",report->histogram_buckets);
+			}
+			report->histogram[i]++;
 
 			duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
 					duc_file_type_char(ent.type), ent.size.apparent, ent.size.actual, name);
 
+			/* optionally track largest N files */
+			if (req->flags & DUC_INDEX_TOPN_FILES) { 
+			    //printf(" is (%ld > %ld) && (%ld > %ld)\n",st_ent.st_size,report->topn_min_size, st_ent.st_size, report->topn_array[0]->size);
+			    if ((st_ent.st_size > report->topn_min_size) && (st_ent.st_size > report->topn_array[0]->size)) {
+				char path_full[DUC_PATH_MAX];
+				char *res = realpath(name, path_full);
+				if (res == NULL) {
+				    report_skip(duc, name, "Cannot determine realpath result");
+				    // FIXME
+				    path_full[0] ='\0';
+				}
 
+				report->topn_array[0]->size = st_ent.st_size;
+				strncpy(report->topn_array[0]->name,path_full,sizeof(path_full));
+				qsort(report->topn_array, req->topn_cnt, sizeof(struct duc_topn_file *), topn_comp);
+			    }
+			}
+			
 			/* Optionally hide file names */
 
 			if(req->flags & DUC_INDEX_HIDE_FILE_NAMES) ent.name = "<FILE>";
@@ -538,6 +602,7 @@ static void scanner_scan(struct scanner *scanner_dir)
 			if((req->maxdepth == 0) || (scanner_dir->depth < req->maxdepth)) {
 				buffer_put_dirent(scanner_dir->buffer, &ent);
 			}
+
 		}
 	}
 
@@ -653,6 +718,17 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	/* Create report */
 	
 	struct duc_index_report *report = duc_malloc0(sizeof(struct duc_index_report));
+
+	for (int i = 0; i < req->topn_cnt; i++) {
+	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
+	}
+	report->topn_min_size = DUC_TOPN_MIN_FILE_SIZE;
+	report->topn_cnt_max = DUC_TOPN_CNT_MAX;
+	report->topn_cnt = req->topn_cnt;
+
+	report->histogram_buckets = req->histogram_buckets;
+
+
 	gettimeofday(&report->time_start, NULL);
 	snprintf(report->path, sizeof(report->path), "%s", path_canon);
 
@@ -697,7 +773,6 @@ int duc_index_report_free(struct duc_index_report *rep)
 	free(rep);
 	return 0;
 }
-
 
 /*
  * End

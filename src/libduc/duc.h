@@ -10,8 +10,21 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <locale.h>
 
 #define DUC_PATH_MAX 16384
+
+/* Don't expect to find files size 2^48 or larger, so we need a function that uses smaller buckets when we have a larger number of buckets.  Still being worked on. */
+#define DUC_HISTOGRAM_BUCKETS_MAX 512
+#define DUC_HISTOGRAM_BUCKETS_DEF 48
+
+/* Number of Largest files to track */
+#define DUC_TOPN_CNT 10
+/* Maximum number of topN files we can track, totally arbitrary... */
+#define DUC_TOPN_CNT_MAX 1000
+
+/* minimum file size to track in topN list: 10 kilobytes */
+#define DUC_TOPN_MIN_FILE_SIZE 10240
 
 #ifdef WIN32
 typedef int64_t duc_dev_t;
@@ -30,6 +43,9 @@ typedef enum {
 	DUC_OPEN_RW = 1<<1,        /* Open read-write (for indexing) */
 	DUC_OPEN_COMPRESS = 1<<2,  /* Create compressed database */
 	DUC_OPEN_FORCE = 1<<3,     /* Force over-write of database for indexing */
+	DUC_FS_BIG = 1<<4,       /* Tune for large filesystems to index */
+	DUC_FS_BIGGER = 1<<5,       /* Tune for large filesystems to index */
+	DUC_FS_BIGGEST = 1<<6,       /* Tune for large filesystems to index */
 } duc_open_flags;
 
 
@@ -38,6 +54,7 @@ typedef enum {
 	DUC_INDEX_HIDE_FILE_NAMES  = 1<<1, /* Hide file names */
 	DUC_INDEX_CHECK_HARD_LINKS = 1<<2, /* Count hard links only once during indexing */
 	DUC_INDEX_DRY_RUN          = 1<<3, /* Do not touch the database */
+	DUC_INDEX_TOPN_FILES       = 1<<4, /* Keep side DB of top N largest files */
 } duc_index_flags;
 
 typedef enum {
@@ -61,6 +78,7 @@ typedef enum {
 	DUC_E_PERMISSION_DENIED,    /* Permission denied */
 	DUC_E_OUT_OF_MEMORY,        /* Out of memory */
 	DUC_E_DB_BACKEND,           /* Unable to initialize database backend */
+	DUC_E_NOT_IMPLEMENTED,      /* Some feature request is not supported */
 	DUC_E_UNKNOWN,              /* Unknown error, contact the author */
 } duc_errno;
 
@@ -95,6 +113,14 @@ struct duc_size {
 	off_t count;
 };
 
+/* Track largest files found */
+
+typedef struct duc_topn_file {
+    // Should be dynamically allocated...
+    char name[DUC_PATH_MAX];
+    size_t size;
+} duc_topn_file;
+
 struct duc_index_report {
 	char path[DUC_PATH_MAX];        /* Indexed path */
 	struct duc_devino devino;   /* Index top device id and inode number */
@@ -103,6 +129,12 @@ struct duc_index_report {
 	size_t file_count;          /* Total number of files indexed */
 	size_t dir_count;           /* Total number of directories indexed */
 	struct duc_size size;       /* Total size */
+        size_t topn_min_size;       /* minimum size in bytes to get added to topN list of files */
+        int topn_cnt;               /* Max topN number of files to report on*/
+        int topn_cnt_max;           /* Maximum number of topN files to track */
+        int histogram_buckets;      /* Number of buckets in histogram */
+        size_t histogram[DUC_HISTOGRAM_BUCKETS_MAX];      /* histogram of file sizes, log(size)/log(2) */
+        duc_topn_file* topn_array[DUC_TOPN_CNT_MAX];    /* pointer to array of structs, stores each topN filename and size */
 };
 
 struct duc_dirent {
@@ -111,6 +143,7 @@ struct duc_dirent {
 	struct duc_size size;       /* File size */
 	struct duc_devino devino;   /* Device id and inode number */
 };
+
 
 /*
  * Duc context, logging and error reporting
@@ -150,6 +183,8 @@ int duc_index_req_add_fstype_include(duc_index_req *req, const char *types);
 int duc_index_req_add_fstype_exclude(duc_index_req *req, const char *types);
 int duc_index_req_set_maxdepth(duc_index_req *req, int maxdepth);
 int duc_index_req_set_progress_cb(duc_index_req *req, duc_index_progress_cb fn, void *ptr);
+int duc_index_req_set_topn(duc_index_req *req, int topn);
+int duc_index_req_set_buckets(duc_index_req *req, int topn);
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags);
 int duc_index_req_free(duc_index_req *req);
 int duc_index_report_free(struct duc_index_report *rep);
@@ -178,6 +213,7 @@ int duc_dir_close(duc_dir *dir);
  */
 
 off_t duc_get_size(struct duc_size *size, duc_size_type st);
+int humanize(double v, int exact, double scale, char *buf, size_t maxlen);
 int duc_human_number(double v, int exact, char *buf, size_t maxlen);
 int duc_human_size(const struct duc_size *size, duc_size_type st, int exact, char *buf, size_t maxlen);
 int duc_human_duration(struct timeval start, struct timeval end, char *buf, size_t maxlen);

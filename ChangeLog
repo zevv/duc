@@ -1,4 +1,25 @@
-
+1.5.0-rc1 (2024-09-03)
+	- new: added support for tkrzw backend DB and made it the default
+	  - this DB is newer and under active support compared to
+     	    TokyoCabinet, KyotoCabinet, etc.
+	  - also supports really large filesystems.  Big thanks to
+	    stuartthebruce for testing and debugging (Issue #300)
+	- new: added support to tracking topN largest files in
+	  filesystem. (Issue #284)
+	- new: added '-T' option to duc index to change maximum default number of
+               topN files to track.
+	- new: added '-B' option to duc index to change number of histogram buckets. 
+	- new: added 'topn' command to show topN files stored in
+               DB. defaults to 10 currently.
+	- new: added 't' key in duc ui to toggle between regular and topN
+               display mode.  Initial support.
+	- new: added histogram report of filesizes found during
+	       indexing to 'duc info'. (Issue #284)
+	- new: added 'H' or '--histogram' option to duc info
+	- new: added 'duc histogram' command  (Issue #284)
+	       - needs work still, especially CGI, UI and GUI output.
+	- fix: 
+	
 1.4.5   (2022-07-29)
 
 	- new: added '-u' option to duc index to index by username
