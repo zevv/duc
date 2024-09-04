@@ -16,13 +16,57 @@ Generate the configure script when it is not available (cloned git repo):
 To get the required dependencies on Debian or Ubuntu, run:
 
     $ sudo apt-get install libncursesw5-dev libcairo2-dev libpango1.0-dev \
-      build-essential libtokyocabinet-dev
+      build-essential libtkrzw-dev
+
+  On Debian 11 (bullseye), you need to have the following line in your
+  /etc/apt/sources.list file:
+
+     deb http://deb.debian.org/debian bullseye-backports main
+
+  Then you do:
+
+     $ sudo apt update
+     $ sudo apt-get install libtkrzw-dev tkrzw-doc tkrzw-utils
 
 
 On RHEL or CentOS systems, you need to do:
 
     $ sudo yum install pango-devel cairo-devel tokyocabinet-devel
 
+
+  RHEL 8 / Rockly Linux 8 / Alma Linux 8  
+
+    Download latest epel-release rpm from
+
+      http://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/
+
+    Install epel-release rpm:
+
+      # rpm -Uvh epel-release*rpm
+
+    Install tkrzw rpm package:
+
+      # dnf install tkrzw
+
+
+  RHEL 9 / Rockly Linux 9 / Alma Linux 9
+
+    Download latest epel-release rpm from
+
+      https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/e/epel-release-9-7.el9.noarch.rpm
+
+    Install epel-release rpm:
+
+      # rpm -Uvh epel-release*rpm
+
+    Install tkrzw rpm package:
+
+      # dnf install tkrzw
+
+  
+  
+
+   
 
 Duc comes with various user interfaces and a number of backends for database
 access and graph drawing. You can choose which options should be used with the
