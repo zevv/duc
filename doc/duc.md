@@ -166,7 +166,7 @@ Options for command `duc index [options] PATH ...`:
     limit index to only files/dirs owned by username
 
   * `-m`, `--max-depth=VAL`:
-    limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only the first VAL levels of directories in the database to reduce the size of the index
+    limit directory names to given depth. when this option is given duc will traverse the complete file system, but will only store the first VAL levels of directories in the database to reduce the size of the index
 
 
   * `-x`, `--one-file-system`:
