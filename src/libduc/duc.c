@@ -120,6 +120,18 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		return -1;
 	}
 
+	// Check that we can handle this Database is what we're
+	// compiled to support, but only if it exists...
+	struct stat sb;
+	int r = stat(path_db,&sb);
+	if (r == 0) {
+	    char *db_type = duc_db_type_check(path_db);
+	    if (db_type && (strcmp(db_type,DB_BACKEND) != 0)) {
+		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - unsupported DB type _%s_, duc compiled for %s", path_db, db_type, DB_BACKEND);
+		return -1;
+	    }
+	} 
+
 	duc_log(duc, DUC_LOG_INF, "%s database \"%s\"", 
 			(flags & DUC_OPEN_RO) ? "Reading from" : "Writing to",
 			path_db);
@@ -134,11 +146,6 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 	    /* Now we can maybe do some quick checks to see if we
 	     * tried to open a non-supported DB type. */
 
-	    char *db_type = duc_db_type_check(path_db);
-	    if (db_type && (strcmp(db_type,"unknown") == 0)) {
-		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - unsupported DB type _%s_, duc compiled for %s", path_db, db_type, DB_BACKEND);
-		return -1;
-	    }
 	}
 	return 0;
 }
