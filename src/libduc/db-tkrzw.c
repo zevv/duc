@@ -16,6 +16,13 @@
 #include "private.h"
 #include "db.h"
 
+// Enable compression using ZSTD if available
+#ifdef DUC_TKRZW_COMP_ZSTD
+  #define DUC_TKRZW_REC_COMP "RECORD_COMP_ZSTD"
+#else
+  #define DUC_TKRZW_REC_COMP "NONE"
+#endif
+
 struct db {
 	TkrzwDBM* hdb;
 };
@@ -74,7 +81,9 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	if (flags & DUC_OPEN_RW) writeable = 1;
 	if (flags & DUC_OPEN_COMPRESS) {
 	    /* Do no compression for now, need to update configure tests first */
-	    char comp[] = ",record_comp_mode=RECORD_COMP_LZ4";
+	    char comp[64];
+	    sprintf(comp,",record_comp_mode=%s",DUC_TKRZW_REC_COMP);
+	    printf("opening tkzrw DB with compression\n");
 	    strcat(options,comp);
 	}
 
