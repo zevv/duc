@@ -185,7 +185,7 @@ static duc_dir *do_dir(duc *duc, duc_dir *dir, int depth)
 
 				off_t size = duc_get_size(&e->size, st);;
 		
-				size_t max_size_len = opt_bytes ? 12 : 7;
+				int max_size_len = opt_bytes ? 12 : 7;
 
 				char class = duc_file_type_char(e->type);
 
