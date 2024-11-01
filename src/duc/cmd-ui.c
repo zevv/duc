@@ -192,7 +192,7 @@ static duc_dir *do_dir(duc *duc, duc_dir *dir, int depth)
 				char siz[32];
 				duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 				if(cur != i) attrset(attr_size);
-				printw("%*l", max_size_len, siz);
+				printw("%*lu", max_size_len, siz);
 
 				printw(" ");
 				char *p = e->name;
