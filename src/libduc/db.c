@@ -118,19 +118,23 @@ char *duc_db_type_check(const char *path_db)
 	size_t len = fread(buf, 1, sizeof(buf),f);
 	
 	if (strncmp(buf,"Kyoto CaBiNeT",13) == 0) {
-	    return("Kyoto Cabinet");
+	    return("kyotocabinet");
 	}
 	
 	if (strncmp(buf,"ToKyO CaBiNeT",13) == 0) {
-	    return("Tokyo Cabinet");
+	    return("tokyocabinet");
 	}
 
 	if (strncmp(buf,"TkrzwHDB",8) == 0) {
-	    return("Tkrzw HashDBM");
+	    return("tkrzw");
 	}
 
 	if (strncmp(buf,"SQLite format 3",15) == 0) {
-	    return("SQLite3");
+	    return("sqlite3");
+	}
+	
+	if (strncmp(buf,"SQLite format 3",15) == 0) {
+	    return("lmdb");
 	}
 	
     }
