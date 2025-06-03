@@ -83,7 +83,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	    /* Do no compression for now, need to update configure tests first */
 	    char comp[64];
 	    sprintf(comp,",record_comp_mode=%s",DUC_TKRZW_REC_COMP);
-	    printf("opening tkzrw DB with compression\n");
+	    printf("opening tkzrw DB with compression: %s\n",DUC_TKRZW_REC_COMP);
 	    strcat(options,comp);
 	}
 
