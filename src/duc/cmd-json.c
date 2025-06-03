@@ -28,19 +28,22 @@ static void indent(int n)
 	}
 }
 
-
 static void print_escaped(const char *s)
 {
-	while(*s) {
-		switch(*s) {
-			case '"': printf("\""); break;
-			case '\t': putchar('\t'); break;
-			case '\n': putchar('\n'); break;
-			case '\r': putchar('\r'); break;
-			default: putchar(*s); break;
-		}
-		s++;
-	}
+    const char *p = s;
+
+    while(*p) {
+	if(*p == '"' ) printf("\\\"");
+        else if(*p == '\\') printf("\\\\");
+        else if(*p == '\b') printf("\\b");
+        else if(*p == '\f') printf("\\f");
+        else if(*p == '\n') printf("\\n");
+        else if(*p == '\r') printf("\\r");
+        else if(*p == '\t') printf("\\t");
+        else if(*p < 0x20) printf("\\u%04x", *p);
+        else putchar(*p);
+        p++;
+    }
 }
 
 
