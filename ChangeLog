@@ -1,3 +1,12 @@
+1.5.0-rc2 (2025-06-02)
+	- fix: small update to fix potential CVE
+	- fix : improve detecting DB types when opening and giving out better
+	        errors.
+	- fix: Issue 340 - JSON escaping fixes.
+	- fix: Issue 324 - Support compiling on Alpine Linux 3.20, needs
+	  testing
+	
+	
 1.5.0-rc1 (2024-09-03)
 	- new: added support for tkrzw backend DB and made it the default
 	  - this DB is newer and under active support compared to
