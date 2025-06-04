@@ -119,7 +119,7 @@ char *duc_db_type_check(const char *path_db)
 	
 	char kyotocabinet[] = { 0x4b,0x43,0x0a,0x0,0x10,0x0e,0x06,0xb4,0x31,0x08,0x0a,0x04,0x00,0x00,0x00,0x00 };
 	if (memcmp(buf,kyotocabinet,16) == 0) {
-	    return("kyotocabinet(hex)");
+	    return("kyotocabinet");
 	}
 	
 	if (strncmp(buf,"ToKyO CaBiNeT",13) == 0) {
