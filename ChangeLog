@@ -1,11 +1,18 @@
 1.5.0-rc2 (2025-06-02)
-	- fix: small update to fix potential CVE
+	- fix: small update to fix potential CVE in buffer.c
 	- fix : improve detecting DB types when opening and giving out better
 	        errors.
 	- fix: Issue 340 - JSON escaping fixes.
 	- fix: Issue 324 - Support compiling on Alpine Linux 3.20, needs
 	  testing
-	
+	- Basic compile testing on the following linux distros:
+            - Rocky Linux 8
+	    - Rocky Linux 9
+	    - Debian 12
+	    - Debian 11
+	    - Ubuntu 22.04 LTS
+	    - Ubuntu 24.04 LTS
+	    - 
 	
 1.5.0-rc1 (2024-09-03)
 	- new: added support for tkrzw backend DB and made it the default
