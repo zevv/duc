@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdio.h>
+#include <errno.h>
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
@@ -59,6 +60,7 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[DUC_PATH_MAX];
+	int res = 0;
 
 	/* An empty path means check the ENV path instead */
 	if(path_db == NULL) {
@@ -94,7 +96,11 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/duc", home);
 			/* Create if needed */
-			mkdir(tmp, 0700);
+			res = mkdir(tmp, 0700);
+			if (res != 0) {
+			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create mkdir \"%s\", %s", tmp, strerror(errno));
+			    exit(1);
+			}
 			/* Append file to folder*/
 			snprintf(tmp, sizeof tmp, "%s/duc/duc.db", home);
 			path_db = tmp;
@@ -107,7 +113,11 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/.cache/duc", home);
 			/* Create if needed */
-			mkdir(tmp, 0700);
+			res = mkdir(tmp, 0700);
+			if (res != 0) {
+			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create mkdir \"%s\", %s", tmp, strerror(errno));
+			    exit(1);
+			}
 			/* Append file to folder*/
 			snprintf(tmp, sizeof tmp, "%s/.cache/duc/duc.db", home);
 			path_db = tmp;
