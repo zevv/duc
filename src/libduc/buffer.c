@@ -63,7 +63,7 @@ static int buffer_put(struct buffer *b, const void *data, size_t len)
 
 static int buffer_get(struct buffer *b, void *data, size_t len)
 {
-	if(b->ptr <= b->len - len) {
+	if(b->ptr + len <= b->len) {
 		memcpy(data, b->data + b->ptr, len);
 		b->ptr += len;
 		return len;
@@ -81,7 +81,7 @@ static int buffer_put_varint(struct buffer *b, uint64_t v)
 	return l;
 } 
 
-
+// See varint.c for the algorithm for encoding integers into 1-9 bytes.
 static int buffer_get_varint(struct buffer *b, uint64_t *v)
 {
 	uint8_t buf[9];
