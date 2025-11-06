@@ -63,7 +63,7 @@ static int buffer_put(struct buffer *b, const void *data, size_t len)
 
 static int buffer_get(struct buffer *b, void *data, size_t len)
 {
-	if(b->ptr <= b->len - len) {
+	if(b->ptr + len <= b->len) {
 		memcpy(data, b->data + b->ptr, len);
 		b->ptr += len;
 		return len;
