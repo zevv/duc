@@ -1,4 +1,8 @@
 
+	- new: added LICENCE to 'make release' target
+    - fix: fixed logic error in buffer_get()
+	- cha: updated tests
+
 1.4.5   (2022-07-29)
 
 	- new: added '-u' option to duc index to index by username
