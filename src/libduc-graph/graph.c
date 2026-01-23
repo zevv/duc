@@ -208,9 +208,13 @@ static void gen_tooltip(duc_graph *g, struct duc_size *size, const char *name, d
 	char *p = g->tooltip_msg;
 	int l = sizeof(g->tooltip_msg);
 	if(name) {
-		p += snprintf(p, l, "name: %s\n", name);
+		int r = snprintf(p, l, "name: %s\n", name);
+		if(r > 0 && r < l) {
+			p += r;
+			l -= r;
+		}
 	}
-	p += snprintf(p, l, 
+	int r = snprintf(p, l, 
 			"type: %s\n"
 			"actual size: %s\n"
 			"apparent size: %s\n"
