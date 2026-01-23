@@ -232,7 +232,7 @@ char *duc_canonicalize_path(const char *in)
 
 	if(n == 0) utstring_printf(&out, "/");
 
-	free(s.cs);
+	duc_free(s.cs);
 	return utstring_body(&out);	
 }
 
