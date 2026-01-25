@@ -75,6 +75,7 @@ struct scanner {
 	struct duc_index_req *req;
 	struct duc_index_report *rep;
 	struct duc_dirent ent;
+	char current_absolute_path[DUC_PATH_MAX];  /* Track current absolute path */
 };
 
 
@@ -231,6 +232,43 @@ static int match_exclude(const char *name, struct exclude *list)
 #else
 		if(strstr(name, e->name) == 0) return 1;
 #endif
+	}
+	return 0;
+}
+
+
+static void update_absolute_path(struct scanner *scanner, const char *relative_name)
+{
+	if (scanner->parent) {
+		snprintf(scanner->current_absolute_path, DUC_PATH_MAX, 
+				"%s/%s", scanner->parent->current_absolute_path, relative_name);
+	} else {
+		strncpy(scanner->current_absolute_path, relative_name, DUC_PATH_MAX - 1);
+		scanner->current_absolute_path[DUC_PATH_MAX - 1] = '\0';
+	}
+}
+
+
+static int match_exclude_absolute(const char *absolute_path, const char *relative_name, struct exclude *list)
+{
+	struct exclude *e;
+	LL_FOREACH(list, e) {
+		/* Check if pattern is absolute (contains '/') */
+		if (strchr(e->name, '/') != NULL) {
+			/* Absolute pattern - match against full path */
+#ifdef HAVE_FNMATCH_H
+			if(fnmatch(e->name, absolute_path, 0) == 0) return 1;
+#else
+			if(strstr(absolute_path, e->name) != NULL) return 1;
+#endif
+		} else {
+			/* Relative pattern - match against basename (existing behavior) */
+#ifdef HAVE_FNMATCH_H
+			if(fnmatch(e->name, relative_name, 0) == 0) return 1;
+#else
+			if(strstr(relative_name, e->name) != NULL) return 1;
+#endif
+		}
 	}
 	return 0;
 }
@@ -428,6 +466,15 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 	scanner->parent = scanner_parent;
 	scanner->buffer = buffer_new(NULL, 32768);
 
+	/* Initialize absolute path tracking */
+	if(scanner_parent) {
+		update_absolute_path(scanner, path);
+	} else {
+		/* For root scanner, use the path as-is (will be canonicalized later) */
+		strncpy(scanner->current_absolute_path, path, DUC_PATH_MAX - 1);
+		scanner->current_absolute_path[DUC_PATH_MAX - 1] = '\0';
+	}
+
 	scanner->ent.name = duc_strdup(path);
 	scanner->ent.type = DUC_FILE_TYPE_DIR,
 	st_to_devino(st, &scanner->ent.devino);
@@ -477,7 +524,11 @@ static void scanner_scan(struct scanner *scanner_dir)
 			if((name[1] == '.') && (name[2] == '\0')) continue;
 		}
 
-		if(match_exclude(name, req->exclude_list)) {
+		/* Construct absolute path for exclusion matching */
+		char full_path[DUC_PATH_MAX];
+		snprintf(full_path, DUC_PATH_MAX, "%s/%s", scanner_dir->current_absolute_path, name);
+
+		if(match_exclude_absolute(full_path, name, req->exclude_list)) {
 			report_skip(duc, name, "Excluded by user");
 			continue;
 		}
