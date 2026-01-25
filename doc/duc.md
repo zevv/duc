@@ -92,7 +92,7 @@ useful for excluding specific system directories like `/usr` or `/var/log`.
 #### Usage Examples
 
 ```bash
-# Old-style relative patterns (existing behavior)
+# Old-style relative patterns (old behavior)
 duc index -e tmp -e '*.log' -e cache /home/user
 
 # Exclude system directories from root filesystem scan (new absolute patterns)
