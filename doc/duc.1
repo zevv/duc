@@ -38,24 +38,64 @@ You can run \fBduc index\fR at any time later to rebuild the index\.
 By default Duc indexes all directories it encounters during file system traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for the options \-\-one\-file\-system, \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
 .SS "Absolute Path Exclusion"
 Duc now supports excluding absolute paths using wildcard patterns\. This is useful for excluding specific system directories like \fB/usr\fR or \fB/var/log\fR\.
+.SS "Pattern Types"
 .P
-\fIRelative patterns\fR (existing behavior): \fBtmp\fR, \fB*\.log\fR, \fBcache\fR \fIAbsolute path patterns\fR (new): \fB*/usr\fR, \fB*/var/log/*\fR, \fB*/home/*/Downloads\fR
+\fIRelative patterns\fR (existing behavior): \fBtmp\fR, \fB*\.log\fR, \fBcache\fR
+.IP "\(bu" 4
+Match against file/directory names only
+.IP "\(bu" 4
+Examples: \fBtmp\fR matches any directory named "tmp"
+.IP "\(bu" 4
+Examples: \fB*\.log\fR matches any file ending in "\.log"
+.IP "" 0
 .P
-Note: Absolute patterns require wildcards because DUC matches against full paths during traversal\. Use \fB*/usr\fR instead of \fB/usr\fR to exclude the entire /usr directory\.
+\fIAbsolute path patterns\fR (new): \fB*/usr\fR, \fB*/var/log/*\fR, \fB*/home/*/Downloads\fR
+.IP "\(bu" 4
+Match against full absolute paths during traversal
+.IP "\(bu" 4
+Require wildcards because DUC sees full paths like \fB/usr/bin/program\fR
+.IP "\(bu" 4
+Examples: \fB*/usr\fR excludes the entire \fB/usr\fR directory and all contents
+.IP "" 0
+.SS "Why Wildcards Are Required"
 .P
-Examples:
+DUC uses \fBchdir()\fR to traverse directories, so it processes full absolute paths:
+.IP "\(bu" 4
+When scanning \fB/usr/bin/program\fR, DUC sees the full path \fB/usr/bin/program\fR
+.IP "\(bu" 4
+Pattern \fB/usr\fR would only match exactly \fB/usr\fR, not its contents
+.IP "\(bu" 4
+Pattern \fB*/usr\fR matches any path ending with \fB/usr\fR, properly excluding the directory
+.IP "" 0
+.SS "Usage Examples"
 .IP "" 4
 .nf
-# Exclude system directories
+# Exclude system directories from root filesystem scan
 duc index \-\-one\-file\-system \-e '*/usr' \-e '*/var/lib/snapd' /
 
-# Mix absolute and relative patterns
+# Exclude user\-specific directories from home directory scan
+duc index \-e '*/Downloads' \-e '*/cache' /home
+
+# Mix absolute and relative patterns in one command
 duc index \-e '*/usr/local/*' \-e '*\.tmp' \-e 'tmp' /
 
-# Exclude all log files anywhere
+# Exclude all log files anywhere in the filesystem
 duc index \-e '*/*\.log' /
+
+# More advanced patterns
+duc index \-e '*/home/*/Downloads' \-e '*/var/log/*\.log' /
 .fi
 .IP "" 0
+.SS "Pattern Matching Reference"
+.TS
+allbox;
+l l l l.
+Pattern Type	Example	Matches	Doesn't Match
+\fBAbsolute with wildcard\fR	\fB'*/usr'\fR	\fB/usr\fR, \fB/some/path/usr\fR	\fB/usr/bin\fR (excluded as child)
+\fBAbsolute specific\fR	\fB'*/var/log/*\.log'\fR	\fB/var/log/system\.log\fR, \fB/var/log/app\.log\fR	\fB/var/log/\fR (directory)
+\fBRelative (existing)\fR	\fB'tmp'\fR	\fBtmp\fR, \fB/some/path/tmp\fR	N/A (basename matching)
+\fBRelative wildcard\fR	\fB'*\.log'\fR	\fBfile\.log\fR, \fB/path/file\.log\fR	N/A (basename matching)
+.TE
 .SH "QUERYING THE INDEX"
 Duc has various subcommands for querying or exploring the index: (Note that depending on your configuration, some of these commands might not be available)
 .IP "\(bu" 4
@@ -120,7 +160,7 @@ number of buckets in histogram, default XX
 use database file VAL
 .TP
 \fB\-e\fR, \fB\-\-exclude=VAL\fR
-exclude files matching VAL\. VAL can be relative (tmp, \fI\.log) or absolute with wildcards (\fR/usr, \fI/var/log/\fR)
+exclude files matching VAL\. Relative: tmp, \fI\.log\. Absolute with wildcards: */usr, */var/log/\fR (use */usr not /usr)
 .TP
 \fB\-H\fR, \fB\-\-check\-hard\-links\fR
 count hard links only once\. if two or more hard links point to the same file, only one of the hard links is displayed and counted

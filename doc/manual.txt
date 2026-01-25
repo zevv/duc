@@ -77,24 +77,52 @@ scan, check the documentation below for the options --one-file-system,
 Duc now supports excluding absolute paths using wildcard patterns. This is
 useful for excluding specific system directories like `/usr` or `/var/log`.
 
+#### Pattern Types
+
 *Relative patterns* (existing behavior): `tmp`, `*.log`, `cache`
+  - Match against file/directory names only
+  - Examples: `tmp` matches any directory named "tmp"
+  - Examples: `*.log` matches any file ending in ".log"
+
 *Absolute path patterns* (new): `*/usr`, `*/var/log/*`, `*/home/*/Downloads`
+  - Match against full absolute paths during traversal
+  - Require wildcards because DUC sees full paths like `/usr/bin/program`
+  - Examples: `*/usr` excludes the entire `/usr` directory and all contents
 
-Note: Absolute patterns require wildcards because DUC matches against full
-paths during traversal. Use `*/usr` instead of `/usr` to exclude the entire
-/usr directory.
+#### Why Wildcards Are Required
 
-Examples:
-```
-# Exclude system directories
+DUC uses `chdir()` to traverse directories, so it processes full absolute paths:
+- When scanning `/usr/bin/program`, DUC sees the full path `/usr/bin/program`
+- Pattern `/usr` would only match exactly `/usr`, not its contents
+- Pattern `*/usr` matches any path ending with `/usr`, properly excluding the directory
+
+#### Usage Examples
+
+```bash
+# Exclude system directories from root filesystem scan
 duc index --one-file-system -e '*/usr' -e '*/var/lib/snapd' /
 
-# Mix absolute and relative patterns
+# Exclude user-specific directories from home directory scan
+duc index -e '*/Downloads' -e '*/cache' /home
+
+# Mix absolute and relative patterns in one command
 duc index -e '*/usr/local/*' -e '*.tmp' -e 'tmp' /
 
-# Exclude all log files anywhere
+# Exclude all log files anywhere in the filesystem
 duc index -e '*/*.log' /
+
+# More advanced patterns
+duc index -e '*/home/*/Downloads' -e '*/var/log/*.log' /
 ```
+
+#### Pattern Matching Reference
+
+| Pattern Type | Example | Matches | Doesn't Match |
+|-------------|---------|---------|----------------|
+| **Absolute with wildcard** | `'*/usr'` | `/usr`, `/some/path/usr` | `/usr/bin` (excluded as child) |
+| **Absolute specific** | `'*/var/log/*.log'` | `/var/log/system.log`, `/var/log/app.log` | `/var/log/` (directory) |
+| **Relative (existing)** | `'tmp'` | `tmp`, `/some/path/tmp` | N/A (basename matching) |
+| **Relative wildcard** | `'*.log'` | `file.log`, `/path/file.log` | N/A (basename matching) |
 
 
 ## QUERYING THE INDEX

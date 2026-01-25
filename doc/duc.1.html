@@ -167,23 +167,99 @@ scan, check the documentation below for the options --one-file-system,
 <p>Duc now supports excluding absolute paths using wildcard patterns. This is
 useful for excluding specific system directories like <code>/usr</code> or <code>/var/log</code>.</p>
 
-<p><em>Relative patterns</em> (existing behavior): <code>tmp</code>, <code>*.log</code>, <code>cache</code>
-<em>Absolute path patterns</em> (new): <code>*/usr</code>, <code>*/var/log/*</code>, <code>*/home/*/Downloads</code></p>
+<h4 id="Pattern-Types">Pattern Types</h4>
 
-<p>Note: Absolute patterns require wildcards because DUC matches against full
-paths during traversal. Use <code>*/usr</code> instead of <code>/usr</code> to exclude the entire
-/usr directory.</p>
+<p><em>Relative patterns</em> (existing behavior): <code>tmp</code>, <code>*.log</code>, <code>cache</code></p>
+<ul>
+  <li>Match against file/directory names only</li>
+  <li>Examples: <code>tmp</code> matches any directory named "tmp"</li>
+  <li>Examples: <code>*.log</code> matches any file ending in ".log"</li>
+</ul>
 
-<p>Examples:</p>
-<pre><code># Exclude system directories
-duc index --one-file-system -e '*/usr' -e '*/var/lib/snapd' /
+<p><em>Absolute path patterns</em> (new): <code>*/usr</code>, <code>*/var/log/*</code>, <code>*/home/*/Downloads</code></p>
+<ul>
+  <li>Match against full absolute paths during traversal</li>
+  <li>Require wildcards because DUC sees full paths like <code>/usr/bin/program</code>
+</li>
+  <li>Examples: <code>*/usr</code> excludes the entire <code>/usr</code> directory and all contents</li>
+</ul>
 
-# Mix absolute and relative patterns
-duc index -e '*/usr/local/*' -e '*.tmp' -e 'tmp' /
+<h4 id="Why-Wildcards-Are-Required">Why Wildcards Are Required</h4>
 
-# Exclude all log files anywhere
-duc index -e '*/*.log' /
-</code></pre>
+<p>DUC uses <code>chdir()</code> to traverse directories, so it processes full absolute paths:</p>
+<ul>
+  <li>When scanning <code>/usr/bin/program</code>, DUC sees the full path <code>/usr/bin/program</code>
+</li>
+  <li>Pattern <code>/usr</code> would only match exactly <code>/usr</code>, not its contents</li>
+  <li>Pattern <code>*/usr</code> matches any path ending with <code>/usr</code>, properly excluding the directory</li>
+</ul>
+
+<h4 id="Usage-Examples">Usage Examples</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Exclude system directories from root filesystem scan</span>
+duc index <span class="nt">--one-file-system</span> <span class="nt">-e</span> <span class="s1">'*/usr'</span> <span class="nt">-e</span> <span class="s1">'*/var/lib/snapd'</span> /
+
+<span class="c"># Exclude user-specific directories from home directory scan</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/Downloads'</span> <span class="nt">-e</span> <span class="s1">'*/cache'</span> /home
+
+<span class="c"># Mix absolute and relative patterns in one command</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/usr/local/*'</span> <span class="nt">-e</span> <span class="s1">'*.tmp'</span> <span class="nt">-e</span> <span class="s1">'tmp'</span> /
+
+<span class="c"># Exclude all log files anywhere in the filesystem</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/*.log'</span> /
+
+<span class="c"># More advanced patterns</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/home/*/Downloads'</span> <span class="nt">-e</span> <span class="s1">'*/var/log/*.log'</span> /
+</code></pre></div></div>
+
+<h4 id="Pattern-Matching-Reference">Pattern Matching Reference</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Pattern Type</th>
+      <th>Example</th>
+      <th>Matches</th>
+      <th>Doesn't Match</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Absolute with wildcard</strong></td>
+      <td><code>'*/usr'</code></td>
+      <td>
+<code>/usr</code>, <code>/some/path/usr</code>
+</td>
+      <td>
+<code>/usr/bin</code> (excluded as child)</td>
+    </tr>
+    <tr>
+      <td><strong>Absolute specific</strong></td>
+      <td><code>'*/var/log/*.log'</code></td>
+      <td>
+<code>/var/log/system.log</code>, <code>/var/log/app.log</code>
+</td>
+      <td>
+<code>/var/log/</code> (directory)</td>
+    </tr>
+    <tr>
+      <td><strong>Relative (existing)</strong></td>
+      <td><code>'tmp'</code></td>
+      <td>
+<code>tmp</code>, <code>/some/path/tmp</code>
+</td>
+      <td>N/A (basename matching)</td>
+    </tr>
+    <tr>
+      <td><strong>Relative wildcard</strong></td>
+      <td><code>'*.log'</code></td>
+      <td>
+<code>file.log</code>, <code>/path/file.log</code>
+</td>
+      <td>N/A (basename matching)</td>
+    </tr>
+  </tbody>
+</table>
 
 <h2 id="QUERYING-THE-INDEX">QUERYING THE INDEX</h2>
 
@@ -295,7 +371,7 @@ are written to the index, and can later be queried by one of the other duc tools
 <dt>
 <code>-e</code>, <code>--exclude=VAL</code>
 </dt>
-<dd>exclude files matching VAL. VAL can be relative (tmp, <em>.log) or absolute with wildcards (</em>/usr, <em>/var/log/</em>)</dd>
+<dd>exclude files matching VAL. Relative: tmp, <em>.log. Absolute with wildcards: */usr, */var/log/</em> (use */usr not /usr)</dd>
 <dt>
 <code>-H</code>, <code>--check-hard-links</code>
 </dt>
