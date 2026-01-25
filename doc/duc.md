@@ -122,6 +122,22 @@ Options for command `duc help [options]`:
   * `-a`, `--all`:
     show complete help for all commands
 
+### duc histogram
+
+Options for command `duc histogram [options]`:
+
+  * `-a`, `--apparent`:
+    show apparent instead of actual file size
+
+  * `-b`, `--bytes`:
+    show bucket size in exact number of bytes
+
+  * `-d`, `--database=VAL`:
+    select database file to use [~/.duc.db]
+
+  * `-t`, `--base10`:
+    show histogram in base 10 bucket spacing, default base2 bucket sizes.
+
 ### duc index
 
 The 'index' subcommand performs a recursive scan of the given paths on the
@@ -133,6 +149,9 @@ Options for command `duc index [options] PATH ...`:
 
   * `-b`, `--bytes`:
     show file size in exact number of bytes
+
+  * `-B`, `--buckets=VAL`:
+    number of buckets in histogram, default XX
 
   * `-d`, `--database=VAL`:
     use database file VAL
@@ -161,6 +180,12 @@ Options for command `duc index [options] PATH ...`:
 
   * `-U`, `--uid=VAL`:
     limit index to only files/dirs owned by uid
+
+  * `-T`, `--topn=VAL`:
+    Number of topN largest files found to store in index
+
+  * `-M`, `--topn-min=VAL`:
+    Minimum size (in bytes) to make topN list of files by size
 
   * `-u`, `--username=VAL`:
     limit index to only files/dirs owned by username
@@ -194,6 +219,9 @@ Options for command `duc info [options]`:
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
+
+  * `-H`, `--histogram`:
+    show file size in exact number of bytes
 
 ### duc ls
 
@@ -245,6 +273,16 @@ Options for command `duc ls [options] [PATH]...`:
 
   * `-R`, `--recursive`:
     recursively list subdirectories
+
+### duc topn
+
+Options for command `duc topn [options]`:
+
+  * `-b`, `--bytes`:
+    show file size in exact number of bytes
+
+  * `-d`, `--database=VAL`:
+    select database file to use [~/.duc.db]
 
 ### duc xml
 
@@ -441,7 +479,7 @@ The 'ui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 
-The following keys can be used to navigate and alter the file system:
+The following keys can be used to navigate and (maybe) alter the file system:
 
     up, pgup, j:     move cursor up
     down, pgdn, k:   move cursor down
@@ -456,6 +494,7 @@ The following keys can be used to navigate and alter the file system:
     n:               toggle sort order between 'size' and 'name'
     o:               try to open the file using xdg-open
     q, escape:       quit
+    t:               toggle between regular view and TopN files by size
 
 
 Options for command `duc ui [options] [PATH]`:
@@ -697,6 +736,6 @@ Duc is free software; you can redistribute it and/or modify it under the terms
 of the GNU Lesser General Public License as published by the Free Software
 Foundation; version 3 dated June, 2007. Duc is distributed in the hope that it
 will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Lesser
 Public License for more details.
 
