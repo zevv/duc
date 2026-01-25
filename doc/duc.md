@@ -72,6 +72,30 @@ select what parts of your filesystem you want to include or exclude from the
 scan, check the documentation below for the options --one-file-system, 
 --exclude, --fs-exclude and --fs-include for more details.
 
+### Absolute Path Exclusion
+
+Duc now supports excluding absolute paths using wildcard patterns. This is
+useful for excluding specific system directories like `/usr` or `/var/log`.
+
+*Relative patterns* (existing behavior): `tmp`, `*.log`, `cache`
+*Absolute path patterns* (new): `*/usr`, `*/var/log/*`, `*/home/*/Downloads`
+
+Note: Absolute patterns require wildcards because DUC matches against full
+paths during traversal. Use `*/usr` instead of `/usr` to exclude the entire
+/usr directory.
+
+Examples:
+```
+# Exclude system directories
+duc index --one-file-system -e '*/usr' -e '*/var/lib/snapd' /
+
+# Mix absolute and relative patterns
+duc index -e '*/usr/local/*' -e '*.tmp' -e 'tmp' /
+
+# Exclude all log files anywhere
+duc index -e '*/*.log' /
+```
+
 
 ## QUERYING THE INDEX
 
@@ -157,7 +181,7 @@ Options for command `duc index [options] PATH ...`:
     use database file VAL
 
   * `-e`, `--exclude=VAL`:
-    exclude files matching VAL
+    exclude files matching VAL. VAL can be relative (tmp, *.log) or absolute with wildcards (*/usr, */var/log/*)
 
   * `-H`, `--check-hard-links`:
     count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted
