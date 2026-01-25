@@ -102,34 +102,34 @@ int duc_index_req_free(duc_index_req *req)
 
 	HASH_ITER(hh, req->hard_link_map, h, hn) {
 		HASH_DEL(req->hard_link_map, h);
-		free(h);
+		duc_free(h);
 	}
 	
 	HASH_ITER(hh, req->fstypes_mounted, f, fn) {
 		duc_free(f->type);
 		duc_free(f->path);
 		HASH_DEL(req->fstypes_mounted, f);
-		free(f);
+		duc_free(f);
 	}
 	
 	HASH_ITER(hh, req->fstypes_include, f, fn) {
 		duc_free(f->type);
 		HASH_DEL(req->fstypes_include, f);
-		free(f);
+		duc_free(f);
 	}
 	
 	HASH_ITER(hh, req->fstypes_exclude, f, fn) {
 		duc_free(f->type);
 		HASH_DEL(req->fstypes_exclude, f);
-		free(f);
+		duc_free(f);
 	}
 
 	LL_FOREACH_SAFE(req->exclude_list, e, en) {
-		free(e->name);
-		free(e);
+		duc_free(e->name);
+		duc_free(e);
 	}
 
-	free(req);
+	duc_free(req);
 
 	return 0;
 }
@@ -442,7 +442,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 
 err:
 	if(scanner->d) closedir(scanner->d);
-	if(scanner) free(scanner);
+	if(scanner) duc_free(scanner);
 	return NULL;
 }
 
@@ -564,12 +564,15 @@ static void scanner_scan(struct scanner *scanner_dir)
 			    i = (int) floor(log(st_ent.st_size) / log(2));
 			}
 
-			/* clamp size of histogram even if we run into monster sized file */
-			if (i >= report->histogram_buckets) {
-			    i = report->histogram_buckets;
-			    duc_log(duc, DUC_LOG_WRN, "File sizes large enough we ran out of histogram buckets %d, please increase the number of buckets and re-run your indexing.",report->histogram_buckets);
+			/* Only use histogram if buckets > 0 */
+			if (report->histogram_buckets > 0) {
+			    /* clamp size of histogram even if we run into monster sized file */
+			    if (i >= report->histogram_buckets) {
+				i = report->histogram_buckets - 1;
+				duc_log(duc, DUC_LOG_WRN, "File sizes large enough we ran out of histogram buckets %d, please increase the number of buckets and re-run your indexing.",report->histogram_buckets);
+			    }
+			    report->histogram[i]++;
 			}
-			report->histogram[i]++;
 
 			duc_log(duc, DUC_LOG_DMP, "  %c %jd %jd %s", 
 					duc_file_type_char(ent.type), ent.size.apparent, ent.size.actual, name);
@@ -587,7 +590,8 @@ static void scanner_scan(struct scanner *scanner_dir)
 				}
 
 				report->topn_array[0]->size = st_ent.st_size;
-				strncpy(report->topn_array[0]->name,path_full,sizeof(path_full));
+				strncpy(report->topn_array[0]->name, path_full, DUC_PATH_MAX - 1);
+				report->topn_array[0]->name[DUC_PATH_MAX - 1] = '\0';
 				qsort(report->topn_array, req->topn_cnt, sizeof(struct duc_topn_file *), topn_comp);
 			    }
 			}
@@ -761,7 +765,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 		db_write_report(duc, report);
 	}
 
-	free(path_canon);
+	duc_free(path_canon);
 
 	return report;
 }
@@ -770,7 +774,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 int duc_index_report_free(struct duc_index_report *rep)
 {
-	free(rep);
+	duc_free(rep);
 	return 0;
 }
 

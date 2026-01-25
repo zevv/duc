@@ -47,19 +47,21 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 			       sizeof(report->histogram));
 		}
 
-		/* write topn array, FIXME to really work... */
+		/* write topn array, FIXME to really work... DISABLED FOR NOW */
+		/*
 		char str[] = "duc_index_topn_info";
 		int str_len = sizeof(str);
 		tmp = db_get(duc->db, str, str_len , &tmpl);
 		if (tmp) {
-			tmp = duc_realloc(tmp, tmpl + sizeof(report->topn_array));
-			memcpy(tmp + tmpl, report->topn_array, sizeof(report->topn_array));
-			db_put(duc->db, str, str_len, tmp, 
-			       tmpl + sizeof(report->topn_array));
+			size_t topn_size = report->topn_cnt * sizeof(duc_topn_file *);
+			tmp = duc_realloc(tmp, tmpl + topn_size);
+			memcpy(tmp + tmpl, report->topn_array, topn_size);
+			db_put(duc->db, str, str_len, tmp, tmpl + topn_size);
 		} else {
-			db_put(duc->db, str, str_len, report->topn_array, 
-			       sizeof(report->topn_array));
+			size_t topn_size = report->topn_cnt * sizeof(duc_topn_file *);
+			db_put(duc->db, str, str_len, report->topn_array, topn_size);
 		}
+		*/
 
 	} else {
 		free(tmp);
