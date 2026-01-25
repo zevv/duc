@@ -268,7 +268,7 @@ static int match_exclude_absolute(const char *absolute_path, const char *relativ
 			if(strstr(absolute_path, e->name) != NULL) return 1;
 #endif
 		} else {
-			/* Relative pattern - match against basename (existing behavior) */
+			/* Relative pattern - match against basename (old behavior) */
 #ifdef HAVE_FNMATCH_H
 			if(fnmatch(e->name, relative_name, 0) == 0) return 1;
 #else

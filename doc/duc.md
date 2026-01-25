@@ -79,7 +79,7 @@ useful for excluding specific system directories like `/usr` or `/var/log`.
 
 #### Pattern Types
 
-*Relative patterns* (existing behavior): `tmp`, `*.log`, `cache`
+*Relative patterns* (old behavior): `tmp`, `*.log`, `cache`
   - Match against file/directory names only
   - Examples: `tmp` matches any directory named "tmp"
   - Examples: `*.log` matches any file ending in ".log"
