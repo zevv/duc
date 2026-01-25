@@ -72,6 +72,54 @@ select what parts of your filesystem you want to include or exclude from the
 scan, check the documentation below for the options --one-file-system, 
 --exclude, --fs-exclude and --fs-include for more details.
 
+### Absolute Path Exclusion
+
+Duc now supports excluding absolute paths using wildcard patterns. This is
+useful for excluding specific system directories like `/usr` or `/var/log`.
+
+#### Pattern Types
+
+*Relative patterns* (old behavior): `tmp`, `*.log`, `cache`
+  - Match against file/directory names only
+  - Examples: `tmp` matches any directory named "tmp"
+  - Examples: `*.log` matches any file ending in ".log"
+
+*Absolute path patterns* (new): `*/usr`, `*/var/log/*`, `*/home/*/Downloads`
+  - Match against full absolute paths during traversal
+  - Require wildcards because DUC sees full paths like `/usr/bin/program`
+  - Examples: `*/usr` excludes the entire `/usr` directory and all contents
+
+#### Usage Examples
+
+```bash
+# Old-style relative patterns (old behavior)
+duc index -e tmp -e '*.log' -e cache /home/user
+
+# Exclude system directories from root filesystem scan (new absolute patterns)
+duc index --one-file-system -e '*/usr' -e '*/var/lib/snapd' /
+
+# Exclude user-specific directories from home directory scan
+duc index -e '*/Downloads' -e '*/cache' /home
+
+# Mix absolute and relative patterns in one command
+duc index -e '*/usr/local/*' -e '*.tmp' -e 'tmp' /
+
+# Exclude all log files anywhere in the filesystem
+duc index -e '*/*.log' /
+
+# More advanced patterns
+duc index -e '*/home/*/Downloads' -e '*/var/log/*.log' /
+```
+
+#### Pattern Matching Reference
+
+| Pattern Type | Example | Matches | Doesn't Match |
+|-------------|---------|---------|----------------|
+| **Absolute with wildcard** | `'*/usr'` | `/usr`, `/some/path/usr` | `/usr/bin` (excluded as child) |
+| **Absolute specific** | `'*/var/log/*.log'` | `/var/log/system.log`, `/var/log/app.log` | `/var/log/` (directory) |
+| **Relative (old)** | `'tmp'` | `tmp`, `/some/path/tmp` | N/A (basename matching) |
+| **Relative wildcard** | `'*.log'` | `file.log`, `/path/file.log` | N/A (basename matching) |
+
 
 ## QUERYING THE INDEX
 
@@ -122,6 +170,22 @@ Options for command `duc help [options]`:
   * `-a`, `--all`:
     show complete help for all commands
 
+### duc histogram
+
+Options for command `duc histogram [options]`:
+
+  * `-a`, `--apparent`:
+    show apparent instead of actual file size
+
+  * `-b`, `--bytes`:
+    show bucket size in exact number of bytes
+
+  * `-d`, `--database=VAL`:
+    select database file to use [~/.duc.db]
+
+  * `-t`, `--base10`:
+    show histogram in base 10 bucket spacing, default base2 bucket sizes.
+
 ### duc index
 
 The 'index' subcommand performs a recursive scan of the given paths on the
@@ -134,11 +198,14 @@ Options for command `duc index [options] PATH ...`:
   * `-b`, `--bytes`:
     show file size in exact number of bytes
 
+  * `-B`, `--buckets=VAL`:
+    number of buckets in histogram, default XX
+
   * `-d`, `--database=VAL`:
     use database file VAL
 
   * `-e`, `--exclude=VAL`:
-    exclude files matching VAL
+    exclude files matching VAL. Relative: tmp, *.log. Absolute with wildcards: */usr, */var/log/* (use */usr not /usr)
 
   * `-H`, `--check-hard-links`:
     count hard links only once. if two or more hard links point to the same file, only one of the hard links is displayed and counted
@@ -161,6 +228,12 @@ Options for command `duc index [options] PATH ...`:
 
   * `-U`, `--uid=VAL`:
     limit index to only files/dirs owned by uid
+
+  * `-T`, `--topn=VAL`:
+    Number of topN largest files found to store in index
+
+  * `-M`, `--topn-min=VAL`:
+    Minimum size (in bytes) to make topN list of files by size
 
   * `-u`, `--username=VAL`:
     limit index to only files/dirs owned by username
@@ -194,6 +267,9 @@ Options for command `duc info [options]`:
 
   * `-d`, `--database=VAL`:
     select database file to use [~/.duc.db]
+
+  * `-H`, `--histogram`:
+    show file size in exact number of bytes
 
 ### duc ls
 
@@ -245,6 +321,16 @@ Options for command `duc ls [options] [PATH]...`:
 
   * `-R`, `--recursive`:
     recursively list subdirectories
+
+### duc topn
+
+Options for command `duc topn [options]`:
+
+  * `-b`, `--bytes`:
+    show file size in exact number of bytes
+
+  * `-d`, `--database=VAL`:
+    select database file to use [~/.duc.db]
 
 ### duc xml
 
@@ -441,7 +527,7 @@ The 'ui' subcommand queries the duc database and runs an interactive ncurses
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.
 
-The following keys can be used to navigate and alter the file system:
+The following keys can be used to navigate and (maybe) alter the file system:
 
     up, pgup, j:     move cursor up
     down, pgdn, k:   move cursor down
@@ -456,6 +542,7 @@ The following keys can be used to navigate and alter the file system:
     n:               toggle sort order between 'size' and 'name'
     o:               try to open the file using xdg-open
     q, escape:       quit
+    t:               toggle between regular view and TopN files by size
 
 
 Options for command `duc ui [options] [PATH]`:

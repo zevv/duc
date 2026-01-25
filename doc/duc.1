@@ -1,6 +1,6 @@
-.\" generated with Ronn-NG/v0.9.1
-.\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DUC" "1" "September 2023" ""
+.\" generated with Ronn-NG/v0.10.1
+.\" http://github.com/apjanke/ronn-ng/tree/0.10.1
+.TH "DUC" "1" "January 2026" ""
 .SH "NAME"
 \fBduc\fR \- index, query and graph disk usage
 .SH "SYNOPSIS"
@@ -36,15 +36,68 @@ The default location of the database is \fB$HOME/\.duc\.db\fR\. To use a differe
 You can run \fBduc index\fR at any time later to rebuild the index\.
 .P
 By default Duc indexes all directories it encounters during file system traversal, including special file systems like /proc and /sys, and network file systems like NFS or Samba mounts\. There are a few options to select what parts of your filesystem you want to include or exclude from the scan, check the documentation below for the options \-\-one\-file\-system, \-\-exclude, \-\-fs\-exclude and \-\-fs\-include for more details\.
+.SS "Absolute Path Exclusion"
+Duc now supports excluding absolute paths using wildcard patterns\. This is useful for excluding specific system directories like \fB/usr\fR or \fB/var/log\fR\.
+.SS "Pattern Types"
+.P
+\fIRelative patterns\fR (old behavior): \fBtmp\fR, \fB*\.log\fR, \fBcache\fR
+.IP "\(bu" 4
+Match against file/directory names only
+.IP "\(bu" 4
+Examples: \fBtmp\fR matches any directory named "tmp"
+.IP "\(bu" 4
+Examples: \fB*\.log\fR matches any file ending in "\.log"
+.IP "" 0
+.P
+\fIAbsolute path patterns\fR (new): \fB*/usr\fR, \fB*/var/log/*\fR, \fB*/home/*/Downloads\fR
+.IP "\(bu" 4
+Match against full absolute paths during traversal
+.IP "\(bu" 4
+Require wildcards because DUC sees full paths like \fB/usr/bin/program\fR
+.IP "\(bu" 4
+Examples: \fB*/usr\fR excludes the entire \fB/usr\fR directory and all contents
+.IP "" 0
+.SS "Usage Examples"
+.IP "" 4
+.nf
+# Old\-style relative patterns (old behavior)
+duc index \-e tmp \-e '*\.log' \-e cache /home/user
+
+# Exclude system directories from root filesystem scan (new absolute patterns)
+duc index \-\-one\-file\-system \-e '*/usr' \-e '*/var/lib/snapd' /
+
+# Exclude user\-specific directories from home directory scan
+duc index \-e '*/Downloads' \-e '*/cache' /home
+
+# Mix absolute and relative patterns in one command
+duc index \-e '*/usr/local/*' \-e '*\.tmp' \-e 'tmp' /
+
+# Exclude all log files anywhere in the filesystem
+duc index \-e '*/*\.log' /
+
+# More advanced patterns
+duc index \-e '*/home/*/Downloads' \-e '*/var/log/*\.log' /
+.fi
+.IP "" 0
+.SS "Pattern Matching Reference"
+.TS
+allbox;
+l l l l.
+Pattern Type	Example	Matches	Doesn't Match
+\fBAbsolute with wildcard\fR	\fB'*/usr'\fR	\fB/usr\fR, \fB/some/path/usr\fR	\fB/usr/bin\fR (excluded as child)
+\fBAbsolute specific\fR	\fB'*/var/log/*\.log'\fR	\fB/var/log/system\.log\fR, \fB/var/log/app\.log\fR	\fB/var/log/\fR (directory)
+\fBRelative (old)\fR	\fB'tmp'\fR	\fBtmp\fR, \fB/some/path/tmp\fR	N/A (basename matching)
+\fBRelative wildcard\fR	\fB'*\.log'\fR	\fBfile\.log\fR, \fB/path/file\.log\fR	N/A (basename matching)
+.TE
 .SH "QUERYING THE INDEX"
 Duc has various subcommands for querying or exploring the index: (Note that depending on your configuration, some of these commands might not be available)
-.IP "\[ci]" 4
+.IP "\(bu" 4
 \fBduc info\fR shows a list of available directory trees in the database, and the time and date of the last scan\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 \fBduc ls\fR lists all files and directories under the given path on the console\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 \fBduc ui\fR runs a ncurses based console user interface for exploring the file system usage\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 \fBduc gui\fR starts a graphical (X11) interface representing the file system in a sunburst graph\. Click on a directory to redraw the graph from the perspective of the selected directory\. Click in the center of the graph to go up one directory in the tree\.
 .IP "" 0
 .SH "OPTIONS"
@@ -71,19 +124,36 @@ Options for command \fBduc help [options]\fR:
 .TP
 \fB\-a\fR, \fB\-\-all\fR
 show complete help for all commands
+.SS "duc histogram"
+Options for command \fBduc histogram [options]\fR:
+.TP
+\fB\-a\fR, \fB\-\-apparent\fR
+show apparent instead of actual file size
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show bucket size in exact number of bytes
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
+.TP
+\fB\-t\fR, \fB\-\-base10\fR
+show histogram in base 10 bucket spacing, default base2 bucket sizes\.
 .SS "duc index"
-The \'index\' subcommand performs a recursive scan of the given paths on the filesystem and calculates the inclusive size of all directories\. The results are written to the index, and can later be queried by one of the other duc tools\.
+The 'index' subcommand performs a recursive scan of the given paths on the filesystem and calculates the inclusive size of all directories\. The results are written to the index, and can later be queried by one of the other duc tools\.
 .P
 Options for command \fBduc index [options] PATH \|\.\|\.\|\.\fR:
 .TP
 \fB\-b\fR, \fB\-\-bytes\fR
 show file size in exact number of bytes
 .TP
+\fB\-B\fR, \fB\-\-buckets=VAL\fR
+number of buckets in histogram, default XX
+.TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
 use database file VAL
 .TP
 \fB\-e\fR, \fB\-\-exclude=VAL\fR
-exclude files matching VAL
+exclude files matching VAL\. Relative: tmp, \fI\.log\. Absolute with wildcards: */usr, */var/log/\fR (use */usr not /usr)
 .TP
 \fB\-H\fR, \fB\-\-check\-hard\-links\fR
 count hard links only once\. if two or more hard links point to the same file, only one of the hard links is displayed and counted
@@ -102,6 +172,12 @@ hide file names in index (privacy)\. the names of directories will be preserved,
 .TP
 \fB\-U\fR, \fB\-\-uid=VAL\fR
 limit index to only files/dirs owned by uid
+.TP
+\fB\-T\fR, \fB\-\-topn=VAL\fR
+Number of topN largest files found to store in index
+.TP
+\fB\-M\fR, \fB\-\-topn\-min=VAL\fR
+Minimum size (in bytes) to make topN list of files by size
 .TP
 \fB\-u\fR, \fB\-\-username=VAL\fR
 limit index to only files/dirs owned by username
@@ -131,8 +207,11 @@ show file size in exact number of bytes
 .TP
 \fB\-d\fR, \fB\-\-database=VAL\fR
 select database file to use [~/\.duc\.db]
+.TP
+\fB\-H\fR, \fB\-\-histogram\fR
+show file size in exact number of bytes
 .SS "duc ls"
-The \'ls\' subcommand queries the duc database and lists the inclusive size of all files and directories on the given path\. If no path is given the current working directory is listed\.
+The 'ls' subcommand queries the duc database and lists the inclusive size of all files and directories on the given path\. If no path is given the current working directory is listed\.
 .P
 Options for command \fBduc ls [options] [PATH]\|\.\|\.\|\.\fR:
 .TP
@@ -177,6 +256,14 @@ sort output by name instead of by size
 .TP
 \fB\-R\fR, \fB\-\-recursive\fR
 recursively list subdirectories
+.SS "duc topn"
+Options for command \fBduc topn [options]\fR:
+.TP
+\fB\-b\fR, \fB\-\-bytes\fR
+show file size in exact number of bytes
+.TP
+\fB\-d\fR, \fB\-\-database=VAL\fR
+select database file to use [~/\.duc\.db]
 .SS "duc xml"
 Options for command \fBduc xml [options] [PATH]\fR:
 .TP
@@ -206,9 +293,9 @@ exclude file from json output, only include directories
 \fB\-s\fR, \fB\-\-min_size=VAL\fR
 specify min size for files or directories
 .SS "duc graph"
-The \'graph\' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
+The 'graph' subcommand queries the duc database and generates a sunburst graph showing the disk usage of the given path\. If no path is given a graph is created for the current working directory\.
 .P
-By default the graph is written to the file \'duc\.png\', which can be overridden by using the \-o/\-\-output option\. The output can be sent to stdout by using the special file name \'\-\'\.
+By default the graph is written to the file 'duc\.png', which can be overridden by using the \-o/\-\-output option\. The output can be sent to stdout by using the special file name '\-'\.
 .P
 Options for command \fBduc graph [options] [PATH]\fR:
 .TP
@@ -298,7 +385,7 @@ image size [800]
 \fB\-\-tooltip\fR
 enable tooltip when hovering over the graph\. enabling the tooltip will cause an asynchronous HTTP request every time the mouse is moved and can greatly increase the HTTP traffic to the web server
 .SS "duc gui"
-The \'gui\' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+The 'gui' subcommand queries the duc database and runs an interactive graphical utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .P
 The following keys can be used to navigate and alter the graph:
 .IP "" 4
@@ -348,9 +435,9 @@ select palette\. available palettes are: size, rainbow, greyscale, monochrome, c
 \fB\-\-ring\-gap=VAL\fR
 leave a gap of VAL pixels between rings
 .SS "duc ui"
-The \'ui\' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
+The 'ui' subcommand queries the duc database and runs an interactive ncurses utility for exploring the disk usage of the given path\. If no path is given the current working directory is explored\.
 .P
-The following keys can be used to navigate and alter the file system:
+The following keys can be used to navigate and (maybe) alter the file system:
 .IP "" 4
 .nf
 up, pgup, j:     move cursor up
@@ -362,10 +449,11 @@ right, enter:    descent into selected directory
 a:               toggle between actual and apparent disk usage
 b:               toggle between exact and abbreviated sizes
 c:               Toggle between file size and file count
-h:               show help\. press \'q\' to return to the main screen
-n:               toggle sort order between \'size\' and \'name\'
+h:               show help\. press 'q' to return to the main screen
+n:               toggle sort order between 'size' and 'name'
 o:               try to open the file using xdg\-open
 q, escape:       quit
+t:               toggle between regular view and TopN files by size
 .fi
 .IP "" 0
 .P
@@ -400,35 +488,35 @@ An example duc\.cgi script would be
 /usr/local/bin/duc cgi \-d /home/jenny/\.duc\.db
 .fi
 .IP "" 0
-.IP "\[ci]" 4
+.IP "\(bu" 4
 Make sure the database file is readable by the user (usually www\-data)
-.IP "\[ci]" 4
-Debugging is best done by inspecting the web server\'s error log
-.IP "\[ci]" 4
+.IP "\(bu" 4
+Debugging is best done by inspecting the web server's error log
+.IP "\(bu" 4
 Make sure the \.cgi script has execute permissions (\fBchmod +x duc\.cgi\fR)
 .IP "" 0
 .P
 Some notes:
-.IP "\[ci]" 4
+.IP "\(bu" 4
 The HTML page is generated with a simple embedded CSS style sheet\. If the style is not to your liking you can provide an external CSS url with the \-\-css\-url option which will then be used instead of the embedded style definition\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 Add the option \-\-list to generate a table of top sized files and directories in the HTML page\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 The options \-\-header and \-\-footer allow you to insert your own HTML code before and after the main\.
 .IP "" 0
 .P
 The current CGI configuration is not very flexible, nor secure\. It is not advised to run the CGI from public reachable web servers, use at your own risk\.
 .SH "A NOTE ON FILE SIZE AND DISK USAGE"
-The concepts of \'file size\' and \'disk usage\' can be a bit confusing\. Files on disk have an apparent size, which indicates how much bytes are in the file from the users point of view; this is the size reported by tools like \fBls \-l\fR\. The apparent size can be any number, from 0 bytes up to several TB\. The actual number of bytes which are used on the filesystem to store the file can differ from this apparent size for a number of reasons: disks store data in blocks, which cause files to always take up a multiple of the block size, files can have holes (\'sparse\' files), and other technical reasons\. This number is always a multiple of 512, which means that the actual size used for a file is almost always a bit more than its apparent size\.
+The concepts of 'file size' and 'disk usage' can be a bit confusing\. Files on disk have an apparent size, which indicates how much bytes are in the file from the users point of view; this is the size reported by tools like \fBls \-l\fR\. The apparent size can be any number, from 0 bytes up to several TB\. The actual number of bytes which are used on the filesystem to store the file can differ from this apparent size for a number of reasons: disks store data in blocks, which cause files to always take up a multiple of the block size, files can have holes ('sparse' files), and other technical reasons\. This number is always a multiple of 512, which means that the actual size used for a file is almost always a bit more than its apparent size\.
 .P
 Duc has two modes for counting file sizes:
-.IP "\[ci]" 4
+.IP "\(bu" 4
 \fBapparent size\fR: this is the size as reported by \fBls\fR\. This number indicates the file length, which is usually smaller than the actual disk usage\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 \fBactual size\fR: this is the size as reported by \fBdu\fR and \fBdf\fR\. The actual file size tells you how much disk is actually used by a file, and is always a multiple of 512 bytes\.
 .IP "" 0
 .P
-The default mode used by duc is to use the \'actual size\'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc ui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), or use the \'a\' key to toggle\.
+The default mode used by duc is to use the 'actual size'\. Most duc commands to report disk usage (\fBduc ls\fR, \fBduc graph\fR, \fBduc ui\fR, etc) have an option to change between these two modes (usually the \fB\-a\fR), or use the 'a' key to toggle\.
 .SH "BUILDING from git"
 If you use git clone to pull down the latest release, you will have to do the following:
 .P
@@ -531,19 +619,19 @@ apparent
 .fi
 .IP "" 0
 .SH "FREQUENTLY ASKED QUESTIONS"
-.IP "\[ci]" 4
-What does the error \'Database version mismatch mean?\'
+.IP "\(bu" 4
+What does the error 'Database version mismatch mean?'
 .IP
 The layout of the index database sometimes changes when new features are implemented\. When you get this error you have probably upgraded to a newer version\. Just remove the old database file and rebuild the index\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 Duc crashes with a segmentation fault, is it that buggy?
 .IP
 By default Duc uses the Tokyocabinet database backend\. Tokyocabinet is pretty fast, stores the database in a single file and has nice compression support to keep the database small\. Unfortunately, it is not always robust and sometimes chokes on corrupt database files\. Try to remove the database and rebuild the index\. If the error persists contact the authors\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 Some of the Duc subcommands like \fBduc gui\fR are not available on my system?
 .IP
 Depending on the configuration that was chosen when building Duc, some options might or might not be available in the \fBduc\fR utility\. For example, on Debian or Ubuntu Duc comes in two flavours: there is a full featured package called \fBduc\fR, or a package without dependencies on X\-windows called \fBduc\-nox\fR, for which the latter lacks the \fBduc gui\fR command\.
-.IP "\[ci]" 4
+.IP "\(bu" 4
 \fBduc index\fR is hogging my system and using a lot of CPU and I/O!
 .IP
 Traversing a file system is hard work \- which is the exact reason why Duc exists in the first place\. You can use the default tools to make Duc behave nice towards other processes on your machine, use something like:
@@ -557,12 +645,12 @@ At startup duc tries to read its configuration from three locations in this part
 .P
 Duc mainains an index of scanned directories, which defaults to ~/\.duc\.db\. All tools take the \-d/\-\-database option to override the database path\.
 .SH "AUTHORS"
-.IP "\[ci]" 4
+.IP "\(bu" 4
 Ico Doornekamp \fIduc@zevv\.nl\fR
-.IP "\[ci]" 4
+.IP "\(bu" 4
 John Stoffel \fIjohn@stoffel\.org\fR
 .IP "" 0
 .P
 Other contributors can be found in the Git log at GitHub\.
 .SH "LICENSE"
-Duc is free software; you can redistribute it and/or modify it under the terms of the Lesser GNU General Public License as published by the Free Software Foundation; version 3 dated June, 2007\. Duc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\. See the GNU Lesser General Public License for more details\.
+Duc is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; version 3 dated June, 2007\. Duc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\. See the GNU General Lesser Public License for more details\.

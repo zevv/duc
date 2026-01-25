@@ -212,7 +212,7 @@ static struct ducrc_option options[] = {
     { &opt_bytes,           "bytes",           'b', DUCRC_TYPE_BOOL,   "show file size in exact number of bytes" },
     { &opt_histogram_buckets, "buckets", 'B', DUCRC_TYPE_INT,    "number of buckets in histogram, default XX" },
     { &opt_database,        "database",        'd', DUCRC_TYPE_STRING, "use database file VAL" },  
-	{ fn_exclude,           "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching VAL"  },
+	{ fn_exclude,           "exclude",         'e', DUCRC_TYPE_FUNC,   "exclude files matching VAL. Relative: tmp, *.log. Absolute with wildcards: */usr, */var/log/* (use */usr not /usr)"  },
 	{ &opt_check_hard_links,"check-hard-links",'H', DUCRC_TYPE_BOOL,   "count hard links only once",
           "if two or more hard links point to the same file, only one of the hard links is displayed and counted" },
 	{ &opt_force,           "force",           'f', DUCRC_TYPE_BOOL,   "force writing in case of corrupted db" },

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv='content-type' content='text/html;charset=utf8'>
-  <meta name='generator' content='Ronn-NG/v0.9.1 (http://github.com/apjanke/ronn-ng/tree/0.9.1)'>
+  <meta http-equiv='content-type' content='text/html;charset=utf-8'>
+  <meta name='generator' content='Ronn-NG/v0.10.1 (http://github.com/apjanke/ronn-ng/tree/0.10.1)'>
   <title>duc(1) - index, query and graph disk usage</title>
   <style type='text/css' media='all'>
   /* style: man */
@@ -162,6 +162,98 @@ select what parts of your filesystem you want to include or exclude from the
 scan, check the documentation below for the options --one-file-system, 
 --exclude, --fs-exclude and --fs-include for more details.</p>
 
+<h3 id="Absolute-Path-Exclusion">Absolute Path Exclusion</h3>
+
+<p>Duc now supports excluding absolute paths using wildcard patterns. This is
+useful for excluding specific system directories like <code>/usr</code> or <code>/var/log</code>.</p>
+
+<h4 id="Pattern-Types">Pattern Types</h4>
+
+<p><em>Relative patterns</em> (old behavior): <code>tmp</code>, <code>*.log</code>, <code>cache</code></p>
+<ul>
+  <li>Match against file/directory names only</li>
+  <li>Examples: <code>tmp</code> matches any directory named "tmp"</li>
+  <li>Examples: <code>*.log</code> matches any file ending in ".log"</li>
+</ul>
+
+<p><em>Absolute path patterns</em> (new): <code>*/usr</code>, <code>*/var/log/*</code>, <code>*/home/*/Downloads</code></p>
+<ul>
+  <li>Match against full absolute paths during traversal</li>
+  <li>Require wildcards because DUC sees full paths like <code>/usr/bin/program</code>
+</li>
+  <li>Examples: <code>*/usr</code> excludes the entire <code>/usr</code> directory and all contents</li>
+</ul>
+
+<h4 id="Usage-Examples">Usage Examples</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Old-style relative patterns (old behavior)</span>
+duc index <span class="nt">-e</span> tmp <span class="nt">-e</span> <span class="s1">'*.log'</span> <span class="nt">-e</span> cache /home/user
+
+<span class="c"># Exclude system directories from root filesystem scan (new absolute patterns)</span>
+duc index <span class="nt">--one-file-system</span> <span class="nt">-e</span> <span class="s1">'*/usr'</span> <span class="nt">-e</span> <span class="s1">'*/var/lib/snapd'</span> /
+
+<span class="c"># Exclude user-specific directories from home directory scan</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/Downloads'</span> <span class="nt">-e</span> <span class="s1">'*/cache'</span> /home
+
+<span class="c"># Mix absolute and relative patterns in one command</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/usr/local/*'</span> <span class="nt">-e</span> <span class="s1">'*.tmp'</span> <span class="nt">-e</span> <span class="s1">'tmp'</span> /
+
+<span class="c"># Exclude all log files anywhere in the filesystem</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/*.log'</span> /
+
+<span class="c"># More advanced patterns</span>
+duc index <span class="nt">-e</span> <span class="s1">'*/home/*/Downloads'</span> <span class="nt">-e</span> <span class="s1">'*/var/log/*.log'</span> /
+</code></pre></div></div>
+
+<h4 id="Pattern-Matching-Reference">Pattern Matching Reference</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Pattern Type</th>
+      <th>Example</th>
+      <th>Matches</th>
+      <th>Doesn't Match</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Absolute with wildcard</strong></td>
+      <td><code>'*/usr'</code></td>
+      <td>
+<code>/usr</code>, <code>/some/path/usr</code>
+</td>
+      <td>
+<code>/usr/bin</code> (excluded as child)</td>
+    </tr>
+    <tr>
+      <td><strong>Absolute specific</strong></td>
+      <td><code>'*/var/log/*.log'</code></td>
+      <td>
+<code>/var/log/system.log</code>, <code>/var/log/app.log</code>
+</td>
+      <td>
+<code>/var/log/</code> (directory)</td>
+    </tr>
+    <tr>
+      <td><strong>Relative (old)</strong></td>
+      <td><code>'tmp'</code></td>
+      <td>
+<code>tmp</code>, <code>/some/path/tmp</code>
+</td>
+      <td>N/A (basename matching)</td>
+    </tr>
+    <tr>
+      <td><strong>Relative wildcard</strong></td>
+      <td><code>'*.log'</code></td>
+      <td>
+<code>file.log</code>, <code>/path/file.log</code>
+</td>
+      <td>N/A (basename matching)</td>
+    </tr>
+  </tbody>
+</table>
+
 <h2 id="QUERYING-THE-INDEX">QUERYING THE INDEX</h2>
 
 <p>Duc has various subcommands for querying or exploring the index: (Note that
@@ -225,6 +317,29 @@ up one directory in the tree.</p>
 <dd>show complete help for all commands</dd>
 </dl>
 
+<h3 id="duc-histogram">duc histogram</h3>
+
+<p>Options for command <code>duc histogram [options]</code>:</p>
+
+<dl>
+<dt>
+<code>-a</code>, <code>--apparent</code>
+</dt>
+<dd>show apparent instead of actual file size</dd>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show bucket size in exact number of bytes</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
+<dt>
+<code>-t</code>, <code>--base10</code>
+</dt>
+<dd>show histogram in base 10 bucket spacing, default base2 bucket sizes.</dd>
+</dl>
+
 <h3 id="duc-index">duc index</h3>
 
 <p>The 'index' subcommand performs a recursive scan of the given paths on the
@@ -239,13 +354,17 @@ are written to the index, and can later be queried by one of the other duc tools
 </dt>
 <dd>show file size in exact number of bytes</dd>
 <dt>
+<code>-B</code>, <code>--buckets=VAL</code>
+</dt>
+<dd>number of buckets in histogram, default XX</dd>
+<dt>
 <code>-d</code>, <code>--database=VAL</code>
 </dt>
 <dd>use database file VAL</dd>
 <dt>
 <code>-e</code>, <code>--exclude=VAL</code>
 </dt>
-<dd>exclude files matching VAL</dd>
+<dd>exclude files matching VAL. Relative: tmp, <em>.log. Absolute with wildcards: */usr, */var/log/</em> (use */usr not /usr)</dd>
 <dt>
 <code>-H</code>, <code>--check-hard-links</code>
 </dt>
@@ -264,6 +383,14 @@ are written to the index, and can later be queried by one of the other duc tools
 <code>-U</code>, <code>--uid=VAL</code>
 </dt>
 <dd>limit index to only files/dirs owned by uid</dd>
+<dt>
+<code>-T</code>, <code>--topn=VAL</code>
+</dt>
+<dd>Number of topN largest files found to store in index</dd>
+<dt>
+<code>-M</code>, <code>--topn-min=VAL</code>
+</dt>
+<dd>Minimum size (in bytes) to make topN list of files by size</dd>
 <dt>
 <code>-u</code>, <code>--username=VAL</code>
 </dt>
@@ -303,6 +430,10 @@ are written to the index, and can later be queried by one of the other duc tools
 <code>-d</code>, <code>--database=VAL</code>
 </dt>
 <dd>select database file to use [~/.duc.db]</dd>
+<dt>
+<code>-H</code>, <code>--histogram</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
 </dl>
 
 <h3 id="duc-ls">duc ls</h3>
@@ -362,6 +493,21 @@ working directory is listed.</p>
 <code>-R</code>, <code>--recursive</code>
 </dt>
 <dd>recursively list subdirectories</dd>
+</dl>
+
+<h3 id="duc-topn">duc topn</h3>
+
+<p>Options for command <code>duc topn [options]</code>:</p>
+
+<dl>
+<dt>
+<code>-b</code>, <code>--bytes</code>
+</dt>
+<dd>show file size in exact number of bytes</dd>
+<dt>
+<code>-d</code>, <code>--database=VAL</code>
+</dt>
+<dd>select database file to use [~/.duc.db]</dd>
 </dl>
 
 <h3 id="duc-xml">duc xml</h3>
@@ -569,7 +715,7 @@ backspace   go up one directory
 utility for exploring the disk usage of the given path. If no path is given the
 current working directory is explored.</p>
 
-<p>The following keys can be used to navigate and alter the file system:</p>
+<p>The following keys can be used to navigate and (maybe) alter the file system:</p>
 
 <pre><code>up, pgup, j:     move cursor up
 down, pgdn, k:   move cursor down
@@ -584,6 +730,7 @@ h:               show help. press 'q' to return to the main screen
 n:               toggle sort order between 'size' and 'name'
 o:               try to open the file using xdg-open
 q, escape:       quit
+t:               toggle between regular view and TopN files by size
 </code></pre>
 
 <p>Options for command <code>duc ui [options] [PATH]</code>:</p>
@@ -850,14 +997,14 @@ take the -d/--database option to override the database path.</p>
 
 <p>Duc is free software; you can redistribute it and/or modify it under the terms
 of the GNU Lesser General Public License as published by the Free Software
-Foundation; version 3 dated June, 2007. Duc is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-License for more details.</p>
+Foundation; version 3 dated June, 2007. Duc is distributed in the hope that it
+will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Lesser
+Public License for more details.</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>September 2023</li>
+    <li class='tc'>January 2026</li>
     <li class='tr'>duc(1)</li>
   </ol>
 
