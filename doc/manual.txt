@@ -89,13 +89,6 @@ useful for excluding specific system directories like `/usr` or `/var/log`.
   - Require wildcards because DUC sees full paths like `/usr/bin/program`
   - Examples: `*/usr` excludes the entire `/usr` directory and all contents
 
-#### Why Wildcards Are Required
-
-DUC uses `chdir()` to traverse directories, so it processes full absolute paths:
-- When scanning `/usr/bin/program`, DUC sees the full path `/usr/bin/program`
-- Pattern `/usr` would only match exactly `/usr`, not its contents
-- Pattern `*/usr` matches any path ending with `/usr`, properly excluding the directory
-
 #### Usage Examples
 
 ```bash

@@ -184,16 +184,6 @@ useful for excluding specific system directories like <code>/usr</code> or <code
   <li>Examples: <code>*/usr</code> excludes the entire <code>/usr</code> directory and all contents</li>
 </ul>
 
-<h4 id="Why-Wildcards-Are-Required">Why Wildcards Are Required</h4>
-
-<p>DUC uses <code>chdir()</code> to traverse directories, so it processes full absolute paths:</p>
-<ul>
-  <li>When scanning <code>/usr/bin/program</code>, DUC sees the full path <code>/usr/bin/program</code>
-</li>
-  <li>Pattern <code>/usr</code> would only match exactly <code>/usr</code>, not its contents</li>
-  <li>Pattern <code>*/usr</code> matches any path ending with <code>/usr</code>, properly excluding the directory</li>
-</ul>
-
 <h4 id="Usage-Examples">Usage Examples</h4>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Exclude system directories from root filesystem scan</span>
