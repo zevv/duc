@@ -83,7 +83,13 @@ show file size in exact number of bytes
 use database file VAL
 .TP
 \fB\-e\fR, \fB\-\-exclude=VAL\fR
-exclude files matching VAL
+exclude files matching VAL\. VAL can be a relative pattern (traditional behavior) or an absolute path pattern with wildcards\. Relative patterns match against file/directory names, while absolute patterns match against full paths\.
+.IP
+Relative patterns (existing behavior): \fBtmp\fR, \fB*.log\fR, \fBcache\fR
+.IP
+Absolute path patterns (new): \fB*/usr\fR, \fB*/var/log/*\fR, \fB*/home/*/Downloads\fR
+.IP
+Note: Absolute patterns require wildcards because DUC matches against full paths during traversal\. Use \fB*/usr\fR instead of \fB/usr\fR to exclude the entire /usr directory\.
 .TP
 \fB\-H\fR, \fB\-\-check\-hard\-links\fR
 count hard links only once\. if two or more hard links point to the same file, only one of the hard links is displayed and counted
@@ -530,6 +536,23 @@ no\-color
 apparent
 .fi
 .IP "" 0
+.P
+Examples of using absolute path exclusion:
+.IP "" 4
+.nf
+# Exclude system directories when indexing root filesystem
+$ duc index --one-file-system -e '*/usr' -e '*/var/lib/snapd' /
+
+# Exclude user-specific directories  
+$ duc index -e '*/Downloads' -e '*/cache' /home
+
+# Mix absolute and relative patterns
+$ duc index -e '*/usr/local/*' -e '*.tmp' -e 'tmp' /
+
+# Exclude all log files anywhere in the filesystem
+$ duc index -e '*/*.log' /
+.fi
+.IP "" 0
 .SH "FREQUENTLY ASKED QUESTIONS"
 .IP "\[ci]" 4
 What does the error \'Database version mismatch mean?\'
@@ -551,6 +574,14 @@ Traversing a file system is hard work \- which is the exact reason why Duc exist
 \fBnice 19 ionice \-c 3 duc index [options]\fR
 .IP
 This makes \fBduc index\fR run with the lowest CPU and I/O scheduler priorities, which is nicer to all the other processes on your machine\.
+.IP "\[ci]" 4
+How do I exclude specific absolute paths like /usr or /var/log?
+.IP
+Use absolute path patterns with wildcards\. Because DUC matches against full paths during traversal, you need to use wildcards: \fB*/usr\fR instead of \fB/usr\fR\. For example:
+.IP
+\fBduc index -e '*/usr' -e '*/var/log' /\fR
+.IP
+This excludes the entire /usr and /var/log directories and all their contents\. You can also use more specific patterns like \fB*/home/*/Downloads\fR or \fB*/var/log/*.log\fR\.
 .IP "" 0
 .SH "FILES"
 At startup duc tries to read its configuration from three locations in this particular order: \fB/etc/ducrc\fR, \fB~/\.config/duc/ducrc\fR, \fB~/\.ducrc\fR and \fB\./\.ducrc\fR\.
