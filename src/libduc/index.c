@@ -240,8 +240,14 @@ static int match_exclude(const char *name, struct exclude *list)
 static void update_absolute_path(struct scanner *scanner, const char *relative_name)
 {
 	if (scanner->parent) {
-		snprintf(scanner->current_absolute_path, DUC_PATH_MAX, 
-				"%s/%s", scanner->parent->current_absolute_path, relative_name);
+		/* Handle root path case to avoid double slashes */
+		if (strcmp(scanner->parent->current_absolute_path, "/") == 0) {
+			snprintf(scanner->current_absolute_path, DUC_PATH_MAX, 
+					"/%s", relative_name);
+		} else {
+			snprintf(scanner->current_absolute_path, DUC_PATH_MAX, 
+					"%s/%s", scanner->parent->current_absolute_path, relative_name);
+		}
 	} else {
 		strncpy(scanner->current_absolute_path, relative_name, DUC_PATH_MAX - 1);
 		scanner->current_absolute_path[DUC_PATH_MAX - 1] = '\0';
@@ -526,7 +532,12 @@ static void scanner_scan(struct scanner *scanner_dir)
 
 		/* Construct absolute path for exclusion matching */
 		char full_path[DUC_PATH_MAX];
-		snprintf(full_path, DUC_PATH_MAX, "%s/%s", scanner_dir->current_absolute_path, name);
+		/* Handle root path case to avoid double slashes */
+		if (strcmp(scanner_dir->current_absolute_path, "/") == 0) {
+			snprintf(full_path, DUC_PATH_MAX, "/%s", name);
+		} else {
+			snprintf(full_path, DUC_PATH_MAX, "%s/%s", scanner_dir->current_absolute_path, name);
+		}
 
 		if(match_exclude_absolute(full_path, name, req->exclude_list)) {
 			report_skip(duc, name, "Excluded by user");
