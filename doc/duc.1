@@ -86,7 +86,7 @@ l l l l.
 Pattern Type	Example	Matches	Doesn't Match
 \fBAbsolute with wildcard\fR	\fB'*/usr'\fR	\fB/usr\fR, \fB/some/path/usr\fR	\fB/usr/bin\fR (excluded as child)
 \fBAbsolute specific\fR	\fB'*/var/log/*\.log'\fR	\fB/var/log/system\.log\fR, \fB/var/log/app\.log\fR	\fB/var/log/\fR (directory)
-\fBRelative (existing)\fR	\fB'tmp'\fR	\fBtmp\fR, \fB/some/path/tmp\fR	N/A (basename matching)
+\fBRelative (old)\fR	\fB'tmp'\fR	\fBtmp\fR, \fB/some/path/tmp\fR	N/A (basename matching)
 \fBRelative wildcard\fR	\fB'*\.log'\fR	\fBfile\.log\fR, \fB/path/file\.log\fR	N/A (basename matching)
 .TE
 .SH "QUERYING THE INDEX"

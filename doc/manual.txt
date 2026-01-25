@@ -117,7 +117,7 @@ duc index -e '*/home/*/Downloads' -e '*/var/log/*.log' /
 |-------------|---------|---------|----------------|
 | **Absolute with wildcard** | `'*/usr'` | `/usr`, `/some/path/usr` | `/usr/bin` (excluded as child) |
 | **Absolute specific** | `'*/var/log/*.log'` | `/var/log/system.log`, `/var/log/app.log` | `/var/log/` (directory) |
-| **Relative (existing)** | `'tmp'` | `tmp`, `/some/path/tmp` | N/A (basename matching) |
+| **Relative (old)** | `'tmp'` | `tmp`, `/some/path/tmp` | N/A (basename matching) |
 | **Relative wildcard** | `'*.log'` | `file.log`, `/path/file.log` | N/A (basename matching) |
 
 
