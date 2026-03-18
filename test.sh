@@ -201,5 +201,26 @@ else
     echo "Type checks: failed - got $typecount failures instead of expected 4 out of $typemax."
 fi
 
-# end
 
+# Re-indexing a subtree should refresh the cached size shown by its parent.
+truncate -s 200 ${DUC_TEST_DIR}/tree/sub1/alpha
+./duc index --bytes ${DUC_TEST_DIR}/tree/sub1 > ${DUC_TEST_DIR}.out 2>&1
+
+if [ "$?" != "0" ]; then
+	echo "subtree reindex failed"
+	cat ${DUC_TEST_DIR}.out
+	exit 1
+fi
+
+./duc ls -ab ${DUC_TEST_DIR}/tree > ${DUC_TEST_DIR}.out 2>&1
+grep -q "^[[:space:]]*12200 sub1$" ${DUC_TEST_DIR}.out
+
+if [ "$?" = "0" ]; then
+	echo "subtree reindex propagation: ok"
+else
+	echo "subtree reindex propagation: failed"
+	cat ${DUC_TEST_DIR}.out
+	exit 1
+fi
+
+# end
