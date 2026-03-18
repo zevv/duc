@@ -698,6 +698,164 @@ static void read_mounts(duc_index_req *req)
 }
 
 
+static int split_parent_child(const char *path, char *parent, size_t parent_len, const char **child_name)
+{
+	const char *slash = strrchr(path, '/');
+	if(slash == NULL || slash[1] == '\0') {
+		return 0;
+	}
+
+	if(slash == path) {
+		snprintf(parent, parent_len, "/");
+	} else {
+		size_t len = slash - path;
+		if(len >= parent_len) {
+			len = parent_len - 1;
+		}
+		memcpy(parent, path, len);
+		parent[len] = '\0';
+	}
+	*child_name = slash + 1;
+	return 1;
+}
+
+
+static int update_dir_buffer_entry(
+	duc *duc,
+	const char *parent_path,
+	const char *child_name,
+	const struct duc_size *size_exact,
+	const struct duc_size *size_delta,
+	const struct duc_devino *devino_exact,
+	struct duc_size *old_size)
+{
+	struct stat st;
+	if(lstat(parent_path, &st) != 0) {
+		return 0;
+	}
+
+	struct duc_devino parent_devino;
+	st_to_devino(&st, &parent_devino);
+
+	char key[32];
+	size_t keyl = snprintf(key, sizeof(key), "%jx/%jx",
+			       (uintmax_t)parent_devino.dev, (uintmax_t)parent_devino.ino);
+
+	size_t vall;
+	char *val = db_get(duc->db, key, keyl, &vall);
+	if(val == NULL) {
+		return 0;
+	}
+
+	struct buffer *src = buffer_new(val, vall);
+	struct buffer *dst = buffer_new(NULL, vall);
+	struct duc_devino devino_parent;
+	time_t mtime;
+	int updated = 0;
+
+	if(old_size) {
+		memset(old_size, 0, sizeof(*old_size));
+	}
+
+	buffer_get_dir(src, &devino_parent, &mtime);
+	buffer_put_dir(dst, &devino_parent, mtime);
+
+	while(src->ptr < src->len) {
+		struct duc_dirent ent;
+		memset(&ent, 0, sizeof(ent));
+		buffer_get_dirent(src, &ent);
+
+		if(strcmp(ent.name, child_name) == 0 && ent.type == DUC_FILE_TYPE_DIR) {
+			if(old_size) {
+				*old_size = ent.size;
+			}
+			if(size_exact) {
+				ent.size = *size_exact;
+			} else if(size_delta) {
+				ent.size.apparent += size_delta->apparent;
+				ent.size.actual += size_delta->actual;
+				ent.size.count += size_delta->count;
+			}
+			if(devino_exact) {
+				ent.devino = *devino_exact;
+			}
+			updated = 1;
+		}
+
+		buffer_put_dirent(dst, &ent);
+		duc_free(ent.name);
+	}
+
+	buffer_free(src);
+
+	if(updated) {
+		duc_errno err = db_put(duc->db, key, keyl, dst->data, dst->len);
+		if(err != DUC_OK) {
+			duc->err = err;
+			updated = 0;
+		}
+	}
+
+	buffer_free(dst);
+	return updated;
+}
+
+
+static void update_parent_buffers(duc *duc, const char *path, const struct duc_index_report *report)
+{
+	char parent[DUC_PATH_MAX];
+	const char *child_name = NULL;
+	struct duc_size old_size;
+
+	if(!split_parent_child(path, parent, sizeof(parent), &child_name)) {
+		return;
+	}
+
+	int updated = update_dir_buffer_entry(
+		duc,
+		parent,
+		child_name,
+		&report->size,
+		NULL,
+		&report->devino,
+		&old_size
+	);
+	if(!updated) {
+		return;
+	}
+
+	struct duc_size delta = {
+		.actual = report->size.actual - old_size.actual,
+		.apparent = report->size.apparent - old_size.apparent,
+		.count = report->size.count - old_size.count,
+	};
+
+	while(delta.actual || delta.apparent || delta.count) {
+		char ancestor[DUC_PATH_MAX];
+		const char *ancestor_child_name = NULL;
+
+		if(!split_parent_child(parent, ancestor, sizeof(ancestor), &ancestor_child_name)) {
+			break;
+		}
+
+		updated = update_dir_buffer_entry(
+			duc,
+			ancestor,
+			ancestor_child_name,
+			NULL,
+			&delta,
+			NULL,
+			NULL
+		);
+		if(!updated) {
+			break;
+		}
+
+		snprintf(parent, sizeof(parent), "%s", ancestor);
+	}
+}
+
+
 struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_index_flags flags)
 {
 	duc *duc = req->duc;
@@ -759,6 +917,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 	if(!(req->flags & DUC_INDEX_DRY_RUN)) {
 		gettimeofday(&report->time_stop, NULL);
 		db_write_report(duc, report);
+		update_parent_buffers(duc, report->path, report);
 	}
 
 	free(path_canon);
@@ -777,4 +936,4 @@ int duc_index_report_free(struct duc_index_report *rep)
 /*
  * End
  */
-
+ 
