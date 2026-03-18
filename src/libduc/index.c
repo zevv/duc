@@ -737,9 +737,13 @@ static int update_dir_buffer_entry(
 	struct duc_devino parent_devino;
 	st_to_devino(&st, &parent_devino);
 
-	char key[32];
-	size_t keyl = snprintf(key, sizeof(key), "%jx/%jx",
-			       (uintmax_t)parent_devino.dev, (uintmax_t)parent_devino.ino);
+	char key[64];
+	int ret = snprintf(key, sizeof(key), "%jx/%jx",
+			   (uintmax_t)parent_devino.dev, (uintmax_t)parent_devino.ino);
+	if(ret < 0) {
+		return 0;
+	}
+	size_t keyl = (ret >= (int)sizeof(key)) ? (sizeof(key) - 1U) : (size_t)ret;
 
 	size_t vall;
 	char *val = db_get(duc->db, key, keyl, &vall);
@@ -748,7 +752,17 @@ static int update_dir_buffer_entry(
 	}
 
 	struct buffer *src = buffer_new(val, vall);
-	struct buffer *dst = buffer_new(NULL, vall);
+	char *dst_data = NULL;
+	if (vall > 0) {
+		dst_data = malloc(vall);
+		if (dst_data == NULL) {
+			buffer_free(src);
+			return 0;
+		}
+	}
+	struct buffer *dst = buffer_new(dst_data, vall);
+	dst->len = 0;
+	dst->ptr = 0;
 	struct duc_devino devino_parent;
 	time_t mtime;
 	int updated = 0;
