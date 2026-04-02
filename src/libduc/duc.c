@@ -56,6 +56,18 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 	duc->log_callback = cb;
 }
 
+int mkdir_p(const char *pathname, mode_t mode)
+{
+	int r = mkdir(pathname, mode);
+	if((-1) == r && errno == EEXIST) {
+		// if it's a directory, this is fine.
+		struct stat statbuf;
+		if((-1) != stat(pathname, &statbuf) && (statbuf.st_mode & S_IFMT) == S_IFDIR)
+			return 0;
+	}
+	return r;
+}
+
 // Return 0 ok, -1 for errors.
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
@@ -96,7 +108,7 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/duc", home);
 			/* Create if needed */
-			res = mkdir(tmp, 0700);
+			res = mkdir_p(tmp, 0700);
 			if (res != 0) {
 			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create mkdir \"%s\", %s", tmp, strerror(errno));
 			    exit(1);
@@ -113,7 +125,7 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/.cache/duc", home);
 			/* Create if needed */
-			res = mkdir(tmp, 0700);
+			res = mkdir_p(tmp, 0700);
 			if (res != 0) {
 			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create mkdir \"%s\", %s", tmp, strerror(errno));
 			    exit(1);
