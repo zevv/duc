@@ -55,13 +55,13 @@ bash test-compare-backends.sh [PATH]
   further inspection.
 - Exits with a non-zero status if any pair of backends produces different JSON.
 
-### `test_migrate-db-any-to-any.sh`
+### `test-migrator.sh`
 
 Migrates every database in `testing/dbs/` to every other backend format using
 the `migrator` binary, producing 30 output databases in `testing/dbs/migrated/`.
 
 ```bash
-bash test_migrate-db-any-to-any.sh
+bash test-migrator.sh
 ```
 
 - Requires `../migrator/migrator` to be built (`cd ../migrator && make`).
@@ -71,7 +71,7 @@ bash test_migrate-db-any-to-any.sh
 - Each migration is time-limited; set `TIMEOUT` to override (default: 120 s):
 
 ```bash
-TIMEOUT=60 bash test_migrate-db-any-to-any.sh
+bash test-migrator.sh
 ```
 
 - Per-migration stdout/stderr is saved to `dbs/migrated/logs/<src>-to-<dst>.log`.
