@@ -3,6 +3,18 @@
 Reference for all database backends supported across duc versions, derived from
 the source implementations in `src/libduc/db-*.c` and `configure.ac`.
 
+
+## Summary Table
+
+| Backend        | File/Dir | Single file | Compression       | Version key | Default in  |
+|----------------|----------|-------------|-------------------|-------------|-------------|
+| Tokyo Cabinet  | File     | Yes         | Optional (deflate)| Yes         | 1.4.6       |
+| Kyoto Cabinet  | File     | Yes         | Always (kct opts) | Yes         | —           |
+| LevelDB        | Dir      | **No**      | Always (Snappy)   | No          | —           |
+| SQLite3        | File     | Yes         | None              | No          | —           |
+| LMDB           | File     | Yes         | None              | No          | —           |
+| Tkrzw          | File     | Yes         | Optional (ZSTD)   | Yes         | 1.5.0-rc2   |
+
 ---
 
 ## Tokyo Cabinet (`tokyocabinet`)
@@ -120,16 +132,3 @@ the source implementations in `src/libduc/db-*.c` and `configure.ac`.
     the file.
   - Tkrzw is a successor/spiritual replacement for both Tokyo Cabinet and Kyoto
     Cabinet, providing a modern hash-based store with better compression options.
-
----
-
-## Summary Table
-
-| Backend        | File/Dir | Single file | Compression       | Version key | Default in  |
-|----------------|----------|-------------|-------------------|-------------|-------------|
-| Tokyo Cabinet  | File     | Yes         | Optional (deflate)| Yes         | 1.4.6       |
-| Kyoto Cabinet  | File     | Yes         | Always (kct opts) | Yes         | —           |
-| LevelDB        | Dir      | **No**      | Always (Snappy)   | No          | —           |
-| SQLite3        | File     | Yes         | None              | No          | —           |
-| LMDB           | File     | Yes         | None              | No          | —           |
-| Tkrzw          | File     | Yes         | Optional (ZSTD)   | Yes         | 1.5.0-rc2   |
