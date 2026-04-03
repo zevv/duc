@@ -55,7 +55,7 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 	struct db *db;
 	int compress = 0;
 	int writeable = 0;
-	char options[256] = "dbm=HashDBM,file=StdFile,offset_width=5";
+	char options[256] = "dbm=HashDBM,file=StdFile,offset_width=5,num_buckets=131072";
 
 	if (flags & DUC_OPEN_FORCE) { 
 	    char trunc[] = ",truncate=true";
