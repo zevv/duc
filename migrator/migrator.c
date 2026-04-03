@@ -360,7 +360,7 @@ static int sq_put(void *handle,
     sqlite3_prepare(h->s,
         "insert or replace into blobs(key,value) values(?,?)",
         -1, &stmt, 0);
-    sqlite3_bind_blob(stmt, 1, k, (int)kl, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1, k, (int)kl, SQLITE_STATIC);
     sqlite3_bind_blob(stmt, 2, v, (int)vl, SQLITE_STATIC);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
