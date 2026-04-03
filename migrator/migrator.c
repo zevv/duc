@@ -178,19 +178,17 @@ static int kc_iter_next(void *iter,
     kc_iter_t *it = iter;
     size_t ks, vs;
     const char *vp;
-    /*
-     * kccurget: returns malloc'd key; *vbp is a separately malloc'd value
-     * buffer (both must be freed individually with free/kcfree).
-     * step=1 advances the cursor after the read.
-     */
+    /* kccurget packs key+value in one allocation; step=1 advances the cursor. */
     char *k = kccurget(it->cur, &ks, &vp, &vs, 1);
     if (!k) return 0;
     *key  = k;
     *klen = ks;
     /* Copy value into a fresh buffer so caller can always call free() on it */
+    /* vp points into the same allocation as k (kccurget packs key+value in
+     * one buffer); copy the value but do NOT kcfree(vp) — freeing k via
+     * the caller's free(*key) releases the whole block. */
     *val  = malloc(vs);
     memcpy(*val, vp, vs);
-    kcfree((void *)vp);
     *vlen = vs;
     return 1;
 }
@@ -519,7 +517,7 @@ static void *tkrzw_be_open(const char *path, int readonly)
 {
     TkrzwDBM *hdb = tkrzw_dbm_open(
         path, !readonly,
-        "dbm=HashDBM,file=StdFile,offset_width=5,record_comp_mode=RECORD_COMP_ZSTD");
+        "dbm=HashDBM,file=StdFile,record_comp_mode=RECORD_COMP_ZSTD");
     if (!hdb) {
         TkrzwStatus s = tkrzw_get_last_status();
         fprintf(stderr, "tkrzw: cannot open '%s': %s\n", path, s.message);
