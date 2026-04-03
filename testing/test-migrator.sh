@@ -84,6 +84,10 @@ for src in "${BACKENDS[@]}"; do
         continue
     fi
 
+    if [[ "$src" == "tkrzw" ]]; then
+        echo "  [tkrzw] WARNING: tkrzw source iteration is very slow — this may take several minutes per destination"
+    fi
+
     for dst in "${BACKENDS[@]}"; do
         [[ "$src" == "$dst" ]] && continue
 
