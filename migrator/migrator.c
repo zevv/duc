@@ -519,7 +519,7 @@ static void *tkrzw_be_open(const char *path, int readonly)
 {
     TkrzwDBM *hdb = tkrzw_dbm_open(
         path, !readonly,
-        "dbm=HashDBM,file=StdFile,offset_width=5");
+        "dbm=HashDBM,file=StdFile,offset_width=5,record_comp_mode=RECORD_COMP_ZSTD");
     if (!hdb) {
         TkrzwStatus s = tkrzw_get_last_status();
         fprintf(stderr, "tkrzw: cannot open '%s': %s\n", path, s.message);
