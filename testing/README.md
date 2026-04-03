@@ -68,7 +68,7 @@ bash test-migrator.sh
 - Requires source databases in `dbs/` (run `test-compare-backends.sh` first).
 - Output files are named `<src>-to-<dst>.<ext>` (e.g. `tkrzw-to-sqlite3.db`).
 - LevelDB outputs use a `.dir` directory instead of a file.
-- Each migration is time-limited; set `TIMEOUT` to override (default: 120 s):
+- Each migration is time-limited; set `TIMEOUT` to override (default: 300 s, the migration from `tkrzw` to any other format is really slow!):
 
 ```bash
 bash test-migrator.sh
