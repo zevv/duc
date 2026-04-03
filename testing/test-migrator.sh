@@ -12,18 +12,24 @@
 # migrating so the run is always clean and reproducible.
 #
 # Usage:
-#   bash test_migrate-db-any-to-any.sh
+#   bash test-migrator.sh [PATH]
+#
+# Arguments:
+#   PATH  — filesystem path that was indexed (default: /usr/share/doc)
+#           Must match the path used when running test-compare-backends.sh.
 #
 # Environment:
 #   TIMEOUT  — seconds allowed per migration before it is killed (default: 120)
 #
 # Requirements:
 #   - ../migrator/migrator must be built  (cd ../migrator && make)
-#   - Source databases must exist in dbs/ (run test-compare-backends.sh first)
+#   - Source databases and JSON files must exist in dbs/
+#     (run test-compare-backends.sh first)
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+INDEX_PATH="${1:-/usr/share/doc}"
 DBDIR="$SCRIPT_DIR/dbs"
 OUTDIR="$DBDIR/migrated"
 MIGRATOR="$SCRIPT_DIR/../migrator/migrator"
@@ -56,14 +62,25 @@ DB_EXT[kyotocabinet]="db"
 
 BACKENDS=(tkrzw tokyocabinet sqlite3 lmdb leveldb kyotocabinet)
 
-failed=()
+migrate_failed=()
+migrate_ok=()
 skipped=()
+json_failed=()
+json_ok=()
+diff_fail=()
+diff_ok=()
+
+# ============================================================
+# Phase 1 — Migrate all databases
+# ============================================================
+echo "=== Phase 1: Migrate ==="
+echo ""
 
 for src in "${BACKENDS[@]}"; do
     src_path="${DB_PATH[$src]}"
     if [[ ! -e "$src_path" ]]; then
-        echo "[$src] SKIP — source DB not found: $src_path"
-        skipped+=("$src:*")
+        echo "  [$src] SKIP — source DB not found: $src_path"
+        skipped+=("$src")
         continue
     fi
 
@@ -72,35 +89,105 @@ for src in "${BACKENDS[@]}"; do
 
         dst_ext="${DB_EXT[$dst]}"
         out_path="$OUTDIR/${src}-to-${dst}.${dst_ext}"
+        log="$LOGDIR/${src}-to-${dst}.log"
 
         rm -rf "$out_path"
 
-        log="$LOGDIR/${src}-to-${dst}.log"
         printf "  %-14s -> %-14s ... " "$src" "$dst"
         if timeout "$TIMEOUT" "$MIGRATOR" --from "${src}:${src_path}" --to "${dst}:${out_path}" > "$log" 2>&1; then
             echo "ok"
+            migrate_ok+=("${src}-to-${dst}")
         else
             rc=$?
-            if [[ $rc -eq 124 ]]; then
-                echo "TIMEOUT (>${TIMEOUT}s)"
-            else
-                echo "FAILED (rc=$rc)"
-            fi
-            failed+=("${src}-to-${dst}")
+            [[ $rc -eq 124 ]] && echo "TIMEOUT (>${TIMEOUT}s)" || echo "FAILED (rc=$rc)"
+            migrate_failed+=("${src}-to-${dst}")
         fi
     done
 done
 
+# ============================================================
+# Phase 2 — Export each migrated database to JSON
+# ============================================================
 echo ""
-echo "=== Migration summary ==="
-total=$(( ${#BACKENDS[@]} * (${#BACKENDS[@]} - 1) ))
-echo "  Attempted : $total"
-echo "  Failed    : ${#failed[@]}"
-echo "  Skipped   : ${#skipped[@]}"
+echo "=== Phase 2: Export JSON ==="
+echo ""
 
-if [[ ${#failed[@]} -gt 0 ]]; then
+for pair in "${migrate_ok[@]}"; do
+    src="${pair%%-to-*}"
+    dst="${pair##*-to-}"
+    dst_ext="${DB_EXT[$dst]}"
+    out_path="$OUTDIR/${pair}.${dst_ext}"
+    migrated_json="$OUTDIR/${pair}.json"
+    dst_bin="$SCRIPT_DIR/duc-$dst"
+
+    printf "  %-30s ... " "$pair"
+    if [[ ! -x "$dst_bin" ]]; then
+        echo "SKIP (duc-$dst not found)"
+        continue
+    fi
+    if "$dst_bin" json -d "$out_path" "$INDEX_PATH" > "$migrated_json" 2>&1; then
+        echo "ok  ($(wc -c < "$migrated_json") bytes)"
+        json_ok+=("$pair")
+    else
+        echo "FAILED"
+        json_failed+=("$pair")
+    fi
+done
+
+# ============================================================
+# Phase 3 — Compare each migrated JSON against source JSON
+# ============================================================
+echo ""
+echo "=== Phase 3: Compare JSON ==="
+echo ""
+
+for pair in "${json_ok[@]}"; do
+    src="${pair%%-to-*}"
+    src_json="$DBDIR/${src}.json"
+    migrated_json="$OUTDIR/${pair}.json"
+
+    printf "  %-30s ... " "$pair"
+    if [[ ! -s "$src_json" ]]; then
+        echo "SKIP (no source JSON for $src)"
+        continue
+    fi
+    if diff -q "$src_json" "$migrated_json" > /dev/null 2>&1; then
+        echo "match"
+        diff_ok+=("$pair")
+    else
+        echo "DIFFER"
+        diff_fail+=("$pair")
+    fi
+done
+
+# ============================================================
+# Summary
+# ============================================================
+echo ""
+echo "=== Summary ==="
+total=$(( ${#BACKENDS[@]} * (${#BACKENDS[@]} - 1) ))
+echo "  Migrations attempted : $total"
+echo "  Migration failed     : ${#migrate_failed[@]}"
+echo "  JSON export failed   : ${#json_failed[@]}"
+echo "  JSON match           : ${#diff_ok[@]}"
+echo "  JSON differ          : ${#diff_fail[@]}"
+
+if [[ ${#diff_fail[@]} -gt 0 ]]; then
+    echo ""
+    echo "Migrations with JSON differences:"
+    for f in "${diff_fail[@]}"; do
+        echo "  --- $f ---"
+        diff --unified=3 "$DBDIR/${f%%-to-*}.json" "$OUTDIR/$f.json" | head -20 || true
+        echo ""
+    done
+fi
+
+if [[ ${#migrate_failed[@]} -gt 0 ]]; then
     echo ""
     echo "Failed migrations:"
-    for f in "${failed[@]}"; do echo "  $f"; done
+    for f in "${migrate_failed[@]}"; do echo "  $f"; done
+fi
+
+if [[ ${#migrate_failed[@]} -gt 0 || ${#diff_fail[@]} -gt 0 || ${#json_failed[@]} -gt 0 ]]; then
     exit 1
 fi
