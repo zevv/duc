@@ -1,4 +1,18 @@
 #!/usr/bin/env bash
+#
+# build-all-backends.sh — Build duc for every supported database backend.
+#
+# For each backend (tkrzw, tokyocabinet, sqlite3, lmdb, leveldb, kyotocabinet)
+# this script runs ./configure --with-db-backend=<backend>, compiles duc, and
+# copies the resulting binary as testing/duc-<backend>.  Build output for each
+# backend is saved to testing/build-<backend>.log.
+#
+# Usage:
+#   cd testing && bash build-all-backends.sh
+#
+# Environment:
+#   JOBS  — number of parallel make jobs (default: nproc)
+#
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
