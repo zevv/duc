@@ -42,7 +42,7 @@ typedef struct {
 
     /* Iteration ---------------------------------------------------
      * iter_new()  – create an iterator positioned before the first record.
-     * iter_next() – advance and fill *key/*val with malloc'd buffers;
+     * iter_next() – advance and fill *key, *val with malloc'd buffers;
      *               caller must free() both.  Returns 1, or 0 when done.
      * iter_free() – destroy the iterator.
      */
@@ -167,7 +167,7 @@ static void *kc_iter_new(void *h)
 {
     kc_iter_t *it = malloc(sizeof *it);
     it->cur = kcdbcursor((KCDB *)h);
-    kccurfirst(it->cur);
+    kccurjump(it->cur);
     return it;
 }
 
@@ -419,7 +419,7 @@ static const backend_ops_t sq_ops = {
 typedef struct { MDB_env *env; MDB_dbi dbi; MDB_txn *txn; } mdb_handle_t;
 typedef struct { MDB_cursor *cur; int started; } mdb_iter_t;
 
-static void *mdb_open(const char *path, int readonly)
+static void *mdb_be_open(const char *path, int readonly)
 {
     mdb_handle_t *h = malloc(sizeof *h);
     unsigned int env_flags  = MDB_NOSUBDIR;
@@ -503,7 +503,7 @@ static void mdb_iter_free(void *iter)
 
 static const backend_ops_t mdb_ops = {
     "lmdb",
-    mdb_open, mdb_be_close, mdb_be_put,
+    mdb_be_open, mdb_be_close, mdb_be_put,
     mdb_iter_new, mdb_iter_next, mdb_iter_free
 };
 #endif /* HAVE_LMDB */
