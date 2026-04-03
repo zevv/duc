@@ -34,7 +34,7 @@ DBDIR="$SCRIPT_DIR/dbs"
 OUTDIR="$DBDIR/migrated"
 MIGRATOR="$SCRIPT_DIR/../migrator/migrator"
 LOGDIR="$OUTDIR/logs"
-TIMEOUT="${TIMEOUT:-10}"
+TIMEOUT="${TIMEOUT:-300}"
 
 if [[ ! -x "$MIGRATOR" ]]; then
     echo "error: migrator binary not found: $MIGRATOR" >&2
