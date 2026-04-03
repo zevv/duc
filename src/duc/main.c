@@ -422,11 +422,7 @@ static void show_version(void)
 #ifdef ENABLE_UI
 	printf("ui ");
 #endif
-	printf(DB_BACKEND);
-#ifdef ENABLE_TKRZW_ZSTD
-        printf(" (zstd)");
-#endif
-        printf("\n");
+	printf(DB_BACKEND "\n");
 
 	exit(EXIT_SUCCESS);
 }

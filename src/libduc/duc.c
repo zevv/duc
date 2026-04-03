@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdio.h>
-#include <errno.h>
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
@@ -60,7 +59,6 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
 	char tmp[DUC_PATH_MAX];
-	int res = 0;
 
 	/* An empty path means check the ENV path instead */
 	if(path_db == NULL) {
@@ -96,11 +94,7 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/duc", home);
 			/* Create if needed */
-			res = mkdir(tmp, 0700);
-			if (res != 0) {
-			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create mkdir \"%s\", %s", tmp, strerror(errno));
-			    exit(1);
-			}
+			mkdir(tmp, 0700);
 			/* Append file to folder*/
 			snprintf(tmp, sizeof tmp, "%s/duc/duc.db", home);
 			path_db = tmp;
@@ -113,11 +107,7 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/.cache/duc", home);
 			/* Create if needed */
-			res = mkdir(tmp, 0700);
-			if (res != 0) {
-			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create mkdir \"%s\", %s", tmp, strerror(errno));
-			    exit(1);
-			}
+			mkdir(tmp, 0700);
 			/* Append file to folder*/
 			snprintf(tmp, sizeof tmp, "%s/.cache/duc/duc.db", home);
 			path_db = tmp;
@@ -129,18 +119,6 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		duc->err = DUC_E_DB_NOT_FOUND;
 		return -1;
 	}
-
-	// Check that we can handle this Database is what we're
-	// compiled to support, but only if it exists...
-	struct stat sb;
-	int r = stat(path_db,&sb);
-	if (r == 0) {
-	    char *db_type = duc_db_type_check(path_db);
-	    if (db_type && (strcmp(db_type,DB_BACKEND) != 0)) {
-		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - unsupported DB type _%s_, duc compiled for %s", path_db, db_type, DB_BACKEND);
-		return -1;
-	    }
-	} 
 
 	duc_log(duc, DUC_LOG_INF, "%s database \"%s\"", 
 			(flags & DUC_OPEN_RO) ? "Reading from" : "Writing to",
@@ -156,6 +134,11 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 	    /* Now we can maybe do some quick checks to see if we
 	     * tried to open a non-supported DB type. */
 
+	    char *db_type = duc_db_type_check(path_db);
+	    if (db_type && (strcmp(db_type,"unknown") == 0)) {
+		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - unsupported DB type _%s_, duc compiled for %s", path_db, db_type, DB_BACKEND);
+		return -1;
+	    }
 	}
 	return 0;
 }

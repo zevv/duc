@@ -31,12 +31,10 @@ To get the required dependencies on Debian or Ubuntu, run:
       build-essential libtkrzw-dev tkrzw-doc tkrzw-utils
 
 
-  On older RHEL or CentOS systems, you need to use tokyocabinet since
-  we haven't tested tkrzw there yet, and in any case it would have to
-  be built by hand:
+  On older RHEL or CentOS systems, you need to do:
 
-    $ sudo yum install pango-devel cairo-devel tokyocabinet-devel 
-    $ ./configure --with-db-backend=tokyocabinet
+    $ sudo yum install pango-devel cairo-devel tokyocabinet-devel
+
 
   RHEL 8 & 9 / Rockly Linux 8 & 9 / Alma Linux 8 & 9
 
@@ -47,8 +45,7 @@ To get the required dependencies on Debian or Ubuntu, run:
 
     Install tkrzw and other packages:
 
-      $ sudo yum install tkrzw tkrzw-devel tkrzw-doc tkrzw-libs pango-devel cairo-devel \
-        libarchive-devel libzstd-devel 
+      $ sudo yum install tkrzw tkrzw-devel tkrzw-doc tkrzw-libs pango-devel cairo-devel tokyocabinet-devel
 
 
 Configuration Options
@@ -95,12 +92,12 @@ Database backends
 -----------------
 
 Duc supports various key-value database backends:
-  - Tkrzw:                             tkrzw  (default as of v1.5.0)
   - Tokyo Cabinet:                     tokyocabinet
   - LevelDB:                           leveldb
   - Sqlite3:                           sqlite3
   - Lightning Memory-Mapped Database:  lmdb
   - Kyoto Cabinet:                     kyotocabinet
+  - Tkrzw:                             tkrzw  (default as of v1.5.0)
 
 Duc now uses Tkrzw by default: the performance is acceptable and it
 handles extremely large databases of volumes with terabytes of storage
@@ -116,8 +113,7 @@ with different architectures. Notably, Tokyo Cabinet is built with
 non-standard options which break compatibility with other linux
 distributions, even on the same architecture [1]. If you are planning
 to share databases between different platforms (index machine A,
-display on machine B) we recommend using another DB backend.  Reports
-of success would be appreciated.
+display on machine B) we recommend using the sqlite3 backend.
 
 Note, Tokyo Cabiner, Kyoto Cabinet, LevelDB and LMDB are all being
 deprecated from future versions because the lack of development and
