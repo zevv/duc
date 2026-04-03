@@ -3,17 +3,6 @@ CFLAGS  = -O2 -Wall -Wextra -std=c11
 LDFLAGS =
 
 # ---------------------------------------------------------------------------
-# Warn if fix-crashes-on-indexing is not an ancestor of HEAD.
-# That branch contains essential fixes (buffer.c grow logic) without which
-# duc databases can be silently corrupted.  Merge it before deploying.
-# ---------------------------------------------------------------------------
-_BRANCH_OK := $(shell git merge-base --is-ancestor fix-crashes-on-indexing HEAD 2>/dev/null && echo yes || echo no)
-ifneq ($(_BRANCH_OK),yes)
-  $(warning *** fix-crashes-on-indexing is not in HEAD ancestry.)
-  $(warning *** Merge that branch before deploying — it contains critical database fixes.)
-endif
-
-# ---------------------------------------------------------------------------
 # Auto-detect available backends via pkg-config (or direct lib checks).
 # Each enabled backend appends -DHAVE_<NAME> plus its compile/link flags.
 # ---------------------------------------------------------------------------
