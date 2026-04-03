@@ -51,6 +51,9 @@ typedef struct {
                        void **key, size_t *klen,
                        void **val, size_t *vlen);
     void  (*iter_free)(void *iter);
+
+    /* Return total number of records, or 0 if not cheaply available. */
+    size_t (*count)(void *handle);
 } backend_ops_t;
 
 
@@ -122,10 +125,13 @@ static void tc_iter_free(void *iter)
     free(it);
 }
 
+static size_t tc_count(void *h) { return (size_t)tcbdbrnum((TCBDB *)h); }
+
 static const backend_ops_t tc_ops = {
     "tokyocabinet",
     tc_open, tc_close, tc_put,
-    tc_iter_new, tc_iter_next, tc_iter_free
+    tc_iter_new, tc_iter_next, tc_iter_free,
+    tc_count
 };
 #endif /* HAVE_TOKYOCABINET */
 
@@ -200,10 +206,13 @@ static void kc_iter_free(void *iter)
     free(it);
 }
 
+static size_t kc_count(void *h) { return (size_t)kcdbcount((KCDB *)h); }
+
 static const backend_ops_t kc_ops = {
     "kyotocabinet",
     kc_open, kc_close, kc_put,
-    kc_iter_new, kc_iter_next, kc_iter_free
+    kc_iter_new, kc_iter_next, kc_iter_free,
+    kc_count
 };
 #endif /* HAVE_KYOTOCABINET */
 
@@ -302,10 +311,13 @@ static void ldb_iter_free(void *iter)
     free(it);
 }
 
+static size_t ldb_count(void *h) { (void)h; return 0; }
+
 static const backend_ops_t ldb_ops = {
     "leveldb",
     ldb_open, ldb_close, ldb_put,
-    ldb_iter_new, ldb_iter_next, ldb_iter_free
+    ldb_iter_new, ldb_iter_next, ldb_iter_free,
+    ldb_count
 };
 #endif /* HAVE_LEVELDB */
 
@@ -400,10 +412,23 @@ static void sq_iter_free(void *iter)
     free(it);
 }
 
+static size_t sq_count(void *h)
+{
+    sq_handle_t *sh = h;
+    sqlite3_stmt *stmt;
+    size_t n = 0;
+    if (sqlite3_prepare_v2(sh->s, "select count(*) from blobs", -1, &stmt, 0) == SQLITE_OK) {
+        if (sqlite3_step(stmt) == SQLITE_ROW) n = (size_t)sqlite3_column_int64(stmt, 0);
+        sqlite3_finalize(stmt);
+    }
+    return n;
+}
+
 static const backend_ops_t sq_ops = {
     "sqlite3",
     sq_open, sq_close, sq_put,
-    sq_iter_new, sq_iter_next, sq_iter_free
+    sq_iter_new, sq_iter_next, sq_iter_free,
+    sq_count
 };
 #endif /* HAVE_SQLITE3 */
 
@@ -499,10 +524,19 @@ static void mdb_iter_free(void *iter)
     free(it);
 }
 
+static size_t mdb_count(void *h)
+{
+    mdb_handle_t *mh = h;
+    MDB_stat st;
+    if (mdb_stat(mh->txn, mh->dbi, &st) == MDB_SUCCESS) return (size_t)st.ms_entries;
+    return 0;
+}
+
 static const backend_ops_t mdb_ops = {
     "lmdb",
     mdb_be_open, mdb_be_close, mdb_be_put,
-    mdb_iter_new, mdb_iter_next, mdb_iter_free
+    mdb_iter_new, mdb_iter_next, mdb_iter_free,
+    mdb_count
 };
 #endif /* HAVE_LMDB */
 
@@ -573,10 +607,13 @@ static void tkrzw_iter_free(void *iter)
     free(it);
 }
 
+static size_t tkrzw_count(void *h) { return (size_t)tkrzw_dbm_count((TkrzwDBM *)h); }
+
 static const backend_ops_t tkrzw_ops = {
     "tkrzw",
     tkrzw_be_open, tkrzw_be_close, tkrzw_be_put,
-    tkrzw_iter_new, tkrzw_iter_next, tkrzw_iter_free
+    tkrzw_iter_new, tkrzw_iter_next, tkrzw_iter_free,
+    tkrzw_count
 };
 #endif /* HAVE_TKRZW */
 
@@ -710,38 +747,56 @@ int main(int argc, char **argv)
     void *dst = dst_ops->open(to_path,   0 /* read-write */);
     if (!dst) { src_ops->close(src); return 1; }
 
-    fprintf(stderr, "Scanning source index...\n");
+    size_t total = src_ops->count(src);
+
+    fprintf(stderr, "Scanning...");
     fflush(stderr);
     void *iter = src_ops->iter_new(src);
-    fprintf(stderr, "Copying records...\n");
+    fprintf(stderr, "\r");
     fflush(stderr);
 
     void *key, *val;
     size_t klen, vlen;
-    unsigned long count = 0, errors = 0;
+    unsigned long done = 0, errors = 0;
+    const int BAR = 40;
 
     while (src_ops->iter_next(iter, &key, &klen, &val, &vlen)) {
-        if (dst_ops->put(dst, key, klen, val, vlen) != 0) {
-            fprintf(stderr, "warning: failed to write record %lu\n", count);
+        if (dst_ops->put(dst, key, klen, val, vlen) != 0)
             errors++;
-        }
         free(key);
         free(val);
-        count++;
-        if (count % 1000 == 0) {
-            fprintf(stderr, "\r  %lu records...", count);
+        done++;
+        if (done % 100 == 0 || done == 1) {
+            if (total > 0) {
+                int filled = (int)((double)done / total * BAR);
+                fprintf(stderr, "\r  [");
+                for (int i = 0; i < BAR; i++)
+                    fputc(i < filled ? '=' : (i == filled ? '>' : ' '), stderr);
+                fprintf(stderr, "] %lu/%zu (%d%%)",
+                        done, total, (int)((double)done / total * 100));
+            } else {
+                fprintf(stderr, "\r  %lu records", done);
+            }
             fflush(stderr);
         }
+    }
+
+    /* Final completed bar */
+    if (total > 0) {
+        fprintf(stderr, "\r  [");
+        for (int i = 0; i < BAR; i++) fputc('=', stderr);
+        fprintf(stderr, "] %lu/%lu (100%%)\n", done, done);
+    } else {
+        fprintf(stderr, "\r  %lu records\n", done);
     }
 
     src_ops->iter_free(iter);
     src_ops->close(src);
     dst_ops->close(dst);
 
-    fprintf(stderr, "\nDone: %lu records copied", count);
     if (errors)
-        fprintf(stderr, " (%lu write errors)", errors);
-    fprintf(stderr, ".\n");
+        fprintf(stderr, "  %lu write error(s)\n", errors);
+    fprintf(stderr, "Done: %lu records copied.\n", done);
 
     return errors ? 1 : 0;
 }
