@@ -1,6 +1,6 @@
 # duc — multi-backend testing
 
-This directory contains scripts for building, cross-testing, and test migration of `duc` databases across all supported backends.
+This directory contains scripts for building, cross-testing, and testing migration of `duc` databases across all supported backends.
 
 ## Backends
 
