@@ -449,10 +449,6 @@ static void *mdb_be_open(const char *path, int readonly)
     unsigned int open_flags = 0;
     unsigned int txn_flags  = 0;
 
-    /* Virtual map: 1 GB on 32-bit, 256 GB on 64-bit */
-    size_t map_size = 1024u * 1024u * 1024u;
-    if (sizeof(size_t) == 8) map_size *= 256u;
-
     if (readonly) {
         env_flags |= MDB_RDONLY;
         txn_flags |= MDB_RDONLY;
@@ -462,7 +458,13 @@ static void *mdb_be_open(const char *path, int readonly)
 
     int rc;
     if ((rc = mdb_env_create(&h->env))                       != MDB_SUCCESS) goto err;
-    if ((rc = mdb_env_set_mapsize(h->env, map_size))         != MDB_SUCCESS) goto err;
+    if (!readonly) {
+        /* For write: give a large virtual address space so large DBs fit. */
+        size_t map_size = 1024u * 1024u * 1024u;
+        if (sizeof(size_t) == 8) map_size *= 256u;
+        if ((rc = mdb_env_set_mapsize(h->env, map_size))     != MDB_SUCCESS) goto err;
+    }
+    /* For readonly: use size=0 — LMDB adopts the mapsize from the file header. */
     if ((rc = mdb_env_open(h->env, path, env_flags, 0664))   != MDB_SUCCESS) goto err;
     if ((rc = mdb_txn_begin(h->env, NULL, txn_flags, &h->txn)) != MDB_SUCCESS) goto err;
     if ((rc = mdb_open(h->txn, NULL, open_flags, &h->dbi))   != MDB_SUCCESS) goto err;
