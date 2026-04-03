@@ -116,6 +116,10 @@ filesystem path to the database file (or directory for LevelDB).
   --to   lmdb:/var/cache/duc/duc.lmdb
 ```
 
+### Testing
+
+See the [testing/README.md](../testing/README.md) resp. [testing/test-migrator.sh](../testing/test-migrator.sh) which exercises the migrator against all backend combinations.
+
 ---
 
 ## How It Works
