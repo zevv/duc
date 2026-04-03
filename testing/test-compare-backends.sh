@@ -7,9 +7,7 @@
 #   2. Dumps the database content as JSON.
 #   3. Performs a pairwise diff of all JSON outputs and reports any differences.
 #
-# Database files are kept in testing/dbs/ after the run for further inspection.
-# JSON files are kept in testing/dbs/ after the run alongside the databases.
-# Lock files left behind by backends (e.g. lmdb .db-lock) are removed after indexing.
+# Database files and the JSON outputs are kept in testing/dbs/ after the run for further inspection.
 #
 # Usage:
 #   bash test-compare-backends.sh [PATH]

@@ -1,7 +1,6 @@
 # duc — multi-backend testing
 
-This directory contains scripts and pre-built binaries for building and
-cross-testing `duc` across all supported database backends.
+This directory contains scripts for building and cross-testing `duc` across all supported database backends.
 
 ## Backends
 
@@ -52,8 +51,8 @@ bash test-compare-backends.sh [PATH]
 
 - `PATH` defaults to `/usr/share/doc` if not specified.
 - Skips any backend whose binary is not present in `testing/`.
-- Temporary databases and JSON files are written to a `mktemp` directory and
-  cleaned up automatically on exit.
+- Database files are written to `testing/dbs/` and **kept after the run** for
+  further inspection.
 - Exits with a non-zero status if any pair of backends produces different JSON.
 
 ## Dependencies
