@@ -12,14 +12,20 @@
 # migrating so the run is always clean and reproducible.
 #
 # Usage:
-#   bash test-migrator.sh [PATH]
+#   bash test-migrator.sh [--include-tkrzw-as-source] [PATH]
 #
 # Arguments:
 #   PATH  — filesystem path that was indexed (default: /usr/share/doc)
 #           Must match the path used when running test-compare-backends.sh.
 #
+# Options:
+#   --include-tkrzw-as-source
+#           Also migrate FROM the tkrzw database.  Disabled by default because
+#           tkrzw source iteration is extremely slow (several minutes per
+#           destination).  tkrzw is always available as a migration destination.
+#
 # Environment:
-#   TIMEOUT  — seconds allowed per migration before it is killed (default: 120)
+#   TIMEOUT  — seconds allowed per migration before it is killed (default: 300)
 #
 # Requirements:
 #   - ../migrator/migrator must be built  (cd ../migrator && make)
@@ -29,7 +35,16 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-INDEX_PATH="${1:-/usr/share/doc}"
+
+INCLUDE_TKRZW_SOURCE=0
+POSITIONAL=()
+for _arg in "$@"; do
+    case "$_arg" in
+        --include-tkrzw-as-source) INCLUDE_TKRZW_SOURCE=1 ;;
+        *) POSITIONAL+=("$_arg") ;;
+    esac
+done
+INDEX_PATH="${POSITIONAL[0]:-/usr/share/doc}"
 DBDIR="$SCRIPT_DIR/dbs"
 OUTDIR="$DBDIR/migrated"
 MIGRATOR="$SCRIPT_DIR/../migrator/migrator"
@@ -85,6 +100,11 @@ for src in "${BACKENDS[@]}"; do
     fi
 
     if [[ "$src" == "tkrzw" ]]; then
+        if [[ "$INCLUDE_TKRZW_SOURCE" != "1" ]]; then
+            echo "  [tkrzw] SKIP as source (pass --include-tkrzw-as-source to enable; iteration is very slow)"
+            skipped+=("tkrzw-as-source")
+            continue
+        fi
         echo "  [tkrzw] WARNING: tkrzw source iteration is very slow — this may take several minutes per destination"
     fi
 
@@ -170,7 +190,11 @@ done
 echo ""
 echo "=== Summary ==="
 total=$(( ${#BACKENDS[@]} * (${#BACKENDS[@]} - 1) ))
-echo "  Migrations attempted : $total"
+skipped_pairs=$(( ${#skipped[@]} * (${#BACKENDS[@]} - 1) ))
+attempted=$(( total - skipped_pairs ))
+echo "  Migrations possible  : $total"
+echo "  Migrations skipped   : $skipped_pairs"
+echo "  Migrations attempted : $attempted"
 echo "  Migration failed     : ${#migrate_failed[@]}"
 echo "  JSON export failed   : ${#json_failed[@]}"
 echo "  JSON match           : ${#diff_ok[@]}"

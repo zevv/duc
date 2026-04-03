@@ -58,24 +58,27 @@ bash test-compare-backends.sh [PATH]
 ### `test-migrator.sh`
 
 Migrates every database in `testing/dbs/` to every other backend format using
-the `migrator` binary, producing 30 output databases in `testing/dbs/migrated/`.
+the `migrator` binary, producing output databases in `testing/dbs/migrated/`.
 
 ```bash
-bash test-migrator.sh
+bash test-migrator.sh [--include-tkrzw-as-source] [PATH]
 ```
 
 - Requires `../migrator/migrator` to be built (`cd ../migrator && make`).
 - Requires source databases in `dbs/` (run `test-compare-backends.sh` first).
-- Output files are named `<src>-to-<dst>.<ext>` (e.g. `tkrzw-to-sqlite3.db`).
+- Output files are named `<src>-to-<dst>.<ext>` (e.g. `sqlite3-to-lmdb.db`).
 - LevelDB outputs use a `.dir` directory instead of a file.
-- Each migration is time-limited; set `TIMEOUT` to override (default: 300 s, the migration from `tkrzw` to any other format is really slow!):
-
-```bash
-bash test-migrator.sh
-```
-
 - Per-migration stdout/stderr is saved to `dbs/migrated/logs/<src>-to-<dst>.log`.
 - Exits with a non-zero status if any migration fails or times out.
+- Each migration is time-limited; set `TIMEOUT` to override (default: 300 s).
+
+**tkrzw as source is disabled by default** because iterating over a tkrzw
+database is extremely slow (several minutes per destination backend).  tkrzw is
+always available as a *destination*.  To also migrate from tkrzw:
+
+```bash
+bash test-migrator.sh --include-tkrzw-as-source
+```
 
 ## Dependencies
 
