@@ -710,7 +710,12 @@ int main(int argc, char **argv)
     void *dst = dst_ops->open(to_path,   0 /* read-write */);
     if (!dst) { src_ops->close(src); return 1; }
 
+    fprintf(stderr, "Scanning source index...\n");
+    fflush(stderr);
     void *iter = src_ops->iter_new(src);
+    fprintf(stderr, "Copying records...\n");
+    fflush(stderr);
+
     void *key, *val;
     size_t klen, vlen;
     unsigned long count = 0, errors = 0;
@@ -723,8 +728,10 @@ int main(int argc, char **argv)
         free(key);
         free(val);
         count++;
-        if (count % 10000 == 0)
-            fprintf(stderr, "\r  %lu records copied...", count);
+        if (count % 1000 == 0) {
+            fprintf(stderr, "\r  %lu records...", count);
+            fflush(stderr);
+        }
     }
 
     src_ops->iter_free(iter);
