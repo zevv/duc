@@ -34,7 +34,7 @@ DBDIR="$SCRIPT_DIR/dbs"
 OUTDIR="$DBDIR/migrated"
 MIGRATOR="$SCRIPT_DIR/../migrator/migrator"
 LOGDIR="$OUTDIR/logs"
-TIMEOUT="${TIMEOUT:-120}"
+TIMEOUT="${TIMEOUT:-10}"
 
 if [[ ! -x "$MIGRATOR" ]]; then
     echo "error: migrator binary not found: $MIGRATOR" >&2
@@ -60,7 +60,7 @@ DB_EXT[leveldb]="dir"
 DB_PATH[kyotocabinet]="$DBDIR/kyotocabinet.db"
 DB_EXT[kyotocabinet]="db"
 
-BACKENDS=(tkrzw tokyocabinet sqlite3 lmdb leveldb kyotocabinet)
+BACKENDS=(tokyocabinet kyotocabinet sqlite3 lmdb leveldb tkrzw)
 
 migrate_failed=()
 migrate_ok=()
