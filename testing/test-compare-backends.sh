@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #
+# Copyright (c) 2026 George Ruinelli <caco3@ruinelli.ch>
+#
 # test-compare-backends.sh — Index a path with every duc backend and compare JSON output.
 #
 # For each duc-<backend> binary found in the same directory, this script:

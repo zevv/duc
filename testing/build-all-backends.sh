@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #
+# Copyright (c) 2026 George Ruinelli <caco3@ruinelli.ch>
+#
 # build-all-backends.sh — Build duc for every supported database backend.
 #
 # For each backend (tkrzw, tokyocabinet, sqlite3, lmdb, leveldb, kyotocabinet)

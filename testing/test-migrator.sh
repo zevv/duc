@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #
+# Copyright (c) 2026 George Ruinelli <caco3@ruinelli.ch>
+#
 # test_migrate-db-any-to-any.sh — Migrate every duc database in dbs/ to every other backend format.
 #
 # For each source database found in testing/dbs/ the script invokes the migrator
