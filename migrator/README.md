@@ -4,7 +4,7 @@ A standalone command-line tool that converts a duc index database from any
 supported backend format to any other, without losing data.
 
 For a detailed description of each backend's on-disk format, internal
-structure, and quirks see **[db-formats.md](db-formats.md)**.
+structure, and quirks see **[db-formats.md](../db-formats.md)**.
 
 ---
 

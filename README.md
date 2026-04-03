@@ -8,6 +8,9 @@ graphs showing you where your bytes are.
 
 Check the [Duc homepage](http://duc.zevv.nl) for more information, documentation and news.
 
-![duc gui](/img/palette-rainbow.png) 
+![duc gui](/img/palette-rainbow.png)
+
+For a reference of all supported database backend formats (on-disk layout,
+compression, tuning, quirks) see [db-formats.md](db-formats.md).
 
 
