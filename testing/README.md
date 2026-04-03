@@ -1,6 +1,6 @@
 # duc — multi-backend testing
 
-This directory contains scripts for building and cross-testing `duc` across all supported database backends.
+This directory contains scripts for building, cross-testing, and migrating `duc` databases across all supported backends.
 
 ## Backends
 
@@ -54,6 +54,28 @@ bash test-compare-backends.sh [PATH]
 - Database files are written to `testing/dbs/` and **kept after the run** for
   further inspection.
 - Exits with a non-zero status if any pair of backends produces different JSON.
+
+### `test_migrate-db-any-to-any.sh`
+
+Migrates every database in `testing/dbs/` to every other backend format using
+the `migrator` binary, producing 30 output databases in `testing/dbs/migrated/`.
+
+```bash
+bash test_migrate-db-any-to-any.sh
+```
+
+- Requires `../migrator/migrator` to be built (`cd ../migrator && make`).
+- Requires source databases in `dbs/` (run `test-compare-backends.sh` first).
+- Output files are named `<src>-to-<dst>.<ext>` (e.g. `tkrzw-to-sqlite3.db`).
+- LevelDB outputs use a `.dir` directory instead of a file.
+- Each migration is time-limited; set `TIMEOUT` to override (default: 120 s):
+
+```bash
+TIMEOUT=60 bash test_migrate-db-any-to-any.sh
+```
+
+- Per-migration stdout/stderr is saved to `dbs/migrated/logs/<src>-to-<dst>.log`.
+- Exits with a non-zero status if any migration fails or times out.
 
 ## Dependencies
 
