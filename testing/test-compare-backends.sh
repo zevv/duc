@@ -9,6 +9,10 @@
 #
 # Database files and the JSON outputs are kept in testing/dbs/ after the run for further inspection.
 #
+# Requirements:
+#   Run build-all-backends.sh first to compile the duc-<backend> binaries that
+#   this script expects to find in the same directory.
+#
 # Usage:
 #   bash test-compare-backends.sh [PATH]
 #
