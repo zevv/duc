@@ -10,7 +10,4 @@ Check the [Duc homepage](http://duc.zevv.nl) for more information, documentation
 
 ![duc gui](/img/palette-rainbow.png)
 
-For a reference of all supported database backend formats (on-disk layout,
-compression, tuning, quirks) see [DB-FORMATS.md](DB-FORMATS.md).
-
 
