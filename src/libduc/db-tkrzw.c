@@ -50,41 +50,45 @@ duc_errno tkrzwdb_to_errno(TkrzwDBM *hdb)
 	}
 }
 
+static int options_append(char *options, size_t *options_len, size_t options_size, const char *fragment)
+{
+	size_t flen = strlen(fragment);
+	if (*options_len + flen >= options_size)
+		return -1;
+	memcpy(options + *options_len, fragment, flen + 1);
+	*options_len += flen;
+	return 0;
+}
+
 struct db *db_open(const char *path_db, int flags, duc_errno *e)
 {
 	struct db *db;
 	int compress = 0;
 	int writeable = 0;
 	char options[256] = "dbm=HashDBM,file=StdFile,offset_width=5";
+	size_t options_len = strlen(options);
 
-	if (flags & DUC_OPEN_FORCE) { 
-	    char trunc[] = ",truncate=true";
-	    strcat(options,trunc);
-	}
+	if (flags & DUC_OPEN_FORCE)
+		options_append(options, &options_len, sizeof(options), ",truncate=true");
 
 	// Ideally we would know the filesystem here so we can scale things properly, but this is a major re-work of API, so for now just define some new DUC_FS_*" factors...
-	if (flags & DUC_FS_BIG) {
-	    char big[] = ",num_buckets=100000000";
-	    strcat(options,big);
-	}
+	if (flags & DUC_FS_BIG)
+		options_append(options, &options_len, sizeof(options), ",num_buckets=100000000");
 
-	if (flags & DUC_FS_BIGGER) {
-	    char bigger[] = ",num_buckets=1000000000";
-	    strcat(options,bigger);
-	}
+	if (flags & DUC_FS_BIGGER)
+		options_append(options, &options_len, sizeof(options), ",num_buckets=1000000000");
 
-	if (flags & DUC_FS_BIGGEST) {
-	    char biggest[] = ",num_buckets=10000000000";
-	    strcat(options,biggest);
-	}
+	if (flags & DUC_FS_BIGGEST)
+		options_append(options, &options_len, sizeof(options), ",num_buckets=10000000000");
 
 	if (flags & DUC_OPEN_RW) writeable = 1;
 	if (flags & DUC_OPEN_COMPRESS) {
-	    /* Do no compression for now, need to update configure tests first */
-	    char comp[64];
-	    sprintf(comp,",record_comp_mode=%s",DUC_TKRZW_REC_COMP);
-	    printf("opening tkzrw DB with compression: %s\n",DUC_TKRZW_REC_COMP);
-	    strcat(options,comp);
+		/* Do no compression for now, need to update configure tests first */
+		char comp[64];
+		int r = snprintf(comp, sizeof(comp), ",record_comp_mode=%s", DUC_TKRZW_REC_COMP);
+		printf("opening tkzrw DB with compression: %s\n",DUC_TKRZW_REC_COMP);
+		if (r > 0 && (size_t)r < sizeof(comp))
+			options_append(options, &options_len, sizeof(options), comp);
 	}
 
 	db = duc_malloc(sizeof *db);
