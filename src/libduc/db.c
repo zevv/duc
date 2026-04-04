@@ -47,18 +47,24 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 			       sizeof(report->histogram));
 		}
 
-		/* write topn array, FIXME to really work... */
-		char str[] = "duc_index_topn_info";
-		int str_len = sizeof(str);
-		tmp = db_get(duc->db, str, str_len , &tmpl);
-		if (tmp) {
-			tmp = duc_realloc(tmp, tmpl + sizeof(report->topn_array));
-			memcpy(tmp + tmpl, report->topn_array, sizeof(report->topn_array));
-			db_put(duc->db, str, str_len, tmp, 
-			       tmpl + sizeof(report->topn_array));
-		} else {
-			db_put(duc->db, str, str_len, report->topn_array, 
-			       sizeof(report->topn_array));
+		/* write topn array: flatten pointer array into contiguous struct data */
+		if (report->topn_cnt > 0) {
+			char str[] = "duc_index_topn_info";
+			int str_len = sizeof(str);
+			size_t topn_size = (size_t)report->topn_cnt * sizeof(duc_topn_file);
+			char *topn_flat = duc_malloc(topn_size);
+			for (int i = 0; i < report->topn_cnt; i++)
+				memcpy(topn_flat + (size_t)i * sizeof(duc_topn_file), report->topn_array[i], sizeof(duc_topn_file));
+			char *topn_prev = db_get(duc->db, str, str_len, &tmpl);
+			if (topn_prev) {
+				topn_prev = duc_realloc(topn_prev, tmpl + topn_size);
+				memcpy(topn_prev + tmpl, topn_flat, topn_size);
+				db_put(duc->db, str, str_len, topn_prev, tmpl + topn_size);
+				duc_free(topn_prev);
+			} else {
+				db_put(duc->db, str, str_len, topn_flat, topn_size);
+			}
+			duc_free(topn_flat);
 		}
 
 	} else {
