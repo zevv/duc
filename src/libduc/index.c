@@ -102,34 +102,34 @@ int duc_index_req_free(duc_index_req *req)
 
 	HASH_ITER(hh, req->hard_link_map, h, hn) {
 		HASH_DEL(req->hard_link_map, h);
-		free(h);
+		duc_free(h);
 	}
 	
 	HASH_ITER(hh, req->fstypes_mounted, f, fn) {
 		duc_free(f->type);
 		duc_free(f->path);
 		HASH_DEL(req->fstypes_mounted, f);
-		free(f);
+		duc_free(f);
 	}
 	
 	HASH_ITER(hh, req->fstypes_include, f, fn) {
 		duc_free(f->type);
 		HASH_DEL(req->fstypes_include, f);
-		free(f);
+		duc_free(f);
 	}
 	
 	HASH_ITER(hh, req->fstypes_exclude, f, fn) {
 		duc_free(f->type);
 		HASH_DEL(req->fstypes_exclude, f);
-		free(f);
+		duc_free(f);
 	}
 
 	LL_FOREACH_SAFE(req->exclude_list, e, en) {
-		free(e->name);
-		free(e);
+		duc_free(e->name);
+		duc_free(e);
 	}
 
-	free(req);
+	duc_free(req);
 
 	return 0;
 }
@@ -442,7 +442,7 @@ static struct scanner *scanner_new(struct duc *duc, struct scanner *scanner_pare
 
 err:
 	if(scanner->d) closedir(scanner->d);
-	if(scanner) free(scanner);
+	if(scanner) duc_free(scanner);
 	return NULL;
 }
 
@@ -761,7 +761,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 		db_write_report(duc, report);
 	}
 
-	free(path_canon);
+	duc_free(path_canon);
 
 	return report;
 }
@@ -770,7 +770,7 @@ struct duc_index_report *duc_index(duc_index_req *req, const char *path, duc_ind
 
 int duc_index_report_free(struct duc_index_report *rep)
 {
-	free(rep);
+	duc_free(rep);
 	return 0;
 }
 
