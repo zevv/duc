@@ -47,8 +47,8 @@ void buffer_free(struct buffer *b)
 // Add item to buffer, but grow by doubling if needed
 static int buffer_put(struct buffer *b, const void *data, size_t len)
 {
-	if(b->ptr + len <= b->len) {
-		while(b->len + len > b->max) {
+	if(b->ptr + len > b->max) {
+		while(b->ptr + len > b->max) {
 			b->max *= 2;
 		}
 		b->data = duc_realloc(b->data, b->max);
