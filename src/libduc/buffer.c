@@ -271,7 +271,8 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	    buffer_get_varint(b, &length);
 	    buffer_get_string(b, &vs);
 	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
-	    strncpy(report->topn_array[i]->name, vs, strlen(vs));
+	    strncpy(report->topn_array[i]->name, vs, DUC_PATH_MAX - 1);
+	    report->topn_array[i]->name[DUC_PATH_MAX - 1] = '\0';
 	    buffer_get_varint(b, &vi); report->topn_array[i]->size = vi;
 	}
 }
