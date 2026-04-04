@@ -68,7 +68,7 @@ static char *trim(char *s)
 }
 
 
-static void handle_opt(struct ducrc *ducrc, char shortopt, const char *longopt, const char *val)
+int handle_opt(struct ducrc *ducrc, char shortopt, const char *longopt, const char *val)
 {
 	struct ducrc_option **os = ducrc->option_list;
 	struct ducrc_option *o = NULL;
@@ -80,21 +80,23 @@ static void handle_opt(struct ducrc *ducrc, char shortopt, const char *longopt, 
 	void (*fn)(const char *val);
 
 	/* Find option */
-
+	
 	for(i=0; i<ducrc->noptions; i++) {
-		o = *os;
-		if(shortopt && shortopt == o->shortopt) goto found;
-		if(longopt && strcmp(longopt, o->longopt) == 0) goto found;
-		os++;
+	    o = *os;
+	    if(shortopt && shortopt == o->shortopt) goto found;
+	    if(longopt && strcmp(longopt, o->longopt) == 0) goto found;
+	    os++;
 	}
 
 	if(shortopt) {
-		fprintf(stderr, "Unknown option '%c'\n", shortopt);
+		fprintf(stderr, "Unknown short option '%c' in \n", shortopt);
+		return(-1);
 	} else {
-		fprintf(stderr, "Unknown option '%s'\n", longopt);
+		fprintf(stderr, "Unknown long option '%s' in \n", longopt);
+		return(-1);
 	}
 
-	return;
+	return(0);
 
 found:
 
@@ -126,7 +128,10 @@ found:
 			fn = o->ptr;
 			fn(val);
 			break;
+		default:
+		    return(-1);
 	}
+	return(0);
 
 }
 
@@ -136,12 +141,13 @@ int ducrc_read(struct ducrc *ducrc, const char *path)
 
 	FILE *f = fopen(path, "r");
 	if(f == NULL) {
-		//duc_log(NULL, DUC_LOG_DBG, "Not reading configuration from '%s': %s", path, strerror(errno));
+	    //duc_log(NULL, DUC_LOG_DBG, "Not reading configuration from '%s': %s", path, strerror(errno));
 		return -1;
 	}
-
+	//duc_log(NULL, DUC_LOG_DBG, "Reading configuration from '%s'",path,0);
 	char section[256] = "";
 	char buf[256];
+	int res;
 
 	while(fgets(buf, sizeof buf, f) != NULL) {
 
@@ -177,7 +183,10 @@ int ducrc_read(struct ducrc *ducrc, const char *path)
 				*p = '\0';
 				char *longopt = trim(l);
 				char *val = trim(p + 1);
-				handle_opt(ducrc, 0, longopt,  val);
+				res = handle_opt(ducrc, 0, longopt,  val);
+				if (res) {
+				    printf(" Error parsing option %s in section %s of %s\n",longopt,section,path);
+                                }			        
 				continue;
 			}
 
@@ -185,7 +194,10 @@ int ducrc_read(struct ducrc *ducrc, const char *path)
 
 			char *longopt = trim(l);
 			if(strlen(longopt) > 0) {
-				handle_opt(ducrc, 0, longopt, NULL);
+				res = handle_opt(ducrc, 0, longopt, NULL);
+				if (res) {
+				    printf(" Error longopt in section %s of %s\n",section,path);
+                                }			        
 			}
 		}
 	}
@@ -240,12 +252,13 @@ int ducrc_getopt(struct ducrc *ducrc, int *argc, char **argv[])
 
 	int c;
 	int idx;
+	int res;
 
 	if(*argc > 1) optind = 2;
 
 	while( ( c = getopt_long(*argc, *argv, optstr, longopts, &idx)) != -1) {
 		if(c == '?') return -1;
-		handle_opt(ducrc, c, c ? 0 : longopts[idx].name, optarg);
+		res = handle_opt(ducrc, c, c ? 0 : longopts[idx].name, optarg);
 	}
 	
 	*argc -= optind;

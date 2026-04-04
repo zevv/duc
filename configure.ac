@@ -7,7 +7,7 @@
 
 AC_PREREQ([2.13])
 
-AC_INIT([duc], [1.5.0-rc1], [duc@zevv.nl])
+AC_INIT([duc], [1.5.0-rc2], [duc@zevv.nl])
 
 LIB_CURRENT=1
 LIB_REVISION=0
@@ -83,7 +83,7 @@ case "${with_db_backend}" in
 				  AC_DEFINE([ENABLE_TKRZW], [1], [Enable tkrzw db backend])
 			     ], [ AC_MSG_ERROR(Unable to find tkrzw) ])
 		AC_SUBST([TKRZW_LIBS])
-p		AC_SUBST([TKRZW_CFLAGS])
+		AC_SUBST([TKRZW_CFLAGS])
 		;;
 	leveldb)
 		AC_CHECK_LIB([leveldb], [leveldb_open])
@@ -112,6 +112,11 @@ p		AC_SUBST([TKRZW_CFLAGS])
 esac
 
 AC_DEFINE_UNQUOTED(DB_BACKEND, ["${with_db_backend}"], [Database backend])
+
+PKG_CHECK_MODULES([ZSTD],[libarchive])		
+AC_DEFINE([DUC_TKRZW_COMP_ZSTD], ["RECORD_COMP_ZSTD"], ["Enable tkrzw db zstd comppression"])
+AC_DEFINE_UNQUOTED(TKRZW_ZSTD, ["${with_tkrzw_zstd}"], [tkrzw zstd compression support])
+AC_DEFINE([ENABLE_TKRZW_ZSTD], [1], [tkrzw with zstd])
 
 if test "${enable_cairo}" = "yes"; then
 
@@ -204,6 +209,7 @@ AC_MSG_RESULT([
    - Package version: $PACKAGE $VERSION
    - Prefix: ${prefix}
    - Database backend: ${with_db_backend}
+   - tkrzw ZSTD compression: ${with_tkrzw_zstd}
    - X11 support: ${enable_x11}
    - OpenGL support: ${enable_opengl}
    - UI (ncurses) support: ${enable_ui}

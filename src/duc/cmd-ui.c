@@ -185,14 +185,14 @@ static duc_dir *do_dir(duc *duc, duc_dir *dir, int depth)
 
 				off_t size = duc_get_size(&e->size, st);;
 		
-				size_t max_size_len = opt_bytes ? 12 : 7;
+				int max_size_len = opt_bytes ? 12 : 7;
 
 				char class = duc_file_type_char(e->type);
 
 				char siz[32];
 				duc_human_size(&e->size, st, opt_bytes, siz, sizeof siz);
 				if(cur != i) attrset(attr_size);
-				printw("%*s", max_size_len, siz);
+				printw("%*lu", max_size_len, (size_t) siz);
 
 				printw(" ");
 				char *p = e->name;

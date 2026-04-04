@@ -117,20 +117,27 @@ char *duc_db_type_check(const char *path_db)
 	/* read first MAGIC_LEN bytes of file then look for the strings, etc for each type of DB we support. */
 	size_t len = fread(buf, 1, sizeof(buf),f);
 	
-	if (strncmp(buf,"Kyoto CaBiNeT",13) == 0) {
-	    return("Kyoto Cabinet");
+	char kyotocabinet[] = { 0x4b,0x43,0x0a,0x0,0x10,0x0e,0x06,0xb4,0x31,0x08,0x0a,0x04,0x00,0x00,0x00,0x00 };
+	if (memcmp(buf,kyotocabinet,16) == 0) {
+	    return("kyotocabinet");
 	}
 	
 	if (strncmp(buf,"ToKyO CaBiNeT",13) == 0) {
-	    return("Tokyo Cabinet");
+	    return("tokyocabinet");
 	}
 
 	if (strncmp(buf,"TkrzwHDB",8) == 0) {
-	    return("Tkrzw HashDBM");
+	    return("tkrzw");
 	}
 
 	if (strncmp(buf,"SQLite format 3",15) == 0) {
-	    return("SQLite3");
+	    return("sqlite3");
+	}
+	
+	char lmdb[] = { 0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x08,0x0,0x0,0x0,0x0,0x0,
+                        0xde,0xc0,0xef,0xbe,0x01,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0 };
+	if (memcmp(buf,lmdb,32) == 0) {
+	    return("lmdb");
 	}
 	
     }
