@@ -105,6 +105,12 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 	if(path_db == NULL) {
 		char *home = getenv("XDG_CACHE_HOME");
 		if(home) {
+			/* ensure parent folder exists */
+			res = mkdir_p(home, 0700);
+			if (res != 0) {
+			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create directory \"%s\", %s", home, strerror(errno));
+			    exit(1);
+			}
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/duc", home);
 			/* Create if needed */
@@ -122,6 +128,12 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 	if(path_db == NULL) {
 		char *home = getenv("HOME");
 		if(home) {
+			/* ensure parent folder exists */
+			res = mkdir_p(home, 0700);
+			if (res != 0) {
+			    duc_log(duc, DUC_LOG_FTL, "Error! Cannot create directory \"%s\", %s", home, strerror(errno));
+			    exit(1);
+			}
 			/* Append parent folder */
 			snprintf(tmp, sizeof tmp, "%s/.cache/duc", home);
 			/* Create if needed */
