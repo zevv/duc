@@ -159,6 +159,16 @@ fi
 if test "${enable_ui}" = "yes"; then
         AC_DEFINE([ENABLE_UI], [1], [Enable ui])
 
+	# pkg-config also gives the terminfo library that matches ncurses;
+	# when tinfo is split out, ncursesw needs tinfow, not tinfo
+	PKG_CHECK_MODULES([NCURSESW], [ncursesw], [
+		LIBS="$NCURSESW_LIBS $LIBS"
+		AC_DEFINE([HAVE_LIBNCURSESW], [1])
+	], [
+	PKG_CHECK_MODULES([NCURSES], [ncurses], [
+		LIBS="$NCURSES_LIBS $LIBS"
+		AC_DEFINE([HAVE_LIBNCURSES], [1])
+	], [
 	AC_CHECK_LIB([ncursesw], [tputs],, [
 		AC_CHECK_LIB([ncurses], [tputs],, [
 			AC_MSG_ERROR([
@@ -166,6 +176,8 @@ The ncurses library was not found, which is needed for ui support. Either instal
 the ncurses development libraries, or compile without ui support (--disable-ui)
 			])
 		])
+	])
+	])
 	])
 fi
 
