@@ -178,6 +178,19 @@ else
 	exit 1
 fi
 
+# A negative fuzz stretches the rings over the tooltip point at (0,0), so
+# the graph builds a tooltip; a wrong snprintf() length there aborts with
+# _FORTIFY_SOURCE=3.
+$valgrind ./duc graph --fuzz=-100 -f svg -o /dev/null ${DUC_TEST_DIR} > ${DUC_TEST_DIR}.out 2>&1
+
+if [ "$?" = "0" ]; then
+	echo "graph tooltip: ok"
+else
+	echo "graph tooltip: failed"
+	cat ${DUC_TEST_DIR}.out
+	exit 1
+fi
+
 
 # Test backend checking.
 ductype=`./duc --version | tail -1 | awk '{print $NF}'`
