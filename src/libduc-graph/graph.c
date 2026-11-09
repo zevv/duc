@@ -205,16 +205,13 @@ static void gen_tooltip(duc_graph *g, struct duc_size *size, const char *name, d
 	duc_human_size(size, DUC_SIZE_TYPE_ACTUAL, g->bytes, siz_act, sizeof siz_act);
 	duc_human_size(size, DUC_SIZE_TYPE_COUNT, g->bytes, siz_cnt, sizeof siz_cnt);
 	char *typ = duc_file_type_name(type);
-	char *p = g->tooltip_msg;
-	int l = sizeof(g->tooltip_msg);
-	if(name) {
-		p += snprintf(p, l, "name: %s\n", name);
-	}
-	p += snprintf(p, l, 
+	snprintf(g->tooltip_msg, sizeof(g->tooltip_msg),
+			"%s%s%s"
 			"type: %s\n"
 			"actual size: %s\n"
 			"apparent size: %s\n"
 			"file count: %s",
+			name ? "name: " : "", name ? name : "", name ? "\n" : "",
 			typ, siz_act, siz_app, siz_cnt);
 }
 
