@@ -24,3 +24,8 @@
 .deps/
 .dirstamp
 /duc
+/test-driver
+/test-suite.log
+/testing/db-format
+/testing/*.log
+/testing/*.trs
