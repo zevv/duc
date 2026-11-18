@@ -18,8 +18,14 @@
 	- new: added 'H' or '--histogram' option to duc info
 	- new: added 'duc histogram' command  (Issue #284)
 	       - needs work still, especially CGI, UI and GUI output.
-	- fix: 
-	
+	- fix: a database written by an older Duc no longer crashes 'duc ls',
+	       'duc info', 'duc gui' and the other readers. Every backend now
+	       stores the database layout version, which is now 18, and Duc
+	       reports 'Database version mismatch' for an older database.
+	       Rebuild the index after the upgrade.
+	- fix: a truncated or out-of-range index record now gives 'Database
+	       corrupt and not usable' instead of a crash.
+
 1.4.5   (2022-07-29)
 
 	- new: added '-u' option to duc index to index by username
