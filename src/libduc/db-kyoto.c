@@ -55,22 +55,8 @@ struct db *db_open(const char *path_db, int flags, duc_errno *e)
 		goto err2;
 	}
 
-	size_t vall;
-	char *version = db_get(db, "duc_db_version", 14, &vall);
-	if(version) {
-		if(strcmp(version, DUC_DB_VERSION) != 0) {
-			*e = DUC_E_DB_VERSION_MISMATCH;
-			goto err3;
-		}
-		free(version);
-	} else {
-		db_put(db, "duc_db_version", 14, DUC_DB_VERSION, strlen(DUC_DB_VERSION));
-	}
-
 	return db;
 
-err3:
-	kcdbclose(db->kdb);
 err2:
 	kcdbdel(db->kdb);
 err1:

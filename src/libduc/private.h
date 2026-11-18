@@ -3,7 +3,13 @@
 
 #include "duc.h"
 
-#define DUC_DB_VERSION "17"
+/*
+ * Layout version of the database records. duc_open() refuses a database
+ * with another version, so change it with every change to a record layout.
+ * 18: the index report gained the topN and histogram fields.
+ */
+
+#define DUC_DB_VERSION "18"
 
 #ifndef S_ISLNK
 #define S_ISLNK(v) 0

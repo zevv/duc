@@ -61,9 +61,10 @@ static int topn_db(duc *duc, char *file)
 	    rep_idx++;
 	}
 
+	r = cmd_report_list_end(duc);
 	duc_close(duc);
 	
-	return 0;
+	return r;
 }
 
 

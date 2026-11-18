@@ -4,6 +4,11 @@
 
 #include "duc.h"
 
+/* Keys of the records that are neither directories nor index reports */
+
+#define DB_KEY_VERSION "duc_db_version"
+#define DB_KEY_REPORTS "duc_index_reports"
+
 struct db;
 
 struct db *db_open(const char *path_db, int flags, duc_errno *e);

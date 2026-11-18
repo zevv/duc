@@ -56,6 +56,40 @@ void duc_set_log_callback(duc *duc, duc_log_callback cb)
 	duc->log_callback = cb;
 }
 
+/*
+ * Check the layout version of an opened database. A database without a
+ * version is new, unless it holds index reports: older versions of Duc did
+ * not store the version with every backend. Stamp a new database only when
+ * it is opened for writing.
+ */
+
+static duc_errno check_version(struct db *db, duc_open_flags flags)
+{
+	size_t len = 0;
+
+	char *version = db_get(db, DB_KEY_VERSION, strlen(DB_KEY_VERSION), &len);
+	if(version) {
+		int same = (len == strlen(DUC_DB_VERSION)) &&
+		           (memcmp(version, DUC_DB_VERSION, len) == 0);
+		free(version);
+		return same ? DUC_OK : DUC_E_DB_VERSION_MISMATCH;
+	}
+
+	char *reports = db_get(db, DB_KEY_REPORTS, strlen(DB_KEY_REPORTS), &len);
+	if(reports) {
+		free(reports);
+		return DUC_E_DB_VERSION_MISMATCH;
+	}
+
+	if(flags & DUC_OPEN_RW) {
+		return db_put(db, DB_KEY_VERSION, strlen(DB_KEY_VERSION),
+		              DUC_DB_VERSION, strlen(DUC_DB_VERSION));
+	}
+
+	return DUC_OK;
+}
+
+
 // Return 0 ok, -1 for errors.
 int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 {
@@ -145,6 +179,16 @@ int duc_open(duc *duc, const char *path_db, duc_open_flags flags)
 		return -1;
 	    }
 	}
+
+	duc_errno e = check_version(duc->db, flags);
+	if(e != DUC_OK) {
+		duc->err = e;
+		duc_log(duc, DUC_LOG_FTL, "Error opening: %s - %s", path_db, duc_strerror(duc));
+		db_close(duc->db);
+		duc->db = NULL;
+		return -1;
+	}
+
 	return 0;
 }
 

@@ -23,6 +23,7 @@ struct buffer *buffer_new(void *data, size_t len)
 
 	b = duc_malloc(sizeof(struct buffer));
 	b->ptr = 0;
+	b->err = 0;
 
 	if(data) {
 		b->max = len;
@@ -63,13 +64,13 @@ static int buffer_put(struct buffer *b, const void *data, size_t len)
 
 static int buffer_get(struct buffer *b, void *data, size_t len)
 {
-	if(b->ptr <= b->len - len) {
-		memcpy(data, b->data + b->ptr, len);
-		b->ptr += len;
-		return len;
-	} else {
+	if(b->err || len > b->len - b->ptr) {
+		b->err = 1;
 		return 0;
 	}
+	memcpy(data, b->data + b->ptr, len);
+	b->ptr += len;
+	return len;
 }
 
 
@@ -82,9 +83,12 @@ static int buffer_put_varint(struct buffer *b, uint64_t v)
 } 
 
 
+/* Sets *v to 0 when the buffer is too short */
+
 static int buffer_get_varint(struct buffer *b, uint64_t *v)
 {
 	uint8_t buf[9];
+	*v = 0;
 	int r = buffer_get(b, buf, 1);
 	if(r == 0) return 0;
 
@@ -94,7 +98,7 @@ static int buffer_get_varint(struct buffer *b, uint64_t *v)
 	} else if(buf[0] >= 241) {
 		n = 1;
 	}
-	if(n > 0) buffer_get(b, buf+1, n);
+	if(n > 0 && buffer_get(b, buf+1, n) == 0) return 0;
 	int l = GetVarint64(buf, n+1, v);
 	return l;
 }
@@ -114,18 +118,15 @@ static void buffer_put_string(struct buffer *b, const char *s)
 	}
 }
 
-// FIXME!  This must return something on error.  Or crash cleanly?
-// Maximum string size of 255 bytes... why?
+/* Always allocates *sout; it is empty or partly zero when b->err is set */
+
 static void buffer_get_string(struct buffer *b, char **sout)
 {
-	uint8_t len;
+	uint8_t len = 0;
 	buffer_get(b, &len, sizeof(len));
-	char *s = duc_malloc(len + 1);
-	if(s) {
-		buffer_get(b, s, len);
-		s[len] = '\0';
-		*sout = s;
-	}
+	char *s = duc_malloc0(len + 1);
+	buffer_get(b, s, len);
+	*sout = s;
 }
 
 
@@ -235,13 +236,15 @@ void buffer_put_index_report(struct buffer *b, const struct duc_index_report *re
 	}
 }
 
-/* must have identical layout as buffer_put_index_report()! */
-void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
+/*
+ * Must have identical layout as buffer_put_index_report()! Returns -1 when
+ * the record is too short or a count is above its array size; the report
+ * then holds no allocated topN entries.
+ */
+int buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 {
 	char *vs = NULL;
 	buffer_get_string(b, &vs);
-	if(vs == NULL) return;
-
 	snprintf(report->path, sizeof(report->path), "%s", vs);
 	duc_free(vs);
 
@@ -254,13 +257,19 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	buffer_get_varint(b, &vi); report->file_count = vi;
 	buffer_get_varint(b, &vi); report->dir_count = vi;
 	buffer_get_size(b, &report->size);
-        /* read topN data as well, if found */
-	buffer_get_varint(b, &vi); report->topn_min_size = vi;
-	buffer_get_varint(b, &vi); report->topn_cnt = vi;
-	buffer_get_varint(b, &vi); report->topn_cnt_max = vi;
-	buffer_get_varint(b, &vi); report->histogram_buckets = vi;
 
-	/* when reading, look for -1 as last bucket, so we can be dynamically sized? */
+	uint64_t topn_cnt, buckets;
+	buffer_get_varint(b, &vi); report->topn_min_size = vi;
+	buffer_get_varint(b, &topn_cnt);
+	buffer_get_varint(b, &vi); report->topn_cnt_max = vi;
+	buffer_get_varint(b, &buckets);
+
+	if(b->err || topn_cnt > DUC_TOPN_CNT_MAX || buckets > DUC_HISTOGRAM_BUCKETS_MAX) {
+		return -1;
+	}
+	report->topn_cnt = topn_cnt;
+	report->histogram_buckets = buckets;
+
 	for(int i = 0; i < report->histogram_buckets; i++) {
 	    buffer_get_varint(b, &vi);
 	    report->histogram[i] = vi;
@@ -271,9 +280,20 @@ void buffer_get_index_report(struct buffer *b, struct duc_index_report *report)
 	    buffer_get_varint(b, &length);
 	    buffer_get_string(b, &vs);
 	    report->topn_array[i] = duc_malloc0(sizeof(duc_topn_file));
-	    strncpy(report->topn_array[i]->name, vs, strlen(vs));
+	    snprintf(report->topn_array[i]->name, sizeof(report->topn_array[i]->name), "%s", vs);
+	    duc_free(vs);
 	    buffer_get_varint(b, &vi); report->topn_array[i]->size = vi;
 	}
+
+	if(b->err) {
+		for(int i = 0; i < report->topn_cnt; i++) {
+			duc_free(report->topn_array[i]);
+			report->topn_array[i] = NULL;
+		}
+		return -1;
+	}
+
+	return 0;
 }
 
 
