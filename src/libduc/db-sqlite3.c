@@ -91,7 +91,7 @@ void *db_get(struct db *db, const void *key, size_t key_len, size_t *val_len)
 	if(r == SQLITE_ROW) {
 		*val_len = sqlite3_column_bytes(pStmt, 0);
 		val = duc_malloc(*val_len);
-		memcpy(val, sqlite3_column_blob(pStmt, 0), *val_len);
+		if(*val_len) memcpy(val, sqlite3_column_blob(pStmt, 0), *val_len);
 	}
 	sqlite3_finalize(pStmt);
 

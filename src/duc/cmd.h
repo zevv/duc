@@ -19,4 +19,13 @@ struct cmd {
 };
 
 
+/*
+ * For subcommands that list the index reports: returns 0 when the
+ * duc_get_report() loop ended past the last report, or logs the error and
+ * returns -1 when it ended on a report that cannot be read
+ */
+
+int cmd_report_list_end(duc *duc);
+
+
 #endif

@@ -26,13 +26,13 @@ duc_errno db_write_report(duc *duc, const struct duc_index_report *report)
 
 	//printf("writing report, ->topn_cnt = %d, ->topn_cnt_max = %d\n",report->topn_cnt, report->topn_cnt_max);
 	if(tmp == NULL) {
-		char *tmp = db_get(duc->db, "duc_index_reports", 17, &tmpl);
+		char *tmp = db_get(duc->db, DB_KEY_REPORTS, strlen(DB_KEY_REPORTS), &tmpl);
 		if(tmp) {
 			tmp = duc_realloc(tmp, tmpl + sizeof(report->path));
 			memcpy(tmp + tmpl, report->path, sizeof(report->path));
-			db_put(duc->db, "duc_index_reports", 17, tmp, tmpl + sizeof(report->path));
+			db_put(duc->db, DB_KEY_REPORTS, strlen(DB_KEY_REPORTS), tmp, tmpl + sizeof(report->path));
 		} else {
-			db_put(duc->db, "duc_index_reports", 17, report->path, sizeof(report->path));
+			db_put(duc->db, DB_KEY_REPORTS, strlen(DB_KEY_REPORTS), report->path, sizeof(report->path));
 		}
 		
 		/* write histogram */
@@ -88,9 +88,15 @@ struct duc_index_report *db_read_report(duc *duc, const char *path)
 
 	struct buffer *b = buffer_new(val, vall);
 
-	report = duc_malloc(sizeof *report);
-	buffer_get_index_report(b, report);
+	report = duc_malloc0(sizeof *report);
+	int r = buffer_get_index_report(b, report);
 	buffer_free(b);
+
+	if(r != 0) {
+		free(report);
+		duc->err = DUC_E_DB_CORRUPT;
+		return NULL;
+	}
 
 	return report;
 }

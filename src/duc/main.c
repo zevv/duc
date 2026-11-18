@@ -192,6 +192,14 @@ int main(int argc, char **argv)
 }
 
 
+int cmd_report_list_end(duc *duc)
+{
+	if(duc_error(duc) == DUC_OK) return 0;
+	duc_log(duc, DUC_LOG_FTL, "%s", duc_strerror(duc));
+	return -1;
+}
+
+
 static struct cmd *find_cmd_by_name(const char *name)
 {
 	size_t i;

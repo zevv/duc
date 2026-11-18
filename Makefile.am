@@ -1,7 +1,7 @@
 
 bin_PROGRAMS := duc
 
-duc_SOURCES := \
+LIBDUC_SRC := \
 	src/libduc/buffer.c \
 	src/libduc/buffer.h \
 	src/libduc/db.c \
@@ -23,6 +23,10 @@ duc_SOURCES := \
 	src/libduc/uthash.h \
 	src/libduc/utlist.h \
 	src/libduc/utstring.h
+
+DB_LIBS := @TC_LIBS@ @SQLITE3_LIBS@ @LMDB_LIBS@ @KC_LIBS@ @TKRZW_LIBS@
+
+duc_SOURCES := $(LIBDUC_SRC)
 
 duc_SOURCES += \
 	src/glad/glad.c \
@@ -63,8 +67,17 @@ AM_CFLAGS += @TC_CFLAGS@ @SQLITE3_CFLAGS@ @GLFW3_CFLAGS@ @LMDB_CFLAGS@
 AM_CFLAGS += @KC_CFLAGS@ @TKRZW_CFLAGS@
 AM_CFLAGS += -Isrc/libduc -Isrc/libduc-graph -Isrc/glad
 
-duc_LDADD := @CAIRO_LIBS@ @PANGO_LIBS@ @PANGOCAIRO_LIBS@
-duc_LDADD += @TC_LIBS@ @SQLITE3_LIBS@ @GLFW3_LIBS@ @LMDB_LIBS@ @KC_LIBS@ @TKRZW_LIBS@
+duc_LDADD := @CAIRO_LIBS@ @PANGO_LIBS@ @PANGOCAIRO_LIBS@ @GLFW3_LIBS@
+duc_LDADD += $(DB_LIBS)
+
+# 'make check' runs these from the top build directory, after ./duc is built
+
+check_PROGRAMS := testing/db-format
+
+testing_db_format_SOURCES := testing/db-format.c $(LIBDUC_SRC)
+testing_db_format_LDADD := $(DB_LIBS)
+
+TESTS := $(check_PROGRAMS)
 
 man1_MANS = \
 	doc/duc.1

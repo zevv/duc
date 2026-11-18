@@ -258,11 +258,22 @@ path which is used by all subcommands
 
 ## FREQUENTLY ASKED QUESTIONS
 
-* What does the error 'Database version mismatch mean?'
- 
+* What does the error 'Database version mismatch' mean?
+
   The layout of the index database sometimes changes when new features are
-  implemented. When you get this error you have probably upgraded to a newer
-  version. Just remove the old database file and rebuild the index.
+  implemented. Duc stores the layout version in the database with every
+  backend, and does not read or update a database with a different version.
+  A database that holds indexed paths but no version is also refused; Duc
+  1.4 wrote such databases with the sqlite3, leveldb and lmdb backends.
+  Databases written before Duc 1.5.0, including 1.5.0-rc1, use an older
+  layout version. When you get this error you have probably upgraded to a
+  newer version. Remove the old database file and rebuild the index.
+
+* What does the error 'Database corrupt and not usable' mean?
+
+  Duc found a record in the database that is shorter than its layout
+  requires, or that holds a count larger than Duc supports. Remove the
+  database file and rebuild the index.
 
 * Duc crashes with a segmentation fault, is it that buggy?
 

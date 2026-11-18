@@ -52,9 +52,10 @@ static int histogram_db(duc *duc, char *file)
 	    i++;
 	}
 
+	r = cmd_report_list_end(duc);
 	duc_close(duc);
 	
-	return 0;
+	return r;
 }
 
 

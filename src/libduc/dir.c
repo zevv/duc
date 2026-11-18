@@ -59,7 +59,7 @@ struct duc_dir *duc_dir_new(struct duc *duc, const struct duc_devino *devino)
 
 	/* Read all dirents */
 
-	while(b->ptr < b->len) {
+	while(!b->err && b->ptr < b->len) {
 
 		if((dir->ent_count+1) * sizeof(struct duc_dirent) > dir->ent_pool) {
 			dir->ent_pool *= 2;
@@ -68,12 +68,23 @@ struct duc_dir *duc_dir_new(struct duc *duc, const struct duc_devino *devino)
 
 		struct duc_dirent *ent = &dir->ent_list[dir->ent_count];
 		buffer_get_dirent(b, ent);
+		if(b->err) {
+			free(ent->name);
+			break;
+		}
 
 		duc_size_accum(&dir->size, &ent->size);
 		dir->ent_count ++;
 	}
 
+	int corrupt = b->err;
 	buffer_free(b);
+
+	if(corrupt) {
+		duc_dir_close(dir);
+		duc->err = DUC_E_DB_CORRUPT;
+		return NULL;
+	}
 
 	return dir;
 }
@@ -184,6 +195,11 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 			free(report);
 			break;
 		}
+		if(duc->err == DUC_E_DB_CORRUPT) {
+			free(path_try);
+			free(path_canon);
+			return NULL;
+		}
 		l--;
 	}
 	free(path_try);
@@ -197,10 +213,11 @@ duc_dir *duc_dir_open(struct duc *duc, const char *path)
 
 	struct duc_dir *dir;
 
+	/* duc_dir_new() sets DUC_E_PATH_NOT_FOUND or DUC_E_DB_CORRUPT */
+
 	dir = duc_dir_new(duc, &devino);
 
 	if(dir == NULL) {
-		duc->err = DUC_E_PATH_NOT_FOUND;
 		free(path_canon);
 		return NULL;
 	}
@@ -353,15 +370,25 @@ int duc_dir_close(duc_dir *dir)
 }
 
 
+/*
+ * Returns NULL with DUC_OK past the last report, or NULL with the error
+ * when the report cannot be read
+ */
+
 struct duc_index_report *duc_get_report(duc *duc, size_t id)
 {
 	size_t indexl;
 
-	char *index = db_get(duc->db, "duc_index_reports", 17, &indexl);
+	duc->err = DUC_OK;
+
+	char *index = db_get(duc->db, DB_KEY_REPORTS, strlen(DB_KEY_REPORTS), &indexl);
 	if(index == NULL) return NULL;
 
 	size_t report_count = indexl / DUC_PATH_MAX;
-	if(id >= report_count) return NULL;
+	if(id >= report_count) {
+		free(index);
+		return NULL;
+	}
 
 	char *path = index + id * DUC_PATH_MAX;
 
