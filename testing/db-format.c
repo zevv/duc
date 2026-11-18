@@ -10,8 +10,9 @@
  * functions, so that the tests do not share mistakes with the code.
  *
  * 'make check' runs this program from the top build directory. The cli_*
- * cases run ./duc from that directory. Each case runs in a child process,
- * so a crash fails only that case.
+ * cases run ./duc from that directory: 'duc info', 'duc histogram' and
+ * 'duc topn' list the reports, and 'duc ls' opens the indexed path. Each
+ * case runs in a child process, so a crash fails only that case.
  */
 
 #include "config.h"
@@ -759,11 +760,17 @@ static void expect_cli_error(char *const argv[], const char *message)
 }
 
 
+/* The subcommands that list the index reports, and 'duc ls' */
+
 static void expect_cli_errors(char *path, const char *message)
 {
 	char *info[] = { "duc", "info", "-d", path, NULL };
+	char *histogram[] = { "duc", "histogram", "-d", path, NULL };
+	char *topn[] = { "duc", "topn", "-d", path, NULL };
 	char *ls[] = { "duc", "ls", "-d", path, indexed_path, NULL };
 	expect_cli_error(info, message);
+	expect_cli_error(histogram, message);
+	expect_cli_error(topn, message);
 	expect_cli_error(ls, message);
 }
 
